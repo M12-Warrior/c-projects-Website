@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trucker Wellness Journal — Download &amp; Print — Mile 12 Warrior</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <style>
+    @media print {
+      body { background: #fff; }
+      .no-print { display: none !important; }
+      .journal-print-wrap { box-shadow: none; border: 1px solid #ddd; }
+      .page-break { page-break-before: always; }
+    }
+    .journal-print-wrap { max-width: 800px; margin: 0 auto; padding: 24px; background: #fff; color: #1a1a1a; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .journal-print-wrap h1 { font-size: 1.5rem; margin-bottom: 4px; color: #1a1a1a; }
+    .journal-print-wrap .subtitle { font-size: 0.9rem; color: #555; margin-bottom: 24px; }
+    .journal-day { border: 1px solid #ddd; border-radius: 6px; padding: 16px; margin-bottom: 20px; }
+    .journal-day h3 { font-size: 1rem; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #eee; color: #333; }
+    .journal-row { display: flex; gap: 16px; margin-bottom: 10px; flex-wrap: wrap; }
+    .journal-row label { min-width: 90px; font-size: 0.85rem; color: #555; }
+    .journal-row .line { flex: 1; border-bottom: 1px solid #ccc; min-height: 1.4em; }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar scrolled no-print" id="navbar" style="margin-bottom: 24px;">
+    <div class="nav-container">
+      <a href="/journal" class="nav-logo" style="text-decoration: none;">&larr; Back to My Journal</a>
+    </div>
+  </nav>
+
+  <main class="page-shell" style="padding-bottom: 48px;">
+    <div class="page-container">
+      <div id="journalGate" class="glass-card no-print" style="padding:32px;text-align:center;display:none;">
+        <h2 class="page-title">Trucker Wellness Journal</h2>
+        <p style="color:var(--text-2);margin-bottom:20px">The downloadable &amp; printable journal is available with an active <strong>monthly subscription</strong>.</p>
+        <a href="/shop/product/trucker-wellness-journal-monthly" class="btn btn-primary">View monthly subscription</a>
+      </div>
+
+      <div id="journalPrintApp" style="display:none;">
+        <div class="no-print" style="margin-bottom:24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-primary" id="printBtn">Print or save as PDF</button>
+          <a href="/journal" class="btn btn-glass">Back to My Journal</a>
+          <p style="font-size:0.85rem;color:var(--text-2);margin:0;">Use your browser&rsquo;s Print dialog to save as PDF or print. Subscribers can re-download anytime.</p>
+        </div>
+
+        <div class="journal-print-wrap" id="journalPrintContent">
+          <h1>Trucker Wellness Journal</h1>
+          <p class="subtitle">Mile 12 Warrior — Daily log for sleep, meals, exercise, mood, mileage &amp; notes. For personal use; align with FMCSA rest and wellness practices.</p>
+
+          <p style="font-size:0.8rem;color:#666;margin-bottom:20px;"><strong>Disclaimer:</strong> This journal is for personal tracking only. It is not medical, legal, or regulatory advice. Consult FMCSA regulations (fmcsa.dot.gov) and qualified professionals for compliance.</p>
+
+          <div class="journal-day">
+            <h3>Daily log — Week of _______________</h3>
+            <div class="journal-row"><label>Date</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Sleep (hours)</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Meals</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Exercise</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Mood / energy</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Mileage / route</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Notes</label><span class="line" style="min-height:3em;">&nbsp;</span></div>
+          </div>
+
+          <div class="journal-day page-break">
+            <h3>Daily log — Week of _______________</h3>
+            <div class="journal-row"><label>Date</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Sleep (hours)</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Meals</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Exercise</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Mood / energy</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Mileage / route</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Notes</label><span class="line" style="min-height:3em;">&nbsp;</span></div>
+          </div>
+
+          <div class="journal-day page-break">
+            <h3>Daily log — Week of _______________</h3>
+            <div class="journal-row"><label>Date</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Sleep (hours)</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Meals</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Exercise</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Mood / energy</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Mileage / route</label><span class="line">&nbsp;</span></div>
+            <div class="journal-row"><label>Notes</label><span class="line" style="min-height:3em;">&nbsp;</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      async function checkSubscription() {
+        try {
+          const r = await fetch('/api/subscription/me', { credentials: 'include' });
+          if (!r.ok) { document.getElementById('journalGate').style.display = 'block'; return; }
+          const data = await r.json();
+          if (data.subscription && data.subscription.active) {
+            document.getElementById('journalPrintApp').style.display = 'block';
+            var btn = document.getElementById('printBtn');
+            if (btn) btn.addEventListener('click', function() { window.print(); });
+          } else {
+            document.getElementById('journalGate').style.display = 'block';
+          }
+        } catch (_) {
+          document.getElementById('journalGate').style.display = 'block';
+        }
+      }
+      checkSubscription();
+    })();
+  </script>
+</body>
+</html>

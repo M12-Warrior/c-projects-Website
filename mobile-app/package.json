@@ -1,0 +1,32 @@
+{
+  "name": "mile12warrior-mobile",
+  "version": "1.0.0",
+  "description": "Mile 12 Warrior - Mobile App for Android & iOS",
+  "main": "index.js",
+  "scripts": {
+    "cap:init:android": "npx cap add android",
+    "cap:init:ios": "npx cap add ios",
+    "cap:sync": "npx cap sync",
+    "cap:open:android": "npx cap open android",
+    "cap:open:ios": "npx cap open ios",
+    "cap:build:android": "npx cap sync android && npx cap open android",
+    "cap:build:ios": "npx cap sync ios && npx cap open ios",
+    "setup:android": "npx cap add android && npx cap sync android",
+    "setup:ios": "npx cap add ios && npx cap sync ios",
+    "setup:all": "npx cap add android && npx cap add ios && npx cap sync"
+  },
+  "keywords": ["trucking", "safety", "mobile", "capacitor"],
+  "author": "Mile 12 Warrior LLC",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@capacitor/android": "^8.1.0",
+    "@capacitor/cli": "^8.1.0",
+    "@capacitor/core": "^8.1.0",
+    "@capacitor/haptics": "^8.0.1",
+    "@capacitor/ios": "^8.1.0",
+    "@capacitor/keyboard": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.1"
+  }
+}

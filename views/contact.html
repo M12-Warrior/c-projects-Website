@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us — Mile 12 Warrior</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- ========== NAVIGATION ========== -->
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.svg" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';var s=this.nextElementSibling;if(s)s.style.display='flex';">
+        <span class="nav-logo-fallback" style="display:none;">
+          <svg class="logo-svg logo-shield" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/#roadmap">Roadmap</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/refresh">Refresh</a></li>
+        <li><a href="/contact" class="active">Contact</a></li>
+        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ========== PAGE SHELL ========== -->
+  <main class="page-shell">
+    <div class="page-container">
+      <h1 class="page-title">Contact Us</h1>
+      <p class="page-subtitle">Have questions about our services? Want to set up a consultation? We'd love to hear from you.</p>
+
+      <div id="subscriberBanner" class="glass-card hidden" style="margin-bottom:24px;padding:20px 24px;border-left:4px solid var(--blue);">
+        <p style="margin:0;font-weight:600;">You're messaging as a <strong>subscriber</strong> — your message will get priority.</p>
+        <p style="margin:8px 0 0 0;font-size:0.9rem;color:var(--text-2);">Share suggestions for improvements or let us know if you're having any issues navigating the site so we can fix bugs. We appreciate your feedback.</p>
+      </div>
+
+      <div class="card-grid cols-2">
+        <!-- LEFT: Contact Form -->
+        <div class="glass-card">
+          <form id="contactForm" class="contact-form">
+            <input type="hidden" id="subscriberPriority" name="subscriber_priority" value="">
+            <div class="form-group">
+              <label class="form-label" for="name">Name <span class="required">*</span></label>
+              <input type="text" id="name" name="name" class="form-input" required placeholder="Your name">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="email">Email <span class="required">*</span></label>
+              <input type="email" id="email" name="email" class="form-input" required placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="subject">Subject</label>
+              <input type="text" id="subject" name="subject" class="form-input" placeholder="What's this about?">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="message">Message <span class="required">*</span></label>
+              <textarea id="message" name="message" class="form-input" required placeholder="Your message..." rows="5"></textarea>
+            </div>
+            <div id="formMessage" class="form-message hidden" role="status"></div>
+            <button type="submit" class="form-btn" id="submitBtn">Send Message</button>
+          </form>
+        </div>
+
+        <!-- RIGHT: Contact Information -->
+        <div class="glass-card">
+          <h3>Get in Touch</h3>
+          <p style="margin-bottom: 12px;">
+            <strong>Email:</strong><br>
+            <a href="mailto:joyce@mile12warrior.com">joyce@mile12warrior.com</a>
+          </p>
+          <p style="margin-bottom: 12px;">
+            <strong>Phone:</strong><br>
+            <a href="tel:+19162927411">(916) 292-7411</a>
+          </p>
+          <p style="margin-bottom: 24px;">
+            <strong>Address:</strong><br>
+            2108 N St. #8325, Sacramento, CA 95816
+          </p>
+
+          <h3 style="margin-top: 24px;">Follow Us</h3>
+          <div class="social-icon-links">
+            <a href="https://www.facebook.com/mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+            <a href="https://x.com/mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+            <a href="https://www.instagram.com/mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+            <a href="https://www.tiktok.com/@mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg></a>
+          </div>
+
+          <h3 style="margin-top: 24px;">Business Hours</h3>
+          <p>Available for consultations by appointment. Message response within 24-48 hours.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <svg class="logo-svg logo-shield" width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </div>
+        <p class="footer-tagline">Born from real road experience. Empowering truck drivers to master the miles and own their journey.</p>
+        <nav class="footer-nav">
+          <a href="/about">About</a>
+          <a href="/services">Services</a>
+          <a href="/blog">Blog</a>
+          <a href="/forum">Forum</a>
+          <a href="/shop">Shop</a>
+          <a href="/contact">Contact</a>
+        </nav>
+        <p class="footer-contact">joyce@mile12warrior.com | (916) 292-7411</p>
+        <div class="footer-social">
+          <a href="https://www.facebook.com/mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="Facebook">Facebook</a>
+          <a href="https://x.com/mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">X</a>
+          <a href="https://www.instagram.com/mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="Instagram">Instagram</a>
+          <a href="https://www.tiktok.com/@mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="TikTok">TikTok</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N St. #8325, Sacramento, CA 95816</p>
+        <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+          <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
+          <a href="/terms#refunds" style="color:var(--text-2)">Refund Policy</a>
+          <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>
+          <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>
+          <a href="/advertise" style="color:var(--text-2)">Advertise</a>
+          <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
+        </nav>
+        <p style="font-size:0.8rem;color:var(--text-3);">Hosted on <a href="https://railway.com?referralCode=7f6OG0" target="_blank" rel="noopener noreferrer">Railway</a>.</p>
+        <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved. This is an educational resource — not medical, legal, or regulatory advice. All content is intended to align with USDOT FMCSA (49 CFR) and Caltrans/CALDOT regulations. Always verify current rules at <a href="https://www.fmcsa.dot.gov" target="_blank" rel="noopener">fmcsa.dot.gov</a> and <a href="https://dot.ca.gov" target="_blank" rel="noopener">dot.ca.gov</a>, and consult qualified professionals for compliance and medical questions.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws and regulations that may differ significantly. It is the driver's responsibility to know and comply with the laws of every state they travel through. References to California (Caltrans/CALDOT) regulations reflect the home state of Mile 12 Warrior LLC and should not be assumed to apply in other jurisdictions.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:600px;margin-left:auto;margin-right:auto">Contact form submissions are processed in accordance with our <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>. We do not sell your personal information.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      // Mobile nav toggle
+      const navToggle = document.getElementById('navToggle');
+      const navLinks = document.getElementById('navLinks');
+      if (navToggle && navLinks) {
+        navToggle.addEventListener('click', () => {
+          navToggle.classList.toggle('active');
+          navLinks.classList.toggle('open');
+        });
+      }
+
+      // Update navbar auth link
+      async function updateAuthLink() {
+        const authLink = document.querySelector('.nav-auth-link');
+        if (!authLink) return;
+        try {
+          const res = await fetch('/api/auth/me', { credentials: 'include' });
+          const data = await res.json();
+          if (data.user) {
+            const li = authLink.closest('li');
+            li.innerHTML = '<span style="color: var(--text-2); font-size: 0.8rem; padding: 6px 14px;">' + escapeHtml(data.user.username) + '</span><a href="/profile" style="padding: 6px 14px;">Profile</a><a href="#" class="nav-logout-link" style="padding: 6px 14px; color: var(--text-3);">Logout</a>';
+            li.querySelector('.nav-logout-link')?.addEventListener('click', async (e) => {
+              e.preventDefault();
+              await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+              location.reload();
+            });
+          }
+        } catch (_) {}
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      // Contact form submit
+      const form = document.getElementById('contactForm');
+      const formMessage = document.getElementById('formMessage');
+      const submitBtn = document.getElementById('submitBtn');
+
+      if (form && formMessage) {
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          formMessage.classList.add('hidden');
+          formMessage.classList.remove('success', 'error');
+          formMessage.textContent = '';
+
+          const name = document.getElementById('name').value.trim();
+          const email = document.getElementById('email').value.trim();
+          const subject = document.getElementById('subject').value.trim();
+          const message = document.getElementById('message').value.trim();
+          const subscriberPriority = document.getElementById('subscriberPriority') && document.getElementById('subscriberPriority').value === '1';
+
+          if (!name || !email || !message) {
+            formMessage.textContent = 'Please fill in all required fields.';
+            formMessage.classList.add('error');
+            formMessage.classList.remove('hidden');
+            return;
+          }
+
+          submitBtn.disabled = true;
+          try {
+            const res = await fetch('/api/contact', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name, email, subject, message, subscriber_priority: subscriberPriority }),
+              credentials: 'include'
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+              formMessage.textContent = data.error || 'Something went wrong. Please try again.';
+              formMessage.classList.add('error');
+            } else {
+              formMessage.textContent = "Message sent! We'll get back to you soon.";
+              formMessage.classList.add('success');
+              form.reset();
+            }
+          } catch (err) {
+            formMessage.textContent = 'Network error. Please try again.';
+            formMessage.classList.add('error');
+          }
+          formMessage.classList.remove('hidden');
+          submitBtn.disabled = false;
+        });
+      }
+
+      // Subscriber mode from query (?subscriber=1)
+      (function initSubscriberMode() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('subscriber') === '1') {
+          const banner = document.getElementById('subscriberBanner');
+          const subInput = document.getElementById('subscriberPriority');
+          const subjectInput = document.getElementById('subject');
+          const messageInput = document.getElementById('message');
+          if (banner) banner.classList.remove('hidden');
+          if (subInput) subInput.value = '1';
+          if (subjectInput && !subjectInput.value) subjectInput.placeholder = 'e.g. Suggestion for the journal, or: Having trouble with…';
+          if (messageInput && !messageInput.value) messageInput.placeholder = 'Share improvements you\'d like to see, or describe any issues you\'re having navigating the site so we can fix bugs…';
+        }
+      })();
+
+      updateAuthLink();
+    })();
+  </script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="pageTitle">Category — Mile 12 Warrior Forum</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.svg" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';var s=this.nextElementSibling;if(s)s.style.display='flex';">
+        <span class="nav-logo-fallback" style="display:none;">
+          <svg class="logo-svg logo-shield" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/#roadmap">Roadmap</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/forum" class="active">Forum</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/refresh">Refresh</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container">
+      <a href="/forum" class="text-muted" style="display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px; font-size: 0.88rem; text-decoration: none;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back to Forum
+      </a>
+      <div class="flex-between mb-16">
+        <h1 class="page-title" id="categoryTitle">Loading…</h1>
+        <a href="/forum/new-thread" class="btn btn-primary hidden" id="newThreadBtn">
+          <span>New Thread</span>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </a>
+      </div>
+
+      <div class="forum-signin-banner glass-card" id="forumSigninBanner" style="margin-bottom:24px;padding:20px 24px;display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+        <div>
+          <p style="font-weight:600;margin-bottom:4px;">Sign in to view all threads and participate</p>
+          <p style="font-size:0.88rem;color:var(--text-2);margin:0;">Create a free account or log in to see every discussion and post replies.</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <a href="/login" class="btn btn-primary">Sign In</a>
+          <a href="/register" class="btn btn-glass">Create Account</a>
+        </div>
+      </div>
+
+      <div id="threadList" class="thread-list">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="forum-gate-card glass-card" id="forumGateCard" style="margin-top:24px;padding:24px;text-align:center;display:none;">
+        <p style="font-weight:600;margin-bottom:8px;">Want to see all threads and join the conversation?</p>
+        <p style="font-size:0.9rem;color:var(--text-2);margin-bottom:16px;">Sign in or create a free account to view full discussions and post replies.</p>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+          <a href="/login" class="btn btn-primary">Sign In</a>
+          <a href="/register" class="btn btn-glass">Create Account</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      function formatDate(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        const now = new Date();
+        const diff = now - d;
+        if (diff < 60000) return 'Just now';
+        if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+        if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+        if (diff < 604800000) return Math.floor(diff / 86400000) + 'd ago';
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+      }
+
+      function getSlug() {
+        const m = /\/forum\/category\/([^/?#]+)/.exec(window.location.pathname);
+        return m ? m[1] : '';
+      }
+
+      let isLoggedIn = false;
+      let currentUserId = null;
+      let myMicVisible = true;
+      const CB_MIC_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" width="14" height="14"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>';
+
+      function getIncognito() {
+        try { return localStorage.getItem('cb_mic_incognito') === '1'; } catch (_) { return false; }
+      }
+
+      function authorHtml(username, subscriberTier, userId) {
+        const isCurrentUser = currentUserId != null && userId != null && String(userId) === String(currentUserId);
+        const showMic = subscriberTier > 0 && (isCurrentUser ? (myMicVisible && !getIncognito()) : true);
+        const name = (username || 'Anonymous').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        if (!showMic) return name;
+        return name + ' <span class="cb-mic cb-mic-tier-' + subscriberTier + '" title="Subscriber">' + CB_MIC_SVG + '</span>';
+      }
+
+      async function checkAuth() {
+        try {
+          const r = await fetch('/api/auth/me', { credentials: 'include' });
+          if (r.ok) {
+            const data = await r.json();
+            if (data.user) {
+              isLoggedIn = true;
+              currentUserId = data.user.id || null;
+              document.getElementById('newThreadBtn').classList.remove('hidden');
+              const authLink = document.querySelector('.nav-auth-link');
+              if (authLink) authLink.textContent = data.user.username || 'Account';
+              const subRes = await fetch('/api/subscription/me', { credentials: 'include' });
+              if (subRes.ok) {
+                const subData = await subRes.json();
+                myMicVisible = subData.mic_visible !== false;
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
+      async function loadCategory() {
+        const slug = getSlug();
+        const titleEl = document.getElementById('categoryTitle');
+        const listEl = document.getElementById('threadList');
+        const banner = document.getElementById('forumSigninBanner');
+        const gateCard = document.getElementById('forumGateCard');
+        if (!slug) {
+          titleEl.textContent = 'Category';
+          listEl.innerHTML = '<p class="text-muted">Invalid category.</p>';
+          return;
+        }
+        try {
+          const r = await fetch('/api/forum/categories/' + encodeURIComponent(slug), { credentials: 'include' });
+          const data = await r.json();
+          const cat = data.category || data;
+          let threads = data.threads || data.thread_list || [];
+          if (!isLoggedIn) {
+            if (banner) banner.style.display = 'flex';
+            var showCount = Math.min(3, threads.length);
+            threads = threads.slice(0, showCount);
+            if (gateCard) gateCard.style.display = 'block';
+          } else {
+            if (gateCard) gateCard.style.display = 'none';
+          }
+          titleEl.textContent = cat.name || 'Category';
+          document.title = (cat.name || 'Category') + ' — Mile 12 Warrior Forum';
+          listEl.innerHTML = threads.map(function(t) {
+            const badges = [];
+            if (t.pinned) badges.push('<span class="thread-badge badge-pinned">Pinned</span>');
+            if (t.locked) badges.push('<span class="thread-badge badge-locked">Locked</span>');
+            const slug2 = t.slug || t.id;
+            const tier = t.subscriber_tier || 0;
+            const authorDisplay = 'by ' + authorHtml(t.author?.username || t.username || 'Anonymous', tier, t.user_id) + ' &middot; ' + formatDate(t.created_at || t.createdAt);
+            return '<a href="/forum/thread/' + slug2 + '" class="thread-item">' +
+              '<div class="thread-item-main">' +
+                '<div class="thread-item-title">' + (badges.length ? '<span class="thread-badges">' + badges.join('') + '</span> ' : '') + (t.title || 'Thread') + '</div>' +
+                '<div class="thread-item-meta">' + authorDisplay + '</div>' +
+              '</div>' +
+              '<div class="thread-item-stats">' + (t.reply_count ?? t.replyCount ?? 0) + ' replies</div>' +
+            '</a>';
+          }).join('') || '<p class="text-muted">No threads yet.</p>';
+        } catch (e) {
+          titleEl.textContent = 'Category';
+          listEl.innerHTML = '<p class="text-muted">Unable to load category.</p>';
+        }
+      }
+
+      (async function() {
+        await checkAuth();
+        loadCategory();
+      })();
+    })();
+  </script>
+  <script src="/js/main.js"></script>
+
+  <footer class="footer" style="margin-top:60px">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N St. #8325, Sacramento, CA 95816</p>
+        <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+          <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
+          <a href="/terms#refunds" style="color:var(--text-2)">Refund Policy</a>
+          <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>
+          <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>
+          <a href="/forum/rules" style="color:var(--text-2)">Forum Rules</a>
+          <a href="/advertise" style="color:var(--text-2)">Advertise</a>
+          <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
+        </nav>
+        <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:600px;margin-left:auto;margin-right:auto">Forum posts and community content reflect the views of their individual authors, not Mile 12 Warrior LLC. Content is not independently verified. See our <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws that may differ significantly. It is the driver's responsibility to comply with the laws of every state they travel through. California (Caltrans/CALDOT) references reflect our home state and should not be assumed to apply elsewhere.</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

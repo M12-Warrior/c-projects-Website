@@ -1,0 +1,67 @@
+---
+description: Standard SOP for implementing GUI with animations across the Mile 12 Warrior site
+alwaysApply: true
+---
+
+# GUI and Animations — Standard Operating Procedure
+
+When adding or updating pages, layouts, or visual behavior, follow this standard so the site stays consistent and accessible.
+
+## Design tokens (single source of truth)
+
+- **Location:** `public/css/main.css` — `:root` block.
+- Use **colors** (`--gold`, `--gold-light`, `--chrome`, `--bg`, etc.), **spacing**, **radii** (`--radius`, `--radius-sm`), and **easing** (`--ease`, `--ease-out`) from tokens for all new animations.
+- Do not introduce ad-hoc durations or colors; use the tokens so changes in one place apply site-wide.
+
+## Reduced motion (accessibility)
+
+- Respect `prefers-reduced-motion: reduce` for non-essential motion.
+- **In main.css:** Hero orbs, road-line drift, badge pulse, title gradient shift, scroll-hint, and scroll-reveal are already disabled or shortened in the `@media (prefers-reduced-motion: reduce)` block.
+- **In pages.css:** Page-entry animation on `.page-shell` is disabled when reduced motion is preferred.
+- For any **new** animation (CSS or JS), add a reduced-motion override: disable the animation or use a very short opacity-only transition.
+- Optional: support a `.reduce-motion` class on `<html>` or `<body>` for a user-controlled override (main.css includes optional rules for this).
+
+## Page load / entry
+
+- Inner pages use a subtle **page-entry** effect on `.page-shell` (fade + short translateY) defined in `public/css/pages.css`.
+- New inner pages should use the same `.page-shell` / `.page-container` structure so they get the effect and layout automatically.
+
+## Scroll-triggered animations (scroll-reveal)
+
+- **Mechanism:** One shared IntersectionObserver in `public/js/main.js` observes a common selector set and adds `.reveal` / `.visible` with optional stagger.
+- **Selectors observed:** `.glass-card`, `.hazard-card`, `.rm-card`, `.crisis-banner`, `.section-header`, `.resource-pill`, `.exercise-chip`, `.exercise-section`, `.section-header-about`, `.about-section`, `.page-section`, `.blog-card`, `.forum-card`, `.contact-card`, `.consulting-card`, `.page-title`, `.about-page-intro`, `.service-card`, `.legal-page section`.
+- **Stagger containers:** Elements inside `.card-grid`, `.hazard-bento`, `.roadmap-grid`, `.resource-row`, `.exercise-chips`, `.page-container`, `.blog-grid`, `.about-section` get index-based `data-delay` for staggered reveal.
+- **Dynamic content:** After injecting markup (e.g. blog list), call `window.refreshReveal()` so new elements matching the selector set are observed.
+- **Adding a new page:** Use one of the existing class names above on sections/cards so they are picked up automatically; or extend the `revealSelector` string in main.js if you introduce a new repeated pattern.
+
+## Micro-interactions
+
+- Buttons, tabs, and toggles should use the same easing and duration from tokens (e.g. `0.3s var(--ease)`).
+- Hover/active states: e.g. `translateY(-2px)`, border/glow changes. Link hover uses `var(--gold-light)` (brand gold), not purple or other ad-hoc colors.
+
+## Hero / above-the-fold
+
+- Homepage-only: parallax hero glows, gradient title animation, stat counters. These live in `public/index.html` and main.js; main.js runs them only when the corresponding elements exist (e.g. `.hero-stats`, `#phaseTabs`).
+
+## Consistency across pages
+
+- **Every public-facing page must include:**
+  - `<div class="grain-overlay"></div>`
+  - `<div class="scroll-progress" id="scrollProgress"></div>`
+  - `<script src="/js/main.js"></script>` before `</body>`
+- **Nav:** Same navbar structure with `id="navbar"`, `id="navToggle"`, `id="navLinks"`, `id="navAuth"`, `id="cartBadge"` so main.js can wire scroll progress, mobile toggle, auth, and cart badge.
+- Inner pages that use `.page-shell` get scroll progress, scroll-reveal on matching elements, nav behavior, and page-entry animation without extra per-page script.
+
+## Testing checklist
+
+- **Reduce motion:** Enable “Reduce motion” in OS or browser; confirm decorative/scroll animations are disabled or minimal; content remains readable.
+- **No-JS:** With JavaScript disabled, critical content is visible and usable (no essential information hidden behind animation-only state).
+- **Cross-page:** Home, About, Services, Blog, Shop, Contact (and other key views) share the same scroll bar, nav toggle, and link/button hover behavior (gold accent).
+
+## Adding a new page
+
+1. Use the same head (main.css, pages.css, fonts) and nav/footer structure as existing views.
+2. Include `grain-overlay`, `scroll-progress`, and `main.js` as above.
+3. Wrap main content in `<main class="page-shell">` and `<div class="page-container">` for layout and page-entry.
+4. Use existing class names for sections/cards (e.g. `.glass-card`, `.section-header-about`, `.service-card`) so scroll-reveal applies without extra markup.
+5. If the page injects content dynamically (e.g. a grid of cards), call `window.refreshReveal()` after injecting so new elements are observed.

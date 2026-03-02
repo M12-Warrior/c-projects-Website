@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — Mile 12 Warrior</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.svg" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';var s=this.nextElementSibling;if(s)s.style.display='flex';">
+        <span class="nav-logo-fallback" style="display:none;">
+          <svg class="logo-svg logo-shield" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/#roadmap">Roadmap</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/shop" class="active">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/refresh">Refresh</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container">
+      <h1 class="page-title">Checkout</h1>
+
+      <div id="paymentComingSoonBanner" class="glass-card" style="margin-bottom:24px;padding:20px 24px;border-left:4px solid var(--gold);">
+        <p style="margin:0;font-weight:600;color:var(--text);">Online payment coming soon</p>
+        <p style="margin:8px 0 0 0;font-size:0.9rem;color:var(--text-2);">We're setting up secure checkout. You can still browse the shop, add items to your cart, and explore the full site. We'll announce when you can complete orders online — or <a href="/contact" style="color:var(--gold);">contact us</a> to pre-order.</p>
+      </div>
+
+      <div id="checkoutFormWrap">
+        <div class="checkout-layout">
+          <div class="order-summary-card">
+            <h3>Order Summary</h3>
+            <div id="orderSummary"></div>
+          </div>
+          <div class="checkout-form">
+            <form id="shippingForm">
+              <div class="form-group">
+                <label class="form-label" for="fullName">Full Name</label>
+                <input type="text" id="fullName" name="name" class="form-input" required autocomplete="name">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="address">Address</label>
+                <input type="text" id="address" name="address" class="form-input" required autocomplete="street-address">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="city">City</label>
+                <input type="text" id="city" name="city" class="form-input" required autocomplete="address-level2">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="state">State</label>
+                <input type="text" id="state" name="state" class="form-input" required autocomplete="address-level1">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="zip">ZIP</label>
+                <input type="text" id="zip" name="zip" class="form-input" required autocomplete="postal-code" pattern="[0-9]{5}(-[0-9]{4})?">
+              </div>
+              <div id="checkoutError" class="form-error hidden"></div>
+              <p style="font-size:0.8rem;color:var(--text-3);margin-bottom:16px;line-height:1.5">By placing your order you agree to our <a href="/terms" style="color:var(--text-2)">Terms of Service</a> and <a href="/terms#refunds" style="color:var(--text-2)">Refund Policy</a>. Physical items: 30-day returns for refund or exchange. Digital products (course, packets): see Refund Policy; generally no refund after access.</p>
+              <button type="submit" class="form-btn" id="placeOrderBtn">Place Order</button>
+              <p id="paymentDisabledNote" style="display:none;margin-top:12px;font-size:0.9rem;color:var(--text-2);"></p>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div id="orderConfirmation" class="hidden" style="max-width: 480px; margin: 0 auto; text-align: center; padding: 40px;">
+        <div class="auth-card">
+          <h2 style="font-family: var(--font); margin-bottom: 16px;">Order Placed!</h2>
+          <p style="color: var(--text-2); margin-bottom: 8px;">Order ID: <strong id="orderIdDisplay"></strong></p>
+          <p style="color: var(--text-3); font-size: 0.9rem;">Redirecting to your profile in 3 seconds&hellip;</p>
+        </div>
+      </div>
+
+      <div id="checkoutEmpty" class="empty-state hidden">
+        <p>Your cart is empty.</p>
+        <a href="/shop" class="btn btn-primary" style="margin-top: 16px; display: inline-block;">Browse Shop</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      const CART_KEY = 'driver_shield_cart';
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      function formatPrice(n) {
+        return '$' + (Number(n) || 0).toFixed(2);
+      }
+
+      function getCart() {
+        try {
+          var raw = localStorage.getItem(CART_KEY);
+          return raw ? JSON.parse(raw) : [];
+        } catch (_) { return []; }
+      }
+
+      function updateCartBadge() {
+        var cart = getCart();
+        var total = cart.reduce(function(s, i) { return s + (i.quantity || 1); }, 0);
+        var badge = document.getElementById('cartBadge');
+        if (badge) badge.textContent = total;
+      }
+
+      function clearCart() {
+        localStorage.removeItem(CART_KEY);
+        updateCartBadge();
+      }
+
+      function renderSummary() {
+        var cart = getCart();
+        var total = 0;
+        var html = cart.map(function(item) {
+          var qty = item.quantity || 1;
+          var price = parseFloat(item.price) || 0;
+          total += qty * price;
+          return '<div class="order-summary-item">' +
+            '<span>' + escapeHtml(item.name) + ' &times; ' + qty + '</span>' +
+            '<span>' + formatPrice(qty * price) + '</span>' +
+          '</div>';
+        }).join('');
+        html += '<div class="order-summary-total">Total: ' + formatPrice(total) + '</div>';
+        document.getElementById('orderSummary').innerHTML = html;
+      }
+
+      async function checkAuth() {
+        try {
+          var res = await fetch('/api/auth/me', { credentials: 'include' });
+          if (!res.ok) {
+            window.location.href = '/login?redirect=' + encodeURIComponent('/shop/checkout');
+            return false;
+          }
+          var data = await res.json();
+          if (!data || !data.user) {
+            window.location.href = '/login?redirect=' + encodeURIComponent('/shop/checkout');
+            return false;
+          }
+          return true;
+        } catch (_) {
+          window.location.href = '/login?redirect=' + encodeURIComponent('/shop/checkout');
+          return false;
+        }
+      }
+
+      async function updateAuthLink() {
+        var authLink = document.querySelector('.nav-auth-link');
+        if (!authLink) return;
+        try {
+          var res = await fetch('/api/auth/me', { credentials: 'include' });
+          var data = await res.json();
+          if (data.user) {
+            var li = authLink.closest('li');
+            li.innerHTML = '<span style="color: var(--text-2); font-size: 0.8rem; padding: 6px 14px;">' + escapeHtml(data.user.username) + '</span><a href="/profile" style="padding: 6px 14px;">Profile</a><a href="#" class="nav-logout-link" style="padding: 6px 14px; color: var(--text-3);">Logout</a>';
+            var logoutLink = li.querySelector('.nav-logout-link');
+            if (logoutLink) logoutLink.addEventListener('click', async function(e) {
+              e.preventDefault();
+              await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+              location.reload();
+            });
+          }
+        } catch (_) {}
+      }
+
+      function showError(msg) {
+        var el = document.getElementById('checkoutError');
+        if (el) {
+          el.textContent = msg;
+          el.classList.remove('hidden');
+        }
+      }
+
+      function hideError() {
+        var el = document.getElementById('checkoutError');
+        if (el) el.classList.add('hidden');
+      }
+
+      async function init() {
+        var authed = await checkAuth();
+        if (!authed) return;
+
+        updateAuthLink();
+        updateCartBadge();
+
+        var cart = getCart();
+        if (cart.length === 0) {
+          document.getElementById('checkoutFormWrap').classList.add('hidden');
+          document.getElementById('checkoutEmpty').classList.remove('hidden');
+          return;
+        }
+
+        renderSummary();
+
+        // Set to false when payment gateway is live so orders can be placed
+        var PAYMENT_COMING_SOON = true;
+
+        document.getElementById('shippingForm').addEventListener('submit', async function(e) {
+          e.preventDefault();
+          hideError();
+          var noteEl = document.getElementById('paymentDisabledNote');
+          if (PAYMENT_COMING_SOON) {
+            if (noteEl) {
+              noteEl.textContent = 'Online payment is coming soon. Browse and add to cart anytime; we\'ll announce when checkout is ready. Pre-order? Contact us.';
+              noteEl.style.display = 'block';
+            }
+            return;
+          }
+
+          var btn = document.getElementById('placeOrderBtn');
+          btn.disabled = true;
+          if (noteEl) noteEl.style.display = 'none';
+
+          var cart = getCart();
+          var items = cart.map(function(item) {
+            return { product_id: item.product_id, quantity: item.quantity || 1 };
+          });
+          var shipping = {
+            name: document.getElementById('fullName').value.trim(),
+            address: document.getElementById('address').value.trim(),
+            city: document.getElementById('city').value.trim(),
+            state: document.getElementById('state').value.trim(),
+            zip: document.getElementById('zip').value.trim()
+          };
+
+          try {
+            var res = await fetch('/api/shop/orders', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ items: items, shipping: shipping })
+            });
+
+            var data = await res.json().catch(function() { return {}; });
+
+            if (res.ok) {
+              clearCart();
+              document.getElementById('checkoutFormWrap').classList.add('hidden');
+              document.getElementById('orderConfirmation').classList.remove('hidden');
+              document.getElementById('orderIdDisplay').textContent = (data.order && data.order.id) || data.order_id || data.id || '—';
+              setTimeout(function() {
+                window.location.href = '/profile';
+              }, 3000);
+            } else {
+              showError(data.message || data.error || 'Unable to place order. Please try again.');
+              btn.disabled = false;
+            }
+          } catch (err) {
+            showError('Network error. Please try again.');
+            btn.disabled = false;
+          }
+        });
+      }
+
+      var navToggle = document.getElementById('navToggle');
+      var navLinks = document.getElementById('navLinks');
+      if (navToggle && navLinks) {
+        navToggle.addEventListener('click', function() {
+          navToggle.classList.toggle('active');
+          navLinks.classList.toggle('open');
+        });
+      }
+
+      function onScroll() {
+        var navbar = document.getElementById('navbar');
+        var progressBar = document.getElementById('scrollProgress');
+        if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 20);
+        if (progressBar) {
+          var h = document.documentElement.scrollHeight - window.innerHeight;
+          progressBar.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%';
+        }
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+
+      init();
+    })();
+  </script>
+
+  <footer class="footer" style="margin-top:60px">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N St. #8325, Sacramento, CA 95816</p>
+        <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+          <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
+          <a href="/terms#refunds" style="color:var(--text-2)">Refund Policy</a>
+          <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>
+          <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>
+          <a href="/advertise" style="color:var(--text-2)">Advertise</a>
+          <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
+        </nav>
+        <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:600px;margin-left:auto;margin-right:auto">Sales are in USD and subject to our <a href="/terms" style="color:var(--text-2)">Terms of Service</a> and <a href="/terms#refunds" style="color:var(--text-2)">Refund Policy</a>. Physical items: 30-day returns. Digital products: see Refund Policy. Sales tax as required by law.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws that may differ significantly. It is the driver's responsibility to comply with the laws of every state they travel through. California (Caltrans/CALDOT) references reflect our home state and should not be assumed to apply elsewhere.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

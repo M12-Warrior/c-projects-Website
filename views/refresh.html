@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Refresh / Get Latest Version — Mile 12 Warrior</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* Fallback so page is readable even if main.css fails to load */
+    body { background: #0d0d0f; color: #e4e4e7; font-family: system-ui, sans-serif; margin: 0; min-height: 100vh; }
+    .refresh-page { text-align: center; padding: 48px 24px; max-width: 520px; margin: 0 auto; }
+    .refresh-page h1 { font-size: 1.6rem; margin-bottom: 8px; color: #e4e4e7; }
+    .refresh-page .sub { color: #a1a1aa; font-size: 0.95rem; margin-bottom: 32px; line-height: 1.6; }
+    .refresh-actions { display: flex; flex-direction: column; gap: 14px; align-items: center; }
+    .refresh-actions .btn { min-width: 220px; justify-content: center; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; display: inline-flex; align-items: center; }
+    .refresh-actions .btn-primary { background: #6366f1; color: #fff; }
+    .refresh-actions .btn-glass { background: rgba(255,255,255,.06); color: #e4e4e7; border: 1px solid #3f3f46; }
+    .refresh-link-box { margin-top: 32px; padding: 20px; background: #18181b; border: 1px solid #3f3f46; border-radius: 8px; }
+    .refresh-link-box p { font-size: 0.78rem; color: #71717a; margin-bottom: 8px; }
+    .refresh-link-box a { font-family: monospace; font-size: 0.9rem; color: #6366f1; word-break: break-all; }
+  </style>
+</head>
+<body>
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.svg" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';var s=this.nextElementSibling;if(s)s.style.display='flex';">
+        <span class="nav-logo-fallback" style="display:none;">
+          <svg class="logo-svg logo-shield" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/#roadmap">Roadmap</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/refresh" class="active">Refresh</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container">
+      <div class="refresh-page">
+        <h1 class="page-title">Refresh / Get Latest Version</h1>
+        <p class="sub">Use this page anytime you want to load the latest version of the site. Reload clears cache and fetches the current content.</p>
+
+        <div class="refresh-actions">
+          <button type="button" class="btn btn-primary" id="reloadBtn">
+            <span>Reload to get latest version</span>
+          </button>
+          <a href="/" class="btn btn-glass">Go to homepage</a>
+        </div>
+
+        <div class="refresh-link-box">
+          <p><strong>Link to open the latest version (bookmark this):</strong></p>
+          <a href="/" id="latestUrl">/</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 1 Social Butterfly — living your best life: <a href="https://1socialbutterfly.net">1socialbutterfly.net</a></p>
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+          <a href="/terms" style="color:var(--text-2)">Terms</a>
+          <a href="/privacy" style="color:var(--text-2)">Privacy</a>
+          <a href="/" style="color:var(--text-2)">Home</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      var reloadBtn = document.getElementById('reloadBtn');
+      if (reloadBtn) {
+        reloadBtn.addEventListener('click', function() {
+          try {
+            window.location.reload();
+          } catch (e) {
+            window.location.href = window.location.pathname;
+          }
+        });
+      }
+      var a = document.getElementById('latestUrl');
+      if (a) {
+        a.href = window.location.origin + '/';
+        a.textContent = window.location.origin + '/';
+      }
+
+      var badge = document.getElementById('cartBadge');
+      if (badge) {
+        try {
+          var cart = JSON.parse(localStorage.getItem('driver_shield_cart') || '[]');
+          var n = (cart || []).reduce(function(s, i) { return s + (i.quantity || 1); }, 0);
+          badge.textContent = n;
+          badge.style.display = n > 0 ? 'inline-flex' : 'none';
+        } catch (_) {}
+      }
+
+      var navToggle = document.getElementById('navToggle');
+      var navLinks = document.getElementById('navLinks');
+      if (navToggle && navLinks) navToggle.addEventListener('click', function() {
+        navToggle.classList.toggle('active');
+        navLinks.classList.toggle('open');
+      });
+
+      function onScroll() {
+        var nb = document.getElementById('navbar');
+        var pb = document.getElementById('scrollProgress');
+        if (nb) nb.classList.toggle('scrolled', window.scrollY > 20);
+        if (pb) {
+          var h = document.documentElement.scrollHeight - window.innerHeight;
+          pb.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%';
+        }
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
+  </script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

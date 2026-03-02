@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile — Driver Shield</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.svg" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';var s=this.nextElementSibling;if(s)s.style.display='flex';">
+        <span class="nav-logo-fallback" style="display:none;">
+          <svg class="logo-svg logo-shield" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/#roadmap">Roadmap</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/refresh">Refresh</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="/profile" class="active">Profile</a></li>
+        <li><a href="#" id="navSignOut">Sign Out</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container">
+      <div class="profile-page" id="profilePage">
+        <div class="mb-16 hidden" id="adminLinkWrap">
+          <a href="/admin" class="btn btn-primary" id="adminDashboardLink">Admin Dashboard</a>
+        </div>
+        <div class="profile-header">
+          <div class="profile-avatar" id="profileAvatar">?</div>
+          <div class="profile-info">
+            <h2 id="profileUsername">Loading…</h2>
+            <p id="profileEmail">—</p>
+            <p id="profileMemberSince">Member since —</p>
+          </div>
+        </div>
+
+        <section class="profile-section">
+          <h3>About</h3>
+          <p id="bioDisplay" class="bio-display"></p>
+          <div id="bioEditWrap" class="hidden">
+            <textarea id="bioTextarea" class="form-input" rows="4" placeholder="Tell us a bit about yourself…"></textarea>
+            <div class="mt-16 flex-between">
+              <button type="button" class="btn btn-glass" id="bioCancelBtn">Cancel</button>
+              <button type="button" class="btn btn-primary" id="bioSaveBtn">Save</button>
+            </div>
+          </div>
+          <button type="button" class="btn btn-glass mt-16" id="editBioBtn">Edit Bio</button>
+        </section>
+
+        <section class="profile-section">
+          <h3>My Orders</h3>
+          <div id="ordersList"></div>
+        </section>
+
+        <section class="profile-section" id="subscriptionSection" style="display:none">
+          <h3>Subscription</h3>
+          <div id="subscriptionStatus" class="mb-16"></div>
+          <p id="subscriptionQuickLinks" class="mb-16" style="display:none">Quick access: <a href="/forum">Forum</a> &middot; <a href="/blog">Blog</a> &middot; <a href="/journal">My Journal</a> &middot; <a href="/journal/print">Download/print journal</a></p>
+          <p id="subscriberMessageWrap" class="mb-16" style="display:none">
+            <a href="/contact?subscriber=1" class="btn btn-glass">Message us (subscriber priority)</a>
+            <span style="font-size:0.85rem;color:var(--text-2);margin-left:8px;">Suggest improvements or report navigation issues so we can fix bugs.</span>
+          </p>
+          <div id="micToggleWrap" class="mb-16" style="display:none">
+            <label class="flex align-center gap-8" style="cursor:pointer">
+              <input type="checkbox" id="micVisibleCheck" checked>
+              <span>Show my CB mic by default</span>
+            </label>
+            <p class="text-muted" style="font-size:0.85rem;margin-top:6px;margin-left:24px">You can hide your mic for the current session (incognito) on the <a href="/forum">Forum</a>.</p>
+          </div>
+          <div id="cancelSubWrap" style="display:none">
+            <button type="button" class="btn btn-glass" id="cancelSubBtn">Cancel subscription</button>
+          </div>
+        </section>
+
+        <section class="profile-section" id="preferencesSection">
+          <h3>Subscribe / Unsubscribe</h3>
+          <p style="font-size:0.9rem;color:var(--text-2);margin-bottom:16px;">Choose which emails you want. Changes save automatically.</p>
+          <div class="preferences-list">
+            <label class="flex align-center gap-8" style="cursor:pointer;margin-bottom:10px;"><input type="checkbox" id="pref_newsletter"> Newsletter</label>
+            <label class="flex align-center gap-8" style="cursor:pointer;margin-bottom:10px;"><input type="checkbox" id="pref_blog"> Blog updates</label>
+            <label class="flex align-center gap-8" style="cursor:pointer;margin-bottom:10px;"><input type="checkbox" id="pref_product_updates"> Product updates</label>
+            <label class="flex align-center gap-8" style="cursor:pointer;"><input type="checkbox" id="pref_forum"> Forum updates</label>
+          </div>
+          <p id="preferencesSaved" class="text-muted" style="font-size:0.85rem;margin-top:12px;display:none;">Preferences saved.</p>
+        </section>
+
+        <section class="profile-section">
+          <h3>My Forum Activity</h3>
+          <p><a href="/forum">View your forum activity →</a></p>
+        </section>
+
+        <div class="mt-32">
+          <button type="button" class="btn btn-glass" id="signOutBtn">Sign Out</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <script>
+    (function() {
+      function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      function formatDate(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      function formatPrice(n) {
+        return '$' + (Number(n) || 0).toFixed(2);
+      }
+
+      function showToast(msg, success) {
+        const el = document.getElementById('toast');
+        if (!el) return;
+        el.textContent = msg;
+        el.className = 'toast toast-' + (success ? 'success' : 'error');
+        el.classList.add('show');
+        setTimeout(function() { el.classList.remove('show'); }, 2500);
+      }
+
+      function getStatusClass(s) {
+        const status = (s || '').toLowerCase();
+        if (status === 'pending') return 'status-pending';
+        if (status === 'processing') return 'status-processing';
+        if (status === 'shipped') return 'status-shipped';
+        if (status === 'delivered') return 'status-delivered';
+        if (status === 'cancelled') return 'status-cancelled';
+        return 'status-pending';
+      }
+
+      let currentUser = null;
+
+      async function checkAuth() {
+        try {
+          const res = await fetch('/api/auth/me', { credentials: 'include' });
+          if (!res.ok) {
+            window.location.replace('/login');
+            return null;
+          }
+          const data = await res.json();
+          const user = data.user || data;
+          if (!user) {
+            window.location.replace('/login');
+            return null;
+          }
+          return user;
+        } catch (e) {
+          window.location.replace('/login');
+          return null;
+        }
+      }
+
+      function renderProfile(user) {
+        const avatar = document.getElementById('profileAvatar');
+        const username = document.getElementById('profileUsername');
+        const email = document.getElementById('profileEmail');
+        const memberSince = document.getElementById('profileMemberSince');
+        const bioDisplay = document.getElementById('bioDisplay');
+        const adminWrap = document.getElementById('adminLinkWrap');
+
+        const uname = user.username || user.email || 'User';
+        avatar.textContent = (uname.charAt(0) || '?').toUpperCase();
+        username.textContent = escapeHtml(uname);
+        email.textContent = user.email ? escapeHtml(user.email) : '—';
+        memberSince.textContent = 'Member since ' + formatDate(user.created_at || user.joined_at);
+        bioDisplay.textContent = user.bio ? escapeHtml(user.bio) : 'No bio yet.';
+        bioDisplay.style.display = user.bio ? 'block' : 'block';
+        if (!user.bio) bioDisplay.classList.add('text-muted');
+
+        if (user.role === 'admin') {
+          adminWrap.classList.remove('hidden');
+        } else {
+          adminWrap.classList.add('hidden');
+        }
+
+        const textarea = document.getElementById('bioTextarea');
+        if (textarea) textarea.value = user.bio || '';
+
+        var prefNewsletter = document.getElementById('pref_newsletter');
+        var prefBlog = document.getElementById('pref_blog');
+        var prefProduct = document.getElementById('pref_product_updates');
+        var prefForum = document.getElementById('pref_forum');
+        if (prefNewsletter) prefNewsletter.checked = !!user.opt_in_newsletter;
+        if (prefBlog) prefBlog.checked = !!user.opt_in_blog;
+        if (prefProduct) prefProduct.checked = !!user.opt_in_product_updates;
+        if (prefForum) prefForum.checked = !!user.opt_in_forum;
+      }
+
+      async function loadOrders() {
+        const el = document.getElementById('ordersList');
+        try {
+          const res = await fetch('/api/shop/orders', { credentials: 'include' });
+          if (!res.ok) throw new Error('Failed to load');
+          const data = await res.json();
+          const orders = data.orders || data || [];
+          if (orders.length === 0) {
+            el.innerHTML = '<p class="text-muted">No orders yet.</p>';
+            return;
+          }
+          el.innerHTML = orders.map(function(o) {
+            const id = o.id || o.order_number || o.orderId || '—';
+            const total = formatPrice(o.total || o.total_amount || 0);
+            const status = (o.status || 'pending').toLowerCase();
+            const statusClass = getStatusClass(o.status);
+            const items = o.items || o.line_items || [];
+            const itemsHtml = items.map(function(i) {
+              const qty = i.quantity || 1;
+              const name = escapeHtml(i.name || i.product_name || 'Item');
+              const price = formatPrice(i.price || i.unit_price || 0);
+              return '<div class="order-item-row"><span>' + name + ' × ' + qty + '</span><span>' + price + '</span></div>';
+            }).join('');
+            const hasItems = items.length > 0;
+            return '<div class="order-card" data-order-id="' + escapeHtml(String(id)) + '">' +
+              '<div class="order-card-header">' +
+                '<span class="order-num">#' + escapeHtml(String(id)) + '</span>' +
+                '<span class="order-date">' + formatDate(o.created_at || o.date) + '</span>' +
+                '<span class="badge-status ' + statusClass + '">' + escapeHtml(status) + '</span>' +
+                '<span class="order-total">' + total + '</span>' +
+                (hasItems ? '<button type="button" class="order-toggle" aria-label="Toggle items">▼</button>' : '') +
+              '</div>' +
+              (hasItems ? '<div class="order-items hidden">' + itemsHtml + '</div>' : '') +
+            '</div>';
+          }).join('');
+
+          el.querySelectorAll('.order-toggle').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              const card = btn.closest('.order-card');
+              const items = card.querySelector('.order-items');
+              if (items) {
+                items.classList.toggle('hidden');
+                btn.textContent = items.classList.contains('hidden') ? '▼' : '▲';
+              }
+            });
+          });
+        } catch (err) {
+          el.innerHTML = '<p class="text-muted">Could not load orders.</p>';
+        }
+      }
+
+      async function loadSubscription() {
+        const section = document.getElementById('subscriptionSection');
+        const statusEl = document.getElementById('subscriptionStatus');
+        const linksEl = document.getElementById('subscriptionQuickLinks');
+        const micWrap = document.getElementById('micToggleWrap');
+        const micCheck = document.getElementById('micVisibleCheck');
+        const cancelWrap = document.getElementById('cancelSubWrap');
+        const cancelBtn = document.getElementById('cancelSubBtn');
+        try {
+          const res = await fetch('/api/subscription/me', { credentials: 'include' });
+          if (!res.ok) { section.style.display = 'none'; return; }
+          const data = await res.json();
+          const sub = data.subscription || data;
+          const active = sub && sub.active;
+          if (!active) {
+            section.style.display = 'none';
+            return;
+          }
+          section.style.display = 'block';
+          const tier = sub.tier || 0;
+          const tierLabel = tier === 1 ? 'Bronze' : tier === 2 ? 'Silver' : tier === 3 ? 'Gold' : tier === 4 ? 'Blue' : '';
+          statusEl.innerHTML = 'Active &middot; Tier ' + tier + (tierLabel ? ' (' + tierLabel + ')' : '') +
+            (sub.current_period_end ? ' &middot; Renews ' + formatDate(sub.current_period_end) : '');
+          if (linksEl) { linksEl.style.display = 'block'; }
+          const msgWrap = document.getElementById('subscriberMessageWrap');
+          if (msgWrap) { msgWrap.style.display = 'block'; }
+          if (micWrap) {
+            micWrap.style.display = 'block';
+            micCheck.checked = data.mic_visible !== false;
+          }
+          if (cancelWrap) cancelWrap.style.display = 'block';
+        } catch (_) {
+          section.style.display = 'none';
+          return;
+        }
+
+        if (micCheck) {
+          micCheck.addEventListener('change', async function() {
+            try {
+              const r = await fetch('/api/subscription/mic-visible', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ visible: micCheck.checked })
+              });
+              if (r.ok) showToast('Mic preference saved.', true);
+              else showToast('Failed to save.', false);
+            } catch (e) { showToast('Failed to save.', false); }
+          });
+        }
+        if (cancelBtn) {
+          cancelBtn.addEventListener('click', async function() {
+            if (!confirm('Cancel your Trucker Wellness Journal monthly subscription? You can resubscribe within 30 days to keep your CB mic tier.')) return;
+            try {
+              const r = await fetch('/api/subscription/cancel', { method: 'POST', credentials: 'include' });
+              if (r.ok) {
+                showToast('Subscription cancelled.', true);
+                loadSubscription();
+              } else {
+                const err = await r.json().catch(function() { return {}; });
+                showToast(err.message || err.error || 'Failed to cancel', false);
+              }
+            } catch (e) { showToast('Failed to cancel.', false); }
+          });
+        }
+      }
+
+      document.getElementById('editBioBtn').addEventListener('click', function() {
+        document.getElementById('bioDisplay').classList.add('hidden');
+        document.getElementById('bioEditWrap').classList.remove('hidden');
+        document.getElementById('editBioBtn').classList.add('hidden');
+      });
+
+      document.getElementById('bioCancelBtn').addEventListener('click', function() {
+        document.getElementById('bioDisplay').classList.remove('hidden');
+        document.getElementById('bioEditWrap').classList.add('hidden');
+        document.getElementById('editBioBtn').classList.remove('hidden');
+        document.getElementById('bioTextarea').value = currentUser ? (currentUser.bio || '') : '';
+      });
+
+      document.getElementById('bioSaveBtn').addEventListener('click', async function() {
+        const textarea = document.getElementById('bioTextarea');
+        const bio = textarea.value.trim();
+        try {
+          const res = await fetch('/api/auth/profile', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ bio: bio })
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(function() { return {}; });
+            showToast(err.message || err.error || 'Failed to save', false);
+            return;
+          }
+          if (currentUser) currentUser.bio = bio;
+          document.getElementById('bioDisplay').textContent = bio || 'No bio yet.';
+          document.getElementById('bioDisplay').classList.toggle('text-muted', !bio);
+          document.getElementById('bioDisplay').classList.remove('hidden');
+          document.getElementById('bioEditWrap').classList.add('hidden');
+          document.getElementById('editBioBtn').classList.remove('hidden');
+          showToast('Bio saved.', true);
+        } catch (e) {
+          showToast('Failed to save.', false);
+        }
+      });
+
+      async function saveCommunicationPreferences() {
+        var newsletter = document.getElementById('pref_newsletter');
+        var blog = document.getElementById('pref_blog');
+        var product = document.getElementById('pref_product_updates');
+        var forum = document.getElementById('pref_forum');
+        if (!newsletter || !blog || !product || !forum) return;
+        try {
+          const r = await fetch('/api/auth/preferences', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              newsletter: newsletter.checked,
+              blog: blog.checked,
+              product_updates: product.checked,
+              forum: forum.checked
+            })
+          });
+          if (r.ok) {
+            var msg = document.getElementById('preferencesSaved');
+            if (msg) { msg.style.display = 'block'; setTimeout(function() { msg.style.display = 'none'; }, 2000); }
+            if (currentUser) {
+              currentUser.opt_in_newsletter = newsletter.checked ? 1 : 0;
+              currentUser.opt_in_blog = blog.checked ? 1 : 0;
+              currentUser.opt_in_product_updates = product.checked ? 1 : 0;
+              currentUser.opt_in_forum = forum.checked ? 1 : 0;
+            }
+          }
+        } catch (e) {}
+      }
+      ['pref_newsletter', 'pref_blog', 'pref_product_updates', 'pref_forum'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('change', saveCommunicationPreferences);
+      });
+
+      document.getElementById('signOutBtn').addEventListener('click', async function() {
+        try {
+          await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+          window.location.replace('/');
+        } catch (e) {
+          window.location.replace('/');
+        }
+      });
+
+      document.getElementById('navSignOut').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('signOutBtn').click();
+      });
+
+      (async function init() {
+        const user = await checkAuth();
+        if (!user) return;
+        currentUser = user;
+        renderProfile(user);
+        loadOrders();
+        loadSubscription();
+
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+        if (navToggle && navLinks) {
+          navToggle.addEventListener('click', function() {
+            navToggle.classList.toggle('active');
+            navLinks.classList.toggle('open');
+          });
+        }
+
+        function onScroll() {
+          const navbar = document.getElementById('navbar');
+          const progressBar = document.getElementById('scrollProgress');
+          if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 20);
+          if (progressBar) {
+            const h = document.documentElement.scrollHeight - window.innerHeight;
+            progressBar.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%';
+          }
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      })();
+    })();
+  </script>
+
+  <footer class="footer" style="margin-top:60px">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N St. #8325, Sacramento, CA 95816</p>
+        <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+          <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
+          <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>
+          <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>
+          <a href="/advertise" style="color:var(--text-2)">Advertise</a>
+          <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
+        </nav>
+        <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws that may differ significantly. It is the driver's responsibility to comply with the laws of every state they travel through. California (Caltrans/CALDOT) references reflect our home state and should not be assumed to apply elsewhere.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

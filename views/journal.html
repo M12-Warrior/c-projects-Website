@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Wellness Journal — Mile 12 Warrior</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.svg" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';var s=this.nextElementSibling;if(s)s.style.display='flex';">
+        <span class="nav-logo-fallback" style="display:none;">
+          <svg class="logo-svg logo-shield" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/#roadmap">Roadmap</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/refresh">Refresh</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="/journal" class="active">Journal</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="#" id="navSignOut">Sign Out</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container">
+      <a href="/profile" class="text-muted" style="display:inline-flex;align-items:center;gap:6px;margin-bottom:20px;font-size:0.88rem;text-decoration:none;">&larr; Back to Profile</a>
+
+      <div id="journalGate" class="glass-card" style="padding:32px;text-align:center;display:none;">
+        <h2 class="page-title" style="margin-bottom:12px">Trucker Wellness Journal</h2>
+        <p style="color:var(--text-2);margin-bottom:20px">Track your notes and progress in your own private journal. Available with an active <strong>Trucker Wellness Journal</strong> monthly subscription — subscribe in the Shop.</p>
+        <a href="/shop" class="btn btn-primary">View subscription in Shop</a>
+      </div>
+
+      <div id="journalApp" style="display:none;">
+        <h1 class="page-title">My Wellness Journal</h1>
+        <p class="page-subtitle" style="margin-bottom:24px">Your private notes and progress. Log sleep, mood, goals, or anything you want to track.</p>
+
+        <p style="margin-bottom:24px;">
+          <a href="/journal/print" class="btn btn-primary">Download or print the journal</a>
+          <span style="font-size:0.85rem;color:var(--text-2);margin-left:12px;">E-product: print or save as PDF anytime.</span>
+        </p>
+        <p style="margin-bottom:24px;">
+          <a href="/contact?subscriber=1" class="btn btn-glass">Message us (subscriber priority)</a>
+          <span style="font-size:0.85rem;color:var(--text-2);margin-left:12px;">Suggest improvements or report issues — we'll prioritize your message.</span>
+        </p>
+
+        <div class="glass-card" style="padding:24px;margin-bottom:32px;">
+          <h3 style="font-size:1rem;margin-bottom:16px">Add entry</h3>
+          <form id="journalForm">
+            <div class="form-group">
+              <label class="form-label" for="entryDate">Date</label>
+              <input type="date" id="entryDate" name="entry_date" class="form-input" style="max-width:180px">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="entryContent">Notes</label>
+              <textarea id="entryContent" name="content" class="form-input" rows="4" placeholder="Sleep, meals, exercise, mood, mileage, goals…"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Save entry</button>
+          </form>
+        </div>
+
+        <h3 style="font-size:1rem;margin-bottom:12px">Your entries</h3>
+        <div id="entriesList"></div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <script>
+    (function() {
+      function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      function formatDate(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      function showToast(msg, success) {
+        const el = document.getElementById('toast');
+        if (!el) return;
+        el.textContent = msg;
+        el.className = 'toast toast-' + (success ? 'success' : 'error');
+        el.classList.add('show');
+        setTimeout(function() { el.classList.remove('show'); }, 2500);
+      }
+
+      let isSubscriber = false;
+
+      async function checkAuth() {
+        try {
+          const r = await fetch('/api/auth/me', { credentials: 'include' });
+          if (!r.ok) {
+            window.location.replace('/login');
+            return;
+          }
+          const data = await r.json();
+          const authLink = document.querySelector('.nav-auth-link');
+          if (authLink) authLink.textContent = (data.user && data.user.username) || 'Account';
+        } catch (e) {
+          window.location.replace('/login');
+        }
+      }
+
+      async function checkSubscription() {
+        try {
+          const r = await fetch('/api/subscription/me', { credentials: 'include' });
+          if (!r.ok) { showJournalGate(); return; }
+          const data = await r.json();
+          if (data.subscription && data.subscription.active) {
+            isSubscriber = true;
+            document.getElementById('journalGate').style.display = 'none';
+            document.getElementById('journalApp').style.display = 'block';
+            setDefaultDate();
+            loadEntries();
+          } else {
+            showJournalGate();
+          }
+        } catch (_) {
+          showJournalGate();
+        }
+      }
+
+      function showJournalGate() {
+        document.getElementById('journalGate').style.display = 'block';
+        document.getElementById('journalApp').style.display = 'none';
+      }
+
+      function setDefaultDate() {
+        const input = document.getElementById('entryDate');
+        if (input && !input.value) input.value = new Date().toISOString().slice(0, 10);
+      }
+
+      async function loadEntries() {
+        const list = document.getElementById('entriesList');
+        try {
+          const r = await fetch('/api/journal/entries', { credentials: 'include' });
+          if (!r.ok) {
+            list.innerHTML = '<p class="text-muted">Unable to load entries.</p>';
+            return;
+          }
+          const data = await r.json();
+          const entries = data.entries || [];
+          if (entries.length === 0) {
+            list.innerHTML = '<p class="text-muted">No entries yet. Add one above to start tracking your progress.</p>';
+            return;
+          }
+          list.innerHTML = entries.map(function(e) {
+            const snippet = (e.content || '').slice(0, 120);
+            const more = (e.content || '').length > 120;
+            const contentEscaped = escapeHtml(e.content || '').replace(/\n/g, '<br>');
+            return '<article class="glass-card journal-entry" data-id="' + e.id + '" style="padding:20px;margin-bottom:16px;">' +
+              '<div class="journal-entry-view">' +
+                '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">' +
+                  '<strong style="color:var(--text-2);font-size:0.9rem">' + formatDate(e.entry_date) + '</strong>' +
+                  '<div style="display:flex;gap:8px;">' +
+                    '<button type="button" class="btn btn-glass btn-small journal-edit" data-id="' + e.id + '">Edit</button>' +
+                    '<button type="button" class="btn btn-glass btn-small journal-delete" data-id="' + e.id + '">Delete</button>' +
+                  '</div>' +
+                '</div>' +
+                '<div class="journal-entry-body" style="margin-top:12px;white-space:pre-wrap;">' + contentEscaped + '</div>' +
+              '</div>' +
+              '<div class="journal-entry-edit hidden" style="margin-top:12px;">' +
+                '<label class="form-label">Date</label>' +
+                '<input type="date" class="form-input entry-edit-date" data-id="' + e.id + '" value="' + escapeHtml((e.entry_date || '').slice(0, 10)) + '" style="max-width:160px;margin-bottom:8px">' +
+                '<textarea class="form-input entry-edit-content" data-id="' + e.id + '" rows="4" style="margin-bottom:12px">' + escapeHtml(e.content || '') + '</textarea>' +
+                '<div style="display:flex;gap:8px;">' +
+                  '<button type="button" class="btn btn-primary btn-save-edit" data-id="' + e.id + '">Save</button>' +
+                  '<button type="button" class="btn btn-glass btn-cancel-edit" data-id="' + e.id + '">Cancel</button>' +
+                '</div>' +
+              '</div>' +
+            '</article>';
+          }).join('');
+
+          list.querySelectorAll('.journal-edit').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              const id = btn.dataset.id;
+              const card = list.querySelector('.journal-entry[data-id="' + id + '"]');
+              if (card) {
+                card.querySelector('.journal-entry-view').classList.add('hidden');
+                card.querySelector('.journal-entry-edit').classList.remove('hidden');
+              }
+            });
+          });
+          list.querySelectorAll('.btn-cancel-edit').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              const id = btn.dataset.id;
+              const card = list.querySelector('.journal-entry[data-id="' + id + '"]');
+              if (card) {
+                card.querySelector('.journal-entry-view').classList.remove('hidden');
+                card.querySelector('.journal-entry-edit').classList.add('hidden');
+              }
+            });
+          });
+          list.querySelectorAll('.btn-save-edit').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              const id = btn.dataset.id;
+              const card = list.querySelector('.journal-entry[data-id="' + id + '"]');
+              const dateInput = card.querySelector('.entry-edit-date');
+              const contentInput = card.querySelector('.entry-edit-content');
+              const content = contentInput.value.trim();
+              if (!content) { showToast('Content is required.', false); return; }
+              try {
+                const r = await fetch('/api/journal/entries/' + id, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ entry_date: dateInput.value, content: content })
+                });
+                if (r.ok) {
+                  showToast('Entry updated.', true);
+                  loadEntries();
+                } else {
+                  const err = await r.json().catch(function() { return {}; });
+                  showToast(err.error || 'Failed to update.', false);
+                }
+              } catch (e) {
+                showToast('Failed to update.', false);
+              }
+            });
+          });
+          list.querySelectorAll('.journal-delete').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              if (!confirm('Delete this entry?')) return;
+              const id = btn.dataset.id;
+              try {
+                const r = await fetch('/api/journal/entries/' + id, { method: 'DELETE', credentials: 'include' });
+                if (r.ok) {
+                  showToast('Entry deleted.', true);
+                  loadEntries();
+                } else {
+                  showToast('Failed to delete.', false);
+                }
+              } catch (e) {
+                showToast('Failed to delete.', false);
+              }
+            });
+          });
+        } catch (e) {
+          list.innerHTML = '<p class="text-muted">Could not load entries.</p>';
+        }
+      }
+
+      document.getElementById('journalForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const dateInput = document.getElementById('entryDate');
+        const contentInput = document.getElementById('entryContent');
+        const content = contentInput.value.trim();
+        if (!content) {
+          showToast('Please enter some notes.', false);
+          return;
+        }
+        try {
+          const r = await fetch('/api/journal/entries', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ entry_date: dateInput.value || new Date().toISOString().slice(0, 10), content: content })
+          });
+          if (r.ok) {
+            showToast('Entry saved.', true);
+            contentInput.value = '';
+            setDefaultDate();
+            loadEntries();
+          } else {
+            const err = await r.json().catch(function() { return {}; });
+            showToast(err.error || 'Failed to save.', false);
+          }
+        } catch (e) {
+          showToast('Failed to save.', false);
+        }
+      });
+
+      document.getElementById('navSignOut').addEventListener('click', function(ev) {
+        ev.preventDefault();
+        fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).then(function() {
+          window.location.replace('/');
+        });
+      });
+
+      (async function init() {
+        await checkAuth();
+        await checkSubscription();
+
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+        if (navToggle && navLinks) {
+          navToggle.addEventListener('click', function() {
+            navToggle.classList.toggle('active');
+            navLinks.classList.toggle('open');
+          });
+        }
+
+        function onScroll() {
+          const navbar = document.getElementById('navbar');
+          const progressBar = document.getElementById('scrollProgress');
+          if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 20);
+          if (progressBar) {
+            const h = document.documentElement.scrollHeight - window.innerHeight;
+            progressBar.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%';
+          }
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      })();
+    })();
+  </script>
+
+  <footer class="footer" style="margin-top:60px">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N St. #8325, Sacramento, CA 95816</p>
+        <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+          <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
+          <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>
+          <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>
+          <a href="/advertise" style="color:var(--text-2)">Advertise</a>
+          <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
+        </nav>
+        <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws that may differ significantly. It is the driver's responsibility to comply with the laws of every state they travel through. California (Caltrans/CALDOT) references reflect our home state and should not be assumed to apply elsewhere.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

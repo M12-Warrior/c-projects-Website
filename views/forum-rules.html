@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forum Rules &amp; Trucker Lingo — Mile 12 Warrior</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.svg" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';var s=this.nextElementSibling;if(s)s.style.display='flex';">
+        <span class="nav-logo-fallback" style="display:none;">
+          <svg class="logo-svg logo-shield" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/#roadmap">Roadmap</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/forum" class="active">Forum</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/refresh">Refresh</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container">
+      <a href="/forum" class="back-link" style="margin-bottom:24px;display:inline-flex;align-items:center;gap:6px;">&larr; Back to Forum</a>
+
+      <div class="legal-page" style="max-width:800px;margin:0 auto;padding:0 0 40px;font-size:0.92rem;line-height:1.75;color:var(--text-2)">
+        <h1 class="page-title" style="color:var(--text);margin-bottom:8px">Forum Rules &amp; Community Guidelines</h1>
+        <p class="page-subtitle" style="margin-bottom:12px">By participating in the Mile 12 Warrior forum, you agree to these rules and our <a href="/terms">Terms of Service</a>.</p>
+        <p style="margin-bottom:32px;font-size:0.9rem;"><a href="/login" style="color:var(--gold)">Sign in</a> or <a href="/register" style="color:var(--gold)">create a free account</a> to view all forum entries and post.</p>
+
+        <h2 style="color:var(--text);font-size:1.35rem;margin-top:32px;margin-bottom:12px">Rules for All Participants</h2>
+        <ul style="margin-bottom:24px;padding-left:1.4em">
+          <li><strong>No copying or stealing content.</strong> Do not copy, scrape, download, or republish content from this site (including our pages, safety packets, course materials, blog posts, or other members’ posts) for use on other sites, in other products, or for commercial use without prior written permission from Mile 12 Warrior LLC. Our content is protected by copyright.</li>
+          <li><strong>No spam.</strong> Do not post unsolicited ads, repetitive messages, off-topic promotion, or commercial solicitations. Occasional, relevant recommendations may be acceptable when they clearly help the community; blatant or repeated spam will be removed and may result in account action.</li>
+          <li><strong>No suspicious links or entries.</strong> Do not post links to phishing sites, malware, or untrusted or unknown URLs. We may remove or disable links to protect the community from hacks, scams, and security risks. When sharing a resource, use clear, legitimate sources (e.g., official .gov or well-known organizations).</li>
+          <li><strong>Be respectful.</strong> No harassment, bullying, threats, hate speech, or personal attacks. Disagreement is fine; keep it civil and professional.</li>
+          <li><strong>Follow our Terms of Service and Disclaimer.</strong> All forum use is subject to our <a href="/terms">Terms of Service</a> and <a href="/disclaimer">Disclaimer</a>, including rules on user content, copyright, and prohibited conduct.</li>
+        </ul>
+
+        <h2 style="color:var(--text);font-size:1.35rem;margin-top:32px;margin-bottom:12px">Rules to Join &amp; Participate</h2>
+        <ul style="margin-bottom:24px;padding-left:1.4em">
+          <li><strong>Create an account to post.</strong> You must be signed in to start a thread or reply. If you don’t have an account, <a href="/register">register here</a>.</li>
+          <li><strong>Choose a username.</strong> When you register, you create a username. You may use a display name you’re comfortable with — for example, your email, your first name, a nickname, or your <strong>CB handle</strong>. Many drivers use their handle so the forum feels like the old CB days: friendly and recognizable.</li>
+          <li><strong>Keep it appropriate.</strong> Usernames must not be offensive, impersonate another person, or violate our Terms. We reserve the right to remove or change usernames that don’t meet these standards.</li>
+          <li><strong>One account per person.</strong> Do not create multiple accounts or use shared or fake accounts. Use one account for your participation.</li>
+          <li><strong>By posting, you agree.</strong> Posting in the forum means you agree to these Forum Rules and our Terms of Service, including our policies on user content and copyright.</li>
+        </ul>
+
+        <p style="margin-top:24px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-2)">Violations may result in removal of content, warning, or suspension/termination of your account. We want a safe, welcoming space for professional drivers — help us keep it that way.</p>
+
+        <hr style="border:0;height:1px;background:var(--border);margin:48px 0" />
+
+        <h2 style="color:var(--text);font-size:1.5rem;margin-bottom:12px">Trucker Lingo</h2>
+        <p style="margin-bottom:20px">The language of the road is part of trucking culture. From the CB radio era to today, terms and phrases help drivers communicate quickly and build community. Below are some commonly used terms. We encourage you to learn them, use them, and even bring back the CB where it makes sense — to make trucking more lively and to strengthen the community.</p>
+
+        <div style="display:grid;gap:12px;margin-bottom:28px">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline"><strong style="color:var(--gold);min-width:120px">10-4</strong><span>Okay, message received / affirmative.</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline"><strong style="color:var(--gold);min-width:120px">10-20</strong><span>Location (“What’s your 10-20?”).</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline"><strong style="color:var(--gold);min-width:120px">Bear / Smokey</strong><span>Law enforcement (highway patrol).</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline"><strong style="color:var(--gold);min-width:120px">Chicken coop</strong><span>Weigh station.</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline"><strong style="color:var(--gold);min-width:120px">Hammer down</strong><span>Driving full speed / pedal to the metal.</span></div>
+          <div style="display:flex;flex-wrap;gap:8px;align-items:baseline"><strong style="color:var(--gold);min-width:120px">Back door</strong><span>Rear of a convoy; last truck.</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline"><strong style="color:var(--gold);min-width:120px">Front door</strong><span>Lead truck in a convoy.</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline"><strong style="color:var(--gold);min-width:120px">Lot lizard</strong><span>Someone who solicits at truck stops (slang; use with care).</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline"><strong style="color:var(--gold);min-width:120px">Copy</strong><span>Heard you / understood.</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline"><strong style="color:var(--gold);min-width:120px">Four-wheeler</strong><span>Passenger vehicle (car, SUV), as opposed to a rig.</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline"><strong style="color:var(--gold);min-width:120px">Scale</strong><span>Weigh station; also “scales” (pull in to scale).</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline"><strong style="color:var(--gold);min-width:120px">Shutdown</strong><span>Required 10-hour (or 34-hour) rest break.</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline"><strong style="color:var(--gold);min-width:120px">Bobtail</strong><span>Tractor without a trailer.</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline"><strong style="color:var(--gold);min-width:120px">Deadhead</strong><span>Driving empty (no load).</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline"><strong style="color:var(--gold);min-width:120px">Eighty-eight</strong><span>Best wishes / hugs and kisses (CB sign-off).</span></div>
+        </div>
+
+        <div style="padding:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-top:32px">
+          <h3 style="color:var(--text);font-size:1.1rem;margin-bottom:12px">Add Your Lingo</h3>
+          <p style="margin-bottom:16px">Have a term or phrase you use on the road that isn’t listed? We’d love to grow this list. Send us your commonly used trucker lingo (and a short meaning if you like) via our <a href="/contact">Contact</a> page. We’ll review submissions and may add them here so others can learn and use them.</p>
+          <p style="margin-bottom:0">Let’s keep the language of the road alive — and maybe bring back the CB for a more connected, lively, and embracing trucking community. 10-4?</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer" style="margin-top:60px">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N St. #8325, Sacramento, CA 95816</p>
+        <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+          <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
+          <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>
+          <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>
+          <a href="/forum/rules" style="color:var(--text-2)">Forum Rules</a>
+          <a href="/advertise" style="color:var(--text-2)">Advertise</a>
+          <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
+        </nav>
+        <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      function onScroll() {
+        const navbar = document.getElementById('navbar');
+        const progressBar = document.getElementById('scrollProgress');
+        if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 20);
+        if (progressBar) {
+          const h = document.documentElement.scrollHeight - window.innerHeight;
+          progressBar.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%';
+        }
+      }
+      async function updateAuthLink() {
+        const authLink = document.querySelector('.nav-auth-link');
+        const navAuth = document.getElementById('navAuth');
+        if (!authLink || !navAuth) return;
+        try {
+          const res = await fetch('/api/auth/me', { credentials: 'include' });
+          const data = await res.json();
+          if (data.user) {
+            var u = (data.user.username || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            navAuth.innerHTML = '<span style="color: var(--text-2); font-size: 0.8rem; padding: 6px 14px;">' + u + '</span><a href="/profile" style="padding: 6px 14px;">Profile</a><a href="#" class="nav-logout-link" style="padding: 6px 14px; color: var(--text-3);">Logout</a>';
+            navAuth.querySelector('.nav-logout-link')?.addEventListener('click', async function(e) {
+              e.preventDefault();
+              await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+              location.reload();
+            });
+          }
+        } catch (_) {}
+      }
+      const navToggle = document.getElementById('navToggle');
+      const navLinks = document.getElementById('navLinks');
+      if (navToggle && navLinks) {
+        navToggle.addEventListener('click', function() {
+          navToggle.classList.toggle('active');
+          navLinks.classList.toggle('open');
+        });
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+      updateAuthLink();
+    })();
+  </script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

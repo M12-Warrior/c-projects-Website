@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — Driver Shield</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- ========== NAVIGATION ========== -->
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.svg" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';var s=this.nextElementSibling;if(s)s.style.display='flex';">
+        <span class="nav-logo-fallback" style="display:none;">
+          <svg class="logo-svg logo-shield" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/#roadmap">Roadmap</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/refresh">Refresh</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navSignInWrap"><a href="/login" class="nav-auth-link active">Sign In</a></li>
+        <li id="navUserWrap" class="hidden">
+          <span class="nav-username" id="navUsername"></span>
+          <a href="/api/auth/logout" id="navSignOut">Sign Out</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ========== AUTH CONTENT ========== -->
+  <main class="page-shell auth-page">
+    <div class="auth-card">
+      <h2>Sign In</h2>
+      <form id="loginForm">
+        <div class="form-group">
+          <label class="form-label" for="username">Username</label>
+          <input type="text" id="username" name="username" class="form-input" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" name="password" class="form-input" required autocomplete="current-password">
+        </div>
+        <div class="form-group">
+          <label class="flex align-center gap-8" style="cursor:pointer;font-size:0.9rem;color:var(--text-2);">
+            <input type="checkbox" id="showPassword" aria-label="Show password">
+            <span>Show password</span>
+          </label>
+        </div>
+        <div id="loginError" class="form-error hidden"></div>
+        <button type="submit" class="form-btn">Sign In</button>
+      </form>
+      <p class="form-link">
+        <a href="/forgot-password">Forgot password?</a>
+      </p>
+      <p class="form-link">
+        Don't have an account? <a href="/register">Create one</a>
+      </p>
+      <p class="form-link" style="margin-top:12px;font-size:0.9rem;color:var(--text-2);">
+        After signing in, manage email preferences (newsletter, blog, product updates, forum) in your <a href="/profile">Profile</a>.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      const navSignInWrap = document.getElementById('navSignInWrap');
+      const navUserWrap = document.getElementById('navUserWrap');
+      const navUsername = document.getElementById('navUsername');
+      const navSignOut = document.getElementById('navSignOut');
+      const loginForm = document.getElementById('loginForm');
+      const loginError = document.getElementById('loginError');
+
+      function updateNavFromAuth(user) {
+        if (user) {
+          navSignInWrap.classList.add('hidden');
+          navUserWrap.classList.remove('hidden');
+          navUsername.textContent = user.username || user.email || 'Account';
+        } else {
+          navSignInWrap.classList.remove('hidden');
+          navUserWrap.classList.add('hidden');
+        }
+      }
+
+      function showError(msg) {
+        loginError.textContent = msg;
+        loginError.classList.remove('hidden');
+      }
+
+      function hideError() {
+        loginError.textContent = '';
+        loginError.classList.add('hidden');
+      }
+
+      async function checkAuth() {
+        try {
+          const res = await fetch('/api/auth/me', { credentials: 'include' });
+          const data = await res.json().catch(function() { return {}; });
+          const user = data.user || null;
+          updateNavFromAuth(user);
+          if (user) {
+            window.location.replace(user.role === 'admin' ? '/admin' : '/');
+            return true;
+          }
+          return false;
+        } catch (e) {
+          updateNavFromAuth(null);
+          return false;
+        }
+      }
+
+      var showPassword = document.getElementById('showPassword');
+      var passwordInput = document.getElementById('password');
+      if (showPassword && passwordInput) {
+        showPassword.addEventListener('change', function() {
+          passwordInput.type = this.checked ? 'text' : 'password';
+        });
+      }
+
+      if (navSignOut) {
+        navSignOut.addEventListener('click', async function(e) {
+          e.preventDefault();
+          try {
+            await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+            window.location.href = '/';
+          } catch (err) {
+            window.location.href = '/';
+          }
+        });
+      }
+
+      checkAuth().then(function(alreadyLoggedIn) {
+        if (alreadyLoggedIn) return;
+
+        loginForm.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          hideError();
+          const username = document.getElementById('username').value.trim();
+          const password = document.getElementById('password').value;
+
+          try {
+            const res = await fetch('/api/auth/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ username, password })
+            });
+
+            const data = res.ok ? await res.json().catch(() => ({})) : await res.json().catch(() => ({}));
+
+            if (res.ok) {
+              const role = data.role || (data.user && data.user.role);
+              window.location.replace(role === 'admin' ? '/admin' : '/');
+              return;
+            }
+
+            showError(data.message || data.error || 'Invalid username or password.');
+          } catch (err) {
+            showError('Network error. Please try again.');
+          }
+        });
+      });
+    })();
+  </script>
+  <script>
+    (function() {
+      var navbar = document.getElementById('navbar');
+      var progressBar = document.getElementById('scrollProgress');
+      var navToggle = document.getElementById('navToggle');
+      var navLinks = document.getElementById('navLinks');
+      function onScroll() {
+        if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 20);
+        if (progressBar) {
+          var h = document.documentElement.scrollHeight - window.innerHeight;
+          progressBar.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%';
+        }
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+      if (navToggle && navLinks) {
+        navToggle.addEventListener('click', function() {
+          navToggle.classList.toggle('active');
+          navLinks.classList.toggle('open');
+        });
+        navLinks.querySelectorAll('a').forEach(function(a) {
+          a.addEventListener('click', function() {
+            navToggle.classList.remove('active');
+            navLinks.classList.remove('open');
+          });
+        });
+      }
+    })();
+  </script>
+
+  <footer class="footer" style="margin-top:60px">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N St. #8325, Sacramento, CA 95816</p>
+        <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+          <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
+          <a href="/terms#refunds" style="color:var(--text-2)">Refund Policy</a>
+          <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>
+          <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>
+          <a href="/advertise" style="color:var(--text-2)">Advertise</a>
+          <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
+        </nav>
+        <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:600px;margin-left:auto;margin-right:auto">By creating an account, you agree to our <a href="/terms" style="color:var(--text-2)">Terms of Service</a> and <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws that may differ significantly. It is the driver's responsibility to comply with the laws of every state they travel through. California (Caltrans/CALDOT) references reflect our home state and should not be assumed to apply elsewhere.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Cart — Mile 12 Warrior</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.svg" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';var s=this.nextElementSibling;if(s)s.style.display='flex';">
+        <span class="nav-logo-fallback" style="display:none;">
+          <svg class="logo-svg logo-shield" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/#roadmap">Roadmap</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/shop" class="active">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/refresh">Refresh</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container cart-page">
+      <h1 class="page-title">Your Cart</h1>
+      <p style="font-size:0.85rem;color:var(--text-2);margin-top:-8px;margin-bottom:20px"><strong>Online payment coming soon.</strong> You can still add items and go to checkout to see your order summary; we'll announce when you can complete payment. Pre-order? <a href="/contact" style="color:var(--gold)">Contact us</a>.</p>
+      <div id="cartContent">
+        <div id="cartItems"></div>
+        <div id="cartActions" class="hidden" style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap;">
+          <a href="/shop" class="btn btn-glass">Continue Shopping</a>
+          <a href="/shop/checkout" class="btn btn-primary" id="checkoutBtn">Checkout</a>
+        </div>
+      </div>
+      <div id="cartEmpty" class="empty-state hidden">
+        <p>Your cart is empty.</p>
+        <a href="/shop" class="btn btn-primary" style="margin-top: 16px; display: inline-block;">Browse Shop</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      const CART_KEY = 'driver_shield_cart';
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      function formatPrice(n) {
+        return '$' + (Number(n) || 0).toFixed(2);
+      }
+
+      function getCart() {
+        try {
+          var raw = localStorage.getItem(CART_KEY);
+          return raw ? JSON.parse(raw) : [];
+        } catch (_) { return []; }
+      }
+
+      function saveCart(cart) {
+        localStorage.setItem(CART_KEY, JSON.stringify(cart));
+        updateCartBadge();
+        renderCart();
+      }
+
+      function updateCartBadge() {
+        var cart = getCart();
+        var total = cart.reduce(function(s, i) { return s + (i.quantity || 1); }, 0);
+        var badge = document.getElementById('cartBadge');
+        if (badge) badge.textContent = total;
+      }
+
+      function renderCart() {
+        var cart = getCart();
+        var cartItems = document.getElementById('cartItems');
+        var cartActions = document.getElementById('cartActions');
+        var cartEmpty = document.getElementById('cartEmpty');
+        var checkoutBtn = document.getElementById('checkoutBtn');
+
+        if (cart.length === 0) {
+          cartItems.innerHTML = '';
+          if (cartActions) cartActions.classList.add('hidden');
+          if (cartActions && cartActions.style) cartActions.style.display = 'none';
+          if (cartEmpty) cartEmpty.classList.remove('hidden');
+          if (checkoutBtn) checkoutBtn.setAttribute('disabled', 'disabled');
+          return;
+        }
+
+        if (cartEmpty) cartEmpty.classList.add('hidden');
+        if (cartActions) {
+          cartActions.classList.remove('hidden');
+          cartActions.style.display = 'flex';
+        }
+        if (checkoutBtn) checkoutBtn.removeAttribute('disabled');
+
+        var total = 0;
+        cartItems.innerHTML = cart.map(function(item, idx) {
+          var qty = item.quantity || 1;
+          var price = parseFloat(item.price) || 0;
+          var subtotal = qty * price;
+          total += subtotal;
+          return '<div class="cart-item" data-idx="' + idx + '">' +
+            '<div class="cart-item-info">' +
+              '<div class="cart-item-name">' + escapeHtml(item.name) + '</div>' +
+              '<div class="cart-item-price">' + formatPrice(item.price) + ' each</div>' +
+            '</div>' +
+            '<div class="cart-item-qty">' +
+              '<button type="button" class="qty-btn" data-action="minus" aria-label="Decrease">−</button>' +
+              '<span>' + qty + '</span>' +
+              '<button type="button" class="qty-btn" data-action="plus" aria-label="Increase">+</button>' +
+            '</div>' +
+            '<button type="button" class="qty-btn" data-action="remove" aria-label="Remove" style="color: var(--red);">Remove</button>' +
+          '</div>';
+        }).join('') +
+        '<div class="cart-total">Total: ' + formatPrice(total) + '</div>';
+
+        cartItems.querySelectorAll('.qty-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var action = btn.dataset.action;
+            var idx = parseInt(btn.closest('.cart-item').dataset.idx, 10);
+            var updated = getCart();
+            if (idx < 0 || idx >= updated.length) return;
+            if (action === 'minus') {
+              if (updated[idx].quantity > 1) {
+                updated[idx].quantity--;
+                saveCart(updated);
+              }
+            } else if (action === 'plus') {
+              updated[idx].quantity = (updated[idx].quantity || 1) + 1;
+              saveCart(updated);
+            } else if (action === 'remove') {
+              updated.splice(idx, 1);
+              saveCart(updated);
+            }
+          });
+        });
+      }
+
+      async function updateAuthLink() {
+        var authLink = document.querySelector('.nav-auth-link');
+        if (!authLink) return;
+        try {
+          var res = await fetch('/api/auth/me', { credentials: 'include' });
+          var data = await res.json();
+          if (data.user) {
+            var li = authLink.closest('li');
+            li.innerHTML = '<span style="color: var(--text-2); font-size: 0.8rem; padding: 6px 14px;">' + escapeHtml(data.user.username) + '</span><a href="/profile" style="padding: 6px 14px;">Profile</a><a href="#" class="nav-logout-link" style="padding: 6px 14px; color: var(--text-3);">Logout</a>';
+            var logoutLink = li.querySelector('.nav-logout-link');
+            if (logoutLink) logoutLink.addEventListener('click', async function(e) {
+              e.preventDefault();
+              await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+              location.reload();
+            });
+          }
+        } catch (_) {}
+      }
+
+      var navToggle = document.getElementById('navToggle');
+      var navLinks = document.getElementById('navLinks');
+      if (navToggle && navLinks) {
+        navToggle.addEventListener('click', function() {
+          navToggle.classList.toggle('active');
+          navLinks.classList.toggle('open');
+        });
+      }
+
+      function onScroll() {
+        var navbar = document.getElementById('navbar');
+        var progressBar = document.getElementById('scrollProgress');
+        if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 20);
+        if (progressBar) {
+          var h = document.documentElement.scrollHeight - window.innerHeight;
+          progressBar.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%';
+        }
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+
+      updateCartBadge();
+      updateAuthLink();
+      renderCart();
+    })();
+  </script>
+
+  <footer class="footer" style="margin-top:60px">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N St. #8325, Sacramento, CA 95816</p>
+        <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+          <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
+          <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>
+          <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>
+          <a href="/advertise" style="color:var(--text-2)">Advertise</a>
+          <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
+        </nav>
+        <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws that may differ significantly. It is the driver's responsibility to comply with the laws of every state they travel through. California (Caltrans/CALDOT) references reflect our home state and should not be assumed to apply elsewhere.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

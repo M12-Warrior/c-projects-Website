@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog Post — Mile 12 Warrior</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- ========== NAVIGATION ========== -->
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.svg" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';var s=this.nextElementSibling;if(s)s.style.display='flex';">
+        <span class="nav-logo-fallback" style="display:none;">
+          <svg class="logo-svg logo-shield" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/#roadmap">Roadmap</a></li>
+        <li><a href="/blog" class="active">Blog</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/refresh">Refresh</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ========== PAGE SHELL ========== -->
+  <main class="page-shell">
+    <div class="page-container">
+      <div class="blog-post-full">
+        <a href="/blog" class="back-link">← Back to Blog</a>
+        <div id="postContent"></div>
+        <div id="commentsSection"></div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      function formatDate(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      function updateAuthLink() {
+        const authLink = document.querySelector('.nav-auth-link');
+        if (!authLink) return;
+        fetch('/api/auth/me', { credentials: 'include' })
+          .then(r => r.json())
+          .then(data => {
+            if (data.user) {
+              const li = authLink.closest('li');
+              li.innerHTML = `<span style="color: var(--text-2); font-size: 0.8rem; padding: 6px 14px;">${escapeHtml(data.user.username)}</span><a href="/profile" style="padding: 6px 14px;">Profile</a><a href="#" class="nav-logout-link" style="padding: 6px 14px; color: var(--text-3);">Logout</a>`;
+              li.querySelector('.nav-logout-link')?.addEventListener('click', async (e) => {
+                e.preventDefault();
+                await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+                location.reload();
+              });
+            }
+          })
+          .catch(() => {});
+      }
+
+      const slug = (window.location.pathname.split('/blog/')[1] || '').replace(/\/$/, '').trim();
+      const postContent = document.getElementById('postContent');
+      const commentsSection = document.getElementById('commentsSection');
+
+      if (!slug || !postContent) {
+        if (postContent) postContent.innerHTML = '<p>Post not found.</p>';
+        updateAuthLink();
+        return;
+      }
+
+      async function loadPost() {
+        try {
+          const res = await fetch(`/api/blog/posts/${encodeURIComponent(slug)}`, { credentials: 'include' });
+          if (!res.ok) {
+            postContent.innerHTML = '<p>Post not found.</p>';
+            return;
+          }
+          const data = await res.json();
+          const { post, comments } = data;
+          const authorName = post.author?.username || 'Unknown';
+          const metaStr = formatDate(post.created_at) + ' · ' + escapeHtml(authorName);
+
+          const featuredImg = (post.image && post.image.trim()) ? '<div class="post-featured-image"><img src="' + escapeHtml(post.image) + '" alt=""></div>' : '';
+          postContent.innerHTML = `
+            <h1>${escapeHtml(post.title)}</h1>
+            <div class="post-meta">${metaStr}</div>
+            ${featuredImg}
+            <div class="post-content">${post.content || ''}</div>
+          `;
+          document.title = escapeHtml(post.title) + ' — Blog — Driver Shield';
+
+          // Comments
+          const loggedIn = await fetch('/api/auth/me', { credentials: 'include' }).then(r => r.json()).then(d => !!d.user).catch(() => false);
+          const count = comments.length;
+
+          let commentFormHtml = '';
+          if (loggedIn) {
+            commentFormHtml = `
+              <div class="comment-form">
+                <textarea id="commentInput" class="form-input" placeholder="Write a comment..." rows="4"></textarea>
+                <p style="font-size:0.8rem;color:var(--text-3);margin-top:8px">Only post content you own or have permission to use. Do not paste copyrighted text or images.</p>
+                <button type="button" class="form-btn mt-16" id="commentSubmit">Post Comment</button>
+              </div>
+            `;
+          } else {
+            commentFormHtml = `<p class="mt-16"><a href="/login">Sign in to comment</a></p>`;
+          }
+
+          commentsSection.innerHTML = `
+            <div class="comments-section">
+              <h3 style="font-family: var(--font); font-size: 1.2rem; margin-bottom: 20px;">Comments (${count})</h3>
+              <div id="commentsList">${comments.map(c => `
+                <div class="comment" data-id="${c.id}">
+                  <div class="comment-header">
+                    <span class="comment-author">${escapeHtml(c.user?.username || 'Anonymous')}</span>
+                    <span class="comment-date">${formatDate(c.created_at)}</span>
+                  </div>
+                  <div class="comment-body">${escapeHtml(c.content)}</div>
+                </div>
+              `).join('')}</div>
+              ${commentFormHtml}
+            </div>
+          `;
+
+          const submitBtn = document.getElementById('commentSubmit');
+          const commentInput = document.getElementById('commentInput');
+          if (submitBtn && commentInput) {
+            submitBtn.addEventListener('click', async () => {
+              const content = commentInput.value.trim();
+              if (!content) return;
+              submitBtn.disabled = true;
+              try {
+                const r = await fetch(`/api/blog/posts/${encodeURIComponent(slug)}/comments`, {
+                  method: 'POST',
+                  credentials: 'include',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ content })
+                });
+                const result = await r.json();
+                if (result.success && result.comment) {
+                  const c = result.comment;
+                  const newComment = document.createElement('div');
+                  newComment.className = 'comment';
+                  newComment.dataset.id = c.id;
+                  newComment.innerHTML = `
+                    <div class="comment-header">
+                      <span class="comment-author">${escapeHtml(c.user?.username || 'Anonymous')}</span>
+                      <span class="comment-date">${formatDate(c.created_at)}</span>
+                    </div>
+                    <div class="comment-body">${escapeHtml(c.content)}</div>
+                  `;
+                  document.getElementById('commentsList').appendChild(newComment);
+                  commentInput.value = '';
+                  const h3 = commentsSection.querySelector('h3');
+                  if (h3) h3.textContent = `Comments (${count + 1})`;
+                }
+              } catch (_) {}
+              submitBtn.disabled = false;
+            });
+          }
+        } catch (err) {
+          postContent.innerHTML = '<p>Could not load post.</p>';
+        }
+      }
+
+      const navToggle = document.getElementById('navToggle');
+      const navLinks = document.getElementById('navLinks');
+      if (navToggle && navLinks) {
+        navToggle.addEventListener('click', () => {
+          navToggle.classList.toggle('active');
+          navLinks.classList.toggle('open');
+        });
+      }
+
+      updateAuthLink();
+      loadPost();
+    })();
+  </script>
+
+  <footer class="footer" style="margin-top:60px">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N St. #8325, Sacramento, CA 95816</p>
+        <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+          <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
+          <a href="/terms#refunds" style="color:var(--text-2)">Refund Policy</a>
+          <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>
+          <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>
+          <a href="/advertise" style="color:var(--text-2)">Advertise</a>
+          <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
+        </nav>
+        <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:600px;margin-left:auto;margin-right:auto">Blog content is for educational purposes only and does not constitute professional advice. See our <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws that may differ significantly. It is the driver's responsibility to comply with the laws of every state they travel through. California (Caltrans/CALDOT) references reflect our home state and should not be assumed to apply elsewhere.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

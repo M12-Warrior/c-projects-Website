@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+mobile-app/node_modules/
+
+# Env and secrets (never commit these)
+.env
+.env.local
+.env.*.local
+
+# Local SQLite DB (Railway will create its own on the volume)
+db/drivershield.db
+
+# OS and editor
+.DS_Store
+Thumbs.db
+*.log

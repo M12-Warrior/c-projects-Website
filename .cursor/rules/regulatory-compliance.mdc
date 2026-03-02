@@ -1,0 +1,42 @@
+---
+description: Ensure all driver safety advice complies with USDOT FMCSA and Caltrans (CALDOT) regulations
+alwaysApply: true
+---
+
+# Regulatory Compliance — USDOT FMCSA & CALDOT
+
+All advice, guidance, checklists, and content on this site must comply with current federal and state transportation regulations. Never publish content that contradicts or undermines these standards.
+
+## Authorities
+
+- **USDOT FMCSA** — Federal Motor Carrier Safety Administration (49 CFR Parts 350-399)
+- **CALDOT (Caltrans)** — California Department of Transportation regulations and Title 13 CCR
+
+## Compliance Rules
+
+1. **Hours of Service (HOS):** All sleep, fatigue, and scheduling advice must align with FMCSA HOS rules (49 CFR Part 395) — 11-hour driving limit, 14-hour on-duty window, 10-hour off-duty minimum, 30-minute break requirement, 60/70-hour weekly limits.
+
+2. **Vehicle Inspection:** Pre-trip and post-trip inspection guidance must follow FMCSA DVIR requirements (49 CFR 396.11-396.13). California-specific inspection rules under CVC 34501.12 also apply.
+
+3. **Equipment & Safety Gear:** Recommendations for reflective triangles, fire extinguishers, and emergency equipment must meet FMCSA minimum standards (49 CFR 393.95).
+
+4. **Medical & Fitness:** Any advice about sleep apnea screening, CDL physicals, or fitness-for-duty must reference FMCSA medical certification standards (49 CFR Part 391 Subpart E).
+
+5. **Hazmat & Cargo:** If cargo or hazmat content is added, it must comply with 49 CFR Parts 171-180 (USDOT) and California CVC Division 14.
+
+6. **California-Specific Rules:** Content must account for California-specific regulations including chain control requirements (R-1/R-2/R-3 levels), Caltrans construction zone rules, CHP commercial vehicle enforcement, and California Air Resources Board (CARB) engine/idling regulations.
+
+7. **Speed & Driving Advice:** California enforces a 55 mph truck speed limit on many highways (CVC 22406). Never advise speeds that exceed posted or statutory limits.
+
+## Verification Process
+
+Before publishing or updating any safety advice:
+
+- Cross-reference the specific FMCSA CFR section that governs the topic
+- Check for California-specific overrides or additions via Caltrans/CVC
+- If uncertain whether advice complies, add a disclaimer: "Verify current regulations at fmcsa.dot.gov or dot.ca.gov"
+- Never present regulatory minimums as best practice — frame them as the legal floor, not the ceiling
+
+## Disclaimer Requirement
+
+Every page must include a disclaimer that the site provides educational information, not legal or medical advice, and that drivers should consult FMCSA regulations and qualified professionals for compliance questions.

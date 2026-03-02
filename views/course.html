@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Driver 90-Day Onboarding Course — Mile 12 Warrior</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .course-hero{max-width:1200px;margin:0 auto;padding:120px 24px 40px}
+    .course-back{color:var(--text-2);text-decoration:none;font-size:.85rem;display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;transition:color .2s}
+    .course-back:hover{color:var(--blue)}
+    .course-title{font-family:var(--font);font-size:2.4rem;font-weight:700;color:var(--text);margin:0 0 12px;line-height:1.15}
+    .course-subtitle{font-size:1.05rem;color:var(--text-2);margin:0 0 28px;max-width:620px;line-height:1.5}
+    .course-price-row{display:flex;align-items:center;gap:16px;margin-bottom:28px;flex-wrap:wrap}
+    .course-price-badge{display:inline-flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 20px}
+    .course-price{font-family:var(--font);font-size:1.8rem;font-weight:700;color:var(--green)}
+    .course-price-label{font-size:.78rem;color:var(--text-3);line-height:1.3}
+    .course-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px;max-width:560px}
+    .course-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 10px;text-align:center}
+    .course-stat-value{font-family:var(--font);font-weight:600;font-size:.95rem;color:var(--text);display:block}
+    .course-stat-label{font-size:.7rem;color:var(--text-3);margin-top:2px;display:block}
+    .course-progress{margin-bottom:28px;max-width:560px}
+    .course-progress-label{font-size:.82rem;color:var(--text-2);margin-bottom:8px}
+    .course-progress-bar{height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+    .course-progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:3px;transition:width .5s var(--ease);width:0}
+    .course-ctas{display:flex;gap:12px;flex-wrap:wrap}
+    .course-layout{max-width:1200px;margin:0 auto;padding:0 24px 80px;display:flex;gap:32px;align-items:flex-start}
+    .course-sidebar{width:280px;flex-shrink:0;position:sticky;top:80px;max-height:calc(100vh - 100px);overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px}
+    .course-sidebar::-webkit-scrollbar{width:4px}
+    .course-sidebar::-webkit-scrollbar-thumb{background:var(--border-hover);border-radius:4px}
+    .course-main{flex:1;min-width:0}
+    .mod-nav{list-style:none;margin:0;padding:0}
+    .mod-nav-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:var(--radius-sm);cursor:pointer;transition:background .2s;border:1px solid transparent;margin-bottom:2px}
+    .mod-nav-item:hover{background:var(--surface-2)}
+    .mod-nav-item.active{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.2)}
+    .mod-nav-item.completed .mod-nav-num{color:var(--green)}
+    .mod-nav-num{font-family:var(--mono);font-size:.72rem;color:var(--text-3);width:22px;text-align:center;flex-shrink:0}
+    .mod-nav-info{flex:1;min-width:0}
+    .mod-nav-title{font-size:.8rem;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .mod-nav-meta{font-size:.68rem;color:var(--text-3);margin-top:1px}
+    .mod-nav-status{font-size:.85rem;flex-shrink:0;width:18px;text-align:center}
+    .module-header{margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+    .module-num-label{font-family:var(--mono);font-size:.78rem;color:var(--blue);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+    .module-title{font-family:var(--font);font-size:1.5rem;font-weight:700;color:var(--text);margin:0 0 12px}
+    .module-overview{font-size:.92rem;color:var(--text-2);line-height:1.65;margin:0}
+    .lesson{border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+    .lesson:hover{border-color:var(--border-hover)}
+    .lesson-header{display:flex;align-items:center;gap:10px;padding:15px 18px;cursor:pointer;background:var(--surface);transition:background .2s;user-select:none}
+    .lesson-header:hover{background:var(--surface-2)}
+    .lesson-chevron{width:16px;height:16px;color:var(--text-3);transition:transform .25s var(--ease);flex-shrink:0}
+    .lesson.open .lesson-chevron{transform:rotate(90deg)}
+    .lesson-title{font-size:.9rem;font-weight:500;color:var(--text);flex:1}
+    .lesson-done{font-size:.75rem;color:var(--green);font-weight:500;flex-shrink:0}
+    .lesson-body{max-height:0;overflow:hidden;transition:max-height .35s var(--ease),padding .35s var(--ease);padding:0 18px}
+    .lesson.open .lesson-body{max-height:3000px;padding:0 18px 20px}
+    .lesson-body p{color:var(--text-2);font-size:.88rem;line-height:1.72;margin:0 0 14px}
+    .lesson-body p:last-child{margin-bottom:0}
+    .lesson-mark-btn{display:inline-flex;align-items:center;gap:6px;margin-top:14px;padding:8px 16px;font-size:.78rem;font-weight:500;border-radius:var(--radius-xs);border:1px solid var(--border);background:transparent;color:var(--text-2);cursor:pointer;transition:all .2s}
+    .lesson-mark-btn:hover{border-color:var(--green);color:var(--green)}
+    .lesson-mark-btn.done{border-color:var(--green);color:var(--green);pointer-events:none}
+    .quiz-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px;margin-top:32px}
+    .quiz-title{font-family:var(--font);font-size:1.15rem;font-weight:600;color:var(--text);margin:0 0 4px}
+    .quiz-subtitle{font-size:.8rem;color:var(--text-3);margin:0 0 28px}
+    .quiz-question{margin-bottom:24px}
+    .quiz-q-num{font-family:var(--mono);font-size:.7rem;color:var(--blue);margin-bottom:6px}
+    .quiz-q-text{font-size:.9rem;color:var(--text);font-weight:500;margin:0 0 10px}
+    .quiz-options{list-style:none;margin:0;padding:0}
+    .quiz-option{display:flex;align-items:center;gap:10px;padding:9px 14px;margin-bottom:4px;border-radius:var(--radius-xs);cursor:pointer;transition:background .15s;font-size:.84rem;color:var(--text-2)}
+    .quiz-option:hover{background:var(--surface-2)}
+    .quiz-option input[type=radio]{accent-color:var(--blue);margin:0;flex-shrink:0}
+    .quiz-option.correct{background:rgba(52,211,153,.08);color:var(--green)}
+    .quiz-option.incorrect{background:rgba(248,113,113,.06);color:var(--red)}
+    .quiz-result{padding:16px 20px;border-radius:var(--radius-sm);margin-top:20px;font-size:.88rem;font-weight:500}
+    .quiz-result.pass{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);color:var(--green)}
+    .quiz-result.fail{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.25);color:var(--red)}
+    .module-complete-btn{margin-top:24px}
+    .purchase-overlay{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:60px 32px;text-align:center}
+    .purchase-lock{width:64px;height:64px;border-radius:50%;background:rgba(99,102,241,.1);display:inline-flex;align-items:center;justify-content:center;margin-bottom:24px}
+    .purchase-lock svg{width:28px;height:28px;color:var(--blue)}
+    .purchase-overlay h2{font-family:var(--font);font-size:1.4rem;font-weight:700;color:var(--text);margin:0 0 10px}
+    .purchase-overlay p{color:var(--text-2);font-size:.9rem;margin:0 0 28px;max-width:420px;margin-left:auto;margin-right:auto;line-height:1.6}
+    .purchase-restore{display:block;margin-top:16px;font-size:.78rem;color:var(--text-3);cursor:pointer;background:none;border:none;text-decoration:underline}
+    .purchase-restore:hover{color:var(--text-2)}
+    .completion-section{text-align:center;padding:60px 32px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+    .completion-check{width:80px;height:80px;border-radius:50%;background:rgba(52,211,153,.12);display:inline-flex;align-items:center;justify-content:center;margin-bottom:24px}
+    .completion-check svg{width:40px;height:40px;color:var(--green)}
+    .completion-section h2{font-family:var(--font);font-size:1.5rem;font-weight:700;color:var(--text);margin:0 0 8px}
+    .completion-section .comp-sub{color:var(--text-2);font-size:.92rem;margin:0 0 32px}
+    .cert-name-group{max-width:360px;margin:0 auto 28px;text-align:left}
+    .cert-name-group label{display:block;font-size:.78rem;color:var(--text-3);margin-bottom:6px;font-weight:500}
+    .cert-name-group input{width:100%;padding:12px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);color:var(--text);font-family:var(--font-body);font-size:.9rem;outline:none;transition:border-color .2s}
+    .cert-name-group input:focus{border-color:var(--blue)}
+    .comp-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:32px}
+    .comp-links{display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+    .comp-links a{font-size:.82rem;color:var(--text-2);text-decoration:none;transition:color .2s}
+    .comp-links a:hover{color:var(--blue)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:var(--radius-sm);font-family:var(--font);font-weight:600;font-size:.88rem;border:none;cursor:pointer;text-decoration:none;transition:all .2s var(--ease)}
+    .btn-primary{background:var(--blue);color:#fff}
+    .btn-primary:hover{filter:brightness(1.15);transform:translateY(-1px)}
+    .btn-glass{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text)}
+    .btn-glass:hover{background:rgba(255,255,255,.07);border-color:var(--border-hover)}
+    .btn-green{background:var(--green);color:#050608}
+    .btn-green:hover{filter:brightness(1.1);transform:translateY(-1px)}
+    .btn-sm{padding:9px 18px;font-size:.8rem}
+    .free-badge{display:inline-block;font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--green);background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);padding:2px 8px;border-radius:var(--radius-xs);margin-left:8px}
+    .module1-cta{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;margin-top:24px;text-align:center}
+    .module1-cta h3{font-family:var(--font);font-size:1.1rem;font-weight:700;color:var(--text);margin:0 0 8px}
+    .module1-cta p{color:var(--text-2);font-size:.9rem;margin:0 0 20px;line-height:1.55}
+    .module1-cta-links{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:20px}
+    .module1-cta-links a{display:inline-block;padding:10px 18px;border-radius:var(--radius-sm);font-size:.85rem;font-weight:600;text-decoration:none;transition:all .2s;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text)}
+    .module1-cta-links a:hover{border-color:var(--blue);color:var(--blue);background:rgba(99,102,241,.06)}
+    .module1-cta-links a.cta-primary{background:var(--blue);border-color:var(--blue);color:#fff}
+    .module1-cta-links a.cta-primary:hover{filter:brightness(1.15);color:#fff}
+    @media(max-width:900px){
+      .course-layout{flex-direction:column}
+      .course-sidebar{width:100%;position:static;max-height:none}
+    }
+    @media(max-width:640px){
+      .course-hero{padding:100px 16px 32px}
+      .course-title{font-size:1.6rem}
+      .course-subtitle{font-size:.92rem}
+      .course-stats{grid-template-columns:repeat(2,1fr)}
+      .course-layout{padding:0 16px 60px}
+      .quiz-section{padding:24px 18px}
+      .purchase-overlay{padding:40px 20px}
+      .completion-section{padding:40px 20px}
+    }
+  </style>
+</head>
+<body>
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.svg" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';var s=this.nextElementSibling;if(s)s.style.display='flex';">
+        <span class="nav-logo-fallback" style="display:none;">
+          <svg class="logo-svg logo-shield" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/#roadmap">Roadmap</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/refresh">Refresh</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <section class="course-hero" id="courseHero">
+      <a href="/services" class="course-back">&larr; Back to Services</a>
+      <h1 class="course-title">New Driver 90-Day Onboarding Course</h1>
+      <p class="course-subtitle">10 modules. 40+ lessons. Everything they didn't teach you in CDL school.</p>
+      <div class="course-price-row">
+        <div class="course-price-badge">
+          <span class="course-price">$149</span>
+          <span class="course-price-label">one-time<br>payment</span>
+        </div>
+      </div>
+      <div class="course-stats">
+        <div class="course-stat"><span class="course-stat-value">10</span><span class="course-stat-label">Modules</span></div>
+        <div class="course-stat"><span class="course-stat-value">Self-Paced</span><span class="course-stat-label">Go at your speed</span></div>
+        <div class="course-stat"><span class="course-stat-value">Certificate</span><span class="course-stat-label">Of completion</span></div>
+        <div class="course-stat"><span class="course-stat-value">Packets</span><span class="course-stat-label">Included</span></div>
+      </div>
+      <div class="course-progress">
+        <div class="course-progress-label" id="progressLabel">0 of 10 modules complete</div>
+        <div class="course-progress-bar"><div class="course-progress-fill" id="progressFill"></div></div>
+      </div>
+      <div class="course-ctas">
+        <button class="btn btn-primary" id="enrollBtn" onclick="purchaseCourse()">Enroll Now &mdash; $149</button>
+        <button class="btn btn-glass" onclick="selectModule(1)">Preview Module 1 Free</button>
+      </div>
+    </section>
+    <div class="course-layout">
+      <aside class="course-sidebar" id="courseSidebar"></aside>
+      <div class="course-main" id="courseMain">
+        <p style="color:var(--text-3);font-size:.9rem;">Select a module from the sidebar to begin.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <svg class="logo-svg logo-shield" width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </div>
+        <p class="footer-tagline">Born from real road experience. Empowering truck drivers to master the miles and own their journey.</p>
+        <nav class="footer-nav">
+          <a href="/about">About</a>
+          <a href="/services">Services</a>
+          <a href="/blog">Blog</a>
+          <a href="/forum">Forum</a>
+          <a href="/shop">Shop</a>
+          <a href="/contact">Contact</a>
+        </nav>
+        <p class="footer-contact">joyce@mile12warrior.com | (916) 292-7411</p>
+        <div class="footer-social">
+          <a href="https://www.facebook.com/mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="Facebook">Facebook</a>
+          <a href="https://x.com/mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">X</a>
+          <a href="https://www.instagram.com/mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="Instagram">Instagram</a>
+          <a href="https://www.tiktok.com/@mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="TikTok">TikTok</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N St. #8325, Sacramento, CA 95816</p>
+        <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+          <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
+          <a href="/terms#refunds" style="color:var(--text-2)">Refund Policy</a>
+          <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>
+          <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>
+          <a href="/advertise" style="color:var(--text-2)">Advertise</a>
+          <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
+        </nav>
+        <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved. This is an educational resource &mdash; not medical, legal, or regulatory advice. All content is intended to align with USDOT FMCSA (49 CFR) and Caltrans/CALDOT regulations. Always verify current rules at <a href="https://www.fmcsa.dot.gov" target="_blank" rel="noopener">fmcsa.dot.gov</a> and <a href="https://dot.ca.gov" target="_blank" rel="noopener">dot.ca.gov</a>, and consult qualified professionals for compliance and medical questions.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws and regulations that may differ significantly. It is the driver&rsquo;s responsibility to know and comply with the laws of every state they travel through. References to California (Caltrans/CALDOT) regulations reflect the home state of Mile 12 Warrior LLC and should not be assumed to apply in other jurisdictions.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/packets.js"></script>
+  <script>
+(function(){
+
+var COURSE_DATA = {
+  1: {
+    title: 'Welcome & Your First 90 Days',
+    free: true,
+    overview: 'This introductory module orients you to the Mile 12 Warrior program, explains how the course works, maps out your 90-day journey, and helps you set meaningful safety goals. Module 1 is always free — start here.',
+    lessons: [
+      {
+        id: '1.1',
+        title: 'Who Is Mile 12 Warrior?',
+        content: '<p>Mile 12 Warrior was founded by Joyce Cooke, a professional driver with over 25 years of experience behind the wheel spanning school buses, pickup and delivery operations, and regional over-the-road (OTR) routes. This isn\u2019t a company built from a boardroom \u2014 it was built from the seat of a truck, informed by thousands of real miles, real weather, real fatigue, and real lessons learned the hard way. Every piece of content in this course reflects that road-tested perspective.</p><p>The name \u201cMile 12\u201d represents a critical concept in driver safety: the point where fatigue, routine, and overconfidence converge. It\u2019s not always literal \u2014 it\u2019s the moment in any shift where you feel comfortable enough to let your guard down, where the road feels familiar enough that you stop actively scanning, where your body has been sitting long enough that your reaction time starts to degrade. Research consistently shows that a large share of commercial vehicle incidents occur not at the beginning or end of a drive, but somewhere in the middle, when vigilance fades. Mile 12 is a reminder to stay sharp precisely when your instincts tell you it\u2019s safe to relax.</p><p>Our mission is simple: equip every new commercial driver with the knowledge, habits, and systems they need to survive and thrive during the most critical period of their career \u2014 the first 90 days. We don\u2019t just teach regulations; we teach the daily practices that turn regulations into second nature. Welcome aboard.</p>'
+      },
+      {
+        id: '1.2',
+        title: 'How This Course Works',
+        content: '<p>This course is self-paced and structured across 10 modules that build progressively on each other. You start with the foundational concepts \u2014 understanding HOS rules, managing sleep, and learning inspections \u2014 and work toward more advanced topics like defensive driving systems and building your daily professional routine. The estimated total time to complete all 10 modules is 6 to 8 hours, but there is no time limit. You can work through a module in one sitting or spread it across multiple sessions.</p><p>Each module contains 4 to 5 lessons with substantive content you\u2019ll actually use on the road. At the end of each module, you\u2019ll complete a Knowledge Check quiz. You need a score of 70% or higher to pass and unlock the next module. If you don\u2019t pass on the first attempt, review the lessons and try again \u2014 there are no limits on retakes. Your progress is saved automatically in your browser, so you can close the page and pick up exactly where you left off.</p><p>When you complete all 10 modules, you\u2019ll receive a Certificate of Completion and your New Driver Packet \u2014 a comprehensive reference document with checklists, emergency protocols, and quick-reference guides you can keep in your cab. This course is your foundation. Take it seriously, and it will pay dividends for the rest of your career.</p>'
+      },
+      {
+        id: '1.3',
+        title: 'Your 90-Day Roadmap',
+        content: '<p>Your first 90 days as a commercial driver are divided into three phases, each with specific competencies to develop. Days 1 through 30 focus on the non-negotiable basics: mastering Hours of Service regulations so you can manage your clock without violations, building a sleep routine that gives you genuine rest in a sleeper berth, learning to perform thorough pre-trip and post-trip inspections, and assembling your emergency preparedness kit. These are the skills that keep you legal, safe, and employable.</p><p>Days 31 through 60 expand your focus to physical and mental wellness. Trucking takes a measurable toll on your body and mind \u2014 during this phase, you\u2019ll build nutrition habits that work within the constraints of the road, establish exercise routines you can do at truck stops, develop stress management techniques, and create a family communication plan that prevents isolation from undermining your performance. You\u2019ll also begin developing defensive driving fundamentals that go beyond what CDL school covered.</p><p>Days 61 through 90 bring it all together into sustainable daily systems. You\u2019ll build your morning routine, on-road discipline checkpoints, and evening wind-down process. You\u2019ll complete weekly self-assessments to track your progress. By Day 90, you won\u2019t just be a new driver \u2014 you\u2019ll be a fundamentally prepared professional with habits and systems that will serve you for decades. Each module in this course maps directly to this roadmap, giving you the knowledge at exactly the time you need it.</p>'
+      },
+      {
+        id: '1.4',
+        title: 'Setting Your Safety Goals',
+        content: '<p>Vague goals produce vague results. To make real progress during your first 90 days, you need SMART goals: Specific, Measurable, Achievable, Relevant, and Time-bound. Instead of \u201cI want to be a better driver,\u201d try \u201cI will complete my pre-trip inspection in under 15 minutes with zero missed items by Day 30.\u201d Instead of \u201cI want to sleep better,\u201d try \u201cI will maintain 7 or more hours of sleep per night for 21 consecutive days.\u201d Specific targets give you something concrete to work toward and a clear way to know when you\u2019ve achieved it.</p><p>Here are example SMART goals for each phase: Days 1\u201330 \u2014 \u201cI will log zero HOS violations and complete every pre-trip inspection without skipping any item for 30 consecutive days.\u201d Days 31\u201360 \u2014 \u201cI will stretch at every fuel stop, drink at least 64 ounces of water daily, and call my family at least once every day for 30 days.\u201d Days 61\u201390 \u2014 \u201cI will complete a weekly self-assessment every Sunday, maintain a 7-second following distance on every drive, and build a 5-day cooler meal plan.\u201d</p><p>Write your goals down. Goals that exist only in your head are wishes, not commitments. At the end of this course, you\u2019ll have a template in your New Driver Packet where you can formalize these goals and track your progress. Revisit them weekly. Adjust them if needed \u2014 the point isn\u2019t perfection, it\u2019s consistent progress toward becoming the safest, most professional version of yourself behind the wheel.</p>'
+      }
+    ],
+    quiz: [
+      { q: 'What does the "Mile 12" concept represent?', opts: ['The 12th mile marker on a highway', 'The point where fatigue, routine, and overconfidence converge', 'The company\'s founding location', 'A mandatory rest stop interval'], ans: 1 },
+      { q: 'What is the minimum quiz score required to unlock the next module?', opts: ['50%', '60%', '70%', '80%'], ans: 2 },
+      { q: 'What topics are covered during Days 1-30 of the 90-day roadmap?', opts: ['Defensive driving and career planning', 'HOS, sleep, inspections, and emergency prep', 'Mental health and family communication', 'Daily routines and weekly assessments'], ans: 1 },
+      { q: 'What does the "S" in SMART goals stand for?', opts: ['Strategic', 'Simple', 'Specific', 'Sustainable'], ans: 2 }
+    ]
+  },
+  2: {
+    title: 'Hours of Service Mastery',
+    overview: 'Hours of Service regulations exist to save lives — including yours. This module gives you a complete, practical understanding of every HOS rule under 49 CFR Part 395, ELD fundamentals, sleeper berth provisions, and the most common mistakes new drivers make.',
+    lessons: [
+      {
+        id: '2.1',
+        title: 'Why HOS Exists',
+        content: '<p>Before Hours of Service regulations existed, commercial drivers routinely drove 20-plus-hour shifts with no mandated rest. The human cost was staggering: exhausted drivers falling asleep at the wheel, catastrophic multi-vehicle accidents, and a fatality rate among commercial drivers that far exceeded other professions. The Federal Motor Carrier Safety Administration (FMCSA) developed HOS rules under 49 CFR Part 395 specifically to address the documented relationship between driver fatigue and crash risk. These aren\u2019t arbitrary bureaucratic restrictions \u2014 they\u2019re based on decades of crash data, sleep science research, and the measurable degradation of human performance under sustained wakefulness.</p><p>FMCSA data consistently shows that fatigued driving is one of the leading contributing factors in commercial vehicle crashes. A driver who has been awake for 18 hours has cognitive impairment equivalent to a blood alcohol concentration of 0.05%. At 24 hours without sleep, that impairment equals approximately 0.10% BAC \u2014 well above the legal limit. HOS rules set enforceable boundaries on driving time, on-duty time, and mandatory rest periods precisely because the human body cannot safely override its need for sleep, no matter how experienced or motivated the driver is.</p><p>Understanding the \u201cwhy\u201d behind HOS makes compliance feel like self-preservation rather than bureaucracy. Every rule in this module exists because someone was hurt or killed when those limits didn\u2019t exist. When you comply with HOS, you\u2019re not just avoiding fines and CSA points \u2014 you\u2019re protecting your own life, the lives of other motorists, and your long-term career. Carriers and shippers who pressure you to violate HOS are putting your CDL, your safety, and their own liability at risk.</p>'
+      },
+      {
+        id: '2.2',
+        title: 'The Core Rules',
+        content: '<p>The 11-Hour Driving Limit: after 10 consecutive hours off-duty, you may drive for up to 11 hours. Your driving clock starts the moment you shift your ELD to \u201cDriving\u201d status and accumulates every minute you spend driving. You cannot drive after you\u2019ve accumulated 11 hours of driving time. The 14-Hour On-Duty Window: you cannot drive beyond the 14th consecutive hour after coming on-duty, even if you haven\u2019t used all 11 driving hours. This is a critical distinction \u2014 the 14-hour clock does not pause for off-duty time (except qualifying sleeper berth splits). If you come on-duty at 6:00 AM, your window closes at 8:00 PM regardless of how many breaks you took during the day.</p><p>The 10-Hour Off-Duty Minimum: before you can drive again, you must take at least 10 consecutive hours off-duty (or a qualifying sleeper berth combination). This cannot be broken into smaller pieces \u2014 10 consecutive hours means 10 uninterrupted hours in off-duty or sleeper berth status. The 30-Minute Break Requirement: after 8 cumulative hours of driving time (not on-duty time), you must take a break of at least 30 minutes. This break can be off-duty, sleeper berth, or on-duty not driving. Plan your fuel stops and meal breaks to satisfy this requirement naturally.</p><p>The 60/70-Hour Weekly Limits: your carrier operates on either a 7-day or 8-day schedule. You cannot drive after accumulating 60 on-duty hours in 7 consecutive days, or 70 on-duty hours in 8 consecutive days. The 34-Hour Restart: you can reset your weekly clock by taking 34 or more consecutive hours off-duty. After a valid restart, your 60/70-hour accumulation resets to zero. Plan your restarts strategically \u2014 a restart that begins Saturday evening and ends Monday morning lets you start the week fresh. All of these limits work together as a system. Master the system, not just individual rules.</p>'
+      },
+      {
+        id: '2.3',
+        title: 'ELD Fundamentals',
+        content: '<p>Your Electronic Logging Device records four duty statuses: Off-Duty, Sleeper Berth, Driving, and On-Duty Not Driving. The ELD automatically records driving time when the vehicle is in motion, but you are responsible for manually changing between the other three statuses. One of the most common mistakes new drivers make is forgetting to change their duty status \u2014 for example, arriving at a shipper and remaining in \u201cDriving\u201d status while waiting to be loaded. This burns your 11-hour driving clock and 14-hour window unnecessarily. Always change your status the moment your duty changes.</p><p>Unassigned driving time is another frequent issue. If the truck moves and no driver is logged in, the ELD records that movement as unassigned. Your carrier will ask you to account for this time. If it was you, claim it \u2014 failing to do so is a form of falsification. Personal conveyance allows you to move your truck for personal reasons (such as driving to a restaurant from a rest area) while off-duty, but the rules are strict: you cannot be under a load, cannot be advancing toward your next shipper/receiver, and should only use it for short, reasonable distances. Misusing personal conveyance is a common audit finding.</p><p>ELD malfunctions are governed by 49 CFR 395.34. If your ELD malfunctions, you must note the malfunction and notify your carrier within 24 hours. You are required to reconstruct your records on paper graph logs for the duration of the malfunction. You have 8 days to get the ELD repaired. Keep a supply of blank paper logs in your truck at all times \u2014 this is not optional. Know how to fill out a paper log before you need to, because a malfunction at 2 AM in a rest area in the middle of Kansas is not the time to learn.</p>'
+      },
+      {
+        id: '2.4',
+        title: 'Sleeper Berth Provisions',
+        content: '<p>The sleeper berth provision allows you to split your required 10-hour off-duty period into two separate periods under specific rules. The most common split is 7/3: one period of at least 7 consecutive hours in the sleeper berth, and one period of at least 3 consecutive hours either off-duty or in the sleeper berth. The critical benefit is that neither period counts against your 14-hour driving window \u2014 your 14-hour clock effectively pauses during qualifying sleeper berth time. This gives you more flexibility in managing long days.</p><p>Here\u2019s a practical example: You come on-duty at 5:00 AM. By 12:00 PM, you\u2019ve driven 6 hours and your 14-hour window has been running for 7 hours. You pull into a truck stop and take a 3-hour break (off-duty). At 3:00 PM, you resume driving. Now, because that 3-hour break qualifies as the short portion of a split, your 14-hour window calculation excludes those 3 hours, giving you effectively until 11:00 PM. You drive until 7:00 PM, then take 7 hours in the sleeper berth. At 2:00 AM, you\u2019re reset for a new driving period. The math can be complex \u2014 practice with examples until it becomes intuitive.</p><p>A word of caution: the sleeper berth split is a tool, not a default strategy. If you can take a full, uninterrupted 10-hour off-duty break, that is almost always the better choice for your health, alertness, and compliance simplicity. Splits are most useful when your schedule genuinely requires flexibility \u2014 for example, waiting for a shipper to finish loading during an inconvenient time. Don\u2019t use splits just to squeeze more driving into a day. Use them when they genuinely help you manage your time while maintaining adequate rest. Your body doesn\u2019t care about regulatory technicalities \u2014 it needs real sleep.</p>'
+      },
+      {
+        id: '2.5',
+        title: 'Common New Driver HOS Mistakes',
+        content: '<p>Mistake #1: Not understanding that the 14-hour window doesn\u2019t pause. New drivers frequently assume that taking a 2-hour break in the middle of the day \u201cpauses\u201d their 14-hour clock. It does not. From the moment you come on-duty, you have exactly 14 hours before you can no longer drive, regardless of how many breaks you take (unless using qualifying sleeper berth splits). Fix: plan your day backward from your 14-hour limit. If you come on-duty at 4:00 AM, you cannot drive after 6:00 PM. Period.</p><p>Mistake #2: Driving beyond limits because \u201cI\u2019m almost there.\u201d The temptation to push 30 more minutes to reach a truck stop or delivery point is enormous, especially when parking is scarce. But \u201calmost there\u201d driving is one of the most common HOS violations and one of the most dangerous decisions you can make. Fix: plan your stops in advance. Know where you\u2019ll park before your clock runs out. If parking is scarce at your planned stop, call ahead or pick an alternative an hour earlier. Mistake #3: Incorrect duty status changes on your ELD. Every minute matters. Leaving your status on \u201cDriving\u201d when you\u2019re waiting at a dock wastes your driving clock. Leaving it on \u201cOff-Duty\u201d when you\u2019re doing vehicle maintenance is falsification. Fix: change your status immediately whenever your activity changes.</p><p>Mistake #4: Not planning fuel and rest stops around your clock. New drivers often plan routes by distance alone without accounting for their HOS clock. Fix: use a trip planning app or your ELD\u2019s trip planning feature to overlay your available hours on your route. Know exactly where your 8-hour break trigger falls, where your 11-hour limit will hit, and where your 14-hour window closes. Mistake #5: Confusion about personal conveyance versus on-duty time. Driving to a restaurant, moving to a better parking spot, or repositioning within a facility are common scenarios where drivers aren\u2019t sure which status to use. Fix: personal conveyance is only for personal, non-business movements while unburdened and not advancing your route. When in doubt, log it as on-duty not driving \u2014 it\u2019s always the safer choice for compliance.</p>'
+      }
+    ],
+    quiz: [
+      { q: 'What is the maximum number of hours you may drive after 10 consecutive hours off-duty?', opts: ['10 hours', '11 hours', '12 hours', '14 hours'], ans: 1 },
+      { q: 'How long must a driver\'s off-duty period be before resuming driving?', opts: ['8 consecutive hours', '9 consecutive hours', '10 consecutive hours', '12 consecutive hours'], ans: 2 },
+      { q: 'After how many cumulative driving hours must you take a 30-minute break?', opts: ['6 hours', '7 hours', '8 hours', '10 hours'], ans: 2 },
+      { q: 'In a 7/3 sleeper berth split, what is the minimum time for the longer sleeper berth period?', opts: ['5 hours', '6 hours', '7 hours', '8 hours'], ans: 2 },
+      { q: 'What happens to the 14-hour on-duty window during a normal off-duty break (non-sleeper berth split)?', opts: ['It pauses', 'It resets to zero', 'It continues running', 'It extends by the break duration'], ans: 2 }
+    ]
+  },
+  3: {
+    title: 'Sleep & Fatigue Management',
+    overview: 'Fatigue kills more drivers than most hazards on the road. This module covers the science of sleep, how to recognize warning signs before it\u2019s too late, evidence-based nap protocols, sleep apnea awareness, and how to build a consistent sleep routine in a sleeper berth.',
+    lessons: [
+      {
+        id: '3.1',
+        title: 'The Science of Sleep',
+        content: '<p>Your body operates on a circadian rhythm \u2014 a roughly 24-hour internal clock that regulates when you feel alert and when you feel drowsy. This cycle is primarily controlled by light exposure: bright light signals wakefulness, darkness signals sleep. As a truck driver, you may need to sleep during daylight hours and drive during darkness, which creates a direct conflict with your biology. Understanding this conflict is the first step toward managing it. You cannot override your circadian rhythm with willpower alone \u2014 you have to work with it using strategies like consistent sleep timing, light management, and deliberate blackout conditions in your sleeper berth.</p><p>Sleep occurs in 90-minute cycles, each progressing through stages: light sleep (N1 and N2), deep sleep (N3), and REM (rapid eye movement) sleep. Deep sleep is when your body physically repairs itself \u2014 muscles recover, immune function strengthens, and growth hormones are released. REM sleep is when your brain consolidates memories and processes emotions. You need 4 to 5 complete cycles per night, which translates to 7 to 8 hours of actual sleep. Missing even one cycle per night degrades your cognitive performance, reaction time, and decision-making ability.</p><p>Cumulative sleep debt is one of the most dangerous concepts for truck drivers to understand. If you lose just one hour of sleep per night for seven consecutive nights, your cognitive impairment is equivalent to staying awake for an entire 24-hour period. Below 6 hours of sleep, your reaction time degrades to a level equivalent to a 0.05% blood alcohol concentration \u2014 impaired enough to measurably increase your crash risk. Sleep debt cannot be repaid with a single long sleep; it accumulates silently and undermines your performance long before you \u201cfeel tired.\u201d This is why consistent, adequate sleep is not optional for professional drivers.</p>'
+      },
+      {
+        id: '3.2',
+        title: 'Warning Signs of Fatigue',
+        content: '<p>There are eight well-documented warning signs of driver fatigue: frequent yawning, heavy eyelids, drifting from your lane, missing exits or turns you intended to take, difficulty focusing on the road, restlessness and irritability, trouble keeping your head up, and microsleeps \u2014 brief 2-to-3-second blackouts where your brain essentially shuts off while your eyes may remain open. If you experience even one of these warning signs, you are too tired to drive safely. This is not a matter of toughness or experience; it is a matter of neuroscience. Your brain is shutting down functions to force rest, and no amount of willpower can prevent it.</p><p>Microsleeps deserve special attention because they are the most dangerous and least recognized sign. A microsleep lasting just 3 seconds at 55 mph means your truck has traveled approximately 240 feet with nobody conscious at the wheel. Most drivers who experience microsleeps don\u2019t even realize they\u2019ve happened. If you catch yourself \u201csnapping back\u201d to awareness, or if you realize you have no memory of the last few seconds of driving, you\u2019ve likely experienced a microsleep. Pull over immediately.</p><p>Federal regulation 49 CFR 392.3 explicitly prohibits operating a commercial motor vehicle while the driver\u2019s ability is impaired by fatigue, illness, or any other condition that makes it unsafe to drive. This regulation places the legal responsibility on you \u2014 the driver \u2014 to assess your own fitness before and during every drive. \u201cI was tired but I kept going\u201d is not a defense in a crash investigation; it is an admission of a regulatory violation. When you feel fatigue warning signs, the only safe and legal response is to stop driving. Find a safe location and rest. No delivery schedule is worth your life or someone else\u2019s.</p>'
+      },
+      {
+        id: '3.3',
+        title: 'Power Nap Protocol',
+        content: '<p>The 20-minute power nap is one of the most effective fatigue countermeasures available to drivers. Sleep research has consistently shown that a brief nap of 15 to 20 minutes can restore alertness for 1 to 2 hours, improve reaction time, and reduce the risk of drowsy-driving incidents. The key is keeping the nap to 20 minutes or less. If you sleep longer than approximately 30 minutes, you enter deep sleep (Stage N3), and waking from deep sleep causes \u201csleep inertia\u201d \u2014 a groggy, disoriented state that can last 15 to 30 minutes and actually makes you more impaired than before you napped.</p><p>The protocol is simple: find a safe, legal parking spot (rest area, truck stop, or shipper/receiver lot with permission), set your parking brake, recline your seat or move to your sleeper berth, set an alarm for exactly 20 minutes, and close your eyes. You don\u2019t have to fall deeply asleep for the nap to be effective \u2014 even resting with your eyes closed provides measurable benefit. The \u201ccoffee nap\u201d technique enhances this further: drink a cup of coffee immediately before your 20-minute nap. Caffeine takes approximately 20 minutes to reach peak effect, so it kicks in right as your alarm wakes you, giving a double alertness boost from both the nap and the caffeine simultaneously.</p><p>Where to nap safely matters. Designated rest areas and truck stops with well-lit parking lots are your best options. Do not nap on highway shoulders except in genuine emergencies. If you\u2019re at a shipper or receiver facility, ask permission to park for a brief rest \u2014 most will accommodate you, especially if you explain it\u2019s a safety decision. Lock your doors, close your curtains, and set your alarm. A 20-minute nap might cost you 25 minutes of drive time but could prevent you from becoming a fatality statistic. It is always, without exception, the right decision when you feel drowsy.</p>'
+      },
+      {
+        id: '3.4',
+        title: 'Sleep Apnea Awareness',
+        content: '<p>Obstructive sleep apnea (OSA) is a condition where the soft tissue in your airway collapses during sleep, repeatedly blocking your breathing and causing you to wake briefly \u2014 sometimes hundreds of times per night \u2014 without your conscious awareness. The result is sleep that feels like rest but provides almost none of the restorative deep sleep and REM sleep your body needs. Drivers with untreated sleep apnea can sleep for 8 hours and still wake up as impaired as someone who slept only 3 or 4 hours. It is estimated that as many as 28% of commercial drivers have some degree of sleep apnea.</p><p>The warning signs include loud, chronic snoring, gasping or choking during sleep (often reported by a sleeping partner), excessive daytime sleepiness despite seemingly adequate sleep time, morning headaches, difficulty concentrating, and irritability. The primary risk factors are a body mass index (BMI) over 35, neck circumference greater than 17 inches, being male, and age over 40. If you have multiple risk factors, a medical examiner conducting your CDL physical under 49 CFR Part 391 Subpart E may require a sleep study before issuing or renewing your medical certificate.</p><p>The good news is that sleep apnea is highly treatable. The most common treatment is Continuous Positive Airway Pressure (CPAP) therapy, which uses a small machine and mask to keep your airway open during sleep. Drivers who start CPAP therapy typically report dramatically improved sleep quality, alertness, and overall well-being within the first few weeks. Other interventions include weight management (losing 10% of body weight can significantly reduce apnea severity), positional therapy (avoiding sleeping on your back), and in some cases, oral appliances or surgery. Non-compliance with prescribed treatment can affect your medical certificate and your ability to maintain your CDL. If you suspect you have sleep apnea, get tested \u2014 it\u2019s a career-preserving and potentially life-saving decision.</p>'
+      },
+      {
+        id: '3.5',
+        title: 'Building a Sleep Routine on the Road',
+        content: '<p>Consistency is the most important factor in sleep quality, even when your schedule changes. Your body\u2019s circadian rhythm responds to consistent cues: going to sleep at roughly the same time, waking at roughly the same time, and creating consistent pre-sleep signals. As a truck driver, you may not have the luxury of a fixed schedule, but you can control your pre-sleep routine. A consistent wind-down routine \u2014 even if the clock time changes \u2014 tells your brain that sleep is coming and allows it to begin transitioning from wakefulness.</p><p>Your sleeper berth environment matters enormously. Use blackout curtains \u2014 they should block all exterior light, especially if you\u2019re sleeping during daytime hours. A white noise machine or app masks the unpredictable sounds of truck stops, rest areas, and other traffic. Keep your cab cool \u2014 65 to 68 degrees Fahrenheit is the ideal range for sleep; a warm cab makes it harder to fall asleep and reduces sleep quality. Avoid screens (phone, tablet, ELD) for at least 30 minutes before sleep; the blue light from screens suppresses melatonin production and tricks your brain into thinking it\u2019s daytime.</p><p>Build a 5-minute wind-down ritual you perform every time before sleep. One effective approach: secure your truck and set the parking brake, close all curtains, set your alarm, put your phone on silent mode (face down or in a drawer), and do three rounds of 4-7-8 breathing (inhale for 4 seconds, hold for 7, exhale for 8). Another option is progressive muscle relaxation: starting at your feet, tense each muscle group for 5 seconds, then release for 10 seconds, working your way up to your head. These techniques take under 5 minutes and have been clinically proven to reduce the time it takes to fall asleep. Create a pre-sleep checklist and follow it every single time. Within a week, your body will begin associating the routine with sleep onset, making it easier to fall asleep regardless of what time zone you\u2019re in or what\u2019s happening outside your cab.</p>'
+      }
+    ],
+    quiz: [
+      { q: 'Below how many hours of sleep does reaction time degrade to a level equivalent to 0.05% BAC?', opts: ['5 hours', '6 hours', '7 hours', '8 hours'], ans: 1 },
+      { q: 'How long should a power nap last to restore alertness without causing sleep inertia?', opts: ['10 minutes', '20 minutes', '45 minutes', '60 minutes'], ans: 1 },
+      { q: 'Which of the following is a warning sign of fatigue per this module?', opts: ['Increased appetite', 'Microsleeps lasting 2-3 seconds', 'Excessive thirst', 'Heightened sense of smell'], ans: 1 },
+      { q: 'What BMI threshold is considered a risk factor for sleep apnea screening during a CDL physical?', opts: ['Over 25', 'Over 30', 'Over 35', 'Over 40'], ans: 2 }
+    ]
+  },
+  4: {
+    title: 'Physical Health on the Road',
+    overview: 'Trucking is one of the most physically demanding sedentary professions. This module covers the health risks unique to commercial drivers, practical nutrition strategies, exercise routines you can do at truck stops, ergonomic cab setup, and how to prepare for your DOT physical.',
+    lessons: [
+      {
+        id: '4.1',
+        title: 'The Trucker\u2019s Body',
+        content: '<p>Commercial truck drivers face a unique combination of health risks that stem from the fundamental nature of the job: prolonged sitting, vibration exposure, limited food options, irregular sleep patterns, and social isolation. Back pain affects the majority of long-haul drivers due to 12-plus hours of sitting combined with whole-body vibration transmitted through the cab. Deep vein thrombosis (DVT) \u2014 blood clots forming in the legs from prolonged immobility \u2014 is a serious risk that can become life-threatening if a clot travels to the lungs. Obesity rates among truck drivers significantly exceed the general population, driven by a combination of sedentary work, limited access to healthy food, and the high availability of calorie-dense convenience food at truck stops.</p><p>Cardiovascular disease is the leading cause of death among commercial drivers, who experience heart disease at approximately twice the rate of the general population. Type 2 diabetes, hypertension, and metabolic syndrome are all significantly more prevalent. Hearing loss from chronic engine noise exposure, skin cancer from years of UV radiation through the driver-side window, and respiratory issues from diesel exhaust exposure add to the health burden. Studies by the National Institute for Occupational Safety and Health (NIOSH) have consistently documented these elevated risks.</p><p>The critical message is that none of these conditions are inevitable. They are the predictable consequences of specific environmental and behavioral factors \u2014 and every one of them can be mitigated through awareness and deliberate action. You cannot change the fact that your job involves sitting for extended periods, but you can change how you sit, how often you move, what you eat, how much water you drink, and how you use your break time. The remaining lessons in this module give you specific, actionable strategies for each of these areas. Your career can last 30 or more years \u2014 your body needs to last at least that long.</p>'
+      },
+      {
+        id: '4.2',
+        title: 'Nutrition Fundamentals',
+        content: '<p>The single most impactful change you can make to your diet on the road is packing a cooler. A well-stocked cooler eliminates the need to rely exclusively on truck stop food and gives you control over what goes into your body. Your cooler packing list should include: pre-cut vegetables (carrots, celery, bell pepper strips, cucumber slices), whole fruit (apples, bananas, oranges, grapes), cheese sticks or string cheese, Greek yogurt cups, hard-boiled eggs, raw nuts and almonds (unsalted), hummus with whole wheat pita, whole grain wraps with lean deli meat and lettuce, and water bottles \u2014 lots of water bottles. Prep your cooler at the start of each week or before each trip, and restock at grocery stores rather than convenience stores whenever possible.</p><p>Hydration is arguably more important than food quality. Your body needs a minimum of 64 ounces of water per day \u2014 eight 8-ounce glasses \u2014 and more if you\u2019re in a hot climate or physically active. Dehydration impairs cognitive function before you feel thirsty: as little as 2% dehydration can measurably reduce concentration, reaction time, and decision-making ability. Keep a reusable water bottle in your cup holder and sip consistently throughout the day. Coffee and tea count toward hydration, but sodas, energy drinks, and high-sugar beverages can actually increase dehydration and cause energy crashes. Water is always the best choice.</p><p>When you do eat at truck stops, apply the \u201cplate method\u201d: mentally divide your plate so that half is vegetables or salad, one quarter is lean protein (grilled chicken, fish, eggs, beans), and one quarter is whole grains (brown rice, whole wheat bread, baked potato). Choose grilled options over fried, request dressings and sauces on the side, avoid oversized portions (a typical truck stop meal can exceed 2,000 calories in a single sitting), and skip the dessert. You don\u2019t have to eat perfectly \u2014 you just have to eat deliberately. Small, consistent improvements to your daily food choices compound over weeks and months into significant health benefits, including better energy, better sleep, better weight management, and better performance behind the wheel.</p>'
+      },
+      {
+        id: '4.3',
+        title: 'Exercise in the Cab & at the Stop',
+        content: '<p>You don\u2019t need a gym to stay physically active on the road. What you need is a consistent routine that you perform at predictable intervals throughout your day. The stretching routine below should be done at every fuel stop (approximately every 2 to 3 hours of driving): neck rolls (10 in each direction), shoulder shrugs (15 repetitions \u2014 shrug shoulders to ears, hold 2 seconds, release), standing hamstring stretch (30 seconds each leg \u2014 prop your heel on the truck step and lean forward), hip flexor lunge (30 seconds each side \u2014 step forward into a deep lunge and push your hips forward), trunk rotation (10 twists each direction with arms at shoulder height), and calf raises on the truck step (15 repetitions). This entire sequence takes approximately 5 minutes.</p><p>For strength training, you can build and maintain functional fitness with a simple bodyweight circuit that takes 15 minutes and requires no equipment. Perform this every other day: push-ups (3 sets of 10), bodyweight squats (3 sets of 15), walking lunges (2 sets of 10 each leg), planks (3 sets of 30 seconds), and resistance band rows (3 sets of 12 \u2014 anchor the band around your mirror bracket or trailer handle). A resistance band weighs almost nothing, costs under $10, and fits in your side compartment. It\u2019s the most versatile piece of exercise equipment a truck driver can carry.</p><p>Walking is the simplest and most underrated exercise for drivers. Aim for a 15-minute walk at every extended stop \u2014 around the truck stop parking lot, along a rest area path, or even pacing back and forth along your trailer. Walking counteracts the effects of prolonged sitting: it promotes blood circulation (reducing DVT risk), engages your core and leg muscles, reduces back pain and stiffness, and provides a measurable mood boost through endorphin release. Track your steps if that motivates you \u2014 a reasonable goal is 6,000 to 8,000 steps per day. Every bit of movement counts, and the drivers who make movement a non-negotiable part of their day consistently report better energy, better sleep, and fewer aches and pains than those who don\u2019t.</p>'
+      },
+      {
+        id: '4.4',
+        title: 'Ergonomic Cab Setup',
+        content: '<p>Your cab is your office, and like any office worker, improper ergonomics will cause pain and injury over time. Seat position is foundational: adjust your seat so that your knees are slightly bent when your feet rest flat on the pedals, your back is fully supported against the seat back, and your thighs are roughly parallel to the floor. If your seat is too far from the pedals, you\u2019ll extend your legs and strain your lower back. If it\u2019s too close, your knees will be cramped and circulation will be restricted. Most modern truck seats have air-ride suspension \u2014 adjust it for your weight so the seat absorbs road vibration rather than transmitting it directly to your spine.</p><p>Lumbar support is critical for preventing lower back pain. If your seat has a built-in lumbar adjustment, use it \u2014 it should support the natural inward curve of your lower back without pushing you forward. If the built-in support is insufficient, invest in an aftermarket lumbar cushion; good ones cost $20 to $40 and make an enormous difference over an 11-hour driving day. Your steering wheel should be positioned so that your arms are slightly bent at the 9-and-3 position with your shoulders relaxed \u2014 if you have to reach or hunch your shoulders to grip the wheel, adjust the tilt and telescoping features until the wheel comes to you.</p><p>Mirror positioning should be completed before you start driving, not adjusted while the truck is in motion. Proper mirror setup eliminates the majority of blind spots and reduces the need for excessive head turning that strains your neck. For your ELD and GPS screens, position them at eye level or slightly below, within easy glance distance so you don\u2019t have to reach or lean to see them. Vibration management extends beyond your seat: properly inflated tires reduce cab vibration significantly, and a quality seat cushion (gel or memory foam) distributes pressure more evenly across your sitting surface. These seem like small adjustments, but applied consistently over thousands of hours of driving, they are the difference between a body that holds up and one that breaks down.</p>'
+      },
+      {
+        id: '4.5',
+        title: 'DOT Physical Preparation',
+        content: '<p>Your CDL medical examination under 49 CFR Part 391 Subpart E is required every two years (or more frequently if you have certain medical conditions) and determines your fitness to operate a commercial vehicle. The exam includes: a vision test requiring at least 20/40 acuity in each eye separately and both eyes together, plus the ability to recognize the colors red, green, and amber; a hearing test requiring the ability to perceive a forced whisper at a distance of 5 feet or better in at least one ear; a blood pressure measurement; urinalysis testing for glucose and protein; and a comprehensive physical examination covering your musculoskeletal system, neurological function, cardiovascular health, respiratory function, and more.</p><p>Blood pressure is one of the most common reasons drivers receive restricted medical certificates or fail their physicals entirely. For a full 2-year medical certificate, your blood pressure must be below 140/90 mmHg. If your reading falls between 140-159 systolic or 90-99 diastolic, you\u2019ll receive a 1-year certificate with annual monitoring. If your blood pressure exceeds 160/100, you may be issued a one-time 3-month certificate to get treatment, and you\u2019ll need to return with improved readings. Above 180/110, you will not be certified until treatment brings your pressure under control. The weeks before your physical matter: manage your sodium intake, stay hydrated, maintain your exercise routine, limit caffeine, and if you\u2019re on blood pressure medication, take it consistently and bring a list of all medications to your appointment.</p><p>Preparation tips for a smooth physical: bring your current glasses or contacts (you\u2019ll need them for the vision test), bring a complete list of all medications and dosages, bring any specialist reports your medical examiner may need (especially sleep study results if applicable), avoid excessive caffeine on the morning of the exam (it elevates blood pressure temporarily), get adequate sleep the night before, and arrive early to avoid rushing and stress. If you know you have a medical condition that requires documentation, gather that documentation well in advance. The DOT physical is not something to fear \u2014 it\u2019s a routine check designed to ensure you\u2019re healthy enough to do your job safely. Treat it as a checkpoint for your own health, not just a regulatory hoop.</p>'
+      }
+    ],
+    quiz: [
+      { q: 'Compared to the general population, truck drivers experience cardiovascular disease at what rate?', opts: ['About the same rate', 'Approximately 1.5x the rate', 'Approximately 2x the rate', 'Approximately 3x the rate'], ans: 2 },
+      { q: 'What is the recommended minimum daily water intake?', opts: ['32 ounces', '48 ounces', '64 ounces', '96 ounces'], ans: 2 },
+      { q: 'How often should the stretching routine be performed during driving shifts?', opts: ['Once per day', 'At every fuel stop', 'Every 5 hours', 'Only before and after driving'], ans: 1 },
+      { q: 'What maximum blood pressure reading qualifies for a 2-year CDL medical certificate?', opts: ['Below 120/80', 'Below 130/85', 'Below 140/90', 'Below 160/100'], ans: 2 }
+    ]
+  },
+  5: {
+    title: 'Mental Health & Emotional Wellness',
+    overview: 'Trucking is one of the most isolating professions in America. This module addresses the psychological challenges of life on the road, provides practical strategies for staying connected and managing stress, and ensures you know exactly where to turn when you need help.',
+    lessons: [
+      {
+        id: '5.1',
+        title: 'The Isolation Challenge',
+        content: '<p>Trucking is consistently ranked as one of the most isolating occupations in the United States. Depending on your route and carrier, you may spend 95% or more of your working hours completely alone. You eat alone, drive alone, sleep alone, and navigate challenges alone. Over weeks and months, this sustained isolation takes a measurable psychological toll. Research published in occupational health journals has documented significantly elevated rates of depression, anxiety, and loneliness among long-haul truck drivers compared to the general working population. These are not signs of weakness \u2014 they are predictable, well-documented consequences of the job structure itself.</p><p>The effects of isolation compound over time. Initially, many new drivers enjoy the solitude \u2014 the freedom of the open road, the lack of office politics, the independence. But as weeks turn into months, the lack of regular human connection erodes mood, motivation, and sense of identity. Drivers report feeling disconnected from family routines, missing important events, struggling to maintain relationships, and losing interest in activities they once enjoyed. Some develop a pattern where they feel like strangers in their own homes during home time, which creates a painful cycle: they feel isolated on the road and disconnected at home.</p><p>FMCSA research has established that mental health status directly impacts driving safety performance. Depression impairs concentration, slows reaction time, and reduces risk perception. Anxiety increases stress hormones that interfere with decision-making. Loneliness disrupts sleep quality, which compounds fatigue risks. Acknowledging that trucking creates mental health challenges is the essential first step. The remaining lessons in this module give you practical tools for maintaining connection, managing stress, and recognizing when professional help is needed. These are professional survival skills, not optional luxuries.</p>'
+      },
+      {
+        id: '5.2',
+        title: 'Family Communication Plan',
+        content: '<p>The difference between drivers who maintain strong family relationships and those whose relationships deteriorate on the road often comes down to one factor: deliberate, scheduled communication. \u201cI\u2019ll call when I can\u201d sounds flexible, but in practice it creates uncertainty and resentment. Your partner or family members never know when you\u2019re available, calls happen at inconvenient times, and days can pass without meaningful contact. A structured communication schedule sets expectations for everyone and ensures connection happens consistently, not just when it\u2019s convenient.</p><p>A recommended communication framework: schedule a daily check-in call of at least 10 minutes \u2014 even on busy days, a short call maintains the thread of connection. Set a weekly video call with your kids (if applicable) at a predictable time they can look forward to. Establish a monthly \u201cstate of us\u201d conversation with your partner \u2014 a longer call specifically dedicated to how the relationship is going, what\u2019s working, what needs adjustment, and future plans. Use technology to stay connected between calls: shared photo albums where you post pictures from the road, a family calendar app so you know what\u2019s happening at home, and messaging apps for quick check-ins throughout the day.</p><p>When you\u2019re home, be fully present. Put the phone down, participate in household routines, attend your kids\u2019 activities, and resist the urge to isolate in your room to \u201crecoverr.\u201d Your family has been managing without you \u2014 they need you engaged, not just physically present. For single drivers without a partner or family: the need for human connection doesn\u2019t disappear. Maintain regular contact with friends, join driver communities (online forums, CB radio groups, trucker meetups), and schedule at least one social interaction per week that isn\u2019t work-related. Connection is a human need, and neglecting it will eventually affect your performance, health, and safety behind the wheel.</p>'
+      },
+      {
+        id: '5.3',
+        title: 'Stress Management Techniques',
+        content: '<p>The 4-7-8 breathing technique is one of the most effective immediate stress reduction tools available, and it can be done anywhere \u2014 in your driver\u2019s seat, at a rest stop, or in your sleeper berth. The technique: inhale slowly through your nose for 4 seconds, hold your breath for 7 seconds, and exhale completely through your mouth for 8 seconds. Repeat this cycle three times. This specific breathing pattern activates your parasympathetic nervous system \u2014 the \u201crest and digest\u201d branch that counteracts the stress response. It lowers your heart rate, reduces blood pressure, and triggers a measurable calming effect within 60 to 90 seconds. Use it whenever you feel stress building: in traffic, after a difficult interaction with dispatch, when you\u2019re frustrated with dock workers, or before sleep.</p><p>Progressive muscle relaxation (PMR) is a technique developed by physician Edmund Jacobson in the 1930s and validated by decades of clinical research. The method: starting with your feet, tense each muscle group as tightly as you can for 5 seconds, then completely release the tension and rest for 10 seconds. Work progressively upward through your calves, thighs, glutes, abdomen, chest, hands, forearms, biceps, shoulders, neck, and face. The contrast between tension and release teaches your body what relaxation actually feels like and helps you identify muscle groups where you\u2019re carrying unconscious tension. The full sequence takes about 10 minutes; a shortened version focusing on major muscle groups takes 5 minutes.</p><p>The 5-4-3-2-1 grounding exercise is specifically designed for moments of acute stress or anxiety \u2014 when your thoughts are racing and you feel overwhelmed. The exercise: name 5 things you can see (the steering wheel, a road sign, a cloud, your coffee cup, the dash), 4 things you can hear (the engine, wind, another truck, music), 3 things you can physically feel (the seat, the wheel, your feet on the floor), 2 things you can smell (diesel, coffee), and 1 thing you can taste (gum, water). This technique works by redirecting your brain from anxious thoughts to concrete sensory input, breaking the cycle of rumination and worry. All three of these techniques are evidence-based, take under 3 minutes, require no equipment, and can be practiced at rest stops, in traffic, or in your sleeper berth. Pick the one that resonates with you and practice it daily until it becomes automatic.</p>'
+      },
+      {
+        id: '5.4',
+        title: 'Recognizing When You Need Help',
+        content: '<p>There is a critical difference between having a bad day and experiencing a mental health condition that requires professional attention. The warning signs you should not ignore include: persistent sadness or emptiness lasting more than two weeks, loss of interest or pleasure in activities you used to enjoy, significant changes in sleep patterns (sleeping much more or much less than usual), significant changes in appetite or weight, difficulty concentrating while driving (beyond normal fatigue), feelings of worthlessness or excessive guilt, persistent irritability or anger, withdrawal from communication with family and friends, increased alcohol consumption or use of other substances to cope, and any thoughts of self-harm or suicide.</p><p>These symptoms are not character flaws, personal weaknesses, or signs that you\u2019re \u201cnot cut out for trucking.\u201d They are medical conditions with biological components that respond to treatment. Depression, anxiety, and post-traumatic stress disorder are among the most treatable conditions in all of medicine \u2014 but only if you seek help. The stigma around mental health in trucking culture is significant and deeply harmful. Drivers who would immediately seek medical attention for a broken arm will ignore depression for years because they believe they should be able to \u201ctough it out.\u201d You cannot tough out a chemical imbalance in your brain any more than you can tough out a broken bone.</p><p>Seeking help is a sign of strength and professionalism. A driver who recognizes that depression is impairing their concentration and seeks treatment is making a safety decision as important as any pre-trip inspection. Talk to your primary care physician, contact your carrier\u2019s Employee Assistance Program (EAP), or reach out to one of the crisis resources listed in the next lesson. Treatment options include talk therapy (which can be done via phone or video from your truck), medication, or a combination of both. Many EAPs offer 3 to 6 free, completely confidential counseling sessions. \u201cConfidential\u201d means your employer is not informed of the content of your sessions. Use these resources \u2014 they exist specifically for situations like this.</p>'
+      },
+      {
+        id: '5.5',
+        title: 'Crisis Resources',
+        content: '<p>Save these numbers in your phone right now, before you need them. The 988 Suicide and Crisis Lifeline is available 24 hours a day, 7 days a week \u2014 call or text 988. Trained counselors provide free, confidential support for anyone experiencing suicidal thoughts, emotional distress, or crisis. The Crisis Text Line provides text-based crisis counseling: text HOME to 741741 to connect with a trained crisis counselor. The SAMHSA National Helpline (1-800-662-4357) provides free, confidential, 24/7 treatment referrals and information for substance abuse and mental health disorders. All of these services are free, confidential, and available from anywhere in the country.</p><p>Additional resources relevant to truck drivers: Truckers Against Trafficking (TAT) maintains a hotline for reporting suspected human trafficking encountered on the road. The National Domestic Violence Hotline (1-800-799-7233) provides crisis support and safety planning for anyone experiencing domestic violence. The Owner-Operator Independent Drivers Association (OOIDA) offers member support services including advocacy and peer connection. Many trucking companies have begun implementing driver wellness programs and peer support networks \u2014 ask your safety department what resources are available through your carrier.</p><p>Employee Assistance Programs (EAPs) deserve special mention because they are often the most accessible and least utilized mental health resource available to drivers. Most mid-to-large carriers offer EAPs as part of their benefits package. EAPs typically provide 3 to 6 free counseling sessions per issue \u2014 meaning you can use sessions for depression, then use additional sessions for relationship issues, and additional sessions for grief or stress. These sessions are completely confidential under federal law; your employer cannot access the content of your counseling. Many EAP providers offer phone and video sessions specifically designed for mobile workers who can\u2019t visit an office. If your carrier has an EAP and you\u2019re struggling, call them. That is exactly what the program was created for. You are not a burden; you are using a benefit you\u2019ve earned.</p>'
+      }
+    ],
+    quiz: [
+      { q: 'What communication approach is recommended over "I\'ll call when I can"?', opts: ['Texting only when available', 'Scheduled daily check-in calls at set times', 'Weekly emails summarizing the week', 'Only calling during home time'], ans: 1 },
+      { q: 'In the 4-7-8 breathing technique, how long is the breath hold?', opts: ['4 seconds', '5 seconds', '7 seconds', '8 seconds'], ans: 2 },
+      { q: 'How long should persistent sadness last before it is considered a warning sign requiring professional attention?', opts: ['3 days', '1 week', 'More than 2 weeks', '1 month'], ans: 2 },
+      { q: 'How many free counseling sessions do most Employee Assistance Programs (EAPs) provide?', opts: ['1-2 sessions', '3-6 sessions', '8-10 sessions', 'Unlimited sessions'], ans: 1 }
+    ]
+  },
+  6: {
+    title: 'Pre-Trip, Post-Trip & Vehicle Inspection',
+    overview: 'A thorough vehicle inspection is your first and last line of defense against mechanical failure on the road. This module covers why inspections save lives, a complete pre-trip walkthrough, post-trip DVIR requirements, out-of-service criteria, and how to handle DOT roadside inspections with confidence.',
+    lessons: [
+      {
+        id: '6.1',
+        title: 'Why Inspections Save Lives',
+        content: '<p>FMCSA data indicates that vehicle defects contribute to approximately 30% of commercial vehicle crashes. These are not freak failures \u2014 they are preventable defects like underadjusted brakes, worn tires, inoperative lights, and faulty coupling devices that a thorough pre-trip inspection would have caught before the vehicle ever left the yard. A driver who skips or rushes through pre-trip inspection is accepting a roughly 1-in-3 chance that a vehicle defect could contribute to a crash. Those are not acceptable odds for a professional.</p><p>The legal requirement is clear: 49 CFR 396.13 requires that before driving a commercial motor vehicle, the driver must be satisfied that the vehicle is in safe operating condition. Additionally, 49 CFR 396.11 requires a written Driver Vehicle Inspection Report (DVIR) at the end of each day\u2019s work. These are not suggestions or best practices \u2014 they are federal law. Failure to perform required inspections can result in out-of-service orders at roadside inspections, monetary fines, CSA points under the Vehicle Maintenance BASIC that affect both your record and your carrier\u2019s safety rating, and most critically, your personal liability if a mechanical failure causes a crash.</p><p>Beyond compliance, a consistent pre-trip inspection is a professional habit that builds your knowledge of your vehicle. Drivers who inspect their trucks daily develop an intuitive sense for what\u2019s normal and what\u2019s changing \u2014 they notice when brake adjustment has shifted, when a tire is wearing unevenly, when a fluid level is dropping faster than it should. This awareness allows you to catch developing problems early, before they become expensive repairs or dangerous failures. Think of your pre-trip not as a chore but as the 15 minutes that could save your career and your life.</p>'
+      },
+      {
+        id: '6.2',
+        title: 'Complete Pre-Trip Walkthrough',
+        content: '<p>Consistency is the foundation of a thorough pre-trip. Start at the same point every time and follow the same path around your vehicle so that you never skip a component. Begin with the engine compartment: check all fluid levels (engine oil, coolant, power steering fluid, windshield washer fluid), inspect belts and hoses for cracks, fraying, or excessive wear, and look under the engine for any signs of active leaks. Move to the cab interior: verify all gauges and warning lights function properly during startup, test the horn, check that windshield wipers operate and washer fluid sprays, inspect the windshield for cracks or chips that obstruct vision, confirm your seatbelt latches and retracts correctly, verify your fire extinguisher is properly mounted and the charge gauge is in the green zone, and confirm you have your required emergency equipment (reflective triangles, spare fuses).</p><p>Walk the exterior systematically. Lights: test headlights on both high and low beam, turn signals (left and right), all marker lights and clearance lights, brake lights (use a helper or reflection to verify), four-way hazard flashers, and license plate light. Tires: check tread depth on all tires (minimum 4/32 inch on steer tires, minimum 2/32 inch on drive and trailer tires per 49 CFR 393.75), check inflation visually and with a gauge, inspect for cuts, bulges, or exposed cord, and verify all lug nuts are present and tight. Brakes: check brake adjustment (push rod stroke should not exceed the maximum for your brake chamber size), test the air system including governor cut-in pressure (approximately 100 psi), governor cut-out pressure (approximately 125 psi), low air warning activation (below 60 psi), and perform an applied air leakage test (loss should not exceed 3 psi per minute for a tractor-trailer).</p><p>Inspect the coupling: verify the fifth wheel is locked around the kingpin with no gap between the upper and lower fifth wheel, the release handle is in the locked position, the fifth wheel mounting bolts are secure, and both air lines and the electrical cable are connected, not leaking, and have sufficient slack for turns without pulling. Check the frame for visible cracks, the exhaust system for leaks (especially near the cab), mudflaps for presence and condition, and all reflectors and reflective tape for visibility. Finally, walk all the way around the vehicle one more time, looking at the overall picture. A complete, thorough pre-trip takes 12 to 15 minutes. That investment of time is your best insurance against a mechanical failure at highway speed.</p>'
+      },
+      {
+        id: '6.3',
+        title: 'Post-Trip DVIR',
+        content: '<p>The Driver Vehicle Inspection Report (DVIR) is a legally required document under 49 CFR 396.11 that you must complete at the end of each day\u2019s work. At minimum, the DVIR must include: the date, the vehicle unit number(s) (tractor and trailer), a list of any defects or deficiencies discovered during the day that could affect safe operation or result in a mechanical breakdown, and your signature. The report covers specific categories including air lines, brakes, coupling devices, defroster/heater, drive line, engine, fifth wheel, frame and assembly, fuel tanks, horn, lighting devices, mirrors, steering, suspension, tires, wheels and rims, windshield, wipers, and emergency equipment.</p><p>If you discovered defects during the day, report them accurately and specifically. \u201cBrake issue\u201d is not sufficient \u2014 write \u201cright rear drive axle brake shows excessive push rod stroke, approximately 2.5 inches.\u201d Specificity helps the mechanic diagnose and repair the problem efficiently. Under 49 CFR 396.13, if defects are noted on a DVIR, the motor carrier must ensure the vehicle is repaired before it is dispatched again, and a mechanic must sign a certification that the reported defects have been repaired or that repair is unnecessary. This creates a documented chain of accountability.</p><p>If no defects were found during the day, do not leave the report blank. Write \u201cno defects\u201d or \u201cvehicle satisfactory\u201d and sign the report. A blank, unsigned DVIR creates ambiguity about whether an inspection was actually performed and can be treated as a failure to inspect during an audit. Keep your copy of the DVIR per company policy \u2014 your carrier is required to retain DVIRs for at least 3 months. The DVIR is a professional document that reflects your diligence and protects you legally. If you reported a brake defect and the carrier dispatched the truck without repair, the DVIR is evidence that you did your job. If you failed to report a defect and it contributed to a crash, the absence of that report is evidence that you didn\u2019t.</p>'
+      },
+      {
+        id: '6.4',
+        title: 'Out-of-Service Criteria',
+        content: '<p>Out-of-service (OOS) criteria are specific defects severe enough that a vehicle or driver must be immediately removed from operation until the defect is corrected. The Commercial Vehicle Safety Alliance (CVSA) publishes the North American Standard Out-of-Service Criteria, and FMCSA-certified inspectors use these criteria during roadside inspections. When an OOS condition is found, the vehicle cannot be moved (except to a nearby safe repair location) until a qualified mechanic certifies the repair. Understanding OOS criteria helps you prioritize your pre-trip inspection \u2014 these are the defects that are the most dangerous and the most consequential.</p><p>Critical OOS defects include: brake system failures where 20% or more of the service brakes are defective (this means that on a typical 5-axle tractor-trailer with 10 brakes, just 2 defective brakes trigger OOS), any tire with exposed fabric or cord on a steer axle, flat tires, leaking or contaminated brake fluid, missing or inoperative headlights during nighttime operation, frame cracks in specific critical locations, exhaust system leaks that could allow fumes to enter the cab, a missing or discharged fire extinguisher, coupling device defects that could cause separation, and inadequate cargo securement. Steering system defects, cracked or broken wheel components, and leaking air lines that cannot maintain adequate brake pressure are also OOS conditions.</p><p>If you discover an OOS condition during your pre-trip inspection or at any point during the day, do not drive the vehicle. This is not a gray area, and it is not a decision for dispatch to make. Under federal law, the driver is responsible for ensuring the vehicle is safe to operate. Contact your carrier\u2019s maintenance department immediately and report the defect. Document it on your DVIR. You are legally protected from retaliation for refusing to drive an unsafe vehicle under the Surface Transportation Assistance Act (STAA). If a carrier pressures you to drive a vehicle with a known OOS defect, that carrier is violating federal law and putting your CDL, your safety, and their operating authority at risk. Know the OOS criteria, enforce them, and never compromise on vehicle safety.</p>'
+      },
+      {
+        id: '6.5',
+        title: 'Inspection Confidence',
+        content: '<p>DOT roadside inspections are a normal part of professional trucking. How you handle them reflects your professionalism and directly impacts the outcome. When you see an inspection station or an officer signaling you to pull in, respond promptly and safely: signal, slow down, and pull into the designated inspection area. Set your parking brake, turn off the engine (unless asked to keep it running), and step out of the cab calmly and professionally. Your attitude sets the tone \u2014 officers inspect hundreds of trucks and can immediately tell the difference between a prepared professional and a defensive or hostile driver.</p><p>Have your documents ready and organized: your CDL, current medical certificate (DOT card), vehicle registration, proof of insurance, and your ELD records (the inspector may ask to view your current day\u2019s log and the previous 7 days). Answer questions honestly and directly, but do not volunteer unnecessary information or make incriminating statements. If the inspector asks \u201care you aware your right steer tire has low tread?\u201d the appropriate response is \u201cI\u2019ll take a look at it\u201d \u2014 not \u201cyeah, I noticed that a few days ago.\u201d If the inspector finds violations you genuinely disagree with, note your disagreement on the inspection report. You have the right to challenge violations through the FMCSA\u2019s DataQs system after the inspection.</p><p>A clean inspection \u2014 Level I (full inspection) with no violations \u2014 earns you a CVSA inspection decal on your truck and a positive mark on your Pre-Employment Screening Program (PSP) report. Clean inspections are visible to future employers and demonstrate your commitment to safety and compliance. Many carriers offer bonuses or recognition for clean inspections. The drivers who consistently pass inspections with zero violations are the same drivers who perform thorough daily pre-trip inspections. There is no shortcut: if your truck is maintained, your documents are in order, and your logs are accurate, you have nothing to worry about at a roadside inspection. It becomes a routine confirmation that you\u2019re doing your job correctly.</p>'
+      }
+    ],
+    quiz: [
+      { q: 'Vehicle defects contribute to approximately what percentage of commercial vehicle crashes?', opts: ['10%', '20%', '30%', '40%'], ans: 2 },
+      { q: 'What is the minimum tread depth for steer tires per 49 CFR 393.75?', opts: ['2/32 inch', '3/32 inch', '4/32 inch', '6/32 inch'], ans: 2 },
+      { q: 'What must be included in a post-trip DVIR?', opts: ['Only defects found', 'Date, unit numbers, defects or "no defects," and driver signature', 'A photo of the vehicle', 'Mileage and fuel level only'], ans: 1 },
+      { q: 'What percentage of service brakes being defective triggers an out-of-service order?', opts: ['10% or more', '15% or more', '20% or more', '30% or more'], ans: 2 },
+      { q: 'What system allows drivers to challenge violations found during roadside inspections?', opts: ['CSA challenge form', 'The DataQs process', 'Direct appeal to FMCSA', 'State DOT review board'], ans: 1 }
+    ]
+  },
+  7: {
+    title: 'Emergency Preparedness',
+    overview: 'Emergencies on the road are not a matter of "if" but "when." This module ensures you have the right equipment, know the right protocols, and can respond effectively to breakdowns, medical situations, and accidents.',
+    lessons: [
+      {
+        id: '7.1',
+        title: 'Building Your Breakdown Kit',
+        content: '<p>Federal regulation 49 CFR 393.95 mandates specific emergency equipment for every commercial motor vehicle. You must carry at least three reflective warning triangles (or three bidirectional flares/liquid-burning emergency signals, though triangles are strongly preferred because they don\u2019t expire, don\u2019t create fire hazards, and work in all weather conditions). You must also carry at least one fire extinguisher with a minimum rating of 5 B:C, properly mounted and secured in the cab within the driver\u2019s reach, with the pressure gauge showing a full charge. These are the legal minimums \u2014 not carrying them is an automatic out-of-service violation at any roadside inspection. Additionally, you should carry a high-visibility reflective safety vest rated ANSI Class 2 or higher \u2014 wearing it before you exit the cab at any roadside stop is a habit that could save your life.</p><p>Beyond the legal requirements, a well-equipped breakdown kit turns a stressful roadside emergency into a manageable situation. Recommended additions include: a high-powered flashlight with extra batteries (LED flashlights last longer and are more visible), jumper cables rated for heavy-duty vehicles, a basic tool kit containing pliers, Phillips and flathead screwdrivers, an adjustable wrench, electrical tape, and duct tape. Carry a tire pressure gauge that reads up to 120 psi, spare electrical fuses in the common sizes for your truck, full rain gear (jacket and pants), heavy-duty work gloves, a tow strap rated for your vehicle weight, and tire sealant or fix-a-flat for non-steer tires.</p><p>Store your breakdown kit in an accessible compartment \u2014 not buried under freight or in the deepest corner of a side box. In an emergency, you need these items immediately, not after 15 minutes of searching in the dark. Inspect your kit monthly: check the fire extinguisher gauge, test the flashlight, verify your triangles are intact and reflective surfaces are clean, and replace any missing or expired items. Your breakdown kit is insurance you carry in your truck. The $100 to $200 you spend assembling it is trivial compared to the cost of being stranded without the right equipment on a dark highway shoulder at 2 AM.</p>'
+      },
+      {
+        id: '7.2',
+        title: 'First Aid Essentials',
+        content: '<p>A proper first aid kit is not a regulatory requirement for CMV drivers, but it is a professional standard that every serious driver maintains. Your kit should include: adhesive bandages in assorted sizes, sterile gauze pads (4x4 inch), adhesive medical tape, antiseptic wipes, triple antibiotic ointment packets, over-the-counter pain relievers (both ibuprofen and acetaminophen), a tourniquet (Combat Application Tourniquet or equivalent \u2014 learn how to use it before you need it), a CPR face shield or pocket mask, an emergency mylar blanket (retains body heat, weighs almost nothing), several pairs of latex-free examination gloves, medical scissors, tweezers, a SAM splint (moldable aluminum splint for immobilizing suspected fractures), and a small bottle of sterile eye wash solution.</p><p>Carry a minimum 7-day supply of any personal prescription medications on every trip. Running out of blood pressure medication, diabetes medication, or any other essential prescription while you\u2019re 800 miles from your pharmacy is a preventable crisis that happens to drivers more often than it should. Keep medications in their original labeled containers, stored in a cool area of the cab away from direct sunlight. Check expiration dates on all first aid supplies monthly and replace anything that has expired.</p><p>Knowing what\u2019s in your kit is only useful if you know basic first aid principles. The fundamentals: for bleeding wounds, apply direct pressure with a sterile pad and maintain pressure until bleeding stops \u2014 a tourniquet should only be used for severe, life-threatening limb bleeding that cannot be controlled by pressure alone. For suspected fractures, immobilize the injured area with a SAM splint and do not attempt to realign the bone. Know CPR basics: 30 chest compressions at a rate of 100-120 per minute, followed by 2 rescue breaths, and repeat until emergency services arrive. For burns, cool the burn with running water for at least 10 minutes, cover loosely with a sterile dressing, and never apply ice, butter, or ointment to a serious burn. These are not substitutes for professional medical care \u2014 they are what you do in the critical minutes between the emergency and the arrival of help.</p>'
+      },
+      {
+        id: '7.3',
+        title: 'The 8-Step Roadside Safety Protocol',
+        content: '<p>When you experience a breakdown, blowout, or any situation requiring you to stop on the roadside, the first few minutes determine your safety. Follow these 8 steps in order. Step 1: Pull as far off the traveled roadway as safely possible. Get onto a paved shoulder, a rest area, or take the next exit. If you must stop on a limited-access highway shoulder, get the entire vehicle as far right as your available space allows. Step 2: Activate your hazard flashers immediately \u2014 before anything else. Four-way flashers are the universal signal that your vehicle is stopped or disabled and alert approaching traffic to slow down and move over.</p><p>Step 3: Put on your high-visibility reflective vest before exiting the cab. This is non-negotiable, day or night. You are virtually invisible to approaching traffic without reflective gear, especially at dawn, dusk, or in rain. Step 4: Place your three reflective warning triangles. On a limited-access highway, place them at 10 feet, 100 feet, and 200 feet behind your vehicle, on the traffic side. On a two-lane road, place one triangle 100 feet ahead of the vehicle, one at 10 feet behind, and one at 100 feet behind. On a curve or hill, place the far triangle before the obstruction so approaching drivers see it before they reach the curve or crest. Step 5: Exit the cab on the passenger side \u2014 away from traffic \u2014 whenever possible. Never work on the traffic side of your vehicle unless absolutely necessary.</p><p>Step 6: Call for help in this order: dispatch first (they\u2019ll coordinate roadside assistance and relay your status), then your roadside assistance provider, and 911 if there is any injury, fire, hazardous material release, or active danger. Step 7: Never attempt repairs in a travel lane. If you cannot safely make a repair from the shoulder, wait for professional roadside assistance. Changing a tire while partially in a travel lane is one of the most dangerous things a driver can do. Step 8: If the risk of a rear-end collision is high \u2014 for example, you\u2019re stopped on a narrow shoulder at night, on a curve, or near a hill crest \u2014 move yourself away from the vehicle entirely. Stand behind the guardrail or at least 50 feet from the travel lane. Your life is more valuable than the truck. These 8 steps take less than 5 minutes and can mean the difference between a manageable roadside event and a fatal secondary crash.</p>'
+      },
+      {
+        id: '7.4',
+        title: 'Communication & Emergency Plan',
+        content: '<p>Build an emergency contacts card and keep both a physical copy in your cab and a digital copy on your phone. Your card should include: your personal emergency contact (spouse, parent, or close friend \u2014 someone who should be notified if you\u2019re in an accident), your carrier\u2019s dispatch number (confirm this is staffed 24/7), your roadside assistance provider and policy/membership number, your insurance company\u2019s name and policy number, your truck and trailer registration information, and your own medical information (blood type if known, allergies, current medications, existing medical conditions). If you\u2019re incapacitated after an accident, this card tells first responders everything they need to know.</p><p>CB radio remains a valuable communication tool despite the proliferation of smartphones. Channel 19 is the standard trucker highway channel for real-time road conditions, accident reports, construction zone information, and law enforcement alerts. Drivers ahead of you can warn you about sudden stops, debris in the roadway, or closed lanes minutes before you reach them \u2014 information that GPS and traffic apps may not have yet. Weather channel 1 (channel 1 on the weather band) provides automated NOAA weather updates relevant to your area. Consider keeping your CB on and monitoring channel 19 throughout every drive.</p><p>For areas with no cellular coverage \u2014 and there are more of them than you might expect in the western United States \u2014 consider carrying a satellite communicator device. Products from companies like Garmin and SPOT can send SOS signals to emergency services from anywhere on the planet, regardless of cell coverage, and allow two-way text messaging via satellite. These devices cost $100 to $400 and require a monthly service plan, but for a solo driver who regularly travels through remote areas of Nevada, Utah, Montana, or northern California, a satellite communicator provides genuine peace of mind and a lifeline when your phone shows \u201cNo Service.\u201d</p>'
+      },
+      {
+        id: '7.5',
+        title: 'Accident Procedures',
+        content: '<p>If you are involved in an accident, your immediate priorities are scene safety and life preservation. Secure your vehicle: set the parking brake, turn off the engine, and activate hazard flashers. Assess yourself for injuries, then check on other involved parties if you can do so safely. Call 911 immediately for any accident involving injuries, fatalities, hazardous material release, or significant property damage. Provide your exact location (mile marker, road name, nearest intersection), the number of vehicles involved, whether there are injuries, and whether any commercial vehicle is carrying hazardous materials. After calling 911, notify your carrier\u2019s dispatch immediately \u2014 they need to activate their accident response procedures.</p><p>Post-accident drug and alcohol testing is required under 49 CFR 382.303 under specific circumstances. Testing is mandatory if: there is a fatality (any person involved), you receive a traffic citation AND a person is transported to a medical facility for treatment, or you receive a citation AND any vehicle involved is towed from the scene due to disabling damage. Alcohol testing must occur within 8 hours of the accident; drug testing must occur within 32 hours. You must not consume alcohol for 8 hours following the accident or until you have completed the alcohol test, whichever comes first. If testing does not occur within the required timeframes, your carrier must document the reason and cease further testing attempts.</p><p>Preserve evidence from the scene. Use your phone to photograph: the overall scene from multiple angles (at least four directions), damage to all vehicles involved, road conditions and any contributing factors (wet pavement, obscured signs, poor visibility), traffic control devices (stop signs, signals, speed limit signs), skid marks or debris patterns, and your truck\u2019s position relative to lane markings. If there are witnesses, politely ask for their contact information and, if willing, a brief written statement describing what they saw. Do not admit fault at the scene \u2014 not to the other driver, not to police, not to bystanders. Fault determination is a legal process that will occur later with all evidence considered. Saying \u201cI\u2019m sorry, it was my fault\u201d in the immediate aftermath can be used against you in legal proceedings regardless of whether it was actually your fault. Cooperate fully with law enforcement, provide accurate information, but let the investigation determine responsibility.</p>'
+      }
+    ],
+    quiz: [
+      { q: 'At what distances must reflective warning triangles be placed on a limited-access highway?', opts: ['5, 50, and 150 feet', '10, 100, and 200 feet', '20, 100, and 300 feet', '10, 50, and 100 feet'], ans: 1 },
+      { q: 'What is the minimum fire extinguisher rating required per 49 CFR 393.95?', opts: ['2 B:C', '3 B:C', '5 B:C', '10 B:C'], ans: 2 },
+      { q: 'Within what timeframe must post-accident alcohol testing be completed?', opts: ['2 hours', '4 hours', '8 hours', '24 hours'], ans: 2 },
+      { q: 'Which CB radio channel is the standard trucker highway communication channel?', opts: ['Channel 9', 'Channel 14', 'Channel 19', 'Channel 22'], ans: 2 },
+      { q: 'What should you NOT do at an accident scene?', opts: ['Call 911', 'Photograph the scene', 'Admit fault to the other driver', 'Activate hazard flashers'], ans: 2 }
+    ]
+  },
+  8: {
+    title: 'Defensive Driving Fundamentals',
+    overview: 'Professional driving is about managing risk, not just operating a vehicle. This module covers the space cushion principle, systematic mirror scanning, distraction-free driving rules, night driving techniques, and how to handle adverse weather and road conditions safely.',
+    lessons: [
+      {
+        id: '8.1',
+        title: 'The Space Cushion',
+        content: '<p>Following distance is the single most important controllable factor in collision avoidance. A fully loaded tractor-trailer traveling at highway speed requires 300 to 400 feet to stop \u2014 that\u2019s the length of a football field. The standard following distance for a commercial vehicle is a minimum of 7 seconds: 1 second for every 10 feet of vehicle length, plus 1 additional second for speeds over 40 mph. For a typical 70-foot tractor-trailer at highway speed, that translates to approximately 7 to 8 seconds. To measure your following distance, pick a fixed point on the road (a sign, overpass, or road marking), count the seconds between when the vehicle ahead passes that point and when your front bumper reaches it.</p><p>Seven seconds is the minimum under ideal conditions \u2014 dry pavement, good visibility, daylight, and normal traffic flow. You must increase your following distance in any condition that affects stopping ability or visibility. In rain, add at least 50% (approximately 10-11 seconds). On wet roads, hydroplaning risk increases significantly and stopping distances can double. In fog, slow down drastically and increase following distance to match your visibility \u2014 if you can only see 200 feet ahead, you need to be able to stop within 200 feet. On ice or snow, stopping distance can increase by a factor of 3 to 10. At night, reduce speed so that you can stop within the range illuminated by your headlights.</p><p>The space cushion principle extends beyond just following distance. Maintain space on all sides of your vehicle whenever possible. Avoid driving side-by-side with other vehicles for extended periods \u2014 stagger your position so you have an escape route if the vehicle beside you suddenly swerves. Leave room to your left and right, especially when passing or being passed. When stopped in traffic, leave enough space between your truck and the vehicle ahead that you can see their rear tires touching the pavement \u2014 this gives you room to maneuver if you need to pull around a stalled vehicle. Space is your greatest asset as a professional driver. Creating and maintaining space cushions in all directions gives you time to recognize hazards and room to react to them.</p>'
+      },
+      {
+        id: '8.2',
+        title: 'Mirror Scanning System',
+        content: '<p>Professional drivers check their mirrors every 5 to 8 seconds in a systematic pattern: left flat mirror, left convex mirror, right flat mirror, right convex mirror, then return your focus to the road ahead, scanning 15 to 20 seconds into the distance. This pattern should become as automatic as breathing \u2014 a continuous cycle that runs throughout every minute of driving. Looking far ahead is just as important as checking mirrors: scanning 15 to 20 seconds down the road gives you early warning of slowing traffic, merging vehicles, construction zones, and other hazards while you still have time and distance to respond.</p><p>Before any lane change, follow a strict sequence: check the mirror on the side you\u2019re moving toward, activate your turn signal, check the mirror again after signaling (traffic behind you may be accelerating to prevent your merge), physically check your blind spot by glancing over your shoulder, and only then begin your lane change gradually. Never rush a lane change. A tractor-trailer needs significantly more room and time to change lanes than a passenger vehicle, and the consequences of a misjudged lane change are severe.</p><p>Know your truck\u2019s four blind spots, commonly called \u201cNo-Zones.\u201d The front No-Zone extends approximately 20 feet directly ahead of your cab \u2014 any vehicle that cuts in front of you and disappears from view is too close for you to stop. The rear No-Zone extends approximately 30 feet behind your trailer \u2014 you have no rear window, and vehicles tailgating your trailer are invisible to you. The left-side No-Zone extends from your cab door backward at an angle along the trailer. The right-side No-Zone is the largest and most dangerous \u2014 it extends from your passenger door outward across two full lanes of traffic. A simple rule: if you cannot see the other driver\u2019s face in their side mirror, they probably cannot see you. Properly adjusted mirrors eliminate most of your blind spots, which is why mirror adjustment before every trip is a non-negotiable part of your pre-trip routine.</p>'
+      },
+      {
+        id: '8.3',
+        title: 'Distraction-Free Driving',
+        content: '<p>FMCSA regulation 49 CFR 392.82 specifically prohibits texting and the use of handheld mobile phones while driving a commercial motor vehicle. The rule defines \u201cdriving\u201d as when the vehicle is in motion or temporarily stopped in traffic (at a red light, in congestion, etc.). Prohibited actions include reaching for, holding, dialing, or pressing more than a single button on a phone. The penalties are severe: fines up to $2,750 per offense for drivers, and up to $11,000 for carriers who allow or require drivers to use handheld phones. Multiple violations can result in CDL disqualification for 60 to 120 days. These are not theoretical penalties \u2014 FMCSA and state enforcement agencies actively enforce these rules through roadside observations and post-crash investigations.</p><p>Set up your technology before you put the truck in gear. Program your GPS destination, choose your music or podcast, adjust your phone settings, and mount your phone in a dashboard holder where you can see the screen without reaching. Once you\u2019re driving, your phone should be hands-free only \u2014 and even hands-free conversations create cognitive distraction that reduces your awareness of the driving environment. If you must make or take a call, use Bluetooth or a headset and keep the conversation brief. If a call requires concentration \u2014 a conversation with dispatch about a routing change, a discussion with family about something important \u2014 pull over, stop, and then give the call your full attention.</p><p>Distraction is not limited to phones. Eating while driving forces you to take at least one hand off the wheel and split your attention between the food and the road. Reaching for dropped items causes you to take your eyes off the road and potentially swerve. Reading paperwork, bills of lading, or directions while driving is inherently dangerous. Grooming, adjusting mirrors, or programming devices while the truck is in motion all qualify as distractions that degrade your driving performance. Here\u2019s the math that makes the danger concrete: at 55 mph, your truck travels approximately 80 feet per second. Looking at a text for just 5 seconds means you\u2019ve driven 400 feet \u2014 longer than a football field \u2014 with zero awareness of what\u2019s happening on the road. No message, no call, no bite of food is worth that risk.</p>'
+      },
+      {
+        id: '8.4',
+        title: 'Night Driving',
+        content: '<p>Nighttime visibility with headlights is limited to approximately 500 feet ahead of your vehicle, compared to 2,000 or more feet during daylight. This dramatic reduction in visual range means you must fundamentally adjust your driving strategy after dark. The most important principle is that you must be able to stop within the distance illuminated by your headlights. If your stopping distance at your current speed exceeds your headlight range, you are driving too fast for conditions \u2014 regardless of the posted speed limit. At highway speeds, a fully loaded tractor-trailer\u2019s stopping distance can easily exceed 500 feet, which means night driving on unlit roads may require reducing your speed below the speed limit to maintain a safe stopping margin.</p><p>Use high beams on unlit roads to extend your visibility range. Dim your high beams when you\u2019re within 500 feet of oncoming traffic or within 200 feet of a vehicle you\u2019re following \u2014 high beams can temporarily blind other drivers and create a dangerous situation. Clean your headlights and windshield before every night drive; road film and grime can reduce headlight output by up to 50% and create glare from oncoming lights. Keep your interior cab lighting as dim as possible \u2014 bright interior lights constrict your pupils and reduce your ability to see in the dark outside. If you use a dome light or reading light in the cab, your night vision can take up to 30 minutes to fully recover.</p><p>Fatigue is most intense between midnight and 6:00 AM, and again between 2:00 PM and 4:00 PM \u2014 these are your circadian low points when your body\u2019s drive to sleep is strongest, regardless of how much sleep you\u2019ve had. If your schedule requires driving through these windows, apply extra vigilance: increase your mirror-checking frequency, stop more often for walks and stretches, and be brutally honest about your fatigue level. At night, watch specifically for pedestrians, cyclists, animals, and debris \u2014 all are significantly harder to see. Deer and other wildlife are most active at dawn and dusk. If you see one deer, expect more \u2014 they travel in groups. Reduce speed in known wildlife areas, and never swerve suddenly to avoid an animal; a controlled brake application is almost always safer than a swerve that could cause a rollover or a collision with oncoming traffic.</p>'
+      },
+      {
+        id: '8.5',
+        title: 'Adverse Weather & Road Conditions',
+        content: '<p>Rain is deceptively dangerous, especially in the first 15 minutes after it begins. Accumulated oil, grease, and rubber dust on the road surface float to the top when water first hits them, creating an extremely slick film that reduces traction significantly. After sustained rain washes this film away, conditions improve somewhat, but wet pavement still requires 1.5 to 2 times the dry-weather stopping distance. Reduce speed, increase following distance to at least 10 seconds, avoid using cruise control (if you hydroplane with cruise control engaged, the system may accelerate into the skid), and be especially cautious in areas where water pools \u2014 near overpasses, in dips, and at the edges of travel lanes. If you begin hydroplaning, do not brake \u2014 ease off the accelerator, keep the wheel straight, and allow the tires to regain contact.</p><p>Fog is one of the most dangerous driving conditions because it dramatically reduces visibility while creating a disorienting, enclosed feeling that makes speed perception unreliable. Use low beams only \u2014 high beams reflect off the water droplets and create a blinding white wall of light. Reduce speed proportional to visibility. Use fog lights if your truck is equipped with them. Open your window slightly so you can hear traffic you cannot see. If visibility drops below 200 feet, seriously consider pulling off the road completely at the next safe location and waiting for conditions to improve. Multi-vehicle pileups in dense fog are among the deadliest highway crashes, and they typically involve vehicles traveling too fast for visibility conditions.</p><p>Ice and snow require respect and extreme caution. Bridges and overpasses freeze before road surfaces because cold air circulates beneath them. \u201cBlack ice\u201d \u2014 a thin, nearly invisible layer of ice that looks like wet pavement \u2014 forms most commonly on bridges, in shaded areas, and when the temperature is near or just below 32\u00b0F. Reduce speed significantly, avoid sudden braking, steering, or acceleration, and increase following distance to at least 3 to 4 times the normal dry-weather distance. In California, chain control levels are enforced on mountain passes: R-1 requires chains or traction devices unless you have 4WD/AWD with snow tires on all four wheels, R-2 requires chains on all vehicles except 4WD/AWD with snow tires, and R-3 requires chains on all vehicles with no exceptions. Crosswinds present the greatest danger when your trailer is empty \u2014 a 40+ mph crosswind can roll an unloaded trailer. Reduce speed, grip the wheel firmly with both hands, stay centered in your lane, and consider stopping if conditions exceed your comfort level. No load, no delivery, no schedule is worth your safety in severe weather.</p>'
+      }
+    ],
+    quiz: [
+      { q: 'What is the minimum following distance for a loaded tractor-trailer at highway speed?', opts: ['3 seconds', '5 seconds', '7 seconds', '10 seconds'], ans: 2 },
+      { q: 'How frequently should mirrors be checked while driving?', opts: ['Every 15-20 seconds', 'Every 10-12 seconds', 'Every 5-8 seconds', 'Every 2-3 seconds'], ans: 2 },
+      { q: 'What is the maximum fine per offense for texting while driving a CMV under 49 CFR 392.82?', opts: ['$500', '$1,000', '$2,750', '$5,000'], ans: 2 },
+      { q: 'During which hours are circadian fatigue low points most intense?', opts: ['8 AM-10 AM and 6 PM-8 PM', 'Midnight-6 AM and 2 PM-4 PM', '10 AM-noon and 8 PM-10 PM', '6 AM-8 AM and 4 PM-6 PM'], ans: 1 },
+      { q: 'What does R-2 chain control in California require?', opts: ['Chains on steer tires only', 'Chains optional for all vehicles', 'Chains on all vehicles except 4WD/AWD with snow tires', 'Chains on all vehicles, no exceptions'], ans: 2 }
+    ]
+  },
+  9: {
+    title: 'Your Daily Routine System',
+    overview: 'Consistency is the foundation of safety and performance. This module builds your daily operating system: a morning routine that sets you up for success, on-road discipline checkpoints, an evening wind-down that promotes quality sleep, and a weekly self-assessment framework.',
+    lessons: [
+      {
+        id: '9.1',
+        title: 'The Morning Routine',
+        content: '<p>Your morning routine is not wasted time \u2014 it is the foundation of a safe, productive driving day. Before you turn the ignition key, complete these steps in order. First, drink 16 ounces of water immediately upon waking. After 7 to 8 hours of sleep, your body is dehydrated, and even mild dehydration impairs cognitive function and reaction time. Water is the simplest performance enhancer available. Second, do a 5-minute stretch sequence: neck rolls, shoulder shrugs, standing hamstring stretch, hip flexor lunge, and trunk rotation. Your body has been immobile in a sleeper berth for hours \u2014 stretching activates circulation, loosens stiff muscles, and prepares your body for another long day of sitting.</p><p>Third, eat a protein-rich breakfast. Eggs, oatmeal with nuts, Greek yogurt with fruit, or a whole grain wrap with cheese and turkey are all excellent options that provide sustained energy without the crash that comes from sugar-heavy breakfasts like donuts, pastries, or sweet cereals. Protein keeps your blood sugar stable and your energy consistent through the morning hours. Fourth, complete your full pre-trip inspection as detailed in Module 6. Fifth, check the weather for your route \u2014 a 30-second check on your phone can prepare you for rain, fog, wind, or winter conditions hours before you encounter them.</p><p>Sixth, review your GPS routing and plan your fuel stops, rest stops, and meal breaks around your HOS clock. Know where your 8-hour driving break trigger will fall, where your 11-hour driving limit will hit, and where you\u2019ll park for your 10-hour off-duty break before you start driving. Seventh, call or text your family or a support person \u2014 even a brief \u201cgood morning, heading out\u201d message maintains connection and starts your day on a positive emotional note. Total time for this routine: 30 to 45 minutes. Drivers who follow a consistent morning routine report better alertness, fewer near-misses, fewer HOS violations, and lower stress levels throughout the day. Build this routine and protect it \u2014 it\u2019s the first investment you make in every driving day.</p>'
+      },
+      {
+        id: '9.2',
+        title: 'On-Road Discipline',
+        content: '<p>Discipline on the road means maintaining consistent safety practices throughout every driving shift, not just at the beginning when you\u2019re fresh. For every drive, maintain your 7-second following distance, execute your mirror scanning pattern every 5 to 8 seconds, and keep your phone mounted and hands-free only. These are not suggestions \u2014 they are the non-negotiable baseline of professional driving. The moment you start letting your following distance slip or checking your phone \u201cjust this once,\u201d you\u2019re introducing risk that compounds with every mile.</p><p>Every 2 hours, stop the truck. Get out. Stretch using the sequence from Module 4 (neck rolls, shoulder shrugs, hamstring stretch, hip flexor lunge, trunk rotation, calf raises). Drink water \u2014 refill your water bottle and aim to finish it before your next stop. Walk around your truck and do a quick exterior visual check: tire condition, lights, load securement, nothing dragging or leaking. Use the restroom even if you don\u2019t feel urgency \u2014 maintaining hydration requires regular bathroom breaks, and avoiding the restroom to \u201csave time\u201d just leads to dehydration as you subconsciously drink less. These 10-minute stops are not a luxury; they are a critical component of sustained safe performance.</p><p>At every meal, make a deliberate choice: water over soda, protein over sugar, vegetables over fried food. You don\u2019t have to eat perfectly, but you do have to eat intentionally. At every break, log your time accurately on your ELD \u2014 inaccurate logging compounds into violations over time. Throughout the day, perform an ongoing fatigue self-check: if you yawn more than once in 5 minutes, feel heavy eyelids, catch yourself drifting from your lane, or realize you don\u2019t remember the last few miles, pull over immediately for a 20-minute power nap. No load is worth your life. The discipline to stop when you\u2019re tired is the most important discipline in trucking. Build these on-road practices into every driving day until they require zero willpower \u2014 they\u2019re just what you do.</p>'
+      },
+      {
+        id: '9.3',
+        title: 'The Evening Wind-Down',
+        content: '<p>Your evening routine is the bridge between your driving day and quality sleep. After your last drive, complete your post-trip DVIR immediately while the day\u2019s driving is fresh in your mind. Report any vehicle issues to maintenance or dispatch \u2014 don\u2019t postpone reporting a developing problem to \u201csee if it gets worse.\u201d It will. After your inspection, walk for 15 minutes minimum. This is one of the most important habits in this entire course. After 8 to 11 hours of sitting, your legs need movement to restore circulation, reduce the risk of deep vein thrombosis, relieve lower back compression, and process the physical stress of whole-body vibration. Walk around the truck stop, along a rest area path, or simply pace alongside your trailer. Movement is medicine.</p><p>Call your family or a friend. This serves two purposes: it maintains the social connection that prevents isolation from eroding your mental health, and it provides a psychological transition from \u201cwork mode\u201d to \u201crest mode.\u201d Talk about something other than work \u2014 ask about their day, discuss plans, share something you saw on the road. After your call, begin limiting screen time. In the last 60 minutes before sleep, avoid your phone, tablet, and any screens that emit blue light. Blue light suppresses melatonin production and signals your brain that it\u2019s daytime, making it harder to fall asleep and reducing sleep quality even when you do fall asleep.</p><p>Perform your wind-down routine consistently every night. The specific routine matters less than the consistency: your brain learns to associate these activities with sleep onset. A recommended sequence: secure your truck (parking brake set, engine off, doors locked), close all sleeper berth curtains for complete darkness, set your alarm, place your phone on silent (face down or in a drawer), adjust the temperature to 65 to 68 degrees Fahrenheit, and do 3 rounds of 4-7-8 breathing (inhale 4 seconds, hold 7 seconds, exhale 8 seconds). Alternatively, do a progressive muscle relaxation sequence from feet to head, or read something non-work-related for 10 to 15 minutes. Target 7 to 8 hours of actual sleep \u2014 not 7 hours in the sleeper berth, but 7 hours of real sleep. Your evening routine is your investment in tomorrow\u2019s performance.</p>'
+      },
+      {
+        id: '9.4',
+        title: 'The Weekly Check-In',
+        content: '<p>Every 7 days, take 10 minutes for an honest self-assessment. This weekly check-in is your early warning system for problems that develop gradually \u2014 the kind of slow-building issues that become serious precisely because they\u2019re easy to ignore day-to-day. Ask yourself these questions and rate each on a 1 to 10 scale: How has my sleep quality been this week? Am I eating well most days? Am I stretching and walking at every stop? How\u2019s my mood and overall stress level? Have I stayed connected with family or friends? Did I have any near-misses, hard brakes, or safety concerns this week? Am I managing my HOS clock without feeling rushed?</p><p>Your weekly check-in should also include a physical equipment audit. Check your breakdown kit: fire extinguisher gauge in the green, flashlight working, all three triangles intact and reflective surfaces clean. Check your first aid kit: replenish anything you\u2019ve used, verify medication expiration dates. Check tire pressure on all tires with a gauge \u2014 visual inspection alone misses underinflation until it\u2019s significantly low. Check all fluid levels. This equipment audit takes 10 to 15 minutes and ensures you\u2019re never caught unprepared.</p><p>Finally, review your 90-day goals. Are you making progress? If you set a goal to complete pre-trip inspections in under 15 minutes by Day 30, time yourself this week and see where you stand. If you set a goal to maintain 7-plus hours of sleep, look at your actual sleep patterns over the past week. Goals without regular review become forgotten wishes. Adjust your goals if they\u2019re unrealistic, celebrate progress where you\u2019ve made it, and identify the one area where you most need improvement in the coming week. Focus your energy there. Continuous improvement doesn\u2019t require perfection \u2014 it requires honest self-assessment and the willingness to make small adjustments every week. Over 90 days, those small adjustments compound into fundamental professional transformation.</p>'
+      }
+    ],
+    quiz: [
+      { q: 'What is the first thing recommended in the morning routine before driving?', opts: ['Complete pre-trip inspection', 'Check weather forecast', 'Drink 16 ounces of water', 'Review GPS routing'], ans: 2 },
+      { q: 'How frequently should on-road stops for stretching and hydration occur?', opts: ['Every hour', 'Every 2 hours', 'Every 3 hours', 'Every 4 hours'], ans: 1 },
+      { q: 'What is the ideal sleep temperature range for the sleeper berth?', opts: ['60-63\u00b0F', '65-68\u00b0F', '70-73\u00b0F', '72-75\u00b0F'], ans: 1 },
+      { q: 'How often should the weekly self-assessment check-in be performed?', opts: ['Every 3 days', 'Every 5 days', 'Every 7 days', 'Every 14 days'], ans: 2 }
+    ]
+  },
+  10: {
+    title: 'Your 90-Day Action Plan & Next Steps',
+    overview: 'This final module consolidates everything you\u2019ve learned into concrete milestones for Days 30, 60, and 90, outlines your career path beyond the initial onboarding period, and provides your included resources and certificate of completion.',
+    lessons: [
+      {
+        id: '10.1',
+        title: '30-Day Milestones',
+        content: '<p>By Day 30 of your professional driving career, you should have achieved the following competencies. First, you can complete a thorough pre-trip inspection in under 15 minutes with zero missed items. This means you\u2019ve internalized the inspection sequence to the point where it\u2019s automatic \u2014 you follow the same path every time, check every component, and document your findings accurately on your DVIR. You know the difference between a defect that needs reporting and one that requires immediate out-of-service action. Your inspections are not rushed checklists; they are genuine safety assessments.</p><p>Second, you understand and actively manage your HOS clock without violations. You know your 11-hour driving limit, 14-hour on-duty window, and 30-minute break requirement instinctively. You plan your day backward from your clock limitations, you know where you\u2019ll stop for fuel, food, and rest before you start driving, and you change your ELD duty status accurately and immediately whenever your activity changes. You have not had an HOS violation in 30 days. Third, you have a functioning sleep routine that consistently produces 7 or more hours of quality sleep. Your sleeper berth environment is optimized (blackout curtains, cool temperature, white noise), and you follow a wind-down routine every night.</p><p>Fourth, you know the contents of your breakdown kit and first aid kit from memory, and you\u2019ve verified that all items are present and functional. Fifth, your emergency contacts card is completed and accessible \u2014 both a physical copy in the cab and a digital copy on your phone. Sixth, you\u2019re using the 4-7-8 breathing technique or another stress management tool at least once daily. These 30-day milestones represent the minimum viable foundation of a safe professional driver. If you haven\u2019t achieved all of them by Day 30, focus your next 30 days on the gaps. There is no penalty for taking longer \u2014 the goal is competency, not speed.</p>'
+      },
+      {
+        id: '10.2',
+        title: '60-Day Milestones',
+        content: '<p>By Day 60, your safety fundamentals should be solid and you should be building higher-level competencies. Your 7-second following distance should be consistent without conscious reminders \u2014 maintaining proper space cushion should feel natural, not forced. Your mirror scanning pattern (every 5 to 8 seconds) should be automatic. You\u2019re completing daily stretching at every fuel stop and walking at least 15 minutes during your evening routine. These physical health habits are no longer things you have to remember to do; they\u2019re simply part of your day.</p><p>Your nutrition should be measurably improved from Day 1. You\u2019re packing a cooler regularly, choosing water over soda most of the time, and using the plate method (half vegetables, quarter protein, quarter whole grains) at truck stops. You don\u2019t have to eat perfectly, but you should be eating deliberately and seeing the difference in your energy and alertness. You\u2019ve completed a weekly self-assessment for 4 consecutive weeks and you\u2019re using the data to identify and address your weak areas. You know your patterns: which days are hardest for sleep, when you\u2019re most tempted to skip stretching, what triggers your stress.</p><p>You should feel confident handling a DOT roadside inspection. Your documents are organized and accessible, your truck is consistently maintained, your logs are accurate, and your demeanor is calm and professional. You\u2019ve established a family communication schedule that works for everyone \u2014 daily check-ins are happening, your relationships are not deteriorating, and you\u2019ve found at least one strategy (video calls, shared photos, scheduled conversations) that keeps you connected to the people who matter. At Day 60, you\u2019re transitioning from a new driver who follows rules because they\u2019re required to a professional driver who follows them because they\u2019re the right way to operate.</p>'
+      },
+      {
+        id: '10.3',
+        title: '90-Day Milestones',
+        content: '<p>By Day 90, you should be able to look back at your first three months and see fundamental transformation. Your HOS record should show zero violations \u2014 not because you\u2019re lucky, but because managing your clock has become second nature. You plan every day around your available hours, you never drive beyond your limits, and you\u2019ve developed enough experience to anticipate timing challenges (long waits at shippers, unexpected traffic, limited parking) and plan around them proactively rather than reactively.</p><p>Your sleep routine should be robust enough to survive schedule changes, time zone transitions, and the occasional disruption without collapsing entirely. You know your body\u2019s patterns, you know what works for you, and you recover quickly when your routine is disrupted. Your weekly equipment audit is a fixed habit \u2014 you check your breakdown kit, first aid kit, tire pressures, and fluid levels on the same day every week without being reminded. You\u2019re confident driving in adverse weather conditions: you know when to slow down, when to increase following distance, when to pull over entirely, and you make these decisions based on safety rather than schedule pressure.</p><p>You have functioning stress management techniques that you use regularly and effectively. You can recognize the early signs of fatigue, isolation, or mental health deterioration in yourself, and you know exactly where to find help. You\u2019ve built at least one peer connection in the trucking community \u2014 another driver, a mentor, an online community, or a local group \u2014 that provides professional support and reduces isolation. At Day 90, you are a fundamentally prepared professional driver. You are not an expert \u2014 expertise takes years \u2014 but you have the foundation, the habits, and the systems that experts are built on. Everything from this point forward is refinement and growth built on a solid base.</p>'
+      },
+      {
+        id: '10.4',
+        title: 'Beyond 90 Days \u2014 Your Career Path',
+        content: '<p>Your first 90 days are the foundation, not the destination. The trucking industry offers a career path that can span 30 or more years and evolve significantly over time. In the near term, explore the Seasoned Driver Packet ($29) available in the Mile 12 Warrior shop \u2014 it builds on everything in this course with advanced strategies for trip planning optimization, fuel efficiency techniques, load negotiation principles, and long-term career planning. Join the Mile 12 Warrior forum to connect with other drivers who are on the same journey \u2014 asking questions, sharing experiences, and supporting each other.</p><p>Consider mentoring a newer driver once you\u2019ve established yourself. Teaching is the single most effective way to solidify your own knowledge \u2014 explaining HOS rules or pre-trip inspection procedures to someone else forces you to understand them at a deeper level than just performing them yourself. Many carriers have formal mentor programs, and the trucking community benefits enormously from experienced drivers who are willing to share their knowledge. Set annual health goals: a target weight, a blood pressure reading, a fitness milestone. Your DOT physical every 2 years is a checkpoint, but your daily health habits are what determine the result.</p><p>Longer-term career options include pursuing additional endorsements: Hazmat (H) opens higher-paying specialized freight, Tanker (N) qualifies you for liquid bulk transport, and Doubles/Triples (T) enables LTL and intermodal operations. Each endorsement increases your market value and opens new opportunities. Explore career paths beyond your current role: company driver to lease operator, lease operator to owner-operator, specialized hauling (oversized, refrigerated, flatbed), training and instruction, safety management, or dispatch. Some drivers eventually move into fleet management, compliance, or consulting roles that leverage their road experience in office-based positions. Your CDL is not just a license to drive \u2014 it\u2019s the entry point to an industry full of opportunities. Invest in your career the way you invest in your safety: deliberately, consistently, and with a long-term perspective.</p>'
+      },
+      {
+        id: '10.5',
+        title: 'Your Included Resources',
+        content: '<p>Completing this course entitles you to several resources designed to support you beyond the classroom. Your New Driver Packet (Tier 1) is a comprehensive reference document that includes all the checklists, protocols, and quick-reference guides from this course in a printable, cab-friendly format. It covers pre-trip inspection checklists, HOS quick-reference cards, emergency contact templates, the 8-step roadside safety protocol, sleep routine checklists, stretching and exercise guides, nutrition shopping lists, and your 90-day goal-setting template. Download it using the button below and keep a printed copy in your cab at all times.</p><p>You also receive access to the Mile 12 Warrior community forum, where you can connect with other drivers who have completed this course and those still working through it. The forum includes discussion categories for HOS questions, health and wellness, equipment reviews, route tips, and general support. Participation in the community is one of the strongest predictors of long-term success \u2014 drivers who maintain peer connections are more likely to sustain the habits and systems learned in this course.</p><p>Finally, your Certificate of Completion is available for download below. Enter your name, and the certificate will be generated with today\u2019s date, confirming that you have successfully completed the New Driver 90-Day Onboarding Course covering all 10 modules: Hours of Service, fatigue management, physical and mental health, vehicle inspection, emergency preparedness, defensive driving, daily routine systems, and career planning. This certificate is a record of your commitment to professional development and safety. Display it, share it with your carrier, and be proud of the work you\u2019ve done to get here. This is your foundation \u2014 now go build something great on it.</p>'
+      }
+    ],
+    quiz: [
+      { q: 'By Day 30, what should your pre-trip inspection time be?', opts: ['Under 10 minutes', 'Under 15 minutes with zero missed items', 'Under 20 minutes', 'Under 30 minutes'], ans: 1 },
+      { q: 'What following distance should be consistently maintained without reminders by Day 60?', opts: ['3 seconds', '5 seconds', '7 seconds', '10 seconds'], ans: 2 },
+      { q: 'How many HOS violations should you have by Day 90?', opts: ['No more than 2', 'No more than 1', 'Zero', 'Fewer than 3'], ans: 2 },
+      { q: 'What additional resource is recommended for advanced strategies beyond the 90-day course?', opts: ['CDL renewal course', 'Seasoned Driver Packet', 'FMCSA certification exam', 'Advanced ELD training'], ans: 1 }
+    ]
+  }
+};
+
+var STORAGE_KEY = 'm12w_course';
+var activeModule = null;
+
+function getProgress() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return defaultProgress();
+}
+
+function defaultProgress() {
+  var p = { purchased: false, modules: {}, studentName: '' };
+  for (var i = 1; i <= 10; i++) {
+    p.modules[i] = { unlocked: i === 1, completed: false, lessons: [], quizScore: null };
+  }
+  return p;
+}
+
+function saveProgress(p) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch(e) {}
+}
+
+function countCompleted() {
+  var p = getProgress();
+  var c = 0;
+  for (var i = 1; i <= 10; i++) { if (p.modules[i] && p.modules[i].completed) c++; }
+  return c;
+}
+
+function updateHeroProgress() {
+  var c = countCompleted();
+  var label = document.getElementById('progressLabel');
+  var fill = document.getElementById('progressFill');
+  var btn = document.getElementById('enrollBtn');
+  var p = getProgress();
+  if (label) label.textContent = c + ' of 10 modules complete';
+  if (fill) fill.style.width = (c / 10 * 100) + '%';
+  if (btn) {
+    if (p.purchased) {
+      btn.textContent = 'Enrolled \u2714';
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
+      btn.style.cursor = 'default';
+    }
+  }
+}
+
+function renderSidebar() {
+  var sb = document.getElementById('courseSidebar');
+  if (!sb) return;
+  var p = getProgress();
+  var html = '<ul class="mod-nav">';
+  for (var i = 1; i <= 10; i++) {
+    var mod = COURSE_DATA[i];
+    var mp = p.modules[i] || {};
+    var isActive = activeModule === i;
+    var cls = 'mod-nav-item';
+    if (isActive) cls += ' active';
+    if (mp.completed) cls += ' completed';
+    var status = '';
+    if (mp.completed) status = '<span style="color:var(--green)">\u2713</span>';
+    else if (mp.unlocked || mod.free) status = '<span style="color:var(--text-3)">\u25CB</span>';
+    else status = '<span style="color:var(--text-3)">\uD83D\uDD12</span>';
+    var num = i < 10 ? '0' + i : '' + i;
+    var lc = mod.lessons.length;
+    html += '<li class="' + cls + '" onclick="selectModule(' + i + ')">';
+    html += '<span class="mod-nav-num">' + num + '</span>';
+    html += '<div class="mod-nav-info"><div class="mod-nav-title">' + mod.title + '</div>';
+    html += '<div class="mod-nav-meta">' + lc + ' lesson' + (lc !== 1 ? 's' : '') + '</div></div>';
+    html += '<span class="mod-nav-status">' + status + '</span>';
+    html += '</li>';
+  }
+  html += '</ul>';
+  sb.innerHTML = html;
+}
+
+function selectModule(id) {
+  activeModule = id;
+  renderSidebar();
+  var p = getProgress();
+  var mod = COURSE_DATA[id];
+  if (!mod) return;
+  var mp = p.modules[id] || {};
+  var main = document.getElementById('courseMain');
+  if (!main) return;
+
+  if (!mp.unlocked && !mod.free) {
+    if (!p.purchased) {
+      renderPurchaseOverlay(main);
+      return;
+    } else {
+      mp.unlocked = true;
+      p.modules[id] = mp;
+      saveProgress(p);
+    }
+  }
+
+  var allDone = true;
+  for (var i = 1; i <= 10; i++) { if (!p.modules[i] || !p.modules[i].completed) { allDone = false; break; } }
+  if (allDone && id === 10) {
+    renderComplete(main);
+    return;
+  }
+
+  var num = id < 10 ? '0' + id : '' + id;
+  var html = '<div class="module-header">';
+  html += '<div class="module-num-label">Module ' + num + (mod.free ? '<span class="free-badge">Free</span>' : '') + '</div>';
+  html += '<h2 class="module-title">' + mod.title + '</h2>';
+  html += '<p class="module-overview">' + mod.overview + '</p>';
+  html += '</div>';
+
+  mod.lessons.forEach(function(lesson, idx) {
+    var done = mp.lessons && mp.lessons.indexOf(lesson.id) !== -1;
+    html += '<div class="lesson" id="lesson-' + lesson.id.replace('.', '-') + '">';
+    html += '<div class="lesson-header" onclick="toggleLesson(this)">';
+    html += '<svg class="lesson-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>';
+    html += '<span class="lesson-title">' + lesson.id + ': ' + lesson.title + '</span>';
+    if (done) html += '<span class="lesson-done">\u2713 Done</span>';
+    html += '</div>';
+    html += '<div class="lesson-body">' + lesson.content;
+    html += '<button class="lesson-mark-btn' + (done ? ' done' : '') + '" onclick="markLesson(' + id + ',\'' + lesson.id + '\',this)">' + (done ? '\u2713 Completed' : 'Mark as Complete') + '</button>';
+    html += '</div></div>';
+  });
+
+  html += renderQuizHTML(id, mp);
+  main.innerHTML = html;
+  if (id === 1 && mp.quizScore !== null && mp.quizScore >= 70) {
+    fillModule1EndCta();
+  }
+  main.scrollTop = 0;
+  window.scrollTo({ top: document.querySelector('.course-layout').offsetTop - 80, behavior: 'smooth' });
+}
+
+function fillModule1EndCta() {
+  var el = document.getElementById('module1EndCta');
+  if (!el) return;
+  fetch('/api/shop/course-access', { credentials: 'include' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.hasCourseAccess) {
+        el.innerHTML = '<button class="btn btn-primary module-complete-btn" onclick="selectModule(2)">Continue to Module 2 &rarr;</button>';
+      } else {
+        el.innerHTML = getModule1PurchaseCtaHtml();
+      }
+    })
+    .catch(function() {
+      el.innerHTML = getModule1PurchaseCtaHtml();
+    });
+}
+
+function toggleLesson(header) {
+  var lesson = header.parentElement;
+  lesson.classList.toggle('open');
+}
+
+function markLesson(modId, lessonId, btn) {
+  var p = getProgress();
+  var mp = p.modules[modId];
+  if (!mp.lessons) mp.lessons = [];
+  if (mp.lessons.indexOf(lessonId) === -1) {
+    mp.lessons.push(lessonId);
+    saveProgress(p);
+  }
+  btn.className = 'lesson-mark-btn done';
+  btn.textContent = '\u2713 Completed';
+  var header = btn.closest('.lesson').querySelector('.lesson-header');
+  if (header && !header.querySelector('.lesson-done')) {
+    var sp = document.createElement('span');
+    sp.className = 'lesson-done';
+    sp.textContent = '\u2713 Done';
+    header.appendChild(sp);
+  }
+}
+
+function renderQuizHTML(modId, mp) {
+  var mod = COURSE_DATA[modId];
+  if (!mod || !mod.quiz) return '';
+  var passed = mp.quizScore !== null && mp.quizScore >= 70;
+  var html = '<div class="quiz-section" id="quizSection">';
+  html += '<div class="quiz-title">Knowledge Check</div>';
+  html += '<div class="quiz-subtitle">Score 70% or higher to complete this module and unlock the next.</div>';
+  if (passed) {
+    html += '<div class="quiz-result pass">You passed with ' + mp.quizScore + '%! Module complete.</div>';
+    if (modId === 1) html += '<div id="module1EndCta" style="margin-top:16px"></div>';
+    html += '</div>';
+    return html;
+  }
+  mod.quiz.forEach(function(q, qi) {
+    html += '<div class="quiz-question"><div class="quiz-q-num">Question ' + (qi + 1) + '</div>';
+    html += '<div class="quiz-q-text">' + q.q + '</div><ul class="quiz-options">';
+    q.opts.forEach(function(opt, oi) {
+      html += '<label class="quiz-option"><input type="radio" name="q' + modId + '_' + qi + '" value="' + oi + '"> ' + opt + '</label>';
+    });
+    html += '</ul></div>';
+  });
+  html += '<button class="btn btn-primary" onclick="submitQuiz(' + modId + ')">Submit Answers</button>';
+  html += '<div id="quizResult"></div>';
+  html += '</div>';
+  return html;
+}
+
+function submitQuiz(modId) {
+  var mod = COURSE_DATA[modId];
+  if (!mod || !mod.quiz) return;
+  var total = mod.quiz.length;
+  var correct = 0;
+  var allAnswered = true;
+  mod.quiz.forEach(function(q, qi) {
+    var sel = document.querySelector('input[name="q' + modId + '_' + qi + '"]:checked');
+    if (!sel) { allAnswered = false; return; }
+    if (parseInt(sel.value) === q.ans) correct++;
+  });
+  if (!allAnswered) {
+    var rd = document.getElementById('quizResult');
+    if (rd) { rd.innerHTML = '<div class="quiz-result fail">Please answer all questions before submitting.</div>'; }
+    return;
+  }
+  var score = Math.round(correct / total * 100);
+  var p = getProgress();
+  var mp = p.modules[modId];
+  mp.quizScore = score;
+  if (score >= 70) {
+    mp.completed = true;
+    if (modId < 10) {
+      var next = p.modules[modId + 1];
+      next.unlocked = true;
+    }
+  }
+  saveProgress(p);
+  updateHeroProgress();
+  renderSidebar();
+
+  var rd = document.getElementById('quizResult');
+  if (score >= 70) {
+    var msg = '<div class="quiz-result pass">You scored ' + score + '% (' + correct + '/' + total + '). Module complete!';
+    if (modId < 10) msg += ' Module ' + (modId + 1) + ' is now unlocked.';
+    else msg += ' All modules complete!';
+    msg += '</div>';
+
+    function lockQuizAndHideSubmit() {
+      mod.quiz.forEach(function(q, qi) {
+        var opts = document.querySelectorAll('input[name="q' + modId + '_' + qi + '"]');
+        opts.forEach(function(o) {
+          o.disabled = true;
+          var lbl = o.closest('.quiz-option');
+          if (parseInt(o.value) === q.ans) lbl.classList.add('correct');
+          else if (o.checked) lbl.classList.add('incorrect');
+        });
+      });
+      var submitBtn = document.querySelector('#quizSection .btn-primary');
+      if (submitBtn) submitBtn.style.display = 'none';
+    }
+
+    if (modId === 1) {
+      fetch('/api/shop/course-access', { credentials: 'include' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.hasCourseAccess) {
+            var p = getProgress();
+            p.purchased = true;
+            for (var i = 1; i <= 10; i++) p.modules[i].unlocked = true;
+            saveProgress(p);
+            updateHeroProgress();
+            renderSidebar();
+            msg += '<button class="btn btn-primary module-complete-btn" onclick="selectModule(2)">Continue to Module 2 &rarr;</button>';
+          } else {
+            msg += getModule1PurchaseCtaHtml();
+          }
+          if (rd) rd.innerHTML = msg;
+          lockQuizAndHideSubmit();
+        })
+        .catch(function() {
+          msg += getModule1PurchaseCtaHtml();
+          if (rd) rd.innerHTML = msg;
+          lockQuizAndHideSubmit();
+        });
+    } else {
+      if (modId < 10) {
+        msg += '<button class="btn btn-primary module-complete-btn" onclick="selectModule(' + (modId + 1) + ')">Continue to Module ' + (modId + 1) + ' &rarr;</button>';
+      } else {
+        msg += '<button class="btn btn-green module-complete-btn" onclick="selectModule(10)">View Completion &amp; Certificate</button>';
+      }
+      if (rd) rd.innerHTML = msg;
+      lockQuizAndHideSubmit();
+    }
+  } else {
+    if (rd) rd.innerHTML = '<div class="quiz-result fail">You scored ' + score + '% (' + correct + '/' + total + '). You need 70% to pass. Review the lessons and try again.</div>';
+  }
+}
+
+function getModule1PurchaseCtaHtml() {
+  var html = '<div class="module1-cta">';
+  html += '<h3>Continue your next leg of the journey</h3>';
+  html += '<p>You&rsquo;ve finished the free portion. Purchase the full course or one of our packets to unlock the rest and get the most out of your 90 days.</p>';
+  html += '<div class="module1-cta-links">';
+  html += '<a href="/shop/product/course-90day" class="cta-primary">Full 90-Day Course &mdash; $149</a>';
+  html += '<a href="/shop/product/seasoned-packet">Seasoned Driver Packet &mdash; $29</a>';
+  html += '<a href="/shop/product/fleet-new-hire-packet">Fleet New Hire Packet &mdash; $79</a>';
+  html += '<a href="/shop/product/fleet-refresher-packet">Fleet Refresher Packet &mdash; $79</a>';
+  html += '<a href="/shop/product/fleet-bundle">Fleet Bundle &mdash; $129</a>';
+  html += '<a href="/shop/product/complete-bundle">Complete Bundle (Course + All Packets) &mdash; $249</a>';
+  html += '</div>';
+  html += '<p style="font-size:.82rem;color:var(--text-3);margin:0">Already purchased? <button type="button" class="purchase-restore" onclick="restoreAccess()">Restore access</button></p>';
+  html += '</div>';
+  return html;
+}
+
+function renderPurchaseOverlay(main) {
+  var html = '<div class="purchase-overlay">';
+  html += '<div class="purchase-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>';
+  html += '<h2>Unlock the Full Course</h2>';
+  html += '<p>Module 1 is free to preview. Enroll to access all 10 modules, quizzes, your New Driver Packet, and your Certificate of Completion.</p>';
+  html += '<button class="btn btn-primary" onclick="purchaseCourse()">Enroll Now &mdash; $149</button>';
+  html += '<button class="purchase-restore" onclick="restoreAccess()">Already enrolled? Restore access</button>';
+  html += '<button class="purchase-restore" onclick="previewFullCourse()" style="margin-top:8px;display:block;margin-left:auto;margin-right:auto;">Preview full course (for testing)</button>';
+  html += '</div>';
+  main.innerHTML = html;
+}
+
+function previewFullCourse() {
+  var p = getProgress();
+  p.purchased = true;
+  for (var i = 1; i <= 10; i++) { p.modules[i].unlocked = true; }
+  saveProgress(p);
+  updateHeroProgress();
+  renderSidebar();
+  if (activeModule && activeModule > 1) selectModule(activeModule);
+  else selectModule(1);
+}
+
+function purchaseCourse() {
+  var p = getProgress();
+  if (p.purchased) return;
+  p.purchased = true;
+  for (var i = 1; i <= 10; i++) { p.modules[i].unlocked = true; }
+  saveProgress(p);
+  updateHeroProgress();
+  renderSidebar();
+  if (activeModule && activeModule > 1) selectModule(activeModule);
+  else selectModule(1);
+}
+
+function restoreAccess() {
+  var p = getProgress();
+  if (p.purchased) {
+    for (var i = 1; i <= 10; i++) p.modules[i].unlocked = true;
+    saveProgress(p);
+    renderSidebar();
+    if (activeModule) selectModule(activeModule);
+  } else {
+    alert('No previous enrollment found in this browser. If you enrolled on a different device, please contact support at joyce@mile12warrior.com.');
+  }
+}
+
+function renderComplete(main) {
+  var p = getProgress();
+  var html = '<div class="completion-section">';
+  html += '<div class="completion-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>';
+  html += '<h2>Course Complete!</h2>';
+  html += '<p class="comp-sub">You\u2019ve mastered the fundamentals. All 10 modules are done.</p>';
+  html += '<div class="cert-name-group"><label for="certName">Your name (for the certificate)</label>';
+  html += '<input type="text" id="certName" placeholder="Enter your full name" value="' + (p.studentName || '').replace(/"/g, '&quot;') + '" onchange="saveStudentName(this.value)"></div>';
+  html += '<div class="comp-btns">';
+  html += '<button class="btn btn-primary" onclick="downloadCertificate()">Download Certificate of Completion</button>';
+  html += '<button class="btn btn-green" onclick="downloadPacket()">Download Your New Driver Packet</button>';
+  html += '</div>';
+  html += '<div class="comp-links">';
+  html += '<a href="/forum">Join the Forum</a>';
+  html += '<a href="/blog">Read the Blog</a>';
+  html += '<a href="/shop">Browse the Shop</a>';
+  html += '<a href="/services">Explore More Services</a>';
+  html += '</div></div>';
+  main.innerHTML = html;
+}
+
+function saveStudentName(name) {
+  var p = getProgress();
+  p.studentName = name;
+  saveProgress(p);
+}
+
+function downloadPacket() {
+  if (typeof Packets !== 'undefined' && typeof Packets.download === 'function') {
+    Packets.download('new-driver');
+  } else if (typeof Packets !== 'undefined' && typeof Packets.newDriver === 'function') {
+    var html = Packets.newDriver();
+    var blob = new Blob([html], { type: 'text/html' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'Mile12-New-Driver-Packet.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  }
+}
+
+function downloadCertificate() {
+  var p = getProgress();
+  var name = (document.getElementById('certName') || {}).value || p.studentName || 'Student';
+  p.studentName = name;
+  saveProgress(p);
+  var today = new Date();
+  var dateStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  var certHTML = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Certificate of Completion</title><style>';
+  certHTML += '*{margin:0;padding:0;box-sizing:border-box}';
+  certHTML += '@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500&display=swap");';
+  certHTML += 'body{background:#fff;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:40px;font-family:"Inter",sans-serif}';
+  certHTML += '.cert{width:900px;padding:60px;border:3px solid #1a1a2e;position:relative;background:#fff}';
+  certHTML += '.cert::before{content:"";position:absolute;inset:8px;border:1px solid #c4b5a0;pointer-events:none}';
+  certHTML += '.cert-header{text-align:center;margin-bottom:40px}';
+  certHTML += '.cert-logo{font-family:"Space Grotesk",sans-serif;font-size:1.1rem;font-weight:600;color:#1a1a2e;letter-spacing:.05em;margin-bottom:8px}';
+  certHTML += '.cert-title{font-family:"Space Grotesk",sans-serif;font-size:2rem;font-weight:700;color:#1a1a2e;margin-top:12px;letter-spacing:.02em}';
+  certHTML += '.cert-sub{font-size:.85rem;color:#666;margin-top:6px;text-transform:uppercase;letter-spacing:.15em}';
+  certHTML += '.cert-body{text-align:center;margin:40px 0}';
+  certHTML += '.cert-name{font-family:"Space Grotesk",sans-serif;font-size:2.2rem;font-weight:700;color:#6366f1;margin-bottom:20px;border-bottom:2px solid #6366f1;display:inline-block;padding-bottom:6px}';
+  certHTML += '.cert-desc{font-size:.92rem;color:#333;line-height:1.8;max-width:650px;margin:0 auto}';
+  certHTML += '.cert-date{font-size:.85rem;color:#666;margin-top:30px}';
+  certHTML += '.cert-footer{display:flex;justify-content:space-between;align-items:flex-end;margin-top:50px;padding-top:20px}';
+  certHTML += '.cert-sig{text-align:center;min-width:200px}';
+  certHTML += '.cert-sig-line{border-top:1px solid #333;width:200px;margin:0 auto 6px}';
+  certHTML += '.cert-sig-name{font-size:.8rem;color:#333;font-weight:500}';
+  certHTML += '.cert-sig-title{font-size:.7rem;color:#666}';
+  certHTML += '.cert-id{font-size:.65rem;color:#999;text-align:right}';
+  certHTML += '@media print{body{padding:0}.cert{border-width:2px}}';
+  certHTML += '</style></head><body><div class="cert">';
+  certHTML += '<div class="cert-header">';
+  certHTML += '<div class="cert-logo">\u25C6 MILE 12 WARRIOR \u25C6</div>';
+  certHTML += '<div class="cert-title">Certificate of Completion</div>';
+  certHTML += '<div class="cert-sub">New Driver 90-Day Onboarding Course</div>';
+  certHTML += '</div>';
+  certHTML += '<div class="cert-body">';
+  certHTML += '<div>This certifies that</div>';
+  certHTML += '<div class="cert-name">' + escapeHtml(name) + '</div>';
+  certHTML += '<div class="cert-desc">has successfully completed the <strong>New Driver 90-Day Onboarding Course</strong> \u2014 10 modules covering Hours of Service, fatigue management, physical and mental health, vehicle inspection, emergency preparedness, defensive driving, daily wellness systems, and career planning.</div>';
+  certHTML += '<div class="cert-date">' + dateStr + '</div>';
+  certHTML += '</div>';
+  certHTML += '<div class="cert-footer">';
+  certHTML += '<div class="cert-sig"><div class="cert-sig-line"></div><div class="cert-sig-name">Joyce Cooke</div><div class="cert-sig-title">Founder, Mile 12 Warrior</div></div>';
+  certHTML += '<div class="cert-sig"><div class="cert-sig-line"></div><div class="cert-sig-name">Mile 12 Warrior LLC</div><div class="cert-sig-title">Professional Driver Development</div></div>';
+  certHTML += '</div></div></body></html>';
+
+  var blob = new Blob([certHTML], { type: 'text/html' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Mile12-Warrior-Certificate.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function init() {
+  var p = getProgress();
+  if (!p.modules || !p.modules[1]) {
+    p = defaultProgress();
+    saveProgress(p);
+  }
+  if (p.purchased) {
+    for (var i = 1; i <= 10; i++) p.modules[i].unlocked = true;
+    saveProgress(p);
+  }
+  fetch('/api/shop/course-access', { credentials: 'include' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.hasCourseAccess) {
+        var prog = getProgress();
+        prog.purchased = true;
+        for (var i = 1; i <= 10; i++) prog.modules[i].unlocked = true;
+        saveProgress(prog);
+        updateHeroProgress();
+        renderSidebar();
+      }
+    })
+    .catch(function() {});
+  updateHeroProgress();
+  renderSidebar();
+}
+
+// Nav toggle
+var navToggle = document.getElementById('navToggle');
+var navLinks = document.getElementById('navLinks');
+if (navToggle && navLinks) {
+  navToggle.addEventListener('click', function() {
+    navToggle.classList.toggle('active');
+    navLinks.classList.toggle('open');
+  });
+}
+
+// Scroll progress
+function onScroll() {
+  var navbar = document.getElementById('navbar');
+  var progressBar = document.getElementById('scrollProgress');
+  if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 20);
+  if (progressBar) {
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    progressBar.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%';
+  }
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+
+// Cart badge
+function updateCartBadge() {
+  try {
+    var raw = localStorage.getItem('driver_shield_cart');
+    var cart = raw ? JSON.parse(raw) : [];
+    var count = (cart || []).reduce(function(s, i) { return s + (i.quantity || 1); }, 0);
+    var badge = document.getElementById('cartBadge');
+    if (badge) {
+      badge.textContent = count;
+      badge.style.display = count > 0 ? 'inline-flex' : 'none';
+    }
+  } catch(_) {}
+}
+updateCartBadge();
+
+// Auth
+(async function updateAuthLink() {
+  var authLink = document.querySelector('.nav-auth-link');
+  var navAuth = document.getElementById('navAuth');
+  if (!authLink || !navAuth) return;
+  try {
+    var res = await fetch('/api/auth/me', { credentials: 'include' });
+    var data = await res.json();
+    if (data.user) {
+      navAuth.innerHTML = '<span style="color:var(--text-2);font-size:0.8rem;padding:6px 14px;">' + escapeHtml(data.user.username) + '</span><a href="/profile" style="padding:6px 14px;">Profile</a><a href="#" class="nav-logout-link" style="padding:6px 14px;color:var(--text-3);">Logout</a>';
+      var logoutLink = navAuth.querySelector('.nav-logout-link');
+      if (logoutLink) {
+        logoutLink.addEventListener('click', async function(e) {
+          e.preventDefault();
+          await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+          location.reload();
+        });
+      }
+    }
+  } catch(_) {}
+})();
+
+// Expose to window so onclick="selectModule(1)" etc. work from HTML
+window.selectModule = selectModule;
+window.purchaseCourse = purchaseCourse;
+window.restoreAccess = restoreAccess;
+window.previewFullCourse = previewFullCourse;
+window.toggleLesson = toggleLesson;
+window.markLesson = markLesson;
+window.submitQuiz = submitQuiz;
+window.downloadCertificate = downloadCertificate;
+window.downloadPacket = downloadPacket;
+
+init();
+
+})();
+  </script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

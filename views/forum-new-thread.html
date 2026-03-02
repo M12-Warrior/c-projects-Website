@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Start a New Thread — Mile 12 Warrior Forum</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.svg" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';var s=this.nextElementSibling;if(s)s.style.display='flex';">
+        <span class="nav-logo-fallback" style="display:none;">
+          <svg class="logo-svg logo-shield" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/#roadmap">Roadmap</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/forum" class="active">Forum</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/refresh">Refresh</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container">
+      <a href="/forum" class="text-muted" style="display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px; font-size: 0.88rem; text-decoration: none;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back to Forum
+      </a>
+      <p style="font-size:0.85rem;color:var(--text-3);margin-bottom:24px">By posting you agree to our <a href="/forum/rules">Forum Rules</a> and <a href="/terms">Terms of Service</a>.</p>
+      <h1 class="page-title">Start a New Thread</h1>
+
+      <form id="newThreadForm" class="auth-card mt-32" style="max-width: 560px;">
+        <div class="form-group">
+          <label class="form-label" for="category">Category</label>
+          <select id="category" class="form-input" name="category_id" required>
+            <option value="">Choose a category</option>
+            <!-- Populated by JS -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="title">Title</label>
+          <input type="text" id="title" class="form-input" name="title" placeholder="What's your thread about?" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="content">Content</label>
+          <textarea id="content" class="form-input" name="content" rows="8" placeholder="Share your question or topic…" required></textarea>
+          <p class="form-hint" style="font-size:0.8rem;color:var(--text-3);margin-top:8px">Only post content you own or have permission to use. Do not paste copyrighted articles, lyrics, or images from others.</p>
+        </div>
+        <p id="formError" class="form-error hidden"></p>
+        <button type="submit" class="form-btn">Create Thread</button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      async function loadCategories() {
+        const sel = document.getElementById('category');
+        try {
+          const r = await fetch('/api/forum/categories', { credentials: 'include' });
+          const data = await r.json();
+          const cats = Array.isArray(data) ? data : (data.categories || []);
+          cats.forEach(function(c) {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name || 'Category';
+            sel.appendChild(opt);
+          });
+        } catch (_) {}
+      }
+
+      document.getElementById('newThreadForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const categoryId = document.getElementById('category').value;
+        const title = document.getElementById('title').value.trim();
+        const content = document.getElementById('content').value.trim();
+        const errEl = document.getElementById('formError');
+
+        if (!categoryId || !title || !content) {
+          errEl.textContent = 'Please fill in all fields.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+
+        const btn = e.target.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = 'Creating…';
+        errEl.classList.add('hidden');
+
+        try {
+          const r = await fetch('/api/forum/threads', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ category_id: categoryId, title: title, content: content })
+          });
+          const data = await r.json();
+
+          if (r.ok) {
+            const slug = (data.thread?.slug || data.slug || data.thread?.id || data.id || '').toString();
+            if (slug) {
+              window.location.href = '/forum/thread/' + slug;
+              return;
+            }
+          }
+
+          errEl.textContent = data.message || data.error || 'Failed to create thread. Please try again.';
+          errEl.classList.remove('hidden');
+        } catch (err) {
+          errEl.textContent = 'Failed to create thread. Please try again.';
+          errEl.classList.remove('hidden');
+        }
+        btn.disabled = false;
+        btn.textContent = 'Create Thread';
+      });
+
+      loadCategories();
+    })();
+  </script>
+  <script src="/js/main.js"></script>
+
+  <footer class="footer" style="margin-top:60px">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N St. #8325, Sacramento, CA 95816</p>
+        <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+          <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
+          <a href="/terms#refunds" style="color:var(--text-2)">Refund Policy</a>
+          <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>
+          <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>
+          <a href="/advertise" style="color:var(--text-2)">Advertise</a>
+          <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
+        </nav>
+        <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:600px;margin-left:auto;margin-right:auto">Forum posts and community content reflect the views of their individual authors, not Mile 12 Warrior LLC. Content is not independently verified. See our <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws that may differ significantly. It is the driver's responsibility to comply with the laws of every state they travel through. California (Caltrans/CALDOT) references reflect our home state and should not be assumed to apply elsewhere.</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

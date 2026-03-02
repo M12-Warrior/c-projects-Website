@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Services &amp; Pricing — Mile 12 Warrior</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .services-hero{text-align:center;padding:20px 0 40px}
+    .services-hero .page-title{font-size:2.4rem;margin-bottom:10px}
+    .services-hero .page-subtitle{max-width:620px;margin:0 auto 28px;font-size:1rem;line-height:1.7}
+
+    .pricing-section{margin-bottom:56px}
+    .pricing-section-title{font-family:var(--font);font-size:1.5rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:6px}
+    .pricing-section-desc{color:var(--text-2);font-size:0.92rem;margin-bottom:24px;line-height:1.65;max-width:680px}
+
+    .course-showcase{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:36px;display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:center}
+    .course-info h3{font-family:var(--font);font-size:1.4rem;font-weight:700;margin-bottom:8px;letter-spacing:-0.02em}
+    .course-info .course-tagline{color:var(--text-2);font-size:0.95rem;line-height:1.7;margin-bottom:18px}
+    .course-stats{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+    .cs{background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.12);border-radius:var(--radius-sm);padding:10px 16px;text-align:center;flex:1;min-width:80px}
+    .cs-num{font-family:var(--mono);font-weight:700;font-size:1.1rem;display:block;color:var(--text)}
+    .cs-label{font-size:0.68rem;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em}
+    .course-price-area{display:flex;align-items:baseline;gap:10px;margin-bottom:18px}
+    .course-price{font-family:var(--mono);font-size:2rem;font-weight:700;color:var(--green)}
+    .course-price-note{font-size:0.82rem;color:var(--text-3)}
+    .course-includes h4{font-size:0.82rem;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px}
+    .course-includes ul{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:4px 20px}
+    .course-includes li{font-size:0.84rem;color:var(--text-2);padding:4px 0 4px 18px;position:relative}
+    .course-includes li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700;font-size:0.78rem}
+    .course-cta{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+
+    .pricing-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+    .price-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;display:flex;flex-direction:column;transition:border-color 0.25s,transform 0.25s}
+    .price-card:hover{border-color:var(--border-hover);transform:translateY(-3px)}
+    .price-card.featured{border-color:var(--blue);position:relative}
+    .price-card.featured::before{content:'MOST POPULAR';position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;padding:3px 12px;border-radius:20px}
+    .pc-tier{font-family:var(--mono);font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px}
+    .pc-tier.t-free{color:var(--green)}
+    .pc-tier.t-ind{color:#818cf8}
+    .pc-tier.t-fleet{color:var(--amber)}
+    .pc-name{font-family:var(--font);font-size:1.05rem;font-weight:700;margin-bottom:8px;letter-spacing:-0.01em}
+    .pc-desc{font-size:0.82rem;color:var(--text-2);line-height:1.6;margin-bottom:16px;flex:1}
+    .pc-price{font-family:var(--mono);font-size:1.6rem;font-weight:700;margin-bottom:4px}
+    .pc-price-note{font-size:0.72rem;color:var(--text-3);margin-bottom:14px}
+    .pc-features{list-style:none;padding:0;margin:0 0 20px}
+    .pc-features li{font-size:0.78rem;color:var(--text-2);padding:5px 0 5px 16px;position:relative;border-bottom:1px dotted rgba(255,255,255,0.04)}
+    .pc-features li::before{content:'•';position:absolute;left:0;color:var(--blue);font-weight:700}
+    .pc-actions{margin-top:auto}
+
+    .bundle-row{margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .bundle-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;display:flex;align-items:center;gap:20px;transition:border-color 0.25s}
+    .bundle-card:hover{border-color:var(--border-hover)}
+    .bundle-info{flex:1}
+    .bundle-info h4{font-family:var(--font);font-size:1rem;font-weight:700;margin-bottom:4px}
+    .bundle-info p{font-size:0.82rem;color:var(--text-2);line-height:1.5;margin-bottom:6px}
+    .bundle-price{text-align:right}
+    .bundle-price .pc-price{font-size:1.3rem}
+    .bundle-save{font-size:0.72rem;color:var(--green);font-weight:600}
+
+    .consulting-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+    .consulting-card{padding:28px}
+    .consulting-card h4{font-family:var(--font);font-size:1.1rem;font-weight:700;margin-bottom:10px}
+    .consulting-card p{font-size:0.88rem;color:var(--text-2);line-height:1.7;margin-bottom:16px}
+    .consulting-features{list-style:none;padding:0;margin:0 0 20px}
+    .consulting-features li{font-size:0.82rem;color:var(--text-2);padding:6px 0 6px 20px;position:relative}
+    .consulting-features li::before{content:'';position:absolute;left:0;top:12px;width:6px;height:6px;border-radius:50%;background:var(--blue)}
+
+    @media(max-width:1024px){
+      .pricing-grid{grid-template-columns:repeat(2,1fr)}
+      .consulting-grid{grid-template-columns:1fr}
+    }
+    @media(max-width:768px){
+      .course-showcase{grid-template-columns:1fr}
+      .pricing-grid{grid-template-columns:1fr}
+      .bundle-row{grid-template-columns:1fr}
+      .course-includes ul{grid-template-columns:1fr}
+      .bundle-card{flex-direction:column;text-align:center}
+      .bundle-price{text-align:center}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.svg" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';var s=this.nextElementSibling;if(s)s.style.display='flex';">
+        <span class="nav-logo-fallback" style="display:none;">
+          <svg class="logo-svg logo-shield" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/about">About</a></li>
+        <li><a href="/services" class="active">Services</a></li>
+        <li><a href="/#roadmap">Roadmap</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/refresh">Refresh</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container">
+
+      <div class="services-hero">
+        <h1 class="page-title">Services &amp; Pricing</h1>
+        <p class="page-subtitle">Real-world safety training, wellness resources, and consulting — built by a driver with 25+ years behind the wheel. Designed for individual drivers and fleet safety departments.</p>
+      </div>
+
+      <!-- ===== COURSE ===== -->
+      <div class="pricing-section">
+        <h2 class="pricing-section-title">Featured: 90-Day Onboarding Course</h2>
+        <p class="pricing-section-desc">The complete step-by-step program that prepares new CDL drivers for their first 90 days on the road. Everything they don't teach in CDL school.</p>
+
+        <div class="course-showcase">
+          <div class="course-info">
+            <h3>New Driver 90-Day Onboarding Course</h3>
+            <p class="course-tagline">10 self-paced modules covering HOS mastery, fatigue science, physical and mental health, inspections, emergency preparedness, defensive driving, and daily routine systems. Pass knowledge checks to advance. Earn a certificate of completion.</p>
+            <div class="course-stats">
+              <div class="cs"><span class="cs-num">10</span><span class="cs-label">Modules</span></div>
+              <div class="cs"><span class="cs-num">47</span><span class="cs-label">Lessons</span></div>
+              <div class="cs"><span class="cs-num">44</span><span class="cs-label">Quiz Q's</span></div>
+              <div class="cs"><span class="cs-num">6-8</span><span class="cs-label">Hours</span></div>
+            </div>
+            <div class="course-includes">
+              <h4>What's Included</h4>
+              <ul>
+                <li>Complete HOS reference (49 CFR 395)</li>
+                <li>Sleep &amp; fatigue management science</li>
+                <li>Physical health &amp; exercise programs</li>
+                <li>Mental health &amp; crisis resources</li>
+                <li>Pre-trip/post-trip inspection training</li>
+                <li>Emergency preparedness protocols</li>
+                <li>Defensive driving fundamentals</li>
+                <li>Daily routine systems</li>
+                <li>New Driver Packet (Tier 1) — free with course</li>
+                <li>Certificate of completion</li>
+              </ul>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px">
+            <div>
+              <div class="course-price-area" style="justify-content:center">
+                <span class="course-price">$149</span>
+                <span class="course-price-note">one-time payment</span>
+              </div>
+              <p style="font-size:0.78rem;color:var(--text-3);margin-bottom:4px">Module 1 always free to preview</p>
+              <p style="font-size:0.72rem;color:var(--text-3)">Market comparison: ELDT courses $50–$500 · Fleet programs $100–$250/driver</p>
+            </div>
+            <div class="course-cta" style="justify-content:center">
+              <a href="/course" class="btn btn-primary"><span>Start the Course</span></a>
+              <a href="/course" class="btn btn-glass"><span>Preview Module 1 Free</span></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SAFETY PACKETS ===== -->
+      <div class="pricing-section">
+        <h2 class="pricing-section-title">Safety &amp; Wellness Packets</h2>
+        <p class="pricing-section-desc">Professional, print-ready safety packets for individual drivers and fleet safety departments. Complete with checklists, regulatory references, fillable forms, and sign-off sheets.</p>
+
+        <div class="pricing-grid">
+          <div class="price-card">
+            <span class="pc-tier t-free">Tier 1 — Free</span>
+            <h3 class="pc-name">New Driver Packet</h3>
+            <p class="pc-desc">Essential fundamentals for new CDL drivers — HOS basics, inspection checklists, emergency contacts, and daily routines. 13 complete sections.</p>
+            <div class="pc-price" style="color:var(--green)">FREE</div>
+            <div class="pc-price-note">No account needed</div>
+            <ul class="pc-features">
+              <li>HOS rules reference (49 CFR 395)</li>
+              <li>Pre-trip &amp; post-trip DVIR checklists</li>
+              <li>Breakdown kit &amp; first aid checklists</li>
+              <li>Emergency contacts card (fillable)</li>
+              <li>Roadside safety protocol</li>
+              <li>Daily routine checklists</li>
+            </ul>
+            <div class="pc-actions">
+              <button class="btn btn-primary" style="width:100%" onclick="if(typeof Packets!=='undefined'){Packets.download('new-driver')}else{alert('Loading...')}"><span>Download Free</span></button>
+            </div>
+          </div>
+
+          <div class="price-card featured">
+            <span class="pc-tier t-ind">Tier 2 — Individual</span>
+            <h3 class="pc-name">Seasoned Driver Packet</h3>
+            <p class="pc-desc">Advanced strategies for 2+ year drivers — fatigue science, CSA self-audit, exercise programs, career sustainability, and mentorship plans. 11 sections.</p>
+            <div class="pc-price">$29</div>
+            <div class="pc-price-note">One-time download</div>
+            <ul class="pc-features">
+              <li>Top 5 HOS violations &amp; avoidance</li>
+              <li>Advanced fatigue management</li>
+              <li>Resistance training program</li>
+              <li>CSA &amp; PSP self-audit guide</li>
+              <li>Seasonal hazard awareness</li>
+              <li>Career wellness &amp; mentorship plan</li>
+            </ul>
+            <div class="pc-actions">
+              <button class="btn btn-primary" style="width:100%" onclick="addDigitalToCart('seasoned-packet','Seasoned Driver Packet',29)"><span>Add to Cart — $29</span></button>
+            </div>
+          </div>
+
+          <div class="price-card">
+            <span class="pc-tier t-fleet">Fleet — New Hire</span>
+            <h3 class="pc-name">Fleet Orientation Packet</h3>
+            <p class="pc-desc">Complete new-hire onboarding for safety departments. FMCSA compliance, accident procedures, company policy templates, and formal driver sign-off sheet. 11 sections + acknowledgments.</p>
+            <div class="pc-price">$79</div>
+            <div class="pc-price-note">Per company · unlimited prints</div>
+            <ul class="pc-features">
+              <li>Cover letter to safety director</li>
+              <li>Full FMCSA compliance reference</li>
+              <li>Drug &amp; alcohol testing (49 CFR 382)</li>
+              <li>Accident procedure + statement template</li>
+              <li>Company policy templates (fillable)</li>
+              <li>Driver sign-off sheet (49 CFR 391.51)</li>
+            </ul>
+            <div class="pc-actions">
+              <button class="btn btn-primary" style="width:100%" onclick="addDigitalToCart('fleet-new-hire-packet','Fleet New Hire Orientation Packet',79)"><span>Add to Cart — $79</span></button>
+            </div>
+          </div>
+
+          <div class="price-card">
+            <span class="pc-tier t-fleet">Fleet — Refresher</span>
+            <h3 class="pc-name">Fleet Refresher Packet</h3>
+            <p class="pc-desc">Annual/semi-annual refresher for experienced drivers. Fatigue self-assessment, seasonal hazard calendar, regulatory self-audit, and mentorship. 10 sections + acknowledgments.</p>
+            <div class="pc-price">$79</div>
+            <div class="pc-price-note">Per company · unlimited prints</div>
+            <ul class="pc-features">
+              <li>Cover letter to safety director</li>
+              <li>10-question fatigue self-assessment</li>
+              <li>12-month seasonal hazard calendar</li>
+              <li>Regulatory compliance self-audit</li>
+              <li>Quarterly goals &amp; action plan templates</li>
+              <li>Driver sign-off sheet (49 CFR 391.51)</li>
+            </ul>
+            <div class="pc-actions">
+              <button class="btn btn-primary" style="width:100%" onclick="addDigitalToCart('fleet-refresher-packet','Fleet Seasoned Driver Refresher Packet',79)"><span>Add to Cart — $79</span></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="bundle-row">
+          <div class="bundle-card">
+            <div class="bundle-info">
+              <h4>Fleet Bundle</h4>
+              <p>Both fleet packets (New Hire + Refresher) for one company. Unlimited driver distribution and printing.</p>
+              <span class="bundle-save">Save $29 vs. buying separately</span>
+            </div>
+            <div class="bundle-price">
+              <div class="pc-price">$129</div>
+              <button class="btn btn-primary" style="margin-top:8px;font-size:0.82rem" onclick="addDigitalToCart('fleet-bundle','Fleet Bundle (New Hire + Refresher)',129)"><span>Add to Cart</span></button>
+            </div>
+          </div>
+          <div class="bundle-card">
+            <div class="bundle-info">
+              <h4>Complete Bundle</h4>
+              <p>90-Day Course + all 4 safety packets. Everything Mile 12 Warrior offers in one package.</p>
+              <span class="bundle-save">Save $87 vs. buying separately</span>
+            </div>
+            <div class="bundle-price">
+              <div class="pc-price">$249</div>
+              <button class="btn btn-primary" style="margin-top:8px;font-size:0.82rem" onclick="addDigitalToCart('complete-bundle','Complete Bundle (Course + All Packets)',249)"><span>Add to Cart</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== CONSULTING ===== -->
+      <div class="pricing-section">
+        <h2 class="pricing-section-title">Consulting &amp; Custom Training</h2>
+        <p class="pricing-section-desc">Personalized support for individual drivers and fleet operations. Built from 25+ years of real-world driving experience.</p>
+
+        <div class="consulting-grid">
+          <div class="glass-card consulting-card">
+            <h4>Driver Wellness Coaching</h4>
+            <p>One-on-one support for individual drivers working through fatigue, health challenges, career transitions, or the mental toll of life on the road.</p>
+            <ul class="consulting-features">
+              <li>Personalized fatigue management plan</li>
+              <li>Nutrition and exercise guidance</li>
+              <li>Mental health resource connection</li>
+              <li>Goal-setting and accountability</li>
+              <li>Family communication strategies</li>
+            </ul>
+            <a href="/contact" class="btn btn-primary"><span>Request a Consultation</span></a>
+          </div>
+
+          <div class="glass-card consulting-card">
+            <h4>Fleet Safety Program Design</h4>
+            <p>We work with your safety department to build or improve your driver wellness and safety training program — reducing incidents, improving CSA scores, and lowering insurance premiums.</p>
+            <ul class="consulting-features">
+              <li>Safety culture assessment</li>
+              <li>Custom training materials</li>
+              <li>Fatigue management policy development</li>
+              <li>CSA score improvement strategy</li>
+              <li>Insurance audit preparation</li>
+            </ul>
+            <a href="/contact" class="btn btn-primary"><span>Contact for Pricing</span></a>
+          </div>
+
+          <div class="glass-card consulting-card">
+            <h4>Community &amp; Content</h4>
+            <p>Free resources for every driver — articles, guides, peer support forums, and a growing community of professionals committed to doing this job the right way.</p>
+            <ul class="consulting-features">
+              <li>Blog with driver-focused articles</li>
+              <li>Community forum for peer support</li>
+              <li>Monthly newsletter</li>
+              <li>Q&amp;A resources and guides</li>
+              <li>Always free, always available</li>
+            </ul>
+            <a href="/forum" class="btn btn-primary"><span>Join the Community</span></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="ready-banner">
+        <h3>Questions? Let's Talk.</h3>
+        <p>Whether you're an individual driver, a fleet safety director, or an insurance partner — we're here to help.</p>
+        <p>joyce@mile12warrior.com | (916) 292-7411</p>
+        <a href="/contact" class="btn btn-primary"><span>Contact Us</span></a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <svg class="logo-svg logo-shield" width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </div>
+        <p class="footer-tagline">Born from real road experience. Empowering truck drivers to master the miles and own their journey.</p>
+        <nav class="footer-nav">
+          <a href="/about">About</a>
+          <a href="/services">Services</a>
+          <a href="/blog">Blog</a>
+          <a href="/forum">Forum</a>
+          <a href="/shop">Shop</a>
+          <a href="/contact">Contact</a>
+        </nav>
+        <p class="footer-contact">joyce@mile12warrior.com | (916) 292-7411</p>
+      </div>
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N St. #8325, Sacramento, CA 95816</p>
+        <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+          <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
+          <a href="/terms#refunds" style="color:var(--text-2)">Refund Policy</a>
+          <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>
+          <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>
+          <a href="/advertise" style="color:var(--text-2)">Advertise</a>
+          <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
+        </nav>
+        <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved. This is an educational resource — not medical, legal, or regulatory advice. Verify regulations at <a href="https://www.fmcsa.dot.gov" target="_blank" rel="noopener">fmcsa.dot.gov</a> and <a href="https://dot.ca.gov" target="_blank" rel="noopener">dot.ca.gov</a>.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws and regulations that may differ significantly. It is the driver's responsibility to know and comply with the laws of every state they travel through. References to California (Caltrans/CALDOT) regulations reflect the home state of Mile 12 Warrior LLC and should not be assumed to apply in other jurisdictions.</p>
+      </div>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <script src="/js/packets.js"></script>
+  <script>
+    (function() {
+      var CART_KEY = 'driver_shield_cart';
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        var d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+      }
+
+      function getCart() {
+        try { var r = localStorage.getItem(CART_KEY); return r ? JSON.parse(r) : []; } catch(_) { return []; }
+      }
+
+      function saveCart(cart) {
+        localStorage.setItem(CART_KEY, JSON.stringify(cart));
+        updateCartBadge();
+      }
+
+      function updateCartBadge() {
+        var cart = getCart();
+        var count = cart.reduce(function(s, i) { return s + (i.quantity || 1); }, 0);
+        var badge = document.getElementById('cartBadge');
+        if (badge) {
+          badge.textContent = count;
+          badge.style.display = count > 0 ? 'inline-flex' : 'none';
+        }
+      }
+
+      function showToast(msg) {
+        var el = document.getElementById('toast');
+        if (!el) return;
+        el.textContent = msg;
+        el.className = 'toast toast-success show';
+        setTimeout(function() { el.classList.remove('show'); }, 2500);
+      }
+
+      window.addDigitalToCart = function(id, name, price) {
+        var cart = getCart();
+        var exists = cart.find(function(i) { return i.product_id === id; });
+        if (exists) {
+          showToast('Already in your cart!');
+          return;
+        }
+        cart.push({ product_id: id, name: name, price: price, quantity: 1, slug: id, digital: true });
+        saveCart(cart);
+        showToast('Added to cart!');
+      };
+
+      async function updateAuthLink() {
+        var authLink = document.querySelector('.nav-auth-link');
+        var navAuth = document.getElementById('navAuth');
+        if (!authLink || !navAuth) return;
+        try {
+          var res = await fetch('/api/auth/me', { credentials: 'include' });
+          var data = await res.json();
+          if (data.user) {
+            navAuth.innerHTML = '<span style="color:var(--text-2);font-size:0.8rem;padding:6px 14px">' + escapeHtml(data.user.username) + '</span><a href="/profile" style="padding:6px 14px">Profile</a><a href="#" class="nav-logout-link" style="padding:6px 14px;color:var(--text-3)">Logout</a>';
+            navAuth.querySelector('.nav-logout-link')?.addEventListener('click', async function(e) {
+              e.preventDefault();
+              await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+              location.reload();
+            });
+          }
+        } catch(_) {}
+      }
+
+      function onScroll() {
+        var nb = document.getElementById('navbar');
+        var pb = document.getElementById('scrollProgress');
+        if (nb) nb.classList.toggle('scrolled', window.scrollY > 20);
+        if (pb) {
+          var h = document.documentElement.scrollHeight - window.innerHeight;
+          pb.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%';
+        }
+      }
+
+      var navToggle = document.getElementById('navToggle');
+      var navLinks = document.getElementById('navLinks');
+      if (navToggle && navLinks) {
+        navToggle.addEventListener('click', function() {
+          navToggle.classList.toggle('active');
+          navLinks.classList.toggle('open');
+        });
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+      updateCartBadge();
+      updateAuthLink();
+    })();
+  </script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

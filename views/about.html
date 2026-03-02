@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About — Mile 12 Warrior</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- ========== NAVIGATION ========== -->
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.svg" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';var s=this.nextElementSibling;if(s)s.style.display='flex';">
+        <span class="nav-logo-fallback" style="display:none;">
+          <svg class="logo-svg logo-shield" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/about" class="active">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/#roadmap">Roadmap</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/refresh">Refresh</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ========== PAGE SHELL ========== -->
+  <main class="page-shell">
+    <div class="page-container">
+      <div class="about-page-intro">
+        <h1 class="page-title">About Mile 12 Warrior</h1>
+        <p class="page-subtitle">Born from 25+ years behind the wheel. One platform. Two brands. One mission: empowering truck drivers to own their journey.</p>
+      </div>
+
+      <!-- ========== FOUNDER BIO ========== -->
+      <section class="about-section">
+        <h2 class="section-header-about">Meet the Founder</h2>
+        <div class="glass-card" style="padding:36px">
+          <h3 style="font-family:var(--font);font-size:1.4rem;font-weight:700;margin-bottom:6px;letter-spacing:-0.02em">Joyce Cooke</h3>
+          <p style="font-family:var(--mono);font-size:0.75rem;color:var(--blue);margin-bottom:20px;letter-spacing:0.04em">FOUNDER &amp; CEO — MILE 12 WARRIOR LLC</p>
+
+          <p>Joyce Cooke is a battle-tested professional truck driver with over 25 years on the road, a fierce advocate for driver wellness, and the founder of Mile 12 Warrior LLC — a movement dedicated to helping truckers conquer fatigue, master resets, and thrive amid the demands of the trucking life.</p>
+
+          <p>Born in Michigan in January 1967 and raised in the heart of the Midwest, Joyce graduated from West Platte High School in Weston, Missouri, in 1985. Her early career took her into hospitality, where she completed a two-year course in Hotel/Motel Food Service Management and spent a decade in food and beverage operations, including time at prestigious properties like the Ritz-Carlton. Those years sharpened her skills in high-pressure environments, customer service, time management, and attention to detail — qualities that later proved invaluable behind the wheel of a big rig.</p>
+
+          <p>Life's turns led Joyce into trucking around 2000, following the loss of her children's father. To keep their schedules stable and provide for her family, she began driving a school bus — a role that built her discipline, safety focus, and deep understanding of responsibility on the road. A neighbor's recommendation opened the door to ABF Freight in early 2006, where she started as a dock worker in Kansas City. ABF sponsored her CDL training in Arkansas, launching her progression through pickup and delivery (P&amp;D) city work, building double and triple trailer sets, to full over-the-road (OTR) driving. After 14 years mastering the Midwest routes, she transferred to California in January 2021 to join ABF's road team, where she continues running regional and long-haul operations across the western U.S.</p>
+
+          <p>Joyce's safety record speaks volumes: consistent plaques for safe driving, a President's Award from ABF in 2011, and an exemplary history of commitment to getting there safely. As a proud mother of four and grandmother of eight, she knows the stakes — family waiting at home, miles that never end, and the isolation that can wear anyone down.</p>
+        </div>
+      </section>
+
+      <!-- ========== THE MILE 12 STORY ========== -->
+      <section class="about-section">
+        <h2 class="section-header-about">The Mile 12 Story</h2>
+        <p>But Joyce didn't just survive the road; she transformed its toughest challenges into strength. She lived the relentless cycle of fatigue — chasing elusive sleep during delays, fueling with coffee, racing the HOS clock — and turned those battles into wisdom.</p>
+
+        <p class="mission-statement">The "Mile 12" moment became her rallying cry: that critical point deep into a long haul when exhaustion peaks, decisions matter most, and resilience can make or break the run.</p>
+
+        <p>From there, she built better habits: smarter nutrition, effective detox strategies, intentional time management after shutdown, proactive self-care, and mindset shifts that turn survival into thriving.</p>
+
+        <p>What started as personal encouragement for fellow drivers has grown into Mile 12 Warrior LLC, a judgment-free community and platform at <a href="https://mile12warrior.com" style="color:var(--blue)">mile12warrior.com</a> that equips professional truckers with real-world tools: fatigue management, mastering the 10-hour reset, mindset resets, wellness strategies, and fleet consulting. Rooted in prevention, a warrior spirit, and genuine support, Mile 12 Warrior helps shrink the FMCSA-noted 13% of large truck accidents tied to fatigue while combating the loneliness of the miles through blogs, articles, live sessions, an online "campfire" space for sharing tips and stories, and uplifting connections that remind drivers they're not alone. <strong>1 Social Butterfly</strong> is our supportive avenue for living your best life — blogs, community, and merchandise at <a href="https://1socialbutterfly.net" style="color:var(--blue)">1socialbutterfly.net</a>.</p>
+      </section>
+
+      <!-- ========== OUR MISSION ========== -->
+      <section class="about-section">
+        <h2 class="section-header-about">Our Mission</h2>
+        <p class="mission-statement">Empower truckers to embrace the freedom of the traveling life while prioritizing health, safety, and strength — so every mile becomes a victory, not just a grind.</p>
+      </section>
+
+      <!-- ========== WHAT MAKES US DIFFERENT ========== -->
+      <section class="about-section">
+        <h2 class="section-header-about">What Makes Us Different</h2>
+        <div class="card-grid cols-3">
+          <div class="glass-card">
+            <h3>Prevention Over Reaction</h3>
+            <p>We don't wait for problems. Our tools and strategies are proactive — keeping you sharp, safe, and strong before the crisis hits.</p>
+          </div>
+          <div class="glass-card">
+            <h3>Warrior Mindset</h3>
+            <p>We celebrate resilience without sugarcoating realities. The road is hard. We honor that truth while giving you what you need to thrive.</p>
+          </div>
+          <div class="glass-card">
+            <h3>Real-Road Perspective</h3>
+            <p>This isn't theory from a desk. Every resource, every tip, every strategy comes from someone who's been behind that wheel for 25+ years.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== OUR BRANDS ========== -->
+      <section class="about-section">
+        <h2 class="section-header-about">Our Brands</h2>
+        <div class="card-grid cols-2">
+          <div class="glass-card">
+            <h3>Mile 12 Warrior LLC</h3>
+            <p>Your dedicated ally for turning the toughest stretches into triumphs. Proactive fatigue fighters, mindset resets, 10-hour reset mastery, wellness strategies, and personalized guidance for individuals and fleets.</p>
+          </div>
+          <div class="glass-card">
+            <h3>1 Social Butterfly</h3>
+            <p>Our supportive avenue for living your best life. Blogs, community, merchandise, and more — strength, creativity, and transformation at <a href="https://1socialbutterfly.net" style="color:var(--blue)">1socialbutterfly.net</a>.</p>
+          </div>
+        </div>
+        <p class="brands-unified">Mile 12 Warrior is your driver wellness platform here; 1 Social Butterfly is our supportive avenue for living your best life — blogs, community, and merchandise at 1socialbutterfly.net.</p>
+      </section>
+
+      <!-- ========== CONNECT WITH JOYCE ========== -->
+      <section class="about-section">
+        <h2 class="section-header-about">Connect With Joyce &amp; Join the Movement</h2>
+        <div class="glass-card contact-card">
+          <div class="contact-details">
+            <p><strong>Email:</strong> <a href="mailto:joyce@mile12warrior.com">joyce@mile12warrior.com</a></p>
+            <p><strong>Phone:</strong> <a href="tel:+19162927411">(916) 292-7411</a></p>
+            <p><strong>Websites:</strong> <a href="https://mile12warrior.com">mile12warrior.com</a> | <a href="https://1socialbutterfly.net">1socialbutterfly.net</a></p>
+            <p><strong>Address:</strong> 2108 N St. #8325, Sacramento, CA 95816</p>
+          </div>
+          <div class="contact-social">
+            <a href="https://www.facebook.com/mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="Facebook">Facebook</a>
+            <a href="https://x.com/mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">X</a>
+            <a href="https://www.instagram.com/mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="Instagram">Instagram</a>
+            <a href="https://www.tiktok.com/@mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="TikTok">TikTok</a>
+          </div>
+          <a href="/contact" class="btn btn-primary">
+            <span>Get in Touch</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <svg class="logo-svg logo-shield" width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </div>
+        <p class="footer-tagline">Born from real road experience. Empowering truck drivers to master the miles and own their journey.</p>
+        <nav class="footer-nav">
+          <a href="/about">About</a>
+          <a href="/services">Services</a>
+          <a href="/blog">Blog</a>
+          <a href="/forum">Forum</a>
+          <a href="/shop">Shop</a>
+          <a href="/contact">Contact</a>
+        </nav>
+        <p class="footer-contact">joyce@mile12warrior.com | (916) 292-7411</p>
+        <div class="footer-social">
+          <a href="https://www.facebook.com/mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="Facebook">Facebook</a>
+          <a href="https://x.com/mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">X</a>
+          <a href="https://www.instagram.com/mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="Instagram">Instagram</a>
+          <a href="https://www.tiktok.com/@mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="TikTok">TikTok</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N St. #8325, Sacramento, CA 95816</p>
+        <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+          <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
+          <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>
+          <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>
+          <a href="/advertise" style="color:var(--text-2)">Advertise</a>
+          <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
+        </nav>
+        <p style="font-size:0.8rem;color:var(--text-3);">Hosted on <a href="https://railway.com?referralCode=7f6OG0" target="_blank" rel="noopener noreferrer">Railway</a>.</p>
+        <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved. This is an educational resource — not medical, legal, or regulatory advice. All content is intended to align with USDOT FMCSA (49 CFR) and Caltrans/CALDOT regulations. Always verify current rules at <a href="https://www.fmcsa.dot.gov" target="_blank" rel="noopener">fmcsa.dot.gov</a> and <a href="https://dot.ca.gov" target="_blank" rel="noopener">dot.ca.gov</a>, and consult qualified professionals for compliance and medical questions.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws and regulations that may differ significantly. It is the driver's responsibility to know and comply with the laws of every state they travel through. References to California (Caltrans/CALDOT) regulations reflect the home state of Mile 12 Warrior LLC and should not be assumed to apply in other jurisdictions.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      function updateCartBadge() {
+        try {
+          const raw = localStorage.getItem('driver_shield_cart');
+          const cart = raw ? JSON.parse(raw) : [];
+          const count = (cart || []).reduce(function(s, i) { return s + (i.quantity || 1); }, 0);
+          const badge = document.getElementById('cartBadge');
+          if (badge) {
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'inline-flex' : 'none';
+          }
+        } catch (_) {}
+      }
+
+      async function updateAuthLink() {
+        const authLink = document.querySelector('.nav-auth-link');
+        const navAuth = document.getElementById('navAuth');
+        if (!authLink || !navAuth) return;
+        try {
+          const res = await fetch('/api/auth/me', { credentials: 'include' });
+          const data = await res.json();
+          if (data.user) {
+            navAuth.innerHTML = '<span style="color: var(--text-2); font-size: 0.8rem; padding: 6px 14px;">' + escapeHtml(data.user.username) + '</span><a href="/profile" style="padding: 6px 14px;">Profile</a><a href="#" class="nav-logout-link" style="padding: 6px 14px; color: var(--text-3);">Logout</a>';
+            navAuth.querySelector('.nav-logout-link')?.addEventListener('click', async function(e) {
+              e.preventDefault();
+              await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+              location.reload();
+            });
+          }
+        } catch (_) {}
+      }
+
+      function onScroll() {
+        const navbar = document.getElementById('navbar');
+        const progressBar = document.getElementById('scrollProgress');
+        if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 20);
+        if (progressBar) {
+          const h = document.documentElement.scrollHeight - window.innerHeight;
+          progressBar.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%';
+        }
+      }
+
+      const navToggle = document.getElementById('navToggle');
+      const navLinks = document.getElementById('navLinks');
+      if (navToggle && navLinks) {
+        navToggle.addEventListener('click', function() {
+          navToggle.classList.toggle('active');
+          navLinks.classList.toggle('open');
+        });
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+      updateCartBadge();
+      updateAuthLink();
+    })();
+  </script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — Driver Shield</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.svg" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';var s=this.nextElementSibling;if(s)s.style.display='flex';">
+        <span class="nav-logo-fallback" style="display:none;">
+          <svg class="logo-svg logo-shield" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/#roadmap">Roadmap</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/refresh">Refresh</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="/admin" class="active">Admin</a></li>
+        <li><a href="#" id="adminNavSignOut">Sign Out</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container">
+      <h1 class="page-title">Admin Dashboard</h1>
+      <p class="page-subtitle">Manage your site</p>
+
+      <div class="admin-tabs" id="adminTabs">
+        <button type="button" class="admin-tab active" data-tab="dashboard">Dashboard</button>
+        <button type="button" class="admin-tab" data-tab="users">Users</button>
+        <button type="button" class="admin-tab" data-tab="blog">Blog</button>
+        <button type="button" class="admin-tab" data-tab="forum">Forum</button>
+        <button type="button" class="admin-tab" data-tab="shop">Shop</button>
+        <button type="button" class="admin-tab" data-tab="messages">Messages</button>
+      </div>
+
+      <div id="tabDashboard" class="admin-tab-content">
+        <div class="admin-grid" id="dashboardStats"></div>
+        <div class="admin-section">
+          <h3>Recent Users</h3>
+          <table class="admin-table">
+            <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
+            <tbody id="recentUsersTable"></tbody>
+          </table>
+        </div>
+        <div class="admin-section">
+          <h3>Recent Orders</h3>
+          <table class="admin-table">
+            <thead><tr><th>Order #</th><th>User</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody id="recentOrdersTable"></tbody>
+          </table>
+        </div>
+        <div class="admin-section">
+          <h3>Data &amp; communications</h3>
+          <p style="color:var(--text-2);margin-bottom:12px;font-size:0.9rem">Export contacts by preference. Newsletter list includes only users who opted in. Use in line with our Privacy Policy; honor opt-outs.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;">
+            <button type="button" class="btn btn-glass" id="adminExportNewsletterBtn">Newsletter list (opted-in only)</button>
+            <button type="button" class="btn btn-glass" id="adminExportPreferencesBtn">All subscription preferences (CSV)</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="tabUsers" class="admin-tab-content hidden">
+        <table class="admin-table">
+          <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="usersTable"></tbody>
+        </table>
+      </div>
+
+      <div id="tabBlog" class="admin-tab-content hidden">
+        <div class="flex-between mb-16">
+          <h3>Posts</h3>
+          <button type="button" class="btn btn-primary" id="blogNewPostBtn">New Post</button>
+        </div>
+        <div id="blogNewFormWrap" class="hidden" style="margin-bottom: 24px;">
+          <div class="profile-section">
+            <form id="blogNewForm">
+              <div class="form-group"><label class="form-label">Title</label><input type="text" name="title" class="form-input" required></div>
+              <div class="form-group"><label class="form-label">Excerpt</label><input type="text" name="excerpt" class="form-input"></div>
+              <div class="form-group">
+                <label class="form-label">Featured image (URL)</label>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                  <input type="url" name="image" id="blogImageUrl" class="form-input" placeholder="https://... or /uploads/..." style="flex:1;min-width:200px;">
+                  <input type="file" id="blogImageFile" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
+                  <button type="button" class="btn btn-glass" id="blogImageUploadBtn">Upload image</button>
+                </div>
+              </div>
+              <div class="form-group"><label class="form-label">Content</label><textarea name="content" class="form-input" rows="6" required></textarea></div>
+              <div class="form-group">
+                <label><input type="checkbox" name="published" value="1"> Published</label>
+              </div>
+              <div class="flex-between mt-16">
+                <button type="button" class="btn btn-glass" id="blogNewCancelBtn">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create Post</button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <table class="admin-table">
+          <thead><tr><th>Title</th><th>Author</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody id="blogTable"></tbody>
+        </table>
+        <div id="blogEditModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:100;overflow-y:auto;padding:24px;">
+          <div class="profile-section" style="max-width:640px;width:100%;margin:auto;">
+            <h4 style="margin-top:0;">Edit post</h4>
+            <form id="blogEditForm">
+              <input type="hidden" id="blogEditId" name="id">
+              <div class="form-group"><label class="form-label">Title</label><input type="text" id="blogEditTitle" name="title" class="form-input" required></div>
+              <div class="form-group"><label class="form-label">Excerpt</label><input type="text" id="blogEditExcerpt" name="excerpt" class="form-input"></div>
+              <div class="form-group">
+                <label class="form-label">Featured image (URL)</label>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                  <input type="url" id="blogEditImageUrl" name="image" class="form-input" placeholder="https://... or /uploads/..." style="flex:1;min-width:200px;">
+                  <input type="file" id="blogEditImageFile" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
+                  <button type="button" class="btn btn-glass" id="blogEditImageUploadBtn">Upload image</button>
+                </div>
+              </div>
+              <div class="form-group"><label class="form-label">Content</label><textarea id="blogEditContent" name="content" class="form-input" rows="6" required></textarea></div>
+              <div class="form-group"><label><input type="checkbox" id="blogEditPublished" name="published" value="1"> Published</label></div>
+              <div class="flex-between mt-16">
+                <button type="button" class="btn btn-glass" id="blogEditCancel">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div id="tabForum" class="admin-tab-content hidden">
+        <table class="admin-table">
+          <thead><tr><th>Title</th><th>Category</th><th>Author</th><th>Replies</th><th>Pinned</th><th>Locked</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody id="forumTable"></tbody>
+        </table>
+      </div>
+
+      <div id="tabShop" class="admin-tab-content hidden">
+        <div class="admin-section">
+          <div class="flex-between mb-16">
+            <h3>Products</h3>
+            <button type="button" class="btn btn-primary" id="productNewBtn">New Product</button>
+          </div>
+          <div id="productNewFormWrap" class="hidden" style="margin-bottom: 24px;">
+            <div class="profile-section">
+              <form id="productNewForm">
+                <div class="form-group"><label class="form-label">Name</label><input type="text" name="name" class="form-input" required></div>
+                <div class="form-group"><label class="form-label">Description</label><textarea name="description" class="form-input" rows="3"></textarea></div>
+                <div class="form-group"><label class="form-label">Price</label><input type="number" name="price" class="form-input" step="0.01" min="0" required></div>
+                <div class="form-group"><label class="form-label">Image (URL)</label><input type="url" name="image" class="form-input" placeholder="https://... or /images/products/slug.jpg"></div>
+                <div class="form-group"><label class="form-label">Category</label><input type="text" name="category" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Stock</label><input type="number" name="stock" class="form-input" min="0" value="0"></div>
+                <div class="flex-between mt-16">
+                  <button type="button" class="btn btn-glass" id="productNewCancelBtn">Cancel</button>
+                  <button type="submit" class="btn btn-primary">Create Product</button>
+                </div>
+              </form>
+            </div>
+          </div>
+          <table class="admin-table">
+            <thead><tr><th>Name</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="productsTable"></tbody>
+          </table>
+          <div id="productEditModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:100;">
+            <div class="profile-section" style="max-width:420px;width:90%;">
+              <h4 style="margin-top:0;">Edit product image</h4>
+              <p id="productEditName" style="color:var(--text-2);margin-bottom:12px;"></p>
+              <div class="form-group"><label class="form-label">Image (URL)</label><input type="url" id="productEditImage" class="form-input" placeholder="https://... or /images/products/slug.jpg"></div>
+              <p style="font-size:0.85rem;color:var(--text-3);margin-top:4px;">Or add a file named <code>&lt;slug&gt;.jpg</code> or <code>.png</code> in <code>public/images/products/</code> and leave this blank.</p>
+              <div class="flex-between mt-16">
+                <button type="button" class="btn btn-glass" id="productEditCancel">Cancel</button>
+                <button type="button" class="btn btn-primary" id="productEditSave">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="admin-section mt-32">
+          <h3>Orders</h3>
+          <table class="admin-table">
+            <thead><tr><th>Order #</th><th>User</th><th>Total</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="shopOrdersTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="tabMessages" class="admin-tab-content hidden">
+        <div id="messagesList"></div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <script>
+    (function() {
+      function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      function formatDate(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      function formatPrice(n) {
+        return '$' + (Number(n) || 0).toFixed(2);
+      }
+
+      function showToast(msg, success) {
+        const el = document.getElementById('toast');
+        if (!el) return;
+        el.textContent = msg;
+        el.className = 'toast toast-' + (success ? 'success' : 'error');
+        el.classList.add('show');
+        setTimeout(function() { el.classList.remove('show'); }, 2500);
+      }
+
+      function confirmAction(msg) {
+        return window.confirm(msg || 'Are you sure?');
+      }
+
+      function getStatusClass(s) {
+        const status = (s || '').toLowerCase();
+        if (status === 'pending') return 'status-pending';
+        if (status === 'processing') return 'status-processing';
+        if (status === 'shipped') return 'status-shipped';
+        if (status === 'delivered') return 'status-delivered';
+        if (status === 'cancelled') return 'status-cancelled';
+        return 'status-pending';
+      }
+
+      async function checkAuth() {
+        try {
+          const res = await fetch('/api/auth/me', { credentials: 'include' });
+          if (!res.ok) {
+            window.location.replace('/');
+            return null;
+          }
+          const data = await res.json();
+          const user = data.user || data;
+          if (!user || user.role !== 'admin') {
+            window.location.replace('/');
+            return null;
+          }
+          return user;
+        } catch (e) {
+          window.location.replace('/');
+          return null;
+        }
+      }
+
+      // Tab switching
+      document.querySelectorAll('.admin-tab').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          const tab = btn.getAttribute('data-tab');
+          document.querySelectorAll('.admin-tab').forEach(function(b) { b.classList.remove('active'); });
+          document.querySelectorAll('.admin-tab-content').forEach(function(c) { c.classList.add('hidden'); });
+          btn.classList.add('active');
+          const panel = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+          if (panel) {
+            panel.classList.remove('hidden');
+            if (typeof window['load' + tab.charAt(0).toUpperCase() + tab.slice(1)] === 'function') {
+              window['load' + tab.charAt(0).toUpperCase() + tab.slice(1)]();
+            }
+          }
+        });
+      });
+
+      async function loadDashboard() {
+        const statsEl = document.getElementById('dashboardStats');
+        const usersEl = document.getElementById('recentUsersTable');
+        const ordersEl = document.getElementById('recentOrdersTable');
+        try {
+          const res = await fetch('/api/admin/stats', { credentials: 'include' });
+          if (!res.ok) throw new Error('Failed');
+          const data = await res.json();
+          const s = data.stats || data;
+          statsEl.innerHTML =
+            '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_users ?? s.totalUsers ?? 0) + '</span><span class="admin-stat-label">Users</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_posts ?? s.totalPosts ?? 0) + '</span><span class="admin-stat-label">Posts</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_threads ?? s.totalThreads ?? 0) + '</span><span class="admin-stat-label">Threads</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_orders ?? s.totalOrders ?? 0) + '</span><span class="admin-stat-label">Orders</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(s.total_revenue ?? s.totalRevenue ?? 0) + '</span><span class="admin-stat-label">Revenue</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_products ?? s.totalProducts ?? 0) + '</span><span class="admin-stat-label">Products</span></div>';
+        } catch (e) {
+          statsEl.innerHTML = '<p class="text-muted">Could not load stats.</p>';
+        }
+        try {
+          const r = await fetch('/api/admin/users', { credentials: 'include' });
+          const d = await r.json();
+          const users = (d.users || d || []).slice(0, 5);
+          usersEl.innerHTML = users.map(function(u) {
+            return '<tr><td>' + escapeHtml(u.username || u.email) + '</td><td>' + escapeHtml(u.email || '—') + '</td><td>' + escapeHtml(u.role || 'user') + '</td><td>' + formatDate(u.created_at || u.joined_at) + '</td></tr>';
+          }).join('') || '<tr><td colspan="4">No users</td></tr>';
+        } catch (_) {
+          usersEl.innerHTML = '<tr><td colspan="4">Could not load</td></tr>';
+        }
+        try {
+          const r = await fetch('/api/shop/orders/all', { credentials: 'include' });
+          const d = await r.json();
+          const orders = (d.orders || d || []).slice(0, 5);
+          ordersEl.innerHTML = orders.map(function(o) {
+            const status = (o.status || 'pending').toLowerCase();
+            const statusClass = getStatusClass(o.status);
+            return '<tr><td>#' + escapeHtml(String(o.id || o.order_number)) + '</td><td>' + escapeHtml(o.user?.username || o.username || '—') + '</td><td>' + formatPrice(o.total || o.total_amount) + '</td><td><span class="badge-status ' + statusClass + '">' + status + '</span></td><td>' + formatDate(o.created_at || o.date) + '</td></tr>';
+          }).join('') || '<tr><td colspan="5">No orders</td></tr>';
+        } catch (_) {
+          ordersEl.innerHTML = '<tr><td colspan="5">Could not load</td></tr>';
+        }
+      }
+
+      async function loadUsers() {
+        const el = document.getElementById('usersTable');
+        try {
+          const res = await fetch('/api/admin/users', { credentials: 'include' });
+          if (!res.ok) throw new Error('Failed');
+          const data = await res.json();
+          const users = data.users || data || [];
+          el.innerHTML = users.map(function(u) {
+            const id = u.id;
+            const role = u.role || 'user';
+            return '<tr data-id="' + id + '">' +
+              '<td>' + escapeHtml(u.username || u.email) + '</td>' +
+              '<td>' + escapeHtml(u.email || '—') + '</td>' +
+              '<td><select class="form-input role-select" style="max-width:120px; padding:6px;"><option value="user"' + (role === 'user' ? ' selected' : '') + '>user</option><option value="admin"' + (role === 'admin' ? ' selected' : '') + '>admin</option></select></td>' +
+              '<td>' + formatDate(u.created_at || u.joined_at) + '</td>' +
+              '<td><div class="admin-actions"><button type="button" class="admin-btn admin-btn-primary user-save-role">Save</button><button type="button" class="admin-btn admin-btn-danger user-delete">Delete</button></div></td>' +
+            '</tr>';
+          }).join('') || '<tr><td colspan="5">No users</td></tr>';
+
+          el.querySelectorAll('.user-save-role').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              const row = btn.closest('tr');
+              const id = row.getAttribute('data-id');
+              const role = row.querySelector('.role-select').value;
+              try {
+                const r = await fetch('/api/admin/users/' + id, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ role: role })
+                });
+                if (r.ok) showToast('Role updated.', true);
+                else showToast('Failed to update.', false);
+              } catch (_) { showToast('Failed.', false); }
+            });
+          });
+          el.querySelectorAll('.user-delete').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              if (!confirmAction('Delete this user?')) return;
+              const row = btn.closest('tr');
+              const id = row.getAttribute('data-id');
+              try {
+                const r = await fetch('/api/admin/users/' + id, { method: 'DELETE', credentials: 'include' });
+                if (r.ok) { row.remove(); showToast('User deleted.', true); }
+                else showToast('Failed to delete.', false);
+              } catch (_) { showToast('Failed.', false); }
+            });
+          });
+        } catch (e) {
+          el.innerHTML = '<tr><td colspan="5">Could not load users.</td></tr>';
+        }
+      }
+
+      async function loadBlog() {
+        const el = document.getElementById('blogTable');
+        try {
+          const res = await fetch('/api/blog/admin/posts', { credentials: 'include' });
+          if (!res.ok) throw new Error('Failed');
+          const data = await res.json();
+          const posts = data.posts || data || [];
+          el.innerHTML = posts.map(function(p) {
+            const status = (p.status || (p.published ? 'published' : 'draft')).toLowerCase();
+            return '<tr data-id="' + p.id + '">' +
+              '<td>' + escapeHtml(p.title) + '</td>' +
+              '<td>' + escapeHtml(p.author_username || p.author || '—') + '</td>' +
+              '<td><span class="badge-status ' + (status === 'published' ? 'status-delivered' : 'status-pending') + '">' + status + '</span></td>' +
+              '<td>' + formatDate(p.created_at || p.date) + '</td>' +
+              '<td><button type="button" class="admin-btn admin-btn-primary blog-edit" style="margin-right:8px;">Edit</button><button type="button" class="admin-btn admin-btn-danger blog-delete">Delete</button></td>' +
+            '</tr>';
+          }).join('') || '<tr><td colspan="5">No posts</td></tr>';
+
+          el.querySelectorAll('.blog-edit').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              const id = btn.closest('tr').getAttribute('data-id');
+              openBlogEdit(id);
+            });
+          });
+          el.querySelectorAll('.blog-delete').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              if (!confirmAction('Delete this post?')) return;
+              const row = btn.closest('tr');
+              const id = row.getAttribute('data-id');
+              try {
+                const r = await fetch('/api/blog/posts/' + id, { method: 'DELETE', credentials: 'include' });
+                if (r.ok) { row.remove(); showToast('Post deleted.', true); }
+                else showToast('Failed to delete.', false);
+              } catch (_) { showToast('Failed.', false); }
+            });
+          });
+        } catch (e) {
+          el.innerHTML = '<tr><td colspan="5">Could not load posts.</td></tr>';
+        }
+      }
+
+      async function openBlogEdit(id) {
+        try {
+          const res = await fetch('/api/blog/admin/posts/' + id, { credentials: 'include' });
+          if (!res.ok) throw new Error('Failed to load post');
+          const data = await res.json();
+          const p = data.post || data;
+          document.getElementById('blogEditId').value = p.id;
+          document.getElementById('blogEditTitle').value = p.title || '';
+          document.getElementById('blogEditExcerpt').value = p.excerpt || '';
+          document.getElementById('blogEditImageUrl').value = p.image || '';
+          document.getElementById('blogEditContent').value = p.content || '';
+          document.getElementById('blogEditPublished').checked = !!p.published;
+          var modal = document.getElementById('blogEditModal');
+          modal.classList.remove('hidden');
+          modal.style.display = 'flex';
+        } catch (e) {
+          showToast('Could not load post.', false);
+        }
+      }
+      function closeBlogEdit() {
+        var modal = document.getElementById('blogEditModal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
+      document.getElementById('blogEditCancel').addEventListener('click', closeBlogEdit);
+      document.getElementById('blogEditImageUploadBtn').addEventListener('click', function() {
+        document.getElementById('blogEditImageFile').click();
+      });
+      document.getElementById('blogEditImageFile').addEventListener('change', async function() {
+        if (!this.files || !this.files[0]) return;
+        var fd = new FormData();
+        fd.append('image', this.files[0]);
+        try {
+          var r = await fetch('/api/upload', { method: 'POST', credentials: 'include', body: fd });
+          var data = await r.json();
+          if (data.success && data.url) {
+            document.getElementById('blogEditImageUrl').value = data.url;
+            showToast('Image uploaded. URL added.', true);
+          } else showToast(data.error || 'Upload failed.', false);
+        } catch (_) { showToast('Upload failed.', false); }
+        this.value = '';
+      });
+      document.getElementById('blogEditForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var id = document.getElementById('blogEditId').value;
+        var payload = {
+          title: document.getElementById('blogEditTitle').value,
+          excerpt: document.getElementById('blogEditExcerpt').value,
+          image: (document.getElementById('blogEditImageUrl').value || '').trim() || null,
+          content: document.getElementById('blogEditContent').value,
+          published: document.getElementById('blogEditPublished').checked
+        };
+        try {
+          var r = await fetch('/api/blog/posts/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload)
+          });
+          if (r.ok) {
+            showToast('Post updated.', true);
+            closeBlogEdit();
+            loadBlog();
+          } else showToast('Failed to update.', false);
+        } catch (_) { showToast('Failed to update.', false); }
+      });
+
+      document.getElementById('blogNewPostBtn').addEventListener('click', function() {
+        document.getElementById('blogNewFormWrap').classList.remove('hidden');
+      });
+      document.getElementById('blogNewCancelBtn').addEventListener('click', function() {
+        document.getElementById('blogNewFormWrap').classList.add('hidden');
+      });
+      const blogImageFile = document.getElementById('blogImageFile');
+      const blogImageUrl = document.getElementById('blogImageUrl');
+      document.getElementById('blogImageUploadBtn').addEventListener('click', function() {
+        blogImageFile.click();
+      });
+      blogImageFile.addEventListener('change', async function() {
+        if (!this.files || !this.files[0]) return;
+        const fd = new FormData();
+        fd.append('image', this.files[0]);
+        try {
+          const r = await fetch('/api/upload', { method: 'POST', credentials: 'include', body: fd });
+          const data = await r.json();
+          if (data.success && data.url && blogImageUrl) {
+            blogImageUrl.value = data.url;
+            showToast('Image uploaded. URL added.', true);
+          } else showToast(data.error || 'Upload failed.', false);
+        } catch (_) { showToast('Upload failed.', false); }
+        this.value = '';
+      });
+      document.getElementById('blogNewForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const payload = { title: fd.get('title'), excerpt: fd.get('excerpt'), image: fd.get('image') || null, content: fd.get('content'), published: !!fd.get('published') };
+        try {
+          const r = await fetch('/api/blog/posts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload)
+          });
+          if (r.ok) {
+            showToast('Post created.', true);
+            document.getElementById('blogNewFormWrap').classList.add('hidden');
+            e.target.reset();
+            loadBlog();
+          } else showToast('Failed to create.', false);
+        } catch (_) { showToast('Failed.', false); }
+      });
+
+      async function loadForum() {
+        const el = document.getElementById('forumTable');
+        const allThreads = [];
+        try {
+          const catRes = await fetch('/api/forum/categories', { credentials: 'include' });
+          const catData = await catRes.json();
+          const cats = Array.isArray(catData) ? catData : (catData.categories || []);
+          for (let i = 0; i < cats.length; i++) {
+            const c = cats[i];
+            const slug = c.slug || c.id;
+            try {
+              const thRes = await fetch('/api/forum/categories/' + slug + '/threads', { credentials: 'include' });
+              const thData = await thRes.json();
+              const threads = thData.threads || thData || [];
+              threads.forEach(function(t) {
+                t._category = c.name || c.slug || slug;
+                allThreads.push(t);
+              });
+            } catch (_) {}
+          }
+          el.innerHTML = allThreads.map(function(t) {
+            const cat = t._category || t.category_name || '—';
+            return '<tr data-id="' + t.id + '">' +
+              '<td>' + escapeHtml(t.title) + '</td>' +
+              '<td>' + escapeHtml(cat) + '</td>' +
+              '<td>' + escapeHtml(t.author_username || t.author || '—') + '</td>' +
+              '<td>' + (t.reply_count ?? t.replies ?? 0) + '</td>' +
+              '<td>' + (t.pinned ? '✓' : '—') + '</td>' +
+              '<td>' + (t.locked ? '✓' : '—') + '</td>' +
+              '<td>' + formatDate(t.created_at || t.date) + '</td>' +
+              '<td><div class="admin-actions"><button type="button" class="admin-btn admin-btn-primary forum-toggle-pin">Pin</button><button type="button" class="admin-btn admin-btn-primary forum-toggle-lock">Lock</button><button type="button" class="admin-btn admin-btn-danger forum-delete">Delete</button></div></td>' +
+            '</tr>';
+          }).join('') || '<tr><td colspan="8">No threads</td></tr>';
+
+          el.querySelectorAll('.forum-toggle-pin').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              const row = btn.closest('tr');
+              const id = row.getAttribute('data-id');
+              const pinned = row.cells[4].textContent.trim() === '✓';
+              try {
+                const r = await fetch('/api/forum/threads/' + id, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ pinned: !pinned })
+                });
+                if (r.ok) { row.cells[4].textContent = pinned ? '—' : '✓'; showToast('Pin toggled.', true); }
+                else showToast('Failed.', false);
+              } catch (_) { showToast('Failed.', false); }
+            });
+          });
+          el.querySelectorAll('.forum-toggle-lock').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              const row = btn.closest('tr');
+              const id = row.getAttribute('data-id');
+              const locked = row.cells[5].textContent.trim() === '✓';
+              try {
+                const r = await fetch('/api/forum/threads/' + id, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ locked: !locked })
+                });
+                if (r.ok) { row.cells[5].textContent = locked ? '—' : '✓'; showToast('Lock toggled.', true); }
+                else showToast('Failed.', false);
+              } catch (_) { showToast('Failed.', false); }
+            });
+          });
+          el.querySelectorAll('.forum-delete').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              if (!confirmAction('Delete this thread?')) return;
+              const row = btn.closest('tr');
+              const id = row.getAttribute('data-id');
+              try {
+                const r = await fetch('/api/forum/threads/' + id, { method: 'DELETE', credentials: 'include' });
+                if (r.ok) { row.remove(); showToast('Thread deleted.', true); }
+                else showToast('Failed to delete.', false);
+              } catch (_) { showToast('Failed.', false); }
+            });
+          });
+        } catch (e) {
+          el.innerHTML = '<tr><td colspan="8">Could not load threads.</td></tr>';
+        }
+      }
+
+      async function loadShop() {
+        const prodEl = document.getElementById('productsTable');
+        const ordEl = document.getElementById('shopOrdersTable');
+        try {
+          const res = await fetch('/api/shop/products', { credentials: 'include' });
+          const data = await res.json();
+          const products = data.products || data || [];
+          prodEl.innerHTML = products.map(function(p) {
+            return '<tr data-id="' + (p.id || '') + '" data-slug="' + escapeHtml(p.slug || '') + '" data-name="' + escapeHtml(p.name || '') + '" data-image="' + escapeHtml((p.image || '') + '') + '">' +
+              '<td>' + escapeHtml(p.name) + '</td><td>' + formatPrice(p.price) + '</td><td>' + (p.stock ?? '—') + '</td><td>' + escapeHtml(p.status || 'active') + '</td>' +
+              '<td><button type="button" class="admin-btn admin-btn-primary product-edit-btn">Edit image</button></td></tr>';
+          }).join('') || '<tr><td colspan="5">No products</td></tr>';
+        } catch (_) {
+          prodEl.innerHTML = '<tr><td colspan="5">Could not load</td></tr>';
+        }
+        var modal = document.getElementById('productEditModal');
+        var editName = document.getElementById('productEditName');
+        var editImage = document.getElementById('productEditImage');
+        var editProductId = null;
+        function openEdit(productId, name, currentImage) {
+          editProductId = productId;
+          if (editName) editName.textContent = name || '';
+          if (editImage) editImage.value = currentImage || '';
+          if (modal) modal.classList.remove('hidden');
+          if (modal) modal.style.display = 'flex';
+        }
+        function closeEdit() {
+          editProductId = null;
+          if (modal) modal.classList.add('hidden');
+          if (modal) modal.style.display = 'none';
+        }
+        document.getElementById('productEditCancel').addEventListener('click', closeEdit);
+        document.getElementById('productEditSave').addEventListener('click', async function() {
+          if (!editProductId) return;
+          var url = (editImage && editImage.value) ? editImage.value.trim() : '';
+          try {
+            var r = await fetch('/api/shop/products/' + editProductId, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ image: url || null })
+            });
+            if (r.ok) { showToast('Image updated.', true); closeEdit(); loadShop(); }
+            else showToast('Failed.', false);
+          } catch (_) { showToast('Failed.', false); }
+        });
+        prodEl.querySelectorAll('.product-edit-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var row = btn.closest('tr');
+            if (!row) return;
+            openEdit(row.getAttribute('data-id'), row.getAttribute('data-name'), row.getAttribute('data-image'));
+          });
+        });
+        try {
+          const r = await fetch('/api/shop/orders/all', { credentials: 'include' });
+          const d = await r.json();
+          const orders = d.orders || d || [];
+          ordEl.innerHTML = orders.map(function(o) {
+            const id = o.id || o.order_number;
+            const status = (o.status || 'pending').toLowerCase();
+            const statusClass = getStatusClass(o.status);
+            return '<tr data-id="' + id + '">' +
+              '<td>#' + escapeHtml(String(id)) + '</td>' +
+              '<td>' + escapeHtml(o.user?.username || o.username || '—') + '</td>' +
+              '<td>' + formatPrice(o.total || o.total_amount) + '</td>' +
+              '<td><select class="form-input order-status-select" style="max-width:140px; padding:6px;">' +
+                '<option value="pending"' + (status === 'pending' ? ' selected' : '') + '>pending</option>' +
+                '<option value="processing"' + (status === 'processing' ? ' selected' : '') + '>processing</option>' +
+                '<option value="shipped"' + (status === 'shipped' ? ' selected' : '') + '>shipped</option>' +
+                '<option value="delivered"' + (status === 'delivered' ? ' selected' : '') + '>delivered</option>' +
+                '<option value="cancelled"' + (status === 'cancelled' ? ' selected' : '') + '>cancelled</option>' +
+              '</select></td>' +
+              '<td>' + formatDate(o.created_at || o.date) + '</td>' +
+              '<td><button type="button" class="admin-btn admin-btn-primary order-save-status">Save</button></td>' +
+            '</tr>';
+          }).join('') || '<tr><td colspan="6">No orders</td></tr>';
+
+          ordEl.querySelectorAll('.order-save-status').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              const row = btn.closest('tr');
+              const id = row.getAttribute('data-id');
+              const status = row.querySelector('.order-status-select').value;
+              try {
+                const r = await fetch('/api/shop/orders/' + id, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ status: status })
+                });
+                if (r.ok) showToast('Status updated.', true);
+                else showToast('Failed.', false);
+              } catch (_) { showToast('Failed.', false); }
+            });
+          });
+        } catch (_) {
+          ordEl.innerHTML = '<tr><td colspan="6">Could not load orders</td></tr>';
+        }
+      }
+
+      document.getElementById('productNewBtn').addEventListener('click', function() {
+        document.getElementById('productNewFormWrap').classList.toggle('hidden');
+      });
+      document.getElementById('productNewCancelBtn').addEventListener('click', function() {
+        document.getElementById('productNewFormWrap').classList.add('hidden');
+      });
+      document.getElementById('productNewForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const payload = {
+          name: fd.get('name'),
+          description: fd.get('description'),
+          price: parseFloat(fd.get('price')) || 0,
+          image: (fd.get('image') || '').trim() || undefined,
+          category: fd.get('category') || '',
+          stock: parseInt(fd.get('stock'), 10) || 0
+        };
+        try {
+          const r = await fetch('/api/shop/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload)
+          });
+          if (r.ok) {
+            showToast('Product created.', true);
+            document.getElementById('productNewFormWrap').classList.add('hidden');
+            e.target.reset();
+            loadShop();
+          } else showToast('Failed to create.', false);
+        } catch (_) { showToast('Failed.', false); }
+      });
+
+      async function loadMessages() {
+        const el = document.getElementById('messagesList');
+        try {
+          const res = await fetch('/api/admin/messages', { credentials: 'include' });
+          if (!res.ok) throw new Error('Failed');
+          const data = await res.json();
+          const messages = data.messages || data || [];
+          el.innerHTML = messages.map(function(m) {
+            const readClass = m.read ? 'opacity-60' : '';
+            return '<div class="profile-section ' + readClass + '" data-id="' + m.id + '">' +
+              '<div class="flex-between mb-16">' +
+                '<strong>' + escapeHtml(m.name || m.sender || '—') + '</strong>' +
+                '<span class="text-muted">' + formatDate(m.created_at || m.date) + '</span>' +
+              '</div>' +
+              '<p><strong>Email:</strong> ' + escapeHtml(m.email || '—') + '</p>' +
+              '<p><strong>Subject:</strong> ' + escapeHtml(m.subject || '—') + '</p>' +
+              '<p>' + escapeHtml((m.message || m.body || '').slice(0, 500)) + ((m.message || m.body || '').length > 500 ? '…' : '') + '</p>' +
+              '<div class="admin-actions mt-16">' +
+                (!m.read ? '<button type="button" class="admin-btn admin-btn-primary msg-mark-read">Mark Read</button>' : '') +
+                '<button type="button" class="admin-btn admin-btn-danger msg-delete">Delete</button>' +
+              '</div>' +
+            '</div>';
+          }).join('') || '<p class="text-muted">No messages.</p>';
+
+          el.querySelectorAll('.msg-mark-read').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              const card = btn.closest('.profile-section');
+              const id = card.getAttribute('data-id');
+              try {
+                const r = await fetch('/api/admin/messages/' + id, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ read: true })
+                });
+                if (r.ok) { card.classList.add('opacity-60'); btn.remove(); showToast('Marked as read.', true); }
+                else showToast('Failed.', false);
+              } catch (_) { showToast('Failed.', false); }
+            });
+          });
+          el.querySelectorAll('.msg-delete').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              if (!confirmAction('Delete this message?')) return;
+              const card = btn.closest('.profile-section');
+              const id = card.getAttribute('data-id');
+              try {
+                const r = await fetch('/api/admin/messages/' + id, { method: 'DELETE', credentials: 'include' });
+                if (r.ok) { card.remove(); showToast('Deleted.', true); }
+                else showToast('Failed.', false);
+              } catch (_) { showToast('Failed.', false); }
+            });
+          });
+        } catch (e) {
+          el.innerHTML = '<p class="text-muted">Could not load messages.</p>';
+        }
+      }
+
+      (async function init() {
+        const user = await checkAuth();
+        if (!user) return;
+        loadDashboard();
+
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+        if (navToggle && navLinks) {
+          navToggle.addEventListener('click', function() {
+            navToggle.classList.toggle('active');
+            navLinks.classList.toggle('open');
+          });
+        }
+
+        document.getElementById('adminNavSignOut').addEventListener('click', function(e) {
+          e.preventDefault();
+          fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).then(function() {
+            window.location.replace('/');
+          }).catch(function() { window.location.replace('/'); });
+        });
+
+        var exportNewsletterBtn = document.getElementById('adminExportNewsletterBtn');
+        if (exportNewsletterBtn) {
+          exportNewsletterBtn.addEventListener('click', function() {
+            fetch('/api/admin/export/newsletter', { credentials: 'include' })
+              .then(function(res) { return res.ok ? res.text() : Promise.reject(new Error('Export failed')); })
+              .then(function(csv) {
+                var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'newsletter-contacts.csv';
+                a.click();
+                URL.revokeObjectURL(a.href);
+              })
+              .catch(function() { alert('Could not export. Make sure you are signed in as admin.'); });
+          });
+        }
+        var exportPreferencesBtn = document.getElementById('adminExportPreferencesBtn');
+        if (exportPreferencesBtn) {
+          exportPreferencesBtn.addEventListener('click', function() {
+            fetch('/api/admin/export/preferences', { credentials: 'include' })
+              .then(function(res) { return res.ok ? res.text() : Promise.reject(new Error('Export failed')); })
+              .then(function(csv) {
+                var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'subscription-preferences.csv';
+                a.click();
+                URL.revokeObjectURL(a.href);
+              })
+              .catch(function() { alert('Could not export. Make sure you are signed in as admin.'); });
+          });
+        }
+
+        function onScroll() {
+          const navbar = document.getElementById('navbar');
+          const progressBar = document.getElementById('scrollProgress');
+          if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 20);
+          if (progressBar) {
+            const h = document.documentElement.scrollHeight - window.innerHeight;
+            progressBar.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%';
+          }
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      })();
+    })();
+  </script>
+
+  <footer class="footer" style="margin-top:60px">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N St. #8325, Sacramento, CA 95816</p>
+        <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+          <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
+          <a href="/terms#refunds" style="color:var(--text-2)">Refund Policy</a>
+          <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>
+          <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>
+          <a href="/advertise" style="color:var(--text-2)">Advertise</a>
+          <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
+        </nav>
+        <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws that may differ significantly. It is the driver's responsibility to comply with the laws of every state they travel through. California (Caltrans/CALDOT) references reflect our home state and should not be assumed to apply elsewhere.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>
