@@ -178,6 +178,27 @@ router.put('/profile', (req, res) => {
   res.json({ success: true });
 });
 
+// PUT /api/auth/change-password — change password while logged in (current + new)
+router.put('/change-password', (req, res) => {
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  const { currentPassword, newPassword } = req.body || {};
+  if (!currentPassword || typeof currentPassword !== 'string') {
+    return res.status(400).json({ error: 'Current password is required' });
+  }
+  if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 6) {
+    return res.status(400).json({ error: 'New password must be at least 6 characters' });
+  }
+  const row = db.prepare('SELECT password FROM users WHERE id = ?').get(req.session.user.id);
+  if (!row || !bcrypt.compareSync(currentPassword, row.password)) {
+    return res.status(400).json({ error: 'Current password is incorrect' });
+  }
+  const hashed = bcrypt.hashSync(newPassword, 10);
+  db.prepare('UPDATE users SET password = ? WHERE id = ?').run(hashed, req.session.user.id);
+  res.json({ success: true, message: 'Password updated. Use your new password next time you sign in.' });
+});
+
 // PUT /api/auth/preferences — update subscription preferences (newsletter, blog, product updates, forum)
 router.put('/preferences', (req, res) => {
   if (!req.session || !req.session.user) {
