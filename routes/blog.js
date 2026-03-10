@@ -2,6 +2,11 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/database');
 
+function ensureHttpsImage(url) {
+  if (!url || typeof url !== 'string') return url;
+  return url.trim().replace(/^http:\/\//i, 'https://');
+}
+
 // Generate slug from title: lowercase, spaces to hyphens, remove non-alphanumeric
 function slugify(title) {
   return title
@@ -21,7 +26,8 @@ router.get('/posts', (req, res) => {
     WHERE p.published = 1
     ORDER BY p.created_at DESC
   `).all();
-  res.json({ posts });
+  const out = posts.map(p => ({ ...p, image: ensureHttpsImage(p.image) }));
+  res.json({ posts: out });
 });
 
 // GET /api/blog/admin/posts — admin only: all posts (published + draft) for admin list
@@ -34,7 +40,8 @@ router.get('/admin/posts', (req, res) => {
     LEFT JOIN users u ON p.author_id = u.id
     ORDER BY p.created_at DESC
   `).all();
-  res.json({ posts });
+  const out = posts.map(p => ({ ...p, image: ensureHttpsImage(p.image) }));
+  res.json({ posts: out });
 });
 
 // GET /api/blog/admin/posts/:id — admin only: single post by id for editing
@@ -50,7 +57,7 @@ router.get('/admin/posts/:id', (req, res) => {
     WHERE p.id = ?
   `).get(id);
   if (!post) return res.status(404).json({ error: 'Post not found' });
-  res.json({ post });
+  res.json({ post: { ...post, image: ensureHttpsImage(post.image) } });
 });
 
 // GET /api/blog/posts/:slug — single post by slug with author and comments
@@ -80,6 +87,7 @@ router.get('/posts/:slug', (req, res) => {
   res.json({
     post: {
       ...postData,
+      image: ensureHttpsImage(postData.image),
       author: author_username ? { id: author_id, username: author_username } : null
     },
     comments: comments.map(c => ({

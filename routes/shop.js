@@ -50,11 +50,16 @@ const DEFAULT_PRODUCT_IMAGES = {
 // Fallback — truck on highway (unique, no repeat)
 const FALLBACK_PRODUCT_IMAGE = 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=80';
 
+function ensureHttpsImage(url) {
+  if (!url || typeof url !== 'string') return url;
+  const u = url.trim();
+  return u.replace(/^http:\/\//i, 'https://');
+}
 function applyDefaultImage(products) {
-  return Array.isArray(products) ? products.map(p => ({
-    ...p,
-    image: p.image && p.image.trim() ? p.image : (DEFAULT_PRODUCT_IMAGES[p.slug] || FALLBACK_PRODUCT_IMAGE)
-  })) : products;
+  return Array.isArray(products) ? products.map(p => {
+    const img = p.image && p.image.trim() ? ensureHttpsImage(p.image) : (DEFAULT_PRODUCT_IMAGES[p.slug] || FALLBACK_PRODUCT_IMAGE);
+    return { ...p, image: img };
+  }) : products;
 }
 
 // 1. GET /api/shop/products — Return all active products

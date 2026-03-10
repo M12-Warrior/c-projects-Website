@@ -12,6 +12,19 @@ if (!fs.existsSync(uploadsDir)) {
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Redirect HTTP to HTTPS in production (Railway sends X-Forwarded-Proto)
+if (isProduction) {
+  app.use((req, res, next) => {
+    const proto = req.get('x-forwarded-proto');
+    if (proto === 'http') {
+      const host = req.get('host') || 'mile12warrior.com';
+      return res.redirect(301, 'https://' + host + req.originalUrl);
+    }
+    next();
+  });
+}
 
 // Canonical domain: site is intended to be served at mile12warrior.com
 app.use(cors({
@@ -47,6 +60,14 @@ app.use(express.static(path.join(__dirname, 'public'), {
     }
   }
 }));
+
+// Ask the browser to load all resources over HTTPS (fixes mixed content warnings)
+if (isProduction) {
+  app.use((req, res, next) => {
+    res.setHeader('Content-Security-Policy', 'upgrade-insecure-requests');
+    next();
+  });
+}
 
 // Make session user available to views
 app.use((req, res, next) => {
