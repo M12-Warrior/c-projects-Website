@@ -94,6 +94,11 @@
     .cert-name-group label{display:block;font-size:.78rem;color:var(--text-3);margin-bottom:6px;font-weight:500}
     .cert-name-group input{width:100%;padding:12px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);color:var(--text);font-family:var(--font-body);font-size:.9rem;outline:none;transition:border-color .2s}
     .cert-name-group input:focus{border-color:var(--blue)}
+    .cert-form-grid{max-width:420px;margin:0 auto 24px;text-align:left;display:grid;gap:14px}
+    .cert-form-group label{display:block;font-size:.78rem;color:var(--text-3);margin-bottom:4px;font-weight:500}
+    .cert-form-group input{width:100%;padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);color:var(--text);font-size:.9rem}
+    .cert-form-group input:focus{border-color:var(--blue);outline:none}
+    .comp-success-num{font-family:var(--font);font-size:1.25rem;font-weight:700;color:var(--green);margin-bottom:16px}
     .comp-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:32px}
     .comp-links{display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
     .comp-links a{font-size:.82rem;color:var(--text-2);text-decoration:none;transition:color .2s}
@@ -115,6 +120,10 @@
     .module1-cta-links a:hover{border-color:var(--blue);color:var(--blue);background:rgba(99,102,241,.06)}
     .module1-cta-links a.cta-primary{background:var(--blue);border-color:var(--blue);color:#fff}
     .module1-cta-links a.cta-primary:hover{filter:brightness(1.15);color:#fff}
+    .cb-reward-card{background:linear-gradient(135deg,rgba(99,102,241,.06),rgba(52,211,153,.06));border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-top:20px;text-align:left}
+    .cb-reward-card .cb-reward-title{font-family:var(--font);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:6px}
+    .cb-reward-card .cb-reward-lingo{font-family:var(--font);font-size:1.1rem;font-weight:700;color:var(--blue);margin-bottom:8px}
+    .cb-reward-card .cb-reward-equipment{font-size:.85rem;color:var(--text-2);line-height:1.5}
     @media(max-width:900px){
       .course-layout{flex-direction:column}
       .course-sidebar{width:100%;position:static;max-height:none}
@@ -606,6 +615,20 @@ var COURSE_DATA = {
   }
 };
 
+// CB lingo + equipment rewards (one per module) — trucker CB culture and gear tips
+var CB_REWARDS = {
+  1: { lingo: '10-4', equipment: 'Coaxial cable: Use quality RG-58 or RG-8X from radio to antenna. Keep runs short, avoid kinks and moisture for clear signal.' },
+  2: { lingo: 'Copy that', equipment: 'Mic: A noise-cancelling or amplified hand mic improves clarity on the road. Power mics are a popular upgrade.' },
+  3: { lingo: "What's your 20?", equipment: 'Antenna: Mount and tune matter. A properly tuned antenna gives you range and receive; check SWR when you install.' },
+  4: { lingo: 'Back in the saddle', equipment: 'Mount: A solid mirror or roof mount keeps the antenna stable and cuts wind noise. Secure it right.' },
+  5: { lingo: 'Smokey report', equipment: 'SWR meter: Check standing wave ratio when you install or move the antenna. High SWR can damage the radio.' },
+  6: { lingo: 'Good buddy', equipment: "Speaker: An external speaker by the driver's ear helps you hear weak signals over road and engine noise." },
+  7: { lingo: 'Handle', equipment: "Your CB handle is your identity on the air. Pick one and use it so others know who they're talking to." },
+  8: { lingo: 'Channel 19', equipment: 'Channel 19 is the main trucker channel for traffic and conditions. Use it for info; keep long chats to other channels.' },
+  9: { lingo: 'Breaker breaker', equipment: "To break in politely: \"Breaker 19\" or \"Breaker 1-9\" gets attention without stepping on others." },
+  10: { lingo: 'Keep the shiny side up', equipment: 'Stay safe out there. Your CB is for info and company. Keep the rubber down and the shiny side up.' }
+};
+
 var STORAGE_KEY = 'm12w_course';
 var activeModule = null;
 
@@ -790,7 +813,13 @@ function renderQuizHTML(modId, mp) {
   html += '<div class="quiz-subtitle">Score 70% or higher to complete this module and unlock the next.</div>';
   if (passed) {
     html += '<div class="quiz-result pass">You passed with ' + mp.quizScore + '%! Module complete.</div>';
+    var reward = CB_REWARDS[modId];
+    if (reward) {
+      html += '<div class="cb-reward-card"><div class="cb-reward-title">CB reward</div><div class="cb-reward-lingo">\u201C' + reward.lingo + '\u201D</div><div class="cb-reward-equipment">' + reward.equipment + '</div></div>';
+    }
     if (modId === 1) html += '<div id="module1EndCta" style="margin-top:16px"></div>';
+    else if (modId < 10) html += '<div style="margin-top:16px"><button class="btn btn-primary module-complete-btn" onclick="selectModule(' + (modId + 1) + ')">Continue to Module ' + (modId + 1) + ' &rarr;</button></div>';
+    else html += '<div style="margin-top:16px"><button class="btn btn-green module-complete-btn" onclick="selectModule(10)">View Completion &amp; Certificate</button></div>';
     html += '</div>';
     return html;
   }
@@ -841,57 +870,8 @@ function submitQuiz(modId) {
 
   var rd = document.getElementById('quizResult');
   if (score >= 70) {
-    var msg = '<div class="quiz-result pass">You scored ' + score + '% (' + correct + '/' + total + '). Module complete!';
-    if (modId < 10) msg += ' Module ' + (modId + 1) + ' is now unlocked.';
-    else msg += ' All modules complete!';
-    msg += '</div>';
-
-    function lockQuizAndHideSubmit() {
-      mod.quiz.forEach(function(q, qi) {
-        var opts = document.querySelectorAll('input[name="q' + modId + '_' + qi + '"]');
-        opts.forEach(function(o) {
-          o.disabled = true;
-          var lbl = o.closest('.quiz-option');
-          if (parseInt(o.value) === q.ans) lbl.classList.add('correct');
-          else if (o.checked) lbl.classList.add('incorrect');
-        });
-      });
-      var submitBtn = document.querySelector('#quizSection .btn-primary');
-      if (submitBtn) submitBtn.style.display = 'none';
-    }
-
-    if (modId === 1) {
-      fetch('/api/shop/course-access', { credentials: 'include' })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          if (data.hasCourseAccess) {
-            var p = getProgress();
-            p.purchased = true;
-            for (var i = 1; i <= 10; i++) p.modules[i].unlocked = true;
-            saveProgress(p);
-            updateHeroProgress();
-            renderSidebar();
-            msg += '<button class="btn btn-primary module-complete-btn" onclick="selectModule(2)">Continue to Module 2 &rarr;</button>';
-          } else {
-            msg += getModule1PurchaseCtaHtml();
-          }
-          if (rd) rd.innerHTML = msg;
-          lockQuizAndHideSubmit();
-        })
-        .catch(function() {
-          msg += getModule1PurchaseCtaHtml();
-          if (rd) rd.innerHTML = msg;
-          lockQuizAndHideSubmit();
-        });
-    } else {
-      if (modId < 10) {
-        msg += '<button class="btn btn-primary module-complete-btn" onclick="selectModule(' + (modId + 1) + ')">Continue to Module ' + (modId + 1) + ' &rarr;</button>';
-      } else {
-        msg += '<button class="btn btn-green module-complete-btn" onclick="selectModule(10)">View Completion &amp; Certificate</button>';
-      }
-      if (rd) rd.innerHTML = msg;
-      lockQuizAndHideSubmit();
-    }
+    // Re-render the module so the full "passed" view (including CB reward) appears
+    selectModule(modId);
   } else {
     if (rd) rd.innerHTML = '<div class="quiz-result fail">You scored ' + score + '% (' + correct + '/' + total + '). You need 70% to pass. Review the lessons and try again.</div>';
   }
@@ -961,25 +941,146 @@ function restoreAccess() {
   }
 }
 
+var lastCertificateNumber = null;
+
 function renderComplete(main) {
   var p = getProgress();
-  var html = '<div class="completion-section">';
+  var html = '<div class="completion-section" id="completionSection">';
   html += '<div class="completion-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>';
   html += '<h2>Course Complete!</h2>';
-  html += '<p class="comp-sub">You\u2019ve mastered the fundamentals. All 10 modules are done.</p>';
-  html += '<div class="cert-name-group"><label for="certName">Your name (for the certificate)</label>';
-  html += '<input type="text" id="certName" placeholder="Enter your full name" value="' + (p.studentName || '').replace(/"/g, '&quot;') + '" onchange="saveStudentName(this.value)"></div>';
-  html += '<div class="comp-btns">';
-  html += '<button class="btn btn-primary" onclick="downloadCertificate()">Download Certificate of Completion</button>';
-  html += '<button class="btn btn-green" onclick="downloadPacket()">Download Your New Driver Packet</button>';
+  html += '<p class="comp-sub">You\u2019ve mastered the fundamentals. All 10 modules are done. Your certificate will be mailed to you and recorded in our records.</p>';
+  html += '<div id="completionContent">Loading\u2026</div>';
   html += '</div>';
-  html += '<div class="comp-links">';
-  html += '<a href="/forum">Join the Forum</a>';
-  html += '<a href="/blog">Read the Blog</a>';
-  html += '<a href="/shop">Browse the Shop</a>';
-  html += '<a href="/services">Explore More Services</a>';
-  html += '</div></div>';
   main.innerHTML = html;
+  loadCompletionContent();
+}
+
+function loadCompletionContent() {
+  var container = document.getElementById('completionContent');
+  if (!container) return;
+  fetch('/api/auth/me', { credentials: 'include' })
+    .then(function(r) { return r.json(); })
+    .then(function(auth) {
+      if (!auth.user) {
+        renderCompletionSignedOut(container);
+        return;
+      }
+      return fetch('/api/course/certificate/status', { credentials: 'include' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.completed && data.certificateNumber) {
+            lastCertificateNumber = data.certificateNumber;
+            renderCompletionSuccess(container, data);
+          } else {
+            renderCompletionForm(container);
+          }
+        });
+    })
+    .catch(function() {
+      renderCompletionSignedOut(container);
+    });
+}
+
+function renderCompletionSignedOut(container) {
+  var p = getProgress();
+  var name = (p.studentName || '').replace(/"/g, '&quot;');
+  var html = '<p class="comp-sub" style="margin-bottom:20px">Sign in to request your <strong>mailed certificate</strong> (numbered and archived) and, if you wish, a copy to your insurance or safety department.</p>';
+  html += '<div class="cert-name-group"><label for="certName">Your name (for certificate)</label><input type="text" id="certName" placeholder="Full name" value="' + name + '" onchange="saveStudentName(this.value)"></div>';
+  html += '<div class="comp-btns">';
+  html += '<button class="btn btn-primary" onclick="downloadCertificate()">Download Certificate</button>';
+  html += '<button class="btn btn-green" onclick="downloadPacket()">Download New Driver Packet</button>';
+  html += '</div>';
+  html += '<p style="font-size:.82rem;color:var(--text-3);margin-top:12px"><a href="/login">Sign in</a> or <a href="/register">create an account</a> to request your physical certificate by mail and optional copies to insurance/safety.</p>';
+  html += compLinksHtml();
+  container.innerHTML = html;
+}
+
+function renderCompletionForm(container) {
+  var p = getProgress();
+  var name = (p.studentName || '').replace(/"/g, '&quot;');
+  var html = '<p class="comp-sub" style="margin-bottom:20px">Enter your mailing address so we can send your <strong>numbered certificate</strong>. You can also request a copy be emailed to your insurance or safety department.</p>';
+  html += '<form id="certificateForm" class="cert-form-grid">';
+  html += '<div class="cert-form-group"><label>Your full name (on certificate)</label><input type="text" name="studentName" required placeholder="Full legal name" value="' + name + '"></div>';
+  html += '<div class="cert-form-group"><label>Mailing name (if different)</label><input type="text" name="mailingName" placeholder="Name for envelope"></div>';
+  html += '<div class="cert-form-group"><label>Street address</label><input type="text" name="mailingAddress" required placeholder="Street, apt/suite"></div>';
+  html += '<div class="cert-form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label>City</label><input type="text" name="mailingCity" required placeholder="City"></div><div><label>State</label><input type="text" name="mailingState" required placeholder="State" maxlength="2" style="text-transform:uppercase"></div></div>';
+  html += '<div class="cert-form-group"><label>ZIP code</label><input type="text" name="mailingZip" required placeholder="ZIP" pattern="[0-9\\-]+"></div>';
+  html += '<div class="cert-form-group"><label>Email copy to insurance (optional)</label><input type="email" name="copyToInsuranceEmail" placeholder="insurance@company.com"></div>';
+  html += '<div class="cert-form-group"><label>Email copy to safety department (optional)</label><input type="email" name="copyToSafetyEmail" placeholder="safety@carrier.com"></div>';
+  html += '<button type="submit" class="btn btn-primary" style="margin-top:8px">Submit &amp; request certificate</button>';
+  html += '</form>';
+  html += '<div class="comp-btns" style="margin-top:24px">';
+  html += '<button class="btn btn-glass" onclick="downloadCertificate()">Download certificate (preview)</button>';
+  html += '<button class="btn btn-green" onclick="downloadPacket()">Download New Driver Packet</button>';
+  html += '</div>';
+  html += compLinksHtml();
+  container.innerHTML = html;
+  document.getElementById('certificateForm').addEventListener('submit', submitCertificateForm);
+}
+
+function submitCertificateForm(e) {
+  e.preventDefault();
+  var form = e.target;
+  var btn = form.querySelector('button[type="submit"]');
+  var studentName = (form.studentName && form.studentName.value || '').trim();
+  var mailingName = (form.mailingName && form.mailingName.value || '').trim();
+  var mailingAddress = (form.mailingAddress && form.mailingAddress.value || '').trim();
+  var mailingCity = (form.mailingCity && form.mailingCity.value || '').trim();
+  var mailingState = (form.mailingState && form.mailingState.value || '').trim();
+  var mailingZip = (form.mailingZip && form.mailingZip.value || '').trim();
+  var copyToInsuranceEmail = (form.copyToInsuranceEmail && form.copyToInsuranceEmail.value || '').trim() || undefined;
+  var copyToSafetyEmail = (form.copyToSafetyEmail && form.copyToSafetyEmail.value || '').trim() || undefined;
+  if (!studentName || !mailingAddress || !mailingCity || !mailingState || !mailingZip) {
+    alert('Please fill in your name, full address (street, city, state, ZIP) so we can mail your certificate.');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Submitting\u2026';
+  fetch('/api/course/complete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({
+      studentName: studentName,
+      mailingName: mailingName || studentName,
+      mailingAddress: mailingAddress,
+      mailingCity: mailingCity,
+      mailingState: mailingState,
+      mailingZip: mailingZip,
+      copyToInsuranceEmail: copyToInsuranceEmail,
+      copyToSafetyEmail: copyToSafetyEmail
+    })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.certificateNumber) lastCertificateNumber = data.certificateNumber;
+      var container = document.getElementById('completionContent');
+      if (container) {
+        container.innerHTML = '';
+        renderCompletionSuccess(container, { certificateNumber: data.certificateNumber, studentName: studentName });
+      }
+    })
+    .catch(function() {
+      btn.disabled = false;
+      btn.textContent = 'Submit & request certificate';
+      alert('Something went wrong. Please try again or contact joyce@mile12warrior.com.');
+    });
+}
+
+function renderCompletionSuccess(container, data) {
+  var certNum = data.certificateNumber || lastCertificateNumber || '';
+  var html = '<div class="comp-success-num">Certificate #' + escapeHtml(certNum) + ' is on the way!</div>';
+  html += '<p class="comp-sub">We\u2019ve recorded your completion. Mile 12 Warrior will mail your certificate to the address you provided. If you requested copies to insurance or safety, those will be sent separately.</p>';
+  html += '<div class="comp-btns">';
+  html += '<button class="btn btn-primary" onclick="downloadCertificate()">Download Certificate</button>';
+  html += '<button class="btn btn-green" onclick="downloadPacket()">Download New Driver Packet</button>';
+  html += '</div>';
+  html += compLinksHtml();
+  container.innerHTML = html;
+}
+
+function compLinksHtml() {
+  return '<div class="comp-links"><a href="/forum">Join the Forum</a><a href="/blog">Read the Blog</a><a href="/shop">Browse the Shop</a><a href="/services">Explore More Services</a></div>';
 }
 
 function saveStudentName(name) {
@@ -1047,6 +1148,9 @@ function downloadCertificate() {
   certHTML += '<div class="cert-footer">';
   certHTML += '<div class="cert-sig"><div class="cert-sig-line"></div><div class="cert-sig-name">Joyce Cooke</div><div class="cert-sig-title">Founder, Mile 12 Warrior</div></div>';
   certHTML += '<div class="cert-sig"><div class="cert-sig-line"></div><div class="cert-sig-name">Mile 12 Warrior LLC</div><div class="cert-sig-title">Professional Driver Development</div></div>';
+  if (lastCertificateNumber) {
+    certHTML += '<div class="cert-id">Certificate No. ' + escapeHtml(lastCertificateNumber) + '</div>';
+  }
   certHTML += '</div></div></body></html>';
 
   var blob = new Blob([certHTML], { type: 'text/html' });

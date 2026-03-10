@@ -56,6 +56,7 @@
         <button type="button" class="admin-tab" data-tab="blog">Blog</button>
         <button type="button" class="admin-tab" data-tab="forum">Forum</button>
         <button type="button" class="admin-tab" data-tab="shop">Shop</button>
+        <button type="button" class="admin-tab" data-tab="completions">Completions</button>
         <button type="button" class="admin-tab" data-tab="messages">Messages</button>
       </div>
 
@@ -206,6 +207,28 @@
         </div>
       </div>
 
+      <div id="tabCompletions" class="admin-tab-content hidden">
+        <div class="admin-section">
+          <h3>Course completions (certificates)</h3>
+          <p style="color:var(--text-2);margin-bottom:12px;font-size:0.9rem">When a driver completes the 90-Day Course, they appear here. Mail the physical certificate to the address shown; optionally email a copy to insurance or safety if requested.</p>
+          <div class="table-wrap" style="overflow-x:auto">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Cert #</th>
+                  <th>Student name</th>
+                  <th>User (email)</th>
+                  <th>Completed</th>
+                  <th>Mailing address</th>
+                  <th>Copy to insurance</th>
+                  <th>Copy to safety</th>
+                </tr>
+              </thead>
+              <tbody id="completionsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
       <div id="tabMessages" class="admin-tab-content hidden">
         <div id="messagesList"></div>
       </div>
@@ -758,6 +781,25 @@
           } else showToast('Failed to create.', false);
         } catch (_) { showToast('Failed.', false); }
       });
+
+      async function loadCompletions() {
+        const el = document.getElementById('completionsTable');
+        if (!el) return;
+        try {
+          const res = await fetch('/api/admin/completions', { credentials: 'include' });
+          if (!res.ok) throw new Error('Failed');
+          const data = await res.json();
+          const list = data.completions || data || [];
+          el.innerHTML = list.map(function(c) {
+            const addr = [c.mailing_address, c.mailing_city, c.mailing_state, c.mailing_zip].filter(Boolean).join(', ') || '—';
+            const ins = c.copy_to_insurance_email ? ('<span title="' + escapeHtml(c.copy_to_insurance_email) + '">' + escapeHtml(c.copy_to_insurance_email) + '</span>') : '—';
+            const safety = c.copy_to_safety_email ? ('<span title="' + escapeHtml(c.copy_to_safety_email) + '">' + escapeHtml(c.copy_to_safety_email) + '</span>') : '—';
+            return '<tr><td><strong>' + escapeHtml(c.certificate_number || '') + '</strong></td><td>' + escapeHtml(c.student_name || '—') + '</td><td>' + escapeHtml(c.email || c.username || '—') + '</td><td>' + formatDate(c.completed_at || c.created_at) + '</td><td style="max-width:200px">' + escapeHtml(addr) + '</td><td style="font-size:0.85rem">' + ins + '</td><td style="font-size:0.85rem">' + safety + '</td></tr>';
+          }).join('') || '<tr><td colspan="7">No completions yet.</td></tr>';
+        } catch (e) {
+          el.innerHTML = '<tr><td colspan="7">Could not load completions.</td></tr>';
+        }
+      }
 
       async function loadMessages() {
         const el = document.getElementById('messagesList');

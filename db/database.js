@@ -194,6 +194,30 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_journal_user_date ON subscriber_journal_entries(user_id, entry_date);
 `);
 
+// Course completions (numbered certificates, mailing, optional copy to insurance/safety)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS course_completions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    certificate_number TEXT UNIQUE NOT NULL,
+    student_name TEXT NOT NULL,
+    completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    mailing_name TEXT,
+    mailing_address TEXT,
+    mailing_city TEXT,
+    mailing_state TEXT,
+    mailing_zip TEXT,
+    copy_to_insurance_email TEXT,
+    copy_to_safety_email TEXT,
+    insurance_copy_sent_at DATETIME,
+    safety_copy_sent_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE INDEX IF NOT EXISTS idx_course_completions_user ON course_completions(user_id);
+  CREATE INDEX IF NOT EXISTS idx_course_completions_cert ON course_completions(certificate_number);
+`);
+
 // Seed data (only if tables are empty)
 const seedIfEmpty = () => {
   const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();

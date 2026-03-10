@@ -138,6 +138,21 @@ router.delete('/messages/:id', (req, res) => {
   res.json({ success: true });
 });
 
+// GET /api/admin/completions — Course completions (certificates) for mailing and copy requests
+router.get('/completions', (req, res) => {
+  const rows = db.prepare(`
+    SELECT c.id, c.certificate_number, c.student_name, c.completed_at,
+           c.mailing_name, c.mailing_address, c.mailing_city, c.mailing_state, c.mailing_zip,
+           c.copy_to_insurance_email, c.copy_to_safety_email,
+           c.insurance_copy_sent_at, c.safety_copy_sent_at, c.created_at,
+           u.username, u.email
+    FROM course_completions c
+    JOIN users u ON u.id = c.user_id
+    ORDER BY c.id DESC
+  `).all();
+  res.json({ completions: rows });
+});
+
 // GET /api/admin/export/newsletter — CSV of users who opted in to newsletter (honor opt-out)
 router.get('/export/newsletter', (req, res) => {
   const rows = db.prepare(`

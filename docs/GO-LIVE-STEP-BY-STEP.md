@@ -160,6 +160,18 @@ The site ships with a default admin account so you can log in. You **must** chan
 
 ---
 
+## Deploying updates to the live site
+
+After the site is live, use this process whenever you make changes so the **live site at mile12warrior.com** gets the updates.
+
+1. **Make and test locally** — Edit code in `C:\Projects\Website`. Optionally run `npm start` and test at http://localhost:3000.
+2. **Commit and push** — In PowerShell: `cd C:\Projects\Website`, then `git add .`, `git commit -m "Your message"`, `git push origin main`. Use GitHub username and Personal Access Token if prompted.
+3. **Railway redeploys** — When you push to `main`, Railway pulls the latest code and replaces the live site. In Railway → Deployments, wait for **Success**.
+4. **Database** — New tables/columns in `db/database.js` (e.g. `course_completions`) are created automatically when the app starts. No manual migration needed.
+5. **Verify** — Open https://mile12warrior.com, hard-refresh (Ctrl+F5), and check updated areas (Course, Admin → Completions).
+
+---
+
 ## If something goes wrong
 
 - **“Application failed” or deploy keeps failing:** In Railway, open the **Deployments** tab and click the latest deploy to see the build and run logs. Often the fix is: `DB_PATH` set correctly and a volume mounted at `/data`.

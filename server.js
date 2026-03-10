@@ -63,6 +63,7 @@ app.use('/api/subscription', require('./routes/subscription'));
 app.use('/api/journal', require('./routes/journal'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/contact', require('./routes/contact'));
+app.use('/api/course', require('./routes/course'));
 app.use('/api/upload', require('./routes/upload'));
 
 // Auth helpers
