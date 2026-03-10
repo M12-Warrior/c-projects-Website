@@ -365,6 +365,17 @@ This information is educational only. For questions about your rights and regula
 
 seedIfEmpty();
 
+// Ensure at least one admin exists (e.g. if DB had users before seed ran)
+try {
+  const adminCount = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'admin'").get();
+  if (adminCount.count === 0) {
+    const insertAdmin = db.prepare(`
+      INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)
+    `);
+    insertAdmin.run('admin', 'joyce@mile12warrior.com', bcrypt.hashSync('admin123', 10), 'admin');
+  }
+} catch (_) {}
+
 // Ensure Trucker Wellness Journal monthly subscription product exists
 try {
   const hasMonthly = db.prepare('SELECT id FROM products WHERE slug = ?').get('trucker-wellness-journal-monthly');

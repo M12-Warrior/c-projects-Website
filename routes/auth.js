@@ -121,7 +121,11 @@ router.post('/login', (req, res) => {
     return res.status(400).json({ error: 'Username and password are required' });
   }
 
-  const user = db.prepare('SELECT id, username, email, password, role, avatar, bio, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE username = ?').get(username.trim());
+  const input = username.trim();
+  const isEmail = input.includes('@');
+  const user = isEmail
+    ? db.prepare('SELECT id, username, email, password, role, avatar, bio, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE email = ?').get(input)
+    : db.prepare('SELECT id, username, email, password, role, avatar, bio, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE username = ?').get(input);
   if (!user) {
     return res.status(401).json({ error: 'Invalid username or password' });
   }
