@@ -168,6 +168,7 @@ app.get('/journal/print', requireLogin, (req, res) => {
 });
 
 app.get('/admin', requireAdmin, (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.sendFile(path.join(__dirname, 'views', 'admin.html'));
 });
 
