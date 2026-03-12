@@ -411,6 +411,32 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   updateCartBadge();
 
+  // --- Gated packet download (checks access & logs download for paid packets) ---
+  window.downloadPacketGated = function (type) {
+    var valid = ['new-driver', 'seasoned-driver', 'fleet-new-hire', 'fleet-refresher'].indexOf(type) !== -1;
+    if (!valid) return;
+    fetch('/api/shop/packet-access?type=' + encodeURIComponent(type), { credentials: 'include' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.allowed) {
+          alert('You don\'t have access or your download limit has been reached. This license is for your use only. Purchase again or renew your fleet license if needed.');
+          return;
+        }
+        if (typeof Packets !== 'undefined' && typeof Packets.download === 'function') {
+          Packets.download(type);
+        }
+        fetch('/api/shop/packet-download-log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: type }),
+          credentials: 'include'
+        }).catch(function () {});
+      })
+      .catch(function () {
+        alert('Unable to verify access. Please log in and try again.');
+      });
+  };
+
   // --- Phase tab navigation (with channel-switch feedback) ---
   const phaseTabs = document.getElementById('phaseTabs');
   if (phaseTabs) {

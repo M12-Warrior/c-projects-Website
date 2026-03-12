@@ -1,9 +1,10 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const session = require('express-session');
 const cors = require('cors');
-require('./db/database');
+const db = require('./db/database');
 
 const uploadsDir = path.join(__dirname, 'public', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
@@ -73,6 +74,23 @@ if (isProduction) {
 app.use((req, res, next) => {
   res.locals.user = req.session.user;
   next();
+});
+
+// Traffic logging: one row per page view (skip API and static assets) for admin analytics
+app.use((req, res, next) => {
+  if (req.method !== 'GET') return next();
+  if (req.path.startsWith('/api')) return next();
+  if (/\.(css|js|ico|svg|png|jpg|jpeg|gif|webp|woff2?|ttf|map)(\?|$)/i.test(req.path)) return next();
+  const pathSeg = (req.path || '/').split('?')[0];
+  const visitorKey = (req.session && req.sessionID) ? String(req.sessionID) : crypto.createHash('sha256').update((req.get('x-forwarded-for') || req.ip || '') + (req.get('user-agent') || '')).digest('hex').slice(0, 32);
+  const userId = (req.session && req.session.user && req.session.user.id) ? req.session.user.id : null;
+  next();
+  setImmediate(function() {
+    try {
+      const insert = db.prepare('INSERT INTO traffic_visits (visited_at, visitor_key, user_id, path) VALUES (datetime(\'now\'), ?, ?, ?)');
+      insert.run(visitorKey, userId, pathSeg);
+    } catch (_) {}
+  });
 });
 
 // API routes

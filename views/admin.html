@@ -57,6 +57,7 @@
         <button type="button" class="admin-tab" data-tab="forum">Forum</button>
         <button type="button" class="admin-tab" data-tab="shop">Shop</button>
         <button type="button" class="admin-tab" data-tab="completions">Completions</button>
+        <button type="button" class="admin-tab" data-tab="traffic">Traffic</button>
         <button type="button" class="admin-tab" data-tab="messages">Messages</button>
       </div>
 
@@ -185,8 +186,8 @@
             <thead><tr><th>Name</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="productsTable"></tbody>
           </table>
-          <div id="productEditModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:100;">
-            <div class="profile-section" style="max-width:420px;width:90%;">
+          <div id="productEditModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:10000;" role="dialog" aria-modal="true" aria-label="Edit product image">
+            <div class="product-edit-modal-inner" style="max-width:420px;width:90%;position:relative;z-index:10001;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;" onclick="event.stopPropagation()">
               <h4 style="margin-top:0;">Edit product image</h4>
               <p id="productEditName" style="color:var(--text-2);margin-bottom:12px;"></p>
               <div class="form-group"><label class="form-label">Image (URL)</label><input type="url" id="productEditImage" class="form-input" placeholder="https://... or /images/products/slug.jpg"></div>
@@ -207,6 +208,25 @@
         </div>
       </div>
 
+      <div id="tabTraffic" class="admin-tab-content hidden">
+        <div class="admin-section">
+          <h3>Traffic &amp; visitors</h3>
+          <p style="color:var(--text-2);margin-bottom:16px;font-size:0.9rem">Unique visitors and return traffic by period. Data is collected from page views (not API calls). Return users are logged-in users who visited on more than one day in the period. &quot;Likely business&quot; = registered users who have purchased a fleet product and visited in the period.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:20px;">
+            <label style="color:var(--text-2);font-size:0.9rem;">Period:</label>
+            <select id="trafficPeriod" class="form-input" style="width:auto;padding:8px 12px;">
+              <option value="day">Daily (today)</option>
+              <option value="week" selected>Weekly (last 7 days)</option>
+              <option value="month">Monthly (last 30 days)</option>
+              <option value="year">Yearly (last 12 months)</option>
+            </select>
+            <label style="margin-left:8px;"><input type="checkbox" id="trafficYoy" style="margin-right:6px;"> Year-over-year growth</label>
+            <button type="button" class="btn btn-primary" id="trafficRefreshBtn">Refresh</button>
+          </div>
+          <div id="trafficStats" class="admin-grid"></div>
+          <p id="trafficNote" style="font-size:0.8rem;color:var(--text-3);margin-top:16px;"></p>
+        </div>
+      </div>
       <div id="tabCompletions" class="admin-tab-content hidden">
         <div class="admin-section">
           <h3>Course completions (certificates)</h3>
@@ -671,31 +691,45 @@
         var editProductId = null;
         function openEdit(productId, name, currentImage) {
           editProductId = productId;
+          if (modal) modal.setAttribute('data-edit-product-id', productId || '');
           if (editName) editName.textContent = name || '';
           if (editImage) editImage.value = currentImage || '';
-          if (modal) modal.classList.remove('hidden');
-          if (modal) modal.style.display = 'flex';
+          if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+          }
         }
         function closeEdit() {
           editProductId = null;
-          if (modal) modal.classList.add('hidden');
-          if (modal) modal.style.display = 'none';
+          if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+          }
         }
-        document.getElementById('productEditCancel').addEventListener('click', closeEdit);
-        document.getElementById('productEditSave').addEventListener('click', async function() {
-          if (!editProductId) return;
-          var url = (editImage && editImage.value) ? editImage.value.trim() : '';
-          try {
-            var r = await fetch('/api/shop/products/' + editProductId, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
-              body: JSON.stringify({ image: url || null })
-            });
-            if (r.ok) { showToast('Image updated.', true); closeEdit(); loadShop(); }
-            else showToast('Failed.', false);
-          } catch (_) { showToast('Failed.', false); }
-        });
+        if (modal && !window._productEditModalBound) {
+          window._productEditModalBound = true;
+          modal.addEventListener('click', function(e) {
+            if (e.target === modal) closeEdit();
+          });
+          var cancelBtn = document.getElementById('productEditCancel');
+          var saveBtn = document.getElementById('productEditSave');
+          if (cancelBtn) cancelBtn.addEventListener('click', closeEdit);
+          if (saveBtn) saveBtn.addEventListener('click', async function() {
+            var id = modal && modal.getAttribute('data-edit-product-id');
+            if (!id) return;
+            var url = (editImage && editImage.value) ? editImage.value.trim() : '';
+            try {
+              var r = await fetch('/api/shop/products/' + id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ image: url || null })
+              });
+              if (r.ok) { showToast('Image updated.', true); closeEdit(); loadShop(); }
+              else showToast('Failed.', false);
+            } catch (_) { showToast('Failed.', false); }
+          });
+        }
         prodEl.querySelectorAll('.product-edit-btn').forEach(function(btn) {
           btn.addEventListener('click', function() {
             var row = btn.closest('tr');
@@ -781,6 +815,35 @@
           } else showToast('Failed to create.', false);
         } catch (_) { showToast('Failed.', false); }
       });
+
+      async function loadTraffic() {
+        const statsEl = document.getElementById('trafficStats');
+        const noteEl = document.getElementById('trafficNote');
+        if (!statsEl) return;
+        const period = (document.getElementById('trafficPeriod') && document.getElementById('trafficPeriod').value) || 'week';
+        const yoy = document.getElementById('trafficYoy') && document.getElementById('trafficYoy').checked;
+        try {
+          let url = '/api/admin/traffic?period=' + encodeURIComponent(period);
+          if (yoy) url += '&compare=yoy';
+          const res = await fetch(url, { credentials: 'include' });
+          if (!res.ok) throw new Error('Failed');
+          const d = await res.json();
+          const periodLabel = period === 'day' ? 'Today' : period === 'week' ? 'Last 7 days' : period === 'month' ? 'Last 30 days' : 'Last 12 months';
+          statsEl.innerHTML =
+            '<div class="admin-stat"><span class="admin-stat-num">' + (d.visitors ?? 0) + '</span><span class="admin-stat-label">Unique visitors</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + (d.returnUsers ?? 0) + '</span><span class="admin-stat-label">Return users (logged in, 2+ days)</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + (d.loggedInVisitors ?? 0) + '</span><span class="admin-stat-label">Logged-in visitors</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + (d.pageViews ?? 0) + '</span><span class="admin-stat-label">Page views</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + (d.likelyBusiness ?? 0) + '</span><span class="admin-stat-label">Likely business (fleet buyers)</span></div>' +
+            (d.yoyGrowth != null ? '<div class="admin-stat"><span class="admin-stat-num" style="color:' + (d.yoyGrowth >= 0 ? 'var(--green)' : 'var(--red)') + '">' + (d.yoyGrowth >= 0 ? '+' : '') + d.yoyGrowth + '%</span><span class="admin-stat-label">Year over year</span></div>' : '');
+          if (noteEl) {
+            noteEl.textContent = 'Period: ' + periodLabel + (d.yoyGrowth != null && d.previousVisitors != null ? '. Previous period (same length, one year ago): ' + d.previousVisitors + ' visitors.' : '') + ' Individual vs business: we infer "likely business" from fleet product purchases; other traffic is a mix of individuals and unknown.';
+          }
+        } catch (e) {
+          statsEl.innerHTML = '<p class="text-muted">Could not load traffic. Data appears after visitors load pages (not API calls).</p>';
+          if (noteEl) noteEl.textContent = '';
+        }
+      }
 
       async function loadCompletions() {
         const el = document.getElementById('completionsTable');
@@ -911,6 +974,13 @@
               .catch(function() { alert('Could not export. Make sure you are signed in as admin.'); });
           });
         }
+
+        var trafficPeriod = document.getElementById('trafficPeriod');
+        var trafficYoy = document.getElementById('trafficYoy');
+        var trafficRefreshBtn = document.getElementById('trafficRefreshBtn');
+        if (trafficPeriod) trafficPeriod.addEventListener('change', loadTraffic);
+        if (trafficYoy) trafficYoy.addEventListener('change', loadTraffic);
+        if (trafficRefreshBtn) trafficRefreshBtn.addEventListener('click', loadTraffic);
 
         function onScroll() {
           const navbar = document.getElementById('navbar');

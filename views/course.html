@@ -990,6 +990,7 @@ function renderCompletionSignedOut(container) {
   html += '<button class="btn btn-primary" onclick="downloadCertificate()">Download Certificate</button>';
   html += '<button class="btn btn-green" onclick="downloadPacket()">Download New Driver Packet</button>';
   html += '</div>';
+  html += '<p class="access-note" style="font-size:.8rem;color:var(--text-3);margin-top:12px;max-width:420px;line-height:1.45">Your packet downloads are for your personal use — e.g. on your phone and laptop. Have it where you need it; the license is for you only. Do not share or distribute copies.</p>';
   html += '<p style="font-size:.82rem;color:var(--text-3);margin-top:12px"><a href="/login">Sign in</a> or <a href="/register">create an account</a> to request your physical certificate by mail and optional copies to insurance/safety.</p>';
   html += compLinksHtml();
   container.innerHTML = html;
@@ -1013,6 +1014,7 @@ function renderCompletionForm(container) {
   html += '<button class="btn btn-glass" onclick="downloadCertificate()">Download certificate (preview)</button>';
   html += '<button class="btn btn-green" onclick="downloadPacket()">Download New Driver Packet</button>';
   html += '</div>';
+  html += '<p class="access-note" style="font-size:.8rem;color:var(--text-3);margin-top:12px;max-width:420px;line-height:1.45">Your packet downloads are for your personal use — e.g. on your phone and laptop. Have it where you need it; the license is for you only. Do not share or distribute copies.</p>';
   html += compLinksHtml();
   container.innerHTML = html;
   document.getElementById('certificateForm').addEventListener('submit', submitCertificateForm);
@@ -1075,6 +1077,7 @@ function renderCompletionSuccess(container, data) {
   html += '<button class="btn btn-primary" onclick="downloadCertificate()">Download Certificate</button>';
   html += '<button class="btn btn-green" onclick="downloadPacket()">Download New Driver Packet</button>';
   html += '</div>';
+  html += '<p class="access-note" style="font-size:.8rem;color:var(--text-3);margin-top:12px;max-width:420px;line-height:1.45">Your packet downloads are for your personal use — e.g. on your phone and laptop. Have it where you need it; the license is for you only. Do not share or distribute copies.</p>';
   html += compLinksHtml();
   container.innerHTML = html;
 }
@@ -1090,19 +1093,37 @@ function saveStudentName(name) {
 }
 
 function downloadPacket() {
-  if (typeof Packets !== 'undefined' && typeof Packets.download === 'function') {
-    Packets.download('new-driver');
-  } else if (typeof Packets !== 'undefined' && typeof Packets.newDriver === 'function') {
-    var html = Packets.newDriver();
-    var blob = new Blob([html], { type: 'text/html' });
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'Mile12-New-Driver-Packet.html';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(a.href);
-  }
+  var type = 'new-driver';
+  fetch('/api/shop/packet-access?type=' + encodeURIComponent(type), { credentials: 'include' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.allowed) {
+        alert('You don\'t have access or your download limit has been reached. This license is for your use only. Purchase again if you need more downloads.');
+        return;
+      }
+      if (typeof Packets !== 'undefined' && typeof Packets.download === 'function') {
+        Packets.download(type);
+      } else if (typeof Packets !== 'undefined' && typeof Packets.newDriver === 'function') {
+        var html = Packets.newDriver();
+        var blob = new Blob([html], { type: 'text/html' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'Mile12-New-Driver-Packet.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+      }
+      fetch('/api/shop/packet-download-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: type }),
+        credentials: 'include'
+      }).catch(function() {});
+    })
+    .catch(function() {
+      alert('Unable to verify access. Please log in and try again.');
+    });
 }
 
 function downloadCertificate() {

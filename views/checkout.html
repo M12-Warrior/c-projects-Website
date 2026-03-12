@@ -89,11 +89,15 @@
         </div>
       </div>
 
-      <div id="orderConfirmation" class="hidden" style="max-width: 480px; margin: 0 auto; text-align: center; padding: 40px;">
+      <div id="orderConfirmation" class="hidden" style="max-width: 520px; margin: 0 auto; text-align: center; padding: 40px;">
         <div class="auth-card">
           <h2 style="font-family: var(--font); margin-bottom: 16px;">Order Placed!</h2>
           <p style="color: var(--text-2); margin-bottom: 8px;">Order ID: <strong id="orderIdDisplay"></strong></p>
-          <p style="color: var(--text-3); font-size: 0.9rem;">Redirecting to your profile in 3 seconds&hellip;</p>
+          <div id="digitalAccessBlurb" style="display: none; text-align: left; margin: 20px 0; padding: 16px; background: var(--bg); border-radius: var(--radius); border-left: 4px solid var(--gold);">
+            <p style="font-weight: 600; color: var(--text); margin: 0 0 8px 0; font-size: 0.95rem;">Your digital access</p>
+            <p id="digitalAccessText" style="color: var(--text-2); font-size: 0.88rem; margin: 0; line-height: 1.5;"></p>
+          </div>
+          <p style="color: var(--text-3); font-size: 0.9rem;">Redirecting to your profile in 5 seconds&hellip;</p>
         </div>
       </div>
 
@@ -263,13 +267,34 @@
             var data = await res.json().catch(function() { return {}; });
 
             if (res.ok) {
+              var placedCart = getCart();
               clearCart();
               document.getElementById('checkoutFormWrap').classList.add('hidden');
               document.getElementById('orderConfirmation').classList.remove('hidden');
               document.getElementById('orderIdDisplay').textContent = (data.order && data.order.id) || data.order_id || data.id || '—';
+              var digitalSlugs = (placedCart || []).map(function(i) { return (i.slug || ''); }).filter(Boolean);
+              var hasCourse = digitalSlugs.some(function(s) { return s === 'course-90day' || s === 'complete-bundle'; });
+              var hasPacket = digitalSlugs.some(function(s) { return s === 'seasoned-packet'; }) || hasCourse;
+              var hasFleet = digitalSlugs.some(function(s) { return s === 'fleet-new-hire-packet' || s === 'fleet-refresher-packet' || s === 'fleet-bundle'; });
+              var blurb = document.getElementById('digitalAccessBlurb');
+              var textEl = document.getElementById('digitalAccessText');
+              if (blurb && textEl && (hasCourse || hasPacket || hasFleet)) {
+                var parts = [];
+                if (hasCourse) {
+                  parts.push('Course &amp; New Driver Packet: Use the course and download the New Driver Packet on your phone, laptop, or tablet — for your personal use only. You get a limited number of packet downloads so you can have it where you need it; the license is not for sharing or distributing to others.');
+                }
+                if (hasPacket && !hasCourse) {
+                  parts.push('Packet downloads are for your personal use (e.g. phone and laptop). You get a limited number of downloads; do not share or distribute copies.');
+                }
+                if (hasFleet) {
+                  parts.push('Fleet packets: 12-month company license with unlimited printing per company. Use is for your organization only; license expires after 12 months.');
+                }
+                textEl.innerHTML = parts.join(' ');
+                blurb.style.display = 'block';
+              }
               setTimeout(function() {
                 window.location.href = '/profile';
-              }, 3000);
+              }, 5000);
             } else {
               showError(data.message || data.error || 'Unable to place order. Please try again.');
               btn.disabled = false;

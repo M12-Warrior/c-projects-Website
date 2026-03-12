@@ -20,6 +20,75 @@ function requireAdmin(req, res, next) {
   next();
 }
 
+// Fleet license duration (months); individual packet download cap
+const FLEET_LICENSE_MONTHS = 12;
+const INDIVIDUAL_PACKET_MAX_DOWNLOADS = 5;
+
+// Map product_slug -> list of grants { product_slug, expiresInMonths, max_downloads }
+const DIGITAL_GRANT_MAP = {
+  'course-90day': [
+    { product_slug: 'course-90day', expiresInMonths: null, max_downloads: null },
+    { product_slug: 'new-driver-packet', expiresInMonths: null, max_downloads: INDIVIDUAL_PACKET_MAX_DOWNLOADS }
+  ],
+  'complete-bundle': [
+    { product_slug: 'course-90day', expiresInMonths: null, max_downloads: null },
+    { product_slug: 'new-driver-packet', expiresInMonths: null, max_downloads: INDIVIDUAL_PACKET_MAX_DOWNLOADS },
+    { product_slug: 'seasoned-packet', expiresInMonths: null, max_downloads: INDIVIDUAL_PACKET_MAX_DOWNLOADS },
+    { product_slug: 'fleet-new-hire-packet', expiresInMonths: FLEET_LICENSE_MONTHS, max_downloads: null },
+    { product_slug: 'fleet-refresher-packet', expiresInMonths: FLEET_LICENSE_MONTHS, max_downloads: null }
+  ],
+  'seasoned-packet': [
+    { product_slug: 'seasoned-packet', expiresInMonths: null, max_downloads: INDIVIDUAL_PACKET_MAX_DOWNLOADS }
+  ],
+  'fleet-new-hire-packet': [
+    { product_slug: 'fleet-new-hire-packet', expiresInMonths: FLEET_LICENSE_MONTHS, max_downloads: null }
+  ],
+  'fleet-refresher-packet': [
+    { product_slug: 'fleet-refresher-packet', expiresInMonths: FLEET_LICENSE_MONTHS, max_downloads: null }
+  ],
+  'fleet-bundle': [
+    { product_slug: 'fleet-new-hire-packet', expiresInMonths: FLEET_LICENSE_MONTHS, max_downloads: null },
+    { product_slug: 'fleet-refresher-packet', expiresInMonths: FLEET_LICENSE_MONTHS, max_downloads: null }
+  ]
+};
+
+function createProductAccessGrantsForOrder(orderId) {
+  const order = db.prepare('SELECT id, user_id FROM orders WHERE id = ?').get(orderId);
+  if (!order) return;
+  const existing = db.prepare('SELECT id FROM product_access_grants WHERE order_id = ? LIMIT 1').get(orderId);
+  if (existing) return;
+
+  const items = db.prepare(`
+    SELECT oi.id, oi.product_id, oi.quantity, p.slug AS product_slug, p.category
+    FROM order_items oi
+    JOIN products p ON p.id = oi.product_id
+    WHERE oi.order_id = ?
+  `).all(orderId);
+
+  const insertGrant = db.prepare(`
+    INSERT INTO product_access_grants (user_id, order_id, product_slug, expires_at, max_downloads)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+
+  const now = new Date();
+  for (const item of items) {
+    if (item.category !== 'digital') continue;
+    const grants = DIGITAL_GRANT_MAP[item.product_slug];
+    if (!grants) continue;
+    const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
+    for (const g of grants) {
+      let expiresAt = null;
+      if (g.expiresInMonths != null) {
+        const d = new Date(now);
+        d.setMonth(d.getMonth() + g.expiresInMonths);
+        expiresAt = d.toISOString();
+      }
+      const maxDown = g.max_downloads == null ? null : g.max_downloads * qty;
+      insertGrant.run(order.user_id, orderId, g.product_slug, expiresAt, maxDown);
+    }
+  }
+}
+
 // Generate slug from name: lowercase, spaces to hyphens, remove non-alphanumeric
 function slugify(name) {
   return String(name)
@@ -204,11 +273,23 @@ router.get('/orders', requireSession, (req, res) => {
 });
 
 // 4b. GET /api/shop/course-access — Has the current user purchased the full course or complete bundle? (for course page gate)
+// Course access does not expire; fleet packet access uses packet-access and expires at 12 months.
 router.get('/course-access', (req, res) => {
   if (!req.session || !req.session.user) {
     return res.json({ hasCourseAccess: false });
   }
-  const row = db.prepare(`
+  const uid = req.session.user.id;
+  const now = new Date().toISOString();
+  // Prefer valid grant (course-90day grant has no expiry)
+  const grantRow = db.prepare(`
+    SELECT 1 FROM product_access_grants
+    WHERE user_id = ? AND product_slug = 'course-90day'
+      AND (expires_at IS NULL OR expires_at > ?)
+    LIMIT 1
+  `).get(uid, now);
+  if (grantRow) return res.json({ hasCourseAccess: true });
+  // Fallback: completed order with course (backward compat / before grants existed)
+  const orderRow = db.prepare(`
     SELECT 1
     FROM orders o
     JOIN order_items oi ON oi.order_id = o.id
@@ -216,8 +297,96 @@ router.get('/course-access', (req, res) => {
     WHERE o.user_id = ? AND o.status != 'cancelled'
       AND p.slug IN ('course-90day', 'complete-bundle')
     LIMIT 1
-  `).get(req.session.user.id);
-  res.json({ hasCourseAccess: !!row });
+  `).get(uid);
+  res.json({ hasCourseAccess: !!orderRow });
+});
+
+// 4c. GET /api/shop/packet-access — Can the current user download this packet? (type: new-driver | seasoned-driver | fleet-new-hire | fleet-refresher)
+const PACKET_TYPE_TO_SLUG = {
+  'new-driver': 'new-driver-packet',
+  'seasoned-driver': 'seasoned-packet',
+  'fleet-new-hire': 'fleet-new-hire-packet',
+  'fleet-refresher': 'fleet-refresher-packet'
+};
+router.get('/packet-access', (req, res) => {
+  const type = (req.query.type || '').trim();
+  const productSlug = PACKET_TYPE_TO_SLUG[type];
+  if (!productSlug) {
+    return res.status(400).json({ error: 'Invalid type', allowed: false });
+  }
+  if (!req.session || !req.session.user) {
+    return res.json({ allowed: false, downloadsRemaining: null, expiresAt: null });
+  }
+  const uid = req.session.user.id;
+  const now = new Date().toISOString();
+
+  // Backfill grants for completed orders that never got grants (e.g. before this feature)
+  const productSlugsThatGrant = Object.keys(DIGITAL_GRANT_MAP).filter(slug => {
+    const grants = DIGITAL_GRANT_MAP[slug];
+    return grants.some(g => g.product_slug === productSlug);
+  });
+  if (productSlugsThatGrant.length > 0) {
+    const placeholders = productSlugsThatGrant.map(() => '?').join(',');
+    const orderWithProduct = db.prepare(`
+      SELECT o.id FROM orders o
+      JOIN order_items oi ON oi.order_id = o.id
+      JOIN products p ON p.id = oi.product_id
+      WHERE o.user_id = ? AND o.status != 'cancelled' AND p.slug IN (${placeholders})
+      ORDER BY o.created_at DESC LIMIT 1
+    `).get(uid, ...productSlugsThatGrant);
+    if (orderWithProduct) {
+      const hasGrant = db.prepare('SELECT id FROM product_access_grants WHERE order_id = ? LIMIT 1').get(orderWithProduct.id);
+      if (!hasGrant) {
+        try {
+          createProductAccessGrantsForOrder(orderWithProduct.id);
+        } catch (_) {}
+        }
+    }
+  }
+
+  const grants = db.prepare(`
+    SELECT id, download_count, max_downloads, expires_at
+    FROM product_access_grants
+    WHERE user_id = ? AND product_slug = ?
+      AND (expires_at IS NULL OR expires_at > ?)
+    ORDER BY expires_at IS NULL DESC, expires_at DESC
+  `).all(uid, productSlug, now);
+
+  for (const g of grants) {
+    const remaining = g.max_downloads == null ? null : Math.max(0, g.max_downloads - g.download_count);
+    if (g.max_downloads != null && remaining <= 0) continue;
+    return res.json({
+      allowed: true,
+      downloadsRemaining: g.max_downloads == null ? null : remaining,
+      expiresAt: g.expires_at || null
+    });
+  }
+  return res.json({ allowed: false, downloadsRemaining: null, expiresAt: null });
+});
+
+// 4d. POST /api/shop/packet-download-log — Record one packet download (consumes one of max_downloads)
+router.post('/packet-download-log', requireSession, (req, res) => {
+  const type = (req.body && req.body.type) ? String(req.body.type).trim() : '';
+  const productSlug = PACKET_TYPE_TO_SLUG[type];
+  if (!productSlug) {
+    return res.status(400).json({ error: 'Invalid type' });
+  }
+  const uid = req.session.user.id;
+  const now = new Date().toISOString();
+
+  const grant = db.prepare(`
+    SELECT id, download_count, max_downloads
+    FROM product_access_grants
+    WHERE user_id = ? AND product_slug = ?
+      AND (expires_at IS NULL OR expires_at > ?)
+    ORDER BY expires_at IS NULL DESC, expires_at DESC
+  `).all(uid, productSlug, now).find(g => g.max_downloads == null || g.download_count < g.max_downloads);
+
+  if (!grant) {
+    return res.status(403).json({ error: 'No access or download limit reached' });
+  }
+  db.prepare('UPDATE product_access_grants SET download_count = download_count + 1 WHERE id = ?').run(grant.id);
+  res.json({ success: true });
 });
 
 // 5. POST /api/shop/products — Admin only, create product
@@ -373,10 +542,23 @@ router.put('/orders/:id', requireAdmin, (req, res) => {
     return res.status(400).json({ error: 'Status is required' });
   }
 
-  const existing = db.prepare('SELECT id FROM orders WHERE id = ?').get(id);
+  const existing = db.prepare('SELECT id, status FROM orders WHERE id = ?').get(id);
   if (!existing) return res.status(404).json({ error: 'Order not found' });
 
+  const newStatus = status.trim().toLowerCase();
+  const wasPending = (existing.status || '').toLowerCase() === 'pending';
+  const isCompleted = newStatus === 'completed' || newStatus === 'paid';
+
   db.prepare('UPDATE orders SET status = ? WHERE id = ?').run(status.trim(), id);
+
+  if (wasPending && isCompleted) {
+    try {
+      createProductAccessGrantsForOrder(id);
+    } catch (err) {
+      console.error('Product access grants creation failed for order', id, err);
+    }
+  }
+
   res.json({ success: true });
 });
 

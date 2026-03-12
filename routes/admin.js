@@ -169,6 +169,112 @@ router.get('/export/newsletter', (req, res) => {
   res.send(lines.join('\n'));
 });
 
+// GET /api/admin/traffic — Analytics: visitors, return users, page views, optional YoY; period=day|week|month|year, compare=yoy
+router.get('/traffic', (req, res) => {
+  const period = (req.query.period || 'week').toLowerCase();
+  const compareYoy = req.query.compare === 'yoy' || req.query.compare === 'true';
+
+  const now = new Date();
+  let start = new Date(now);
+  let end = new Date(now);
+  const dayMs = 24 * 60 * 60 * 1000;
+
+  if (period === 'day') {
+    start.setHours(0, 0, 0, 0);
+  } else if (period === 'week') {
+    start.setTime(now.getTime() - 7 * dayMs);
+  } else if (period === 'month') {
+    start.setTime(now.getTime() - 30 * dayMs);
+  } else if (period === 'year') {
+    start.setTime(now.getTime() - 365 * dayMs);
+  } else {
+    start.setTime(now.getTime() - 7 * dayMs);
+  }
+
+  const startStr = start.toISOString();
+  const endStr = end.toISOString();
+
+  const visitorsRow = db.prepare(`
+    SELECT COUNT(DISTINCT visitor_key) AS c FROM traffic_visits
+    WHERE visited_at >= ? AND visited_at <= ?
+  `).get(startStr, endStr);
+  const visitors = visitorsRow ? visitorsRow.c : 0;
+
+  const returnUsersRow = db.prepare(`
+    SELECT COUNT(*) AS c FROM (
+      SELECT user_id FROM traffic_visits
+      WHERE user_id IS NOT NULL AND visited_at >= ? AND visited_at <= ?
+      GROUP BY user_id
+      HAVING COUNT(DISTINCT date(visited_at)) > 1
+    )
+  `).get(startStr, endStr);
+  const returnUsers = returnUsersRow ? returnUsersRow.c : 0;
+
+  const pageViewsRow = db.prepare(`
+    SELECT COUNT(*) AS c FROM traffic_visits
+    WHERE visited_at >= ? AND visited_at <= ?
+  `).get(startStr, endStr);
+  const pageViews = pageViewsRow ? pageViewsRow.c : 0;
+
+  const loggedInVisitorsRow = db.prepare(`
+    SELECT COUNT(DISTINCT user_id) AS c FROM traffic_visits
+    WHERE user_id IS NOT NULL AND visited_at >= ? AND visited_at <= ?
+  `).get(startStr, endStr);
+  const loggedInVisitors = loggedInVisitorsRow ? loggedInVisitorsRow.c : 0;
+
+  // Likely business: users who have purchased a fleet product and visited in this period
+  const fleetSlugs = ['fleet-new-hire-packet', 'fleet-refresher-packet', 'fleet-bundle'];
+  const placeholders = fleetSlugs.map(() => '?').join(',');
+  const likelyBusinessRow = db.prepare(`
+    SELECT COUNT(DISTINCT t.user_id) AS c
+    FROM traffic_visits t
+    WHERE t.user_id IS NOT NULL AND t.visited_at >= ? AND t.visited_at <= ?
+      AND EXISTS (
+        SELECT 1 FROM orders o
+        JOIN order_items oi ON oi.order_id = o.id
+        JOIN products p ON p.id = oi.product_id
+        WHERE o.user_id = t.user_id AND o.status != 'cancelled'
+          AND p.slug IN (${placeholders})
+      )
+  `).get(startStr, endStr, ...fleetSlugs);
+  const likelyBusiness = likelyBusinessRow ? likelyBusinessRow.c : 0;
+
+  let yoyGrowth = null;
+  let previousVisitors = null;
+  if (compareYoy) {
+    const yearMs = 365 * dayMs;
+    const startPrev = new Date(start.getTime() - yearMs);
+    const endPrev = new Date(end.getTime() - yearMs);
+    const startPrevStr = startPrev.toISOString();
+    const endPrevStr = endPrev.toISOString();
+    const prevRow = db.prepare(`
+      SELECT COUNT(DISTINCT visitor_key) AS c FROM traffic_visits
+      WHERE visited_at >= ? AND visited_at <= ?
+    `).get(startPrevStr, endPrevStr);
+    previousVisitors = prevRow ? prevRow.c : 0;
+    if (previousVisitors > 0 && visitors > 0) {
+      yoyGrowth = Math.round(((visitors - previousVisitors) / previousVisitors) * 100);
+    } else if (previousVisitors === 0 && visitors > 0) {
+      yoyGrowth = 100;
+    } else if (previousVisitors > 0 && visitors === 0) {
+      yoyGrowth = -100;
+    }
+  }
+
+  res.json({
+    period,
+    start: startStr,
+    end: endStr,
+    visitors,
+    returnUsers,
+    loggedInVisitors,
+    pageViews,
+    likelyBusiness,
+    yoyGrowth,
+    previousVisitors: previousVisitors ?? undefined,
+  });
+});
+
 // GET /api/admin/export/preferences — CSV of all users with subscription preferences (self-updating list per channel)
 router.get('/export/preferences', (req, res) => {
   const rows = db.prepare(`

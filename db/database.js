@@ -218,6 +218,50 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_course_completions_cert ON course_completions(certificate_number);
 `);
 
+// Product access grants: per-user download/access limits and fleet license expiry (12 months)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS product_access_grants (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    order_id INTEGER NOT NULL REFERENCES orders(id),
+    product_slug TEXT NOT NULL,
+    granted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME DEFAULT NULL,
+    download_count INTEGER DEFAULT 0,
+    max_downloads INTEGER DEFAULT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_product_access_grants_user ON product_access_grants(user_id);
+  CREATE INDEX IF NOT EXISTS idx_product_access_grants_order ON product_access_grants(order_id);
+  CREATE INDEX IF NOT EXISTS idx_product_access_grants_slug ON product_access_grants(product_slug);
+`);
+
+// Traffic visits: one row per page view for admin analytics (daily/weekly/monthly/yearly, return users, YoY)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS traffic_visits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    visited_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    visitor_key TEXT NOT NULL,
+    user_id INTEGER REFERENCES users(id),
+    path TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_traffic_visits_at ON traffic_visits(visited_at);
+  CREATE INDEX IF NOT EXISTS idx_traffic_visits_user ON traffic_visits(user_id);
+  CREATE INDEX IF NOT EXISTS idx_traffic_visits_key ON traffic_visits(visitor_key);
+`);
+
+// Forum category "Miles Without Borders" for existing databases (idempotent)
+try {
+  const exists = db.prepare('SELECT id FROM forum_categories WHERE slug = ?').get('miles-without-borders');
+  if (!exists) {
+    db.prepare('INSERT INTO forum_categories (name, slug, description, sort_order) VALUES (?, ?, ?, ?)').run(
+      'Miles Without Borders',
+      'miles-without-borders',
+      'Truckers from every country: share your experiences, cultural differences, and the struggles of the road. A place to compare how driver fatigue and hours-of-service are managed worldwide — and learn from each other.',
+      5
+    );
+  }
+} catch (_) {}
+
 // Seed data (only if tables are empty)
 const seedIfEmpty = () => {
   const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
@@ -236,6 +280,7 @@ const seedIfEmpty = () => {
   insertCategory.run('Health & Wellness', 'health-wellness', 'Physical fitness, mental health, nutrition, and self-care for drivers.', 2);
   insertCategory.run('Equipment & Tech', 'equipment-tech', 'Trucks, trailers, ELDs, dashcams, and gear recommendations.', 3);
   insertCategory.run('Mile 12 Moments', 'mile-12-moments', 'Share your Mile 12 turning points — the moments that tested you and made you stronger.', 4);
+  insertCategory.run('Miles Without Borders', 'miles-without-borders', 'Truckers from every country: share your experiences, cultural differences, and the struggles of the road. A place to compare how driver fatigue and hours-of-service are managed worldwide — and learn from each other.', 5);
 
   const insertProduct = db.prepare(`
     INSERT INTO products (name, slug, description, price, category, stock, active) VALUES (?, ?, ?, ?, ?, ?, ?)
