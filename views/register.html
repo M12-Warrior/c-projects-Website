@@ -63,6 +63,10 @@
           <input type="email" id="email" name="email" class="form-input" required autocomplete="email">
         </div>
         <div class="form-group">
+          <label class="form-label" for="homeBase">Where do you call home? (optional)</label>
+          <input type="text" id="homeBase" name="home_base" class="form-input" maxlength="200" placeholder="e.g. Sacramento, CA or Ontario, Canada" autocomplete="address-level2">
+        </div>
+        <div class="form-group">
           <label class="form-label" for="password">Password</label>
           <input type="password" id="password" name="password" class="form-input" required autocomplete="new-password">
         </div>
@@ -172,6 +176,7 @@
 
           const username = document.getElementById('username').value.trim();
           const email = document.getElementById('email').value.trim();
+          const home_base = (document.getElementById('homeBase') && document.getElementById('homeBase').value) ? document.getElementById('homeBase').value.trim() : '';
           const password = document.getElementById('password').value;
           const confirmPassword = document.getElementById('confirmPassword').value;
           const fd = new FormData(registerForm);
@@ -190,7 +195,7 @@
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               credentials: 'include',
-              body: JSON.stringify({ username, email, password, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum })
+              body: JSON.stringify({ username, email, password, home_base, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum })
             });
 
             const data = res.ok ? await res.json().catch(() => ({})) : await res.json().catch(() => ({}));

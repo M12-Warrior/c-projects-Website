@@ -48,6 +48,7 @@ function toSessionUser(row) {
     role: row.role || 'user',
     avatar: row.avatar ?? null,
     bio: row.bio ?? '',
+    home_base: row.home_base ?? '',
     created_at: row.created_at ?? null,
     opt_in_newsletter: row.opt_in_newsletter ? 1 : 0,
     opt_in_blog: row.opt_in_blog ? 1 : 0,
@@ -90,20 +91,22 @@ router.post('/register', (req, res) => {
 
   const hashedPassword = bcrypt.hashSync(password, 10);
   const n = v => (v === true || v === 1 || v === '1' || v === 'true') ? 1 : 0;
+  const homeBase = (req.body.home_base != null && typeof req.body.home_base === 'string') ? req.body.home_base.trim().slice(0, 200) : '';
   const insert = db.prepare(`
-    INSERT INTO users (username, email, password, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO users (username, email, password, home_base, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const result = insert.run(
     trimmedUsername,
     trimmedEmail,
     hashedPassword,
+    homeBase,
     n(opt_in_newsletter),
     n(opt_in_blog),
     n(opt_in_product_updates),
     n(opt_in_forum)
   );
-  const user = db.prepare('SELECT id, username, email, role, avatar, bio, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE id = ?').get(result.lastInsertRowid);
+  const user = db.prepare('SELECT id, username, email, role, avatar, bio, home_base, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE id = ?').get(result.lastInsertRowid);
   const sessionUser = toSessionUser(user);
   req.session.user = sessionUser;
 
@@ -124,8 +127,8 @@ router.post('/login', (req, res) => {
   const input = username.trim();
   const isEmail = input.includes('@');
   const user = isEmail
-    ? db.prepare('SELECT id, username, email, password, role, avatar, bio, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE email = ?').get(input)
-    : db.prepare('SELECT id, username, email, password, role, avatar, bio, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE username = ?').get(input);
+    ? db.prepare('SELECT id, username, email, password, role, avatar, bio, home_base, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE email = ?').get(input)
+    : db.prepare('SELECT id, username, email, password, role, avatar, bio, home_base, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE username = ?').get(input);
   if (!user) {
     return res.status(401).json({ error: 'Invalid username or password' });
   }
@@ -160,7 +163,7 @@ router.get('/me', (req, res) => {
   if (!req.session || !req.session.user) {
     return res.json({ user: null });
   }
-  const row = db.prepare('SELECT id, username, email, role, avatar, bio, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE id = ?').get(req.session.user.id);
+  const row = db.prepare('SELECT id, username, email, role, avatar, bio, home_base, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE id = ?').get(req.session.user.id);
   if (!row) return res.json({ user: null });
   res.json({ user: toSessionUser(row) });
 });
@@ -171,13 +174,14 @@ router.put('/profile', (req, res) => {
     return res.status(401).json({ error: 'Authentication required' });
   }
 
-  const { bio } = req.body;
+  const { bio, home_base } = req.body;
   const bioValue = typeof bio === 'string' ? bio : '';
+  const homeBaseValue = (home_base != null && typeof home_base === 'string') ? home_base.trim().slice(0, 200) : '';
 
-  const update = db.prepare('UPDATE users SET bio = ? WHERE id = ?');
-  update.run(bioValue, req.session.user.id);
+  const update = db.prepare('UPDATE users SET bio = ?, home_base = ? WHERE id = ?');
+  update.run(bioValue, homeBaseValue, req.session.user.id);
 
-  req.session.user = { ...req.session.user, bio: bioValue };
+  req.session.user = { ...req.session.user, bio: bioValue, home_base: homeBaseValue };
 
   res.json({ success: true });
 });
@@ -215,7 +219,7 @@ router.put('/preferences', (req, res) => {
     UPDATE users SET opt_in_newsletter = ?, opt_in_blog = ?, opt_in_product_updates = ?, opt_in_forum = ?
     WHERE id = ?
   `).run(n(newsletter), n(blog), n(product_updates), n(forum), userId);
-  const row = db.prepare('SELECT id, username, email, role, avatar, bio, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE id = ?').get(userId);
+  const row = db.prepare('SELECT id, username, email, role, avatar, bio, home_base, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE id = ?').get(userId);
   req.session.user = toSessionUser(row);
   res.json({ success: true, preferences: { newsletter: !!row.opt_in_newsletter, blog: !!row.opt_in_blog, product_updates: !!row.opt_in_product_updates, forum: !!row.opt_in_forum } });
 });

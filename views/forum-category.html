@@ -111,12 +111,14 @@
         try { return localStorage.getItem('cb_mic_incognito') === '1'; } catch (_) { return false; }
       }
 
-      function authorHtml(username, subscriberTier, userId) {
+      function authorHtml(username, homeBase, subscriberTier, userId) {
         const isCurrentUser = currentUserId != null && userId != null && String(userId) === String(currentUserId);
         const showMic = subscriberTier > 0 && (isCurrentUser ? (myMicVisible && !getIncognito()) : true);
         const name = (username || 'Anonymous').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        if (!showMic) return name;
-        return name + ' <span class="cb-mic cb-mic-tier-' + subscriberTier + '" title="Subscriber">' + CB_MIC_SVG + '</span>';
+        const home = (homeBase || '').trim().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const homePart = home ? ' <span style="font-weight:400;color:var(--text-2);font-size:0.88em;"> · ' + home + '</span>' : '';
+        if (!showMic) return name + homePart;
+        return name + homePart + ' <span class="cb-mic cb-mic-tier-' + subscriberTier + '" title="Subscriber">' + CB_MIC_SVG + '</span>';
       }
 
       async function checkAuth() {
@@ -172,7 +174,7 @@
             if (t.locked) badges.push('<span class="thread-badge badge-locked">Locked</span>');
             const slug2 = t.slug || t.id;
             const tier = t.subscriber_tier || 0;
-            const authorDisplay = 'by ' + authorHtml(t.author?.username || t.username || 'Anonymous', tier, t.user_id) + ' &middot; ' + formatDate(t.created_at || t.createdAt);
+            const authorDisplay = 'by ' + authorHtml(t.author?.username || t.username || 'Anonymous', t.home_base || t.author?.home_base, tier, t.user_id) + ' &middot; ' + formatDate(t.created_at || t.createdAt);
             return '<a href="/forum/thread/' + slug2 + '" class="thread-item">' +
               '<div class="thread-item-main">' +
                 '<div class="thread-item-title">' + (badges.length ? '<span class="thread-badges">' + badges.join('') + '</span> ' : '') + (t.title || 'Thread') + '</div>' +

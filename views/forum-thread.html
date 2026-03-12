@@ -117,11 +117,13 @@
 
       const CB_MIC_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>';
 
-      function authorHtml(username, subscriberTier, userId, isCurrentUser) {
+      function authorHtml(username, homeBase, subscriberTier, userId, isCurrentUser) {
         const showMic = subscriberTier > 0 && (isCurrentUser ? (myMicVisible && !getIncognito()) : true);
         const name = (username || 'Anonymous').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        if (!showMic) return '<span class="reply-author">' + name + '</span>';
-        return '<span class="reply-author">' + name +
+        const home = (homeBase || '').trim().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const homePart = home ? ' <span class="reply-home" style="font-weight:400;color:var(--text-2);font-size:0.88em;"> · ' + home + '</span>' : '';
+        if (!showMic) return '<span class="reply-author">' + name + homePart + '</span>';
+        return '<span class="reply-author">' + name + homePart +
           '<span class="cb-mic cb-mic-tier-' + subscriberTier + '" title="Subscriber">' + CB_MIC_SVG + '</span></span>';
       }
 
@@ -136,7 +138,7 @@
           const isMe = currentUserId != null && r.user_id != null && String(r.user_id) === String(currentUserId);
           return '<div class="reply-card">' +
             '<div class="reply-header">' +
-              authorHtml(r.author?.username || r.username, tier, r.user_id, isMe) +
+              authorHtml(r.author?.username || r.username, r.home_base || r.author?.home_base, tier, r.user_id, isMe) +
               '<span class="reply-date">' + formatDate(r.created_at || r.createdAt) + '</span>' +
             '</div>' +
             '<div class="reply-body">' + (r.content || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>') + '</div>' +
@@ -167,7 +169,7 @@
 
           var threadTier = t.subscriber_tier || 0;
           var threadAuthorIsMe = currentUserId != null && t.user_id != null && String(t.user_id) === String(currentUserId);
-          document.getElementById('threadMeta').innerHTML = 'by ' + authorHtml(t.author?.username || t.username, threadTier, t.user_id, threadAuthorIsMe) + ' &middot; ' + formatDate(t.created_at || t.createdAt);
+          document.getElementById('threadMeta').innerHTML = 'by ' + authorHtml(t.author?.username || t.username, t.home_base || t.author?.home_base, threadTier, t.user_id, threadAuthorIsMe) + ' &middot; ' + formatDate(t.created_at || t.createdAt);
           const replies = threadData.replies;
           const firstReplyContent = (replies[0] && replies[0].content) ? replies[0].content : (t.content || '');
           const contentEl = document.getElementById('threadContent');
@@ -214,7 +216,7 @@
                   var tt = threadData;
                   var threadTier = tt.subscriber_tier || 0;
                   var threadAuthorIsMe = currentUserId != null && tt.user_id != null && String(tt.user_id) === String(currentUserId);
-                  document.getElementById('threadMeta').innerHTML = 'by ' + authorHtml(tt.author?.username || tt.username, threadTier, tt.user_id, threadAuthorIsMe) + ' &middot; ' + formatDate(tt.created_at || tt.createdAt);
+                  document.getElementById('threadMeta').innerHTML = 'by ' + authorHtml(tt.author?.username || tt.username, tt.home_base || tt.author?.home_base, threadTier, tt.user_id, threadAuthorIsMe) + ' &middot; ' + formatDate(tt.created_at || tt.createdAt);
                 }
               });
             }

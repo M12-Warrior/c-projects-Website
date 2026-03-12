@@ -74,7 +74,7 @@ router.get('/categories/:slug', (req, res) => {
   }
 
   const threads = db.prepare(`
-    SELECT t.*, u.username,
+    SELECT t.*, u.username, u.home_base,
       (SELECT COUNT(*) FROM forum_replies WHERE thread_id = t.id) AS reply_count
     FROM forum_threads t
     LEFT JOIN users u ON u.id = t.user_id
@@ -87,6 +87,7 @@ router.get('/categories/:slug', (req, res) => {
     category_id: t.category_id,
     user_id: t.user_id,
     username: t.username,
+    home_base: t.home_base || null,
     subscriber_tier: subscriberTier(t.user_id),
     title: t.title,
     slug: t.slug,
@@ -113,7 +114,7 @@ router.get('/categories/:slug', (req, res) => {
 router.get('/threads/:slug', (req, res) => {
   const { slug } = req.params;
   const row = db.prepare(`
-    SELECT t.*, u.username, c.slug AS category_slug, c.name AS category_name
+    SELECT t.*, u.username, u.home_base, c.slug AS category_slug, c.name AS category_name
     FROM forum_threads t
     LEFT JOIN users u ON u.id = t.user_id
     LEFT JOIN forum_categories c ON c.id = t.category_id
@@ -129,6 +130,7 @@ router.get('/threads/:slug', (req, res) => {
     category_id: row.category_id,
     user_id: row.user_id,
     username: row.username,
+    home_base: row.home_base || null,
     subscriber_tier: subscriberTier(row.user_id),
     title: row.title,
     slug: row.slug,
@@ -140,7 +142,7 @@ router.get('/threads/:slug', (req, res) => {
   };
 
   const replies = db.prepare(`
-    SELECT r.*, u.username
+    SELECT r.*, u.username, u.home_base
     FROM forum_replies r
     LEFT JOIN users u ON u.id = r.user_id
     WHERE r.thread_id = ?
@@ -152,6 +154,7 @@ router.get('/threads/:slug', (req, res) => {
     thread_id: r.thread_id,
     user_id: r.user_id,
     username: r.username,
+    home_base: r.home_base || null,
     subscriber_tier: subscriberTier(r.user_id),
     content: r.content,
     created_at: r.created_at

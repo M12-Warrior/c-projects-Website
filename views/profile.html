@@ -63,8 +63,13 @@
         <section class="profile-section">
           <h3>About</h3>
           <p id="bioDisplay" class="bio-display"></p>
+          <p id="homeBaseDisplay" class="profile-home-base text-muted" style="font-size:0.9rem;margin-top:12px;"></p>
           <div id="bioEditWrap" class="hidden">
             <textarea id="bioTextarea" class="form-input" rows="4" placeholder="Tell us a bit about yourself…"></textarea>
+            <div class="form-group" style="margin-top:16px;">
+              <label class="form-label" for="homeBaseInput">Where do you call home?</label>
+              <input type="text" id="homeBaseInput" class="form-input" maxlength="200" placeholder="e.g. Sacramento, CA or Ontario, Canada">
+            </div>
             <div class="mt-16 flex-between">
               <button type="button" class="btn btn-glass" id="bioCancelBtn">Cancel</button>
               <button type="button" class="btn btn-primary" id="bioSaveBtn">Save</button>
@@ -206,6 +211,7 @@
         const email = document.getElementById('profileEmail');
         const memberSince = document.getElementById('profileMemberSince');
         const bioDisplay = document.getElementById('bioDisplay');
+        const homeBaseDisplay = document.getElementById('homeBaseDisplay');
         const adminWrap = document.getElementById('adminLinkWrap');
 
         const uname = user.username || user.email || 'User';
@@ -216,6 +222,10 @@
         bioDisplay.textContent = user.bio ? escapeHtml(user.bio) : 'No bio yet.';
         bioDisplay.style.display = user.bio ? 'block' : 'block';
         if (!user.bio) bioDisplay.classList.add('text-muted');
+        if (homeBaseDisplay) {
+          homeBaseDisplay.textContent = user.home_base ? 'Where I call home: ' + escapeHtml(user.home_base) : '';
+          homeBaseDisplay.style.display = user.home_base ? 'block' : 'none';
+        }
 
         if (user.role === 'admin') {
           adminWrap.classList.remove('hidden');
@@ -225,6 +235,8 @@
 
         const textarea = document.getElementById('bioTextarea');
         if (textarea) textarea.value = user.bio || '';
+        const homeBaseInput = document.getElementById('homeBaseInput');
+        if (homeBaseInput) homeBaseInput.value = user.home_base || '';
 
         var prefNewsletter = document.getElementById('pref_newsletter');
         var prefBlog = document.getElementById('pref_blog');
@@ -365,30 +377,42 @@
         document.getElementById('bioEditWrap').classList.add('hidden');
         document.getElementById('editBioBtn').classList.remove('hidden');
         document.getElementById('bioTextarea').value = currentUser ? (currentUser.bio || '') : '';
+        var homeIn = document.getElementById('homeBaseInput');
+        if (homeIn) homeIn.value = currentUser ? (currentUser.home_base || '') : '';
       });
 
       document.getElementById('bioSaveBtn').addEventListener('click', async function() {
         const textarea = document.getElementById('bioTextarea');
         const bio = textarea.value.trim();
+        const homeBaseInput = document.getElementById('homeBaseInput');
+        const home_base = homeBaseInput ? homeBaseInput.value.trim() : '';
         try {
           const res = await fetch('/api/auth/profile', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ bio: bio })
+            body: JSON.stringify({ bio: bio, home_base: home_base })
           });
           if (!res.ok) {
             const err = await res.json().catch(function() { return {}; });
             showToast(err.message || err.error || 'Failed to save', false);
             return;
           }
-          if (currentUser) currentUser.bio = bio;
+          if (currentUser) {
+            currentUser.bio = bio;
+            currentUser.home_base = home_base;
+          }
           document.getElementById('bioDisplay').textContent = bio || 'No bio yet.';
           document.getElementById('bioDisplay').classList.toggle('text-muted', !bio);
           document.getElementById('bioDisplay').classList.remove('hidden');
+          var homeDisp = document.getElementById('homeBaseDisplay');
+          if (homeDisp) {
+            homeDisp.textContent = home_base ? 'Where I call home: ' + escapeHtml(home_base) : '';
+            homeDisp.style.display = home_base ? 'block' : 'none';
+          }
           document.getElementById('bioEditWrap').classList.add('hidden');
           document.getElementById('editBioBtn').classList.remove('hidden');
-          showToast('Bio saved.', true);
+          showToast('Saved.', true);
         } catch (e) {
           showToast('Failed to save.', false);
         }
