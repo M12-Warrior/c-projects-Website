@@ -2,6 +2,7 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
+const BLOG_POSTS_SEED = require('./blog-posts-seed.js');
 
 // On Railway (or any host), set DB_PATH to a persistent volume path, e.g. /data/drivershield.db
 const dbPath = process.env.DB_PATH || path.join(__dirname, 'drivershield.db');
@@ -53,6 +54,9 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+  try {
+    db.exec('ALTER TABLE blog_posts ADD COLUMN scheduled_at DATETIME');
+  } catch (_) {}
 
   CREATE TABLE IF NOT EXISTS blog_comments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -309,115 +313,20 @@ const seedIfEmpty = () => {
   const insertPost = db.prepare(`
     INSERT INTO blog_posts (title, slug, content, excerpt, author_id, published) VALUES (?, ?, ?, ?, ?, ?)
   `);
-  insertPost.run(
-    'Sleep Management for Commercial Drivers: Staying Alert Within HOS Limits',
-    'sleep-management-commercial-drivers',
-    `Operating safely on the road demands more than skill behind the wheel—it requires proper rest. Under FMCSA Hours of Service rules (49 CFR Part 395), drivers must take at least 10 consecutive hours off duty before driving again. How you use that time directly impacts your alertness and safety.
-
-Quality sleep is the foundation of HOS compliance. A regular sleep schedule aligned with your natural circadian rhythm helps you fall asleep faster and wake refreshed. Avoid heavy meals, caffeine, and screens in the hour before bed. Your sleeper berth or rest area should be dark, quiet, and cool.
-
- naps can help when you're tired, but FMCSA mandates at least one 30-minute break during your 8-hour shift. Use rest periods wisely: short naps (20–30 minutes) can improve alertness without leaving you groggy.
-
-Sleep apnea screening is required for CDL physicals. Untreated sleep apnea increases crash risk. If you're diagnosed, follow your treatment plan—CPAP or other prescribed therapy—to stay compliant and safe.
-
-This information is educational only. For specific compliance questions, consult FMCSA regulations at fmcsa.dot.gov and qualified professionals.`,
-    'Practical tips for quality rest within FMCSA Hours of Service requirements.',
-    1,
-    1
-  );
-  insertPost.run(
-    'Mental Health on the Road: Building Resilience as a Trucker',
-    'mental-health-on-the-road',
-    `Long hours behind the wheel, time away from family, and the pressures of deadlines can take a toll on any driver. Mental wellness is as critical to safety as physical fitness. Stress, loneliness, and fatigue are common challenges—but there are proven ways to build resilience.
-
-Stay connected. Regular calls or video chats with family and friends combat isolation. Many drivers find community through CB radio, truck stop meetups, or online forums. Driver support groups and peer networks can provide understanding and encouragement.
-
-Practice simple coping techniques. Deep breathing, stretching during breaks, and short walks can reduce stress. Listen to music, audiobooks, or podcasts that lift your mood. A consistent routine—waking, eating, and resting at similar times—provides a sense of control.
-
-Know when to seek help. Persistent sadness, anxiety, sleep problems, or changes in appetite warrant professional support. Many employers offer Employee Assistance Programs (EAPs) that provide free, confidential counseling. Mental health care is part of staying fit-for-duty under FMCSA medical certification standards (49 CFR Part 391).
-
-This information is educational only. For medical or mental health concerns, consult qualified healthcare providers.`,
-    'Strategies for maintaining mental wellness during long hauls.',
-    1,
-    1
-  );
-  insertPost.run(
-    'Mile 12: Where Our Journey Gets Real',
-    'mile-12-where-our-journey-gets-real',
-    `Every long-haul driver knows the feeling. You're hours into a run, the highway stretches endlessly, and your body starts signaling that it's time to stop. That's Mile 12 — not a literal distance, but a metaphor for the moment when fatigue hits hardest and the temptation to push through is strongest.
-
-At Mile 12 Warrior, we believe this moment is actually a gift. It's the turning point where awareness becomes action. Instead of fighting through with another energy drink or ignoring the warning signs, Mile 12 is where you choose to be a warrior — making the smart call, pulling over, resetting, and coming back stronger.
-
-This is what separates professionals from statistics. The drivers who respect their limits, who understand that rest is not weakness but strategy, who treat their body and mind as their most valuable equipment — those are the ones who build careers that last decades, not just seasons.
-
-Our founder Joyce Cooke has lived these moments for over 25 years. From school buses to P&D to regional OTR runs, she's been through every version of Mile 12. That experience is the foundation of everything we build here.
-
-This information is educational only. For specific compliance questions regarding rest and HOS, consult FMCSA regulations at fmcsa.dot.gov.`,
-    'The critical turning point every driver faces — and how to make it your strength.',
-    1,
-    1
-  );
-  insertPost.run(
-    'Truck Driver Fatigue: 5 Quick Resets to Stay Alert on Long Hauls',
-    '5-quick-resets-stay-alert',
-    `Fatigue doesn't announce itself with a warning bell. It creeps in — heavy eyelids, wandering thoughts, microsleeps that last just long enough to drift across a lane line. As professional drivers, we need an arsenal of quick resets that actually work.
-
-1. The 20-Minute Power Nap: Find a safe spot, set an alarm, close your eyes. Research shows that even 20 minutes of sleep can restore alertness for up to two hours. Don't sleep longer than 30 minutes or you'll hit deep sleep and wake groggy.
-
-2. Cold Water and Fresh Air: Splash cold water on your face and step outside the cab. The temperature change and fresh oxygen give your nervous system a genuine jolt. Walk around your truck — do a quick walkaround inspection while you're at it.
-
-3. The 4-7-8 Breathing Reset: Even though this is a relaxation technique, it resets your autonomic nervous system. Inhale for 4 seconds, hold for 7, exhale for 8. Three rounds. You'll feel more centered and clear-headed.
-
-4. Protein Over Sugar: Skip the candy bar. Grab almonds, jerky, cheese sticks, or a protein bar. Sugar gives you a spike and crash. Protein gives you sustained, stable energy.
-
-5. Strategic Caffeine Timing: Caffeine takes 20-30 minutes to kick in. Combine it with a power nap — drink the coffee, then immediately nap for 20 minutes. When you wake up, the caffeine hits and you get a double boost. The coffee nap is one of the most effective fatigue tools known.
-
-Remember: these are resets, not replacements for real sleep. Under FMCSA Hours of Service rules (49 CFR Part 395), you must take proper rest breaks. These quick resets are for when you need a bridge to your next proper rest period.
-
-This information is educational only. Always comply with FMCSA HOS regulations.`,
-    'Five proven techniques to fight fatigue between rest stops.',
-    1,
-    1
-  );
-  insertPost.run(
-    'Embracing Change with Confidence: A Trucker\'s Guide',
-    'embracing-change-with-confidence',
-    `Change is the only constant on the road — new routes, new regulations, new technology, new challenges. For truck drivers, adaptability isn't just a nice-to-have skill; it's survival.
-
-Whether you're switching from day runs to night driving, transitioning from company driver to owner-operator, adapting to ELD mandates, or simply dealing with a detour that throws off your entire schedule — how you respond to change defines your career.
-
-Start by reframing change as opportunity. Every new regulation you master, every new route you learn, every new piece of technology you embrace — these are competitive advantages. The drivers who resist change get left behind. The drivers who lean into it become the ones fleets fight to keep.
-
-Build your confidence muscle with small wins. Try a new healthy meal instead of the usual truck stop fare. Take a different route and notice what you learn. Start a morning stretching routine. Each small change you successfully navigate builds the confidence to handle bigger ones.
-
-And remember — you don't have to do it alone. That's what community is for. Share your experiences in the forum, learn from drivers who've been through similar transitions, and know that every successful trucker you admire once stood exactly where you're standing now.
-
-The road ahead is always uncertain. But with the right mindset, the right tools, and the right community — you're ready for whatever comes next.`,
-    'How professional drivers can build adaptability and thrive through career transitions.',
-    1,
-    1
-  );
-  insertPost.run(
-    'How to Set Healthy Boundaries Without Feeling Guilty',
-    'setting-healthy-boundaries',
-    `As truck drivers, we face constant pressure to say yes. Yes to that extra load. Yes to the tight delivery window. Yes to skipping the break because dispatch is pushing. But learning to set boundaries isn't selfish — it's the foundation of a sustainable career.
-
-Boundary-setting starts with knowing your non-negotiables. Your HOS limits aren't just regulations — they're your personal safety boundaries backed by federal law (FMCSA 49 CFR Part 395). No load, no bonus, no dispatcher pressure is worth violating them. When you frame compliance as self-care rather than restriction, the guilt disappears.
-
-At home, boundaries look different but are equally important. Being honest with your family about what you can and can't control on the road reduces resentment on both sides. Set realistic expectations for communication — a scheduled 15-minute call is better than a broken promise of 'I'll call when I can.'
-
-With your company, boundaries mean knowing your rights. You have the right to refuse an unsafe load. You have the right to proper rest. You have the right to a work environment free from harassment. These aren't entitlements — they're legal protections.
-
-The mindset shift: every boundary you set is a vote for the career and life you want. Drivers who set clear boundaries experience less burnout, fewer safety incidents, and longer, more fulfilling careers.
-
-This information is educational only. For questions about your rights and regulations, consult FMCSA at fmcsa.dot.gov and qualified legal professionals.`,
-    'The mindset shift every driver needs for a sustainable, guilt-free career.',
-    1,
-    1
-  );
+  for (const post of BLOG_POSTS_SEED) {
+    insertPost.run(post.title, post.slug, post.content, post.excerpt, 1, 1);
+  }
 };
 
 seedIfEmpty();
+
+// Refresh blog post content so existing DBs get updated copy (tone, length, structure, CTA)
+try {
+  const updatePost = db.prepare('UPDATE blog_posts SET content = ?, excerpt = ? WHERE slug = ?');
+  for (const post of BLOG_POSTS_SEED) {
+    updatePost.run(post.content, post.excerpt, post.slug);
+  }
+} catch (_) {}
 
 // Ensure at least one admin exists (e.g. if DB had users before seed ran)
 try {

@@ -15,6 +15,34 @@
   <div class="grain-overlay"></div>
   <div class="scroll-progress" id="scrollProgress"></div>
 
+  <div id="floatingFormatToolbar" class="floating-format-toolbar hidden" aria-label="Formatting toolbar">
+    <div class="floating-toolbar-inner">
+      <button type="button" class="ft-btn" data-format="bold" title="Bold"><strong>B</strong></button>
+      <button type="button" class="ft-btn" data-format="italic" title="Italic"><em>I</em></button>
+      <button type="button" class="ft-btn" data-format="underline" title="Underline">U</button>
+      <span class="ft-sep"></span>
+      <button type="button" class="ft-btn" data-format="ul" title="Bullet list">• List</button>
+      <button type="button" class="ft-btn" data-format="ol" title="Numbered list">1. List</button>
+      <span class="ft-sep"></span>
+      <button type="button" class="ft-btn" data-format="link" title="Insert link">Link</button>
+      <span class="ft-sep"></span>
+      <button type="button" class="ft-btn" data-format="alignLeft" title="Align left">⬅</button>
+      <button type="button" class="ft-btn" data-format="alignCenter" title="Align center">◎</button>
+      <button type="button" class="ft-btn" data-format="alignRight" title="Align right">➡</button>
+      <button type="button" class="ft-btn" data-format="alignJustify" title="Justify">⇔</button>
+      <span class="ft-sep"></span>
+      <select class="ft-font" id="floatingToolbarFont" title="Font family">
+        <option value="">Font</option>
+        <option value="Arial, sans-serif">Arial</option>
+        <option value="Georgia, serif">Georgia</option>
+        <option value="'Times New Roman', serif">Times New Roman</option>
+        <option value="Verdana, sans-serif">Verdana</option>
+        <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+        <option value="'Open Sans', sans-serif">Open Sans</option>
+      </select>
+    </div>
+  </div>
+
   <nav class="navbar scrolled" id="navbar">
     <div class="nav-container">
       <a href="/" class="nav-logo">
@@ -143,16 +171,18 @@
                   <button type="button" class="blog-tb-btn" data-wrap="blockquote" title="Blockquote">Quote</button>
                   <button type="button" class="blog-tb-btn blog-tb-hr" title="Horizontal line">—</button>
                 </div>
-                <textarea name="content" id="blogNewContent" class="form-input blog-content-textarea" rows="28" required spellcheck="true" lang="en" placeholder="Write your full post here. Use the formatting bar above for bold, italic, links, lists, headings, and more."></textarea>
+                <textarea name="content" id="blogNewContent" class="form-input blog-content-textarea content-editor" rows="28" required spellcheck="true" lang="en" placeholder="Write your full post here. Use the formatting bar above for bold, italic, links, lists, headings, and more."></textarea>
                 <button type="button" class="btn btn-glass mt-8" id="blogNewProofreadBtn">Proofread</button>
               </div>
               <div class="form-group">
-                <label><input type="checkbox" name="published" value="1" id="blogNewPublished"> Published (leave unchecked for draft)</label>
+                <label class="form-label">Schedule publish (optional)</label>
+                <p style="font-size:0.8rem;color:var(--text-3);margin-bottom:6px;">Leave blank to publish now or save as draft. Set a date and time to publish automatically at that time.</p>
+                <input type="datetime-local" name="scheduled_at" id="blogNewScheduledAt" class="form-input" style="max-width:280px;">
               </div>
               <div class="flex-between mt-16" style="flex-wrap:wrap;gap:10px;">
                 <button type="button" class="btn btn-glass" id="blogNewCancelBtn">Cancel</button>
-                <button type="button" class="btn btn-primary" id="blogNewSaveDraftBtn">Save draft</button>
-                <button type="submit" class="btn btn-primary" id="blogNewPublishBtn">Publish</button>
+                <button type="button" class="btn btn-primary" id="blogNewSaveDraftBtn">Save as draft</button>
+                <button type="button" class="btn btn-primary" id="blogNewPublishBtn">Publish</button>
               </div>
             </form>
           </div>
@@ -198,14 +228,19 @@
                   <button type="button" class="blog-tb-btn" data-wrap="blockquote" title="Blockquote">Quote</button>
                   <button type="button" class="blog-tb-btn blog-tb-hr" title="Horizontal line">—</button>
                 </div>
-                <textarea id="blogEditContent" name="content" class="form-input blog-content-textarea" rows="28" required spellcheck="true" lang="en" placeholder="Full post content. Use the formatting bar above."></textarea>
+                <textarea id="blogEditContent" name="content" class="form-input blog-content-textarea content-editor" rows="28" required spellcheck="true" lang="en" placeholder="Full post content. Use the formatting bar above."></textarea>
                 <button type="button" class="btn btn-glass mt-8" id="blogEditProofreadBtn">Proofread</button>
               </div>
-              <div class="form-group"><label><input type="checkbox" id="blogEditPublished" name="published" value="1"> Published</label></div>
-              <p style="font-size:0.8rem;color:var(--text-3);margin-top:4px;">Click Save changes to keep your work. You can close and click Edit on this post later to continue.</p>
-              <div class="flex-between mt-16">
+              <div class="form-group">
+                <label class="form-label">Schedule publish (optional)</label>
+                <p style="font-size:0.8rem;color:var(--text-3);margin-bottom:6px;">Leave blank to publish now or save as draft. Set a date and time to publish automatically at that time.</p>
+                <input type="datetime-local" id="blogEditScheduledAt" class="form-input" style="max-width:280px;">
+              </div>
+              <p style="font-size:0.8rem;color:var(--text-3);margin-top:4px;">Save as draft to keep your work without going live. Use Publish to make the post live on the site (or at the scheduled time).</p>
+              <div class="flex-between mt-16" style="flex-wrap:wrap;gap:10px;">
                 <button type="button" class="btn btn-glass" id="blogEditCancel">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save changes</button>
+                <button type="button" class="btn btn-primary" id="blogEditSaveDraftBtn">Save as draft</button>
+                <button type="button" class="btn btn-primary" id="blogEditPublishBtn">Publish</button>
               </div>
             </form>
           </div>
@@ -240,7 +275,7 @@
             <div class="profile-section">
               <form id="productNewForm">
                 <div class="form-group"><label class="form-label">Name</label><input type="text" name="name" class="form-input" required></div>
-                <div class="form-group"><label class="form-label">Description</label><textarea name="description" class="form-input" rows="3"></textarea></div>
+                <div class="form-group"><label class="form-label">Description</label><textarea name="description" class="form-input content-editor" rows="3"></textarea></div>
                 <div class="form-group"><label class="form-label">Price</label><input type="number" name="price" class="form-input" step="0.01" min="0" required></div>
                 <div class="form-group"><label class="form-label">Image (URL)</label><input type="url" name="image" class="form-input" placeholder="https://... or /images/products/slug.jpg"></div>
                 <div class="form-group"><label class="form-label">Category</label><input type="text" name="category" class="form-input"></div>
@@ -406,6 +441,106 @@
         });
       });
 
+      (function floatingFormatToolbar() {
+        var toolbar = document.getElementById('floatingFormatToolbar');
+        var fontSelect = document.getElementById('floatingToolbarFont');
+        var state = { ta: null, start: 0, end: 0 };
+        function showToolbar(ta, start, end) {
+          if (!ta || start === end) return;
+          state.ta = ta;
+          state.start = start;
+          state.end = end;
+          if (toolbar) toolbar.classList.remove('hidden');
+          if (fontSelect) fontSelect.value = '';
+        }
+        function hideToolbar() {
+          state.ta = null;
+          if (toolbar) toolbar.classList.add('hidden');
+        }
+        function applyWrap(openTag, closeTag) {
+          var ta = state.ta;
+          if (!ta) return;
+          var val = ta.value;
+          var sel = val.slice(state.start, state.end);
+          ta.value = val.slice(0, state.start) + openTag + sel + closeTag + val.slice(state.end);
+          ta.focus();
+          ta.setSelectionRange(state.start + openTag.length, state.end + openTag.length);
+          hideToolbar();
+        }
+        function applyBlock(openTag, closeTag) {
+          var ta = state.ta;
+          if (!ta) return;
+          var val = ta.value;
+          var sel = val.slice(state.start, state.end);
+          ta.value = val.slice(0, state.start) + openTag + sel + closeTag + val.slice(state.end);
+          ta.focus();
+          hideToolbar();
+        }
+        function applyList(tag) {
+          var ta = state.ta;
+          if (!ta) return;
+          var val = ta.value;
+          var sel = val.slice(state.start, state.end);
+          var lines = sel.split(/\r?\n/);
+          var wrapped = lines.map(function(l) { return '<li>' + l.trim() + '</li>'; }).join('\n');
+          ta.value = val.slice(0, state.start) + '<' + tag + '>\n' + wrapped + '\n</' + tag + '>\n' + val.slice(state.end);
+          ta.focus();
+          hideToolbar();
+        }
+        function applyLink() {
+          var ta = state.ta;
+          if (!ta) return;
+          var url = prompt('Enter URL:', 'https://');
+          if (url === null) return;
+          url = (url || '').trim();
+          if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+          var val = ta.value;
+          var sel = val.slice(state.start, state.end) || 'link';
+          ta.value = val.slice(0, state.start) + '<a href="' + url + '">' + sel + '</a>' + val.slice(state.end);
+          ta.focus();
+          hideToolbar();
+        }
+        function onSelect() {
+          var el = document.activeElement;
+          if (!el || !el.classList || !el.classList.contains('content-editor')) { hideToolbar(); return; }
+          var start = el.selectionStart, end = el.selectionEnd;
+          if (start === end) { hideToolbar(); return; }
+          showToolbar(el, start, end);
+        }
+        document.addEventListener('mouseup', onSelect);
+        document.addEventListener('keyup', onSelect);
+        document.addEventListener('mousedown', function(e) {
+          if (toolbar && !toolbar.contains(e.target)) hideToolbar();
+        });
+        if (toolbar) {
+          toolbar.addEventListener('click', function(e) {
+            var btn = e.target.closest('.ft-btn');
+            if (!btn || !state.ta) return;
+            e.preventDefault();
+            var format = btn.getAttribute('data-format');
+            if (format === 'bold') applyWrap('<strong>', '</strong>');
+            else if (format === 'italic') applyWrap('<em>', '</em>');
+            else if (format === 'underline') applyWrap('<u>', '</u>');
+            else if (format === 'ul') applyList('ul');
+            else if (format === 'ol') applyList('ol');
+            else if (format === 'link') applyLink();
+            else if (format === 'alignLeft') applyBlock('<p style="text-align:left">', '</p>');
+            else if (format === 'alignCenter') applyBlock('<p style="text-align:center">', '</p>');
+            else if (format === 'alignRight') applyBlock('<p style="text-align:right">', '</p>');
+            else if (format === 'alignJustify') applyBlock('<p style="text-align:justify">', '</p>');
+          });
+          fontSelect = document.getElementById('floatingToolbarFont');
+          if (fontSelect) {
+            fontSelect.addEventListener('change', function() {
+              var val = this.value;
+              if (!val || !state.ta) return;
+              applyWrap('<span style="font-family:' + val + '">', '</span>');
+              this.value = '';
+            });
+          }
+        }
+      })();
+
       async function loadDashboard() {
         const statsEl = document.getElementById('dashboardStats');
         const usersEl = document.getElementById('recentUsersTable');
@@ -570,11 +705,13 @@
           const data = await res.json();
           const posts = data.posts || data || [];
           el.innerHTML = posts.map(function(p) {
-            const status = (p.status || (p.published ? 'published' : 'draft')).toLowerCase();
+            var status = p.status || (p.published ? 'published' : (p.scheduled_at && new Date(p.scheduled_at) > new Date() ? 'scheduled' : 'draft'));
+            var statusLabel = status;
+            if (status === 'scheduled' && p.scheduled_at) statusLabel = 'Scheduled ' + (new Date(p.scheduled_at).toLocaleString());
             return '<tr data-id="' + p.id + '">' +
               '<td>' + escapeHtml(p.title) + '</td>' +
               '<td>' + escapeHtml(p.author_username || p.author || '—') + '</td>' +
-              '<td><span class="badge-status ' + (status === 'published' ? 'status-delivered' : 'status-pending') + '">' + status + '</span></td>' +
+              '<td><span class="badge-status ' + (status === 'published' ? 'status-delivered' : 'status-pending') + '">' + escapeHtml(statusLabel) + '</span></td>' +
               '<td>' + formatDate(p.created_at || p.date) + '</td>' +
               '<td><button type="button" class="admin-btn admin-btn-primary blog-edit" style="margin-right:8px;">Edit</button><button type="button" class="admin-btn admin-btn-danger blog-delete">Delete</button></td>' +
             '</tr>';
@@ -614,7 +751,13 @@
           document.getElementById('blogEditExcerpt').value = p.excerpt || '';
           document.getElementById('blogEditImageUrl').value = p.image || '';
           document.getElementById('blogEditContent').value = p.content || '';
-          document.getElementById('blogEditPublished').checked = !!p.published;
+          var schedEl = document.getElementById('blogEditScheduledAt');
+          if (schedEl && p.scheduled_at) {
+            try {
+              var d = new Date(p.scheduled_at);
+              schedEl.value = d.toISOString().slice(0, 16);
+            } catch (_) { schedEl.value = ''; }
+          } else if (schedEl) schedEl.value = '';
           var modal = document.getElementById('blogEditModal');
           modal.classList.remove('hidden');
           modal.style.display = 'flex';
@@ -645,16 +788,19 @@
         } catch (_) { showToast('Upload failed.', false); }
         this.value = '';
       });
-      document.getElementById('blogEditForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        var id = document.getElementById('blogEditId').value;
-        var payload = {
+      function getEditPayload() {
+        return {
           title: document.getElementById('blogEditTitle').value,
           excerpt: document.getElementById('blogEditExcerpt').value,
           image: (document.getElementById('blogEditImageUrl').value || '').trim() || null,
           content: document.getElementById('blogEditContent').value,
-          published: document.getElementById('blogEditPublished').checked
+          scheduled_at: (document.getElementById('blogEditScheduledAt').value || '').trim() || null
         };
+      }
+      async function submitEdit(publish) {
+        var id = document.getElementById('blogEditId').value;
+        var payload = getEditPayload();
+        payload.published = !!publish;
         try {
           var r = await fetch('/api/blog/posts/' + id, {
             method: 'PUT',
@@ -663,11 +809,23 @@
             body: JSON.stringify(payload)
           });
           if (r.ok) {
-            showToast('Post updated.', true);
+            showToast(publish ? 'Post published.' : 'Draft saved.', true);
             closeBlogEdit();
             loadBlog();
           } else showToast('Failed to update.', false);
         } catch (_) { showToast('Failed to update.', false); }
+      }
+      document.getElementById('blogEditSaveDraftBtn').addEventListener('click', async function() {
+        if (!confirm('Save as draft? Your changes will be saved but the post will not be visible on the site until you publish it.')) return;
+        await submitEdit(false);
+      });
+      document.getElementById('blogEditPublishBtn').addEventListener('click', async function() {
+        var sched = (document.getElementById('blogEditScheduledAt').value || '').trim();
+        var msg = sched && new Date(sched) > new Date()
+          ? 'Schedule this post to publish at ' + sched + '? It will go live automatically at that time.'
+          : 'Publish this post now? It will be live on the site.';
+        if (!confirm(msg)) return;
+        await submitEdit(true);
       });
 
       document.getElementById('blogNewPostBtn').addEventListener('click', function() {
@@ -695,18 +853,25 @@
         } catch (_) { showToast('Upload failed.', false); }
         this.value = '';
       });
-      document.getElementById('blogNewForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        submitNewPost(true);
+      document.getElementById('blogNewSaveDraftBtn').addEventListener('click', async function() {
+        if (!confirm('Save as draft? Your post will be saved but will not be visible on the site until you publish it.')) return;
+        await submitNewPost(false);
       });
-      document.getElementById('blogNewSaveDraftBtn').addEventListener('click', function() {
-        submitNewPost(false);
+      document.getElementById('blogNewPublishBtn').addEventListener('click', async function() {
+        var schedEl = document.getElementById('blogNewScheduledAt');
+        var sched = (schedEl && schedEl.value) ? schedEl.value.trim() : '';
+        var msg = sched && new Date(sched) > new Date()
+          ? 'Publish this post at the scheduled time (' + sched + ')? It will go live automatically then.'
+          : 'Publish this post now? It will be live on the site.';
+        if (!confirm(msg)) return;
+        await submitNewPost(true);
       });
       async function submitNewPost(publish) {
         const titleEl = document.querySelector('#blogNewForm input[name="title"]');
         const contentEl = document.getElementById('blogNewContent');
         const excerptEl = document.querySelector('#blogNewForm input[name="excerpt"]');
         const imageEl = document.getElementById('blogImageUrl');
+        const schedEl = document.getElementById('blogNewScheduledAt');
         const title = (titleEl && titleEl.value) ? titleEl.value.trim() : '';
         if (!title) { showToast('Enter a title to save.', false); return; }
         const payload = {
@@ -714,7 +879,8 @@
           excerpt: (excerptEl && excerptEl.value) ? excerptEl.value.trim() : null,
           image: (imageEl && imageEl.value) ? imageEl.value.trim() : null,
           content: contentEl ? contentEl.value : '',
-          published: !!publish
+          published: !!publish,
+          scheduled_at: (schedEl && schedEl.value) ? schedEl.value.trim() : null
         };
         try {
           const r = await fetch('/api/blog/posts', {
@@ -881,16 +1047,20 @@
               var ta = getTargetTextarea(btn);
               if (!ta) return;
               ta.focus();
-              var url = prompt('Enter URL for the link (e.g. https://mile12warrior.com or NHTSA.gov):', 'https://');
+              var start = ta.selectionStart, end = ta.selectionEnd, val = ta.value;
+              var sel = (val.slice(start, end) || '').trim();
+              var linkText = prompt('Link text (what readers see, e.g. "FMCSA Hours of Service"):', sel || 'Learn more');
+              if (linkText === null) return;
+              linkText = (linkText || '').trim() || 'Learn more';
+              var url = prompt('URL (e.g. https://www.fmcsa.dot.gov/regulations/hours-of-service):', 'https://');
               if (url === null) return;
               url = (url || '').trim();
               if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
-              var start = ta.selectionStart, end = ta.selectionEnd, val = ta.value;
-              var sel = val.slice(start, end) || 'link text';
+              if (!url) return;
               var before = val.slice(0, start), after = val.slice(end);
-              ta.value = before + '<a href="' + url + '">' + sel + '</a>' + after;
+              ta.value = before + '<a href="' + url + '">' + linkText + '</a>' + after;
               ta.focus();
-              ta.setSelectionRange(start + url.length + 9, start + url.length + 9 + sel.length);
+              ta.setSelectionRange(start + url.length + 9, start + url.length + 9 + linkText.length);
             });
           });
           toolbar.querySelectorAll('.blog-tb-hr').forEach(function(btn) {

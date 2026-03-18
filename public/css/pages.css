@@ -225,6 +225,72 @@ textarea.form-input {
   min-height: 120px;
   resize: vertical;
 }
+/* Floating WYSIWYG toolbar (appears on text selection in admin content areas) */
+.floating-format-toolbar {
+  position: fixed;
+  top: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  transition: opacity 0.15s var(--ease), visibility 0.15s var(--ease);
+}
+.floating-format-toolbar.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.floating-toolbar-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.floating-format-toolbar .ft-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease), background 0.2s var(--ease);
+}
+.floating-format-toolbar .ft-btn:hover {
+  color: var(--gold);
+  border-color: var(--gold);
+  background: var(--bg);
+}
+.floating-format-toolbar .ft-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--border);
+  margin: 0 2px;
+}
+.floating-format-toolbar .ft-font {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  min-width: 120px;
+}
+.floating-format-toolbar .ft-font:hover,
+.floating-format-toolbar .ft-font:focus {
+  border-color: var(--gold);
+  outline: none;
+}
+
 .blog-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -537,17 +603,18 @@ textarea.form-input {
   font-size: 1.1rem;
   margin: 20px 0 10px;
 }
-/* Links in blog and content areas: highlighted and clearly clickable */
+/* Links in blog: subtle by default, highlight on hover (link text shown, not raw URL) */
 .blog-post-full .post-content a,
 .content-area a {
-  color: var(--gold);
+  color: var(--text-2);
   text-decoration: underline;
   text-underline-offset: 2px;
-  transition: color 0.2s var(--ease);
+  transition: color 0.2s var(--ease), background-color 0.2s var(--ease);
 }
 .blog-post-full .post-content a:hover,
 .content-area a:hover {
-  color: var(--gold-light);
+  color: var(--gold);
+  background-color: rgba(212, 175, 55, 0.12);
 }
 .blog-post-full .post-content a:focus {
   outline: 2px solid var(--gold);

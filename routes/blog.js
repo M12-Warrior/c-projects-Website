@@ -28,8 +28,19 @@ function slugify(title) {
     .replace(/[^a-z0-9-]/g, '');
 }
 
+// Run before listing: publish any posts whose scheduled_at is in the past
+function publishScheduled() {
+  try {
+    db.prepare(`
+      UPDATE blog_posts SET published = 1, updated_at = CURRENT_TIMESTAMP
+      WHERE published = 0 AND scheduled_at IS NOT NULL AND scheduled_at <= datetime('now')
+    `).run();
+  } catch (_) {}
+}
+
 // GET /api/blog/posts — all published posts with author username, ordered by created_at DESC
 router.get('/posts', (req, res) => {
+  publishScheduled();
   const posts = db.prepare(`
     SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published,
            p.created_at, p.updated_at, u.username AS author_username
@@ -45,8 +56,9 @@ router.get('/posts', (req, res) => {
 // GET /api/blog/admin/posts — admin only: all posts (published + draft) for admin list
 router.get('/admin/posts', (req, res) => {
   if (!req.session.user || req.session.user.role !== 'admin') return res.status(403).json({ error: 'Admin required' });
+  publishScheduled();
   const posts = db.prepare(`
-    SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published,
+    SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published, p.scheduled_at,
            p.created_at, p.updated_at, u.username AS author_username
     FROM blog_posts p
     LEFT JOIN users u ON p.author_id = u.id
@@ -62,7 +74,7 @@ router.get('/admin/posts/:id', (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) return res.status(400).json({ error: 'Invalid post ID' });
   const post = db.prepare(`
-    SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published,
+    SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published, p.scheduled_at,
            p.created_at, p.updated_at, u.username AS author_username
     FROM blog_posts p
     LEFT JOIN users u ON p.author_id = u.id
@@ -186,7 +198,7 @@ router.post('/posts', (req, res) => {
   if (!req.session.user) return res.status(401).json({ error: 'Authentication required' });
   if (req.session.user.role !== 'admin') return res.status(403).json({ error: 'Admin access required' });
 
-  const { title, content, excerpt, image, published } = req.body || {};
+  const { title, content, excerpt, image, published, scheduled_at } = req.body || {};
   if (!title || typeof title !== 'string' || !title.trim()) {
     return res.status(400).json({ error: 'Title is required' });
   }
@@ -195,7 +207,6 @@ router.post('/posts', (req, res) => {
   }
 
   let slug = slugify(title);
-  // Ensure unique slug
   const existing = db.prepare('SELECT id FROM blog_posts WHERE slug = ?').get(slug);
   if (existing) {
     let counter = 1;
@@ -206,12 +217,14 @@ router.post('/posts', (req, res) => {
   }
 
   const imageVal = (image && typeof image === 'string' && image.trim()) ? image.trim() : null;
-  // Keep links in blog post content (admin-authored); only comments have links stripped
   const contentToSave = content;
+  const sched = (scheduled_at && typeof scheduled_at === 'string' && scheduled_at.trim()) ? scheduled_at.trim() : null;
+  const isScheduled = sched && new Date(sched).getTime() > Date.now();
+  const pub = published ? (isScheduled ? 0 : 1) : 0;
 
   const insert = db.prepare(`
-    INSERT INTO blog_posts (title, slug, content, excerpt, image, author_id, published)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO blog_posts (title, slug, content, excerpt, image, author_id, published, scheduled_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const result = insert.run(
     title.trim(),
@@ -220,11 +233,12 @@ router.post('/posts', (req, res) => {
     excerpt && typeof excerpt === 'string' ? excerpt.trim() : null,
     imageVal,
     req.session.user.id,
-    published ? 1 : 0
+    pub,
+    sched || null
   );
 
   const post = db.prepare(`
-    SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published,
+    SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published, p.scheduled_at,
            p.created_at, p.updated_at, u.username AS author_username
     FROM blog_posts p
     LEFT JOIN users u ON p.author_id = u.id
@@ -251,7 +265,7 @@ router.put('/posts/:id', (req, res) => {
   const existing = db.prepare('SELECT id FROM blog_posts WHERE id = ?').get(id);
   if (!existing) return res.status(404).json({ error: 'Post not found' });
 
-  const { title, content, excerpt, image, published } = req.body || {};
+  const { title, content, excerpt, image, published, scheduled_at } = req.body || {};
   const updates = [];
   const params = [];
 
@@ -259,7 +273,17 @@ router.put('/posts/:id', (req, res) => {
   if (content !== undefined) { updates.push('content = ?'); params.push(content); }
   if (excerpt !== undefined) { updates.push('excerpt = ?'); params.push(excerpt); }
   if (image !== undefined) { updates.push('image = ?'); params.push((image && typeof image === 'string' && image.trim()) ? image.trim() : null); }
-  if (published !== undefined) { updates.push('published = ?'); params.push(published ? 1 : 0); }
+  if (scheduled_at !== undefined) {
+    const sched = (scheduled_at && typeof scheduled_at === 'string' && scheduled_at.trim()) ? scheduled_at.trim() : null;
+    updates.push('scheduled_at = ?');
+    params.push(sched);
+  }
+  if (published !== undefined) {
+    const sched = (scheduled_at !== undefined && scheduled_at && typeof scheduled_at === 'string' && scheduled_at.trim()) ? scheduled_at.trim() : null;
+    const isScheduled = sched && new Date(sched).getTime() > Date.now();
+    updates.push('published = ?');
+    params.push(published && !isScheduled ? 1 : 0);
+  }
 
   if (updates.length > 0) {
     updates.push('updated_at = CURRENT_TIMESTAMP');
