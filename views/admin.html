@@ -769,6 +769,21 @@
         var modal = document.getElementById('blogEditModal');
         modal.classList.add('hidden');
         modal.style.display = 'none';
+        // Clear fields so the next edit starts fresh.
+        var idEl = document.getElementById('blogEditId');
+        var titleEl = document.getElementById('blogEditTitle');
+        var excerptEl = document.getElementById('blogEditExcerpt');
+        var imageEl = document.getElementById('blogEditImageUrl');
+        var contentEl = document.getElementById('blogEditContent');
+        var schedEl = document.getElementById('blogEditScheduledAt');
+        try {
+          if (idEl) idEl.value = '';
+          if (titleEl) titleEl.value = '';
+          if (excerptEl) excerptEl.value = '';
+          if (imageEl) imageEl.value = '';
+          if (contentEl) contentEl.value = '';
+          if (schedEl) schedEl.value = '';
+        } catch (_) {}
       }
       document.getElementById('blogEditCancel').addEventListener('click', closeBlogEdit);
       document.getElementById('blogEditImageUploadBtn').addEventListener('click', function() {
@@ -899,8 +914,8 @@
             } else {
               showToast('Draft saved. You can close and click Edit later to continue.', true);
               document.getElementById('blogNewFormWrap').classList.add('hidden');
+              document.getElementById('blogNewForm').reset();
               loadBlog();
-              openBlogEdit(String(data.post.id));
             }
           } else {
             showToast(data.error || 'Failed to save.', false);
