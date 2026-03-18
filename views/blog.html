@@ -39,7 +39,7 @@
         <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
         <li><a href="/refresh">Refresh</a></li>
         <li><a href="/contact">Contact</a></li>
-        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+        <li id="navAuth"><a href="/register" class="nav-auth-link">Sign up</a> · <a href="/login" class="nav-auth-link">Sign In</a></li>
       </ul>
     </div>
   </nav>
@@ -97,9 +97,14 @@
         const grid = document.getElementById('blogGrid');
         if (!grid) return;
         try {
-          const res = await fetch('/api/blog/posts', { credentials: 'include' });
-          const data = await res.json();
+          const [postsRes, meRes] = await Promise.all([
+            fetch('/api/blog/posts', { credentials: 'include' }),
+            fetch('/api/auth/me', { credentials: 'include' })
+          ]);
+          const data = await postsRes.json();
           const posts = data.posts || [];
+          const me = await meRes.json().then(d => d.user).catch(() => null);
+          const isAdmin = me && me.role === 'admin';
           if (posts.length === 0) {
             grid.innerHTML = `<div class="empty-state"><p>No posts yet. Check back soon for stories, tips, and insights from the road.</p></div>`;
             return;
@@ -108,8 +113,19 @@
             const imgHtml = post.image
               ? `<img src="${escapeHtml(post.image)}" alt="">`
               : `<span>${placeholderIcon}</span>`;
+            const editMenu = isAdmin ? `
+              <div class="blog-card-actions">
+                <button type="button" class="blog-card-menu-btn" aria-label="Post options" title="Edit post">
+                  <span aria-hidden="true">⋮</span>
+                </button>
+                <div class="blog-card-menu-dropdown hidden">
+                  <a href="/admin?tab=blog&edit=${post.id}">Edit post</a>
+                </div>
+              </div>
+            ` : '';
             return `
-              <article class="blog-card">
+              <article class="blog-card" data-post-id="${post.id}">
+                ${editMenu}
                 <a href="/blog/${escapeHtml(post.slug)}">
                   <div class="blog-card-image">${imgHtml}</div>
                 </a>
@@ -121,6 +137,20 @@
               </article>
             `;
           }).join('');
+          grid.querySelectorAll('.blog-card-menu-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              const card = this.closest('.blog-card');
+              const drop = card.querySelector('.blog-card-menu-dropdown');
+              const open = document.querySelector('.blog-card-menu-dropdown:not(.hidden)');
+              if (open && open !== drop) open.classList.add('hidden');
+              drop.classList.toggle('hidden');
+            });
+          });
+          document.addEventListener('click', () => {
+            document.querySelectorAll('.blog-card-menu-dropdown').forEach(d => d.classList.add('hidden'));
+          });
           if (window.refreshReveal) window.refreshReveal();
         } catch (err) {
           grid.innerHTML = `<div class="empty-state"><p>Could not load posts. Please try again later.</p></div>`;
@@ -155,6 +185,7 @@
           <a href="/advertise" style="color:var(--text-2)">Advertise</a>
           <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
         </nav>
+        <p style="font-size:0.8rem;color:var(--text-3);">Hosted on <a href="https://railway.app" target="_blank" rel="noopener noreferrer">Railway</a>.</p>
         <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
         <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:600px;margin-left:auto;margin-right:auto">Blog content is for educational purposes only and does not constitute professional advice. See our <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>.</p>
         <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws that may differ significantly. It is the driver's responsibility to comply with the laws of every state they travel through. California (Caltrans/CALDOT) references reflect our home state and should not be assumed to apply elsewhere.</p>

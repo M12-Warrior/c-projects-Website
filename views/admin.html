@@ -95,6 +95,15 @@
       </div>
 
       <div id="tabBlog" class="admin-tab-content hidden">
+        <div id="blogPendingCommentsSection" class="admin-section" style="margin-bottom:32px">
+          <h3>Pending blog comments</h3>
+          <p style="color:var(--text-2);font-size:0.9rem;margin-bottom:12px">Approve, reject, or delete comments. You receive an email at admin@mile12warrior.com when a logged-in user submits a comment.</p>
+          <table class="admin-table">
+            <thead><tr><th>Post</th><th>Author</th><th>Comment</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="blogPendingCommentsTable"></tbody>
+          </table>
+          <p id="blogPendingCommentsNone" class="hidden" style="color:var(--text-3);font-size:0.9rem">No pending comments.</p>
+        </div>
         <div class="flex-between mb-16">
           <h3>Posts</h3>
           <button type="button" class="btn btn-primary" id="blogNewPostBtn">New Post</button>
@@ -105,20 +114,45 @@
               <div class="form-group"><label class="form-label">Title</label><input type="text" name="title" class="form-input" required></div>
               <div class="form-group"><label class="form-label">Excerpt</label><input type="text" name="excerpt" class="form-input"></div>
               <div class="form-group">
-                <label class="form-label">Featured image (URL)</label>
-                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                  <input type="url" name="image" id="blogImageUrl" class="form-input" placeholder="https://... or /uploads/..." style="flex:1;min-width:200px;">
+                <label class="form-label">Featured image</label>
+                <p style="font-size:0.8rem;color:var(--text-3);margin-bottom:8px">Upload from your computer (no URL needed), or paste a URL if the image is from another site.</p>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+                  <button type="button" class="btn btn-primary" id="blogImageUploadBtn">Upload from computer</button>
                   <input type="file" id="blogImageFile" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
-                  <button type="button" class="btn btn-glass" id="blogImageUploadBtn">Upload image</button>
                 </div>
+                <input type="text" name="image" id="blogImageUrl" class="form-input" placeholder="Or paste image URL (e.g. https://...). Filled automatically after upload." style="max-width:100%;">
               </div>
-              <div class="form-group"><label class="form-label">Content</label><textarea name="content" class="form-input" rows="6" required></textarea></div>
               <div class="form-group">
-                <label><input type="checkbox" name="published" value="1"> Published</label>
+                <label class="form-label">Content</label>
+                <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:6px;font-weight:500;">Formatting (like Word) — select text then click a tool, or click to insert:</p>
+                <div class="blog-toolbar" data-target="blogNewContent">
+                  <button type="button" class="blog-tb-btn" data-wrap="strong" title="Bold"><strong>B</strong></button>
+                  <button type="button" class="blog-tb-btn" data-wrap="em" title="Italic"><em>I</em></button>
+                  <button type="button" class="blog-tb-btn" data-wrap="u" title="Underline">U</button>
+                  <button type="button" class="blog-tb-btn" data-wrap="s" title="Strikethrough">S</button>
+                  <span class="blog-tb-sep"></span>
+                  <button type="button" class="blog-tb-btn blog-tb-link" title="Insert link">Link</button>
+                  <span class="blog-tb-sep"></span>
+                  <button type="button" class="blog-tb-btn" data-wrap="ul" title="Bullet list">• List</button>
+                  <button type="button" class="blog-tb-btn" data-wrap="ol" title="Numbered list">1. List</button>
+                  <span class="blog-tb-sep"></span>
+                  <button type="button" class="blog-tb-btn" data-wrap="h2" title="Heading 2">H2</button>
+                  <button type="button" class="blog-tb-btn" data-wrap="h3" title="Heading 3">H3</button>
+                  <button type="button" class="blog-tb-btn" data-wrap="h4" title="Heading 4">H4</button>
+                  <button type="button" class="blog-tb-btn" data-wrap="p" title="Paragraph">P</button>
+                  <button type="button" class="blog-tb-btn" data-wrap="blockquote" title="Blockquote">Quote</button>
+                  <button type="button" class="blog-tb-btn blog-tb-hr" title="Horizontal line">—</button>
+                </div>
+                <textarea name="content" id="blogNewContent" class="form-input blog-content-textarea" rows="28" required spellcheck="true" lang="en" placeholder="Write your full post here. Use the formatting bar above for bold, italic, links, lists, headings, and more."></textarea>
+                <button type="button" class="btn btn-glass mt-8" id="blogNewProofreadBtn">Proofread</button>
               </div>
-              <div class="flex-between mt-16">
+              <div class="form-group">
+                <label><input type="checkbox" name="published" value="1" id="blogNewPublished"> Published (leave unchecked for draft)</label>
+              </div>
+              <div class="flex-between mt-16" style="flex-wrap:wrap;gap:10px;">
                 <button type="button" class="btn btn-glass" id="blogNewCancelBtn">Cancel</button>
-                <button type="submit" class="btn btn-primary">Create Post</button>
+                <button type="button" class="btn btn-primary" id="blogNewSaveDraftBtn">Save draft</button>
+                <button type="submit" class="btn btn-primary" id="blogNewPublishBtn">Publish</button>
               </div>
             </form>
           </div>
@@ -135,20 +169,56 @@
               <div class="form-group"><label class="form-label">Title</label><input type="text" id="blogEditTitle" name="title" class="form-input" required></div>
               <div class="form-group"><label class="form-label">Excerpt</label><input type="text" id="blogEditExcerpt" name="excerpt" class="form-input"></div>
               <div class="form-group">
-                <label class="form-label">Featured image (URL)</label>
-                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                  <input type="url" id="blogEditImageUrl" name="image" class="form-input" placeholder="https://... or /uploads/..." style="flex:1;min-width:200px;">
+                <label class="form-label">Featured image</label>
+                <p style="font-size:0.8rem;color:var(--text-3);margin-bottom:8px">Upload from your computer (no URL needed), or paste a URL if the image is from another site.</p>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+                  <button type="button" class="btn btn-primary" id="blogEditImageUploadBtn">Upload from computer</button>
                   <input type="file" id="blogEditImageFile" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
-                  <button type="button" class="btn btn-glass" id="blogEditImageUploadBtn">Upload image</button>
                 </div>
+                <input type="text" id="blogEditImageUrl" name="image" class="form-input" placeholder="Or paste image URL. Filled automatically after upload." style="max-width:100%;">
               </div>
-              <div class="form-group"><label class="form-label">Content</label><textarea id="blogEditContent" name="content" class="form-input" rows="6" required></textarea></div>
+              <div class="form-group">
+                <label class="form-label">Content</label>
+                <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:6px;font-weight:500;">Formatting (like Word) — select text then click a tool:</p>
+                <div class="blog-toolbar" data-target="blogEditContent">
+                  <button type="button" class="blog-tb-btn" data-wrap="strong" title="Bold"><strong>B</strong></button>
+                  <button type="button" class="blog-tb-btn" data-wrap="em" title="Italic"><em>I</em></button>
+                  <button type="button" class="blog-tb-btn" data-wrap="u" title="Underline">U</button>
+                  <button type="button" class="blog-tb-btn" data-wrap="s" title="Strikethrough">S</button>
+                  <span class="blog-tb-sep"></span>
+                  <button type="button" class="blog-tb-btn blog-tb-link" title="Insert link">Link</button>
+                  <span class="blog-tb-sep"></span>
+                  <button type="button" class="blog-tb-btn" data-wrap="ul" title="Bullet list">• List</button>
+                  <button type="button" class="blog-tb-btn" data-wrap="ol" title="Numbered list">1. List</button>
+                  <span class="blog-tb-sep"></span>
+                  <button type="button" class="blog-tb-btn" data-wrap="h2" title="Heading 2">H2</button>
+                  <button type="button" class="blog-tb-btn" data-wrap="h3" title="Heading 3">H3</button>
+                  <button type="button" class="blog-tb-btn" data-wrap="h4" title="Heading 4">H4</button>
+                  <button type="button" class="blog-tb-btn" data-wrap="p" title="Paragraph">P</button>
+                  <button type="button" class="blog-tb-btn" data-wrap="blockquote" title="Blockquote">Quote</button>
+                  <button type="button" class="blog-tb-btn blog-tb-hr" title="Horizontal line">—</button>
+                </div>
+                <textarea id="blogEditContent" name="content" class="form-input blog-content-textarea" rows="28" required spellcheck="true" lang="en" placeholder="Full post content. Use the formatting bar above."></textarea>
+                <button type="button" class="btn btn-glass mt-8" id="blogEditProofreadBtn">Proofread</button>
+              </div>
               <div class="form-group"><label><input type="checkbox" id="blogEditPublished" name="published" value="1"> Published</label></div>
+              <p style="font-size:0.8rem;color:var(--text-3);margin-top:4px;">Click Save changes to keep your work. You can close and click Edit on this post later to continue.</p>
               <div class="flex-between mt-16">
                 <button type="button" class="btn btn-glass" id="blogEditCancel">Cancel</button>
                 <button type="submit" class="btn btn-primary">Save changes</button>
               </div>
             </form>
+          </div>
+        </div>
+        <div id="blogProofreadModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:101;overflow-y:auto;padding:24px;">
+          <div class="profile-section" style="max-width:520px;width:100%;">
+            <h4 style="margin-top:0;">Proofread — possible misspellings</h4>
+            <p style="font-size:0.9rem;color:var(--text-2);margin-bottom:16px">Accept to ignore, or correct and apply to replace in your content.</p>
+            <div id="blogProofreadList"></div>
+            <p id="blogProofreadNone" class="hidden" style="color:var(--text-3);font-size:0.9rem">No potential misspellings found.</p>
+            <div class="flex-between mt-16">
+              <button type="button" class="btn btn-glass" id="blogProofreadClose">Close</button>
+            </div>
           </div>
         </div>
       </div>
@@ -432,7 +502,67 @@
         }
       }
 
+      async function loadBlogCommentsPending() {
+        const tbody = document.getElementById('blogPendingCommentsTable');
+        const noneEl = document.getElementById('blogPendingCommentsNone');
+        if (!tbody) return;
+        try {
+          const res = await fetch('/api/blog/admin/comments/pending', { credentials: 'include' });
+          if (!res.ok) throw new Error('Failed');
+          const data = await res.json();
+          const comments = data.comments || [];
+          if (comments.length === 0) {
+            tbody.innerHTML = '';
+            if (noneEl) { noneEl.classList.remove('hidden'); noneEl.textContent = 'No pending comments.'; }
+            return;
+          }
+          if (noneEl) noneEl.classList.add('hidden');
+          tbody.innerHTML = comments.map(function(c) {
+            const postLink = '/blog/' + (c.post_slug || '');
+            return '<tr data-comment-id="' + c.id + '">' +
+              '<td><a href="' + postLink + '" target="_blank" rel="noopener">' + escapeHtml(c.post_title || '—') + '</a></td>' +
+              '<td>' + escapeHtml(c.author_username || '—') + '</td>' +
+              '<td style="max-width:280px">' + escapeHtml((c.content || '').slice(0, 200)) + ((c.content || '').length > 200 ? '…' : '') + '</td>' +
+              '<td>' + formatDate(c.created_at) + '</td>' +
+              '<td><button type="button" class="admin-btn admin-btn-primary blog-comment-approve" style="margin-right:6px">Approve</button><button type="button" class="admin-btn admin-btn-danger blog-comment-reject" style="margin-right:6px">Reject</button><button type="button" class="admin-btn admin-btn-danger blog-comment-delete">Delete</button></td>' +
+            '</tr>';
+          }).join('');
+          tbody.querySelectorAll('.blog-comment-approve').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              const id = btn.closest('tr').getAttribute('data-comment-id');
+              try {
+                const r = await fetch('/api/blog/admin/comments/' + id + '/approve', { method: 'POST', credentials: 'include' });
+                if (r.ok) { showToast('Comment approved.', true); loadBlogCommentsPending(); } else showToast('Failed.', false);
+              } catch (_) { showToast('Failed.', false); }
+            });
+          });
+          tbody.querySelectorAll('.blog-comment-reject').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              const id = btn.closest('tr').getAttribute('data-comment-id');
+              try {
+                const r = await fetch('/api/blog/admin/comments/' + id + '/reject', { method: 'POST', credentials: 'include' });
+                if (r.ok) { showToast('Comment rejected.', true); loadBlogCommentsPending(); } else showToast('Failed.', false);
+              } catch (_) { showToast('Failed.', false); }
+            });
+          });
+          tbody.querySelectorAll('.blog-comment-delete').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              if (!confirmAction('Delete this comment permanently?')) return;
+              const id = btn.closest('tr').getAttribute('data-comment-id');
+              try {
+                const r = await fetch('/api/blog/admin/comments/' + id, { method: 'DELETE', credentials: 'include' });
+                if (r.ok) { showToast('Comment deleted.', true); loadBlogCommentsPending(); } else showToast('Failed.', false);
+              } catch (_) { showToast('Failed.', false); }
+            });
+          });
+        } catch (e) {
+          tbody.innerHTML = '<tr><td colspan="5">Could not load pending comments.</td></tr>';
+          if (noneEl) noneEl.classList.add('hidden');
+        }
+      }
+
       async function loadBlog() {
+        loadBlogCommentsPending();
         const el = document.getElementById('blogTable');
         try {
           const res = await fetch('/api/blog/admin/posts', { credentials: 'include' });
@@ -565,10 +695,27 @@
         } catch (_) { showToast('Upload failed.', false); }
         this.value = '';
       });
-      document.getElementById('blogNewForm').addEventListener('submit', async function(e) {
+      document.getElementById('blogNewForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        const fd = new FormData(e.target);
-        const payload = { title: fd.get('title'), excerpt: fd.get('excerpt'), image: fd.get('image') || null, content: fd.get('content'), published: !!fd.get('published') };
+        submitNewPost(true);
+      });
+      document.getElementById('blogNewSaveDraftBtn').addEventListener('click', function() {
+        submitNewPost(false);
+      });
+      async function submitNewPost(publish) {
+        const titleEl = document.querySelector('#blogNewForm input[name="title"]');
+        const contentEl = document.getElementById('blogNewContent');
+        const excerptEl = document.querySelector('#blogNewForm input[name="excerpt"]');
+        const imageEl = document.getElementById('blogImageUrl');
+        const title = (titleEl && titleEl.value) ? titleEl.value.trim() : '';
+        if (!title) { showToast('Enter a title to save.', false); return; }
+        const payload = {
+          title: title,
+          excerpt: (excerptEl && excerptEl.value) ? excerptEl.value.trim() : null,
+          image: (imageEl && imageEl.value) ? imageEl.value.trim() : null,
+          content: contentEl ? contentEl.value : '',
+          published: !!publish
+        };
         try {
           const r = await fetch('/api/blog/posts', {
             method: 'POST',
@@ -576,14 +723,186 @@
             credentials: 'include',
             body: JSON.stringify(payload)
           });
-          if (r.ok) {
-            showToast('Post created.', true);
-            document.getElementById('blogNewFormWrap').classList.add('hidden');
-            e.target.reset();
-            loadBlog();
-          } else showToast('Failed to create.', false);
-        } catch (_) { showToast('Failed.', false); }
-      });
+          const data = await r.json();
+          if (r.ok && data.post && data.post.id) {
+            if (publish) {
+              showToast('Post published.', true);
+              document.getElementById('blogNewFormWrap').classList.add('hidden');
+              document.getElementById('blogNewForm').reset();
+              loadBlog();
+            } else {
+              showToast('Draft saved. You can close and click Edit later to continue.', true);
+              document.getElementById('blogNewFormWrap').classList.add('hidden');
+              loadBlog();
+              openBlogEdit(String(data.post.id));
+            }
+          } else {
+            showToast(data.error || 'Failed to save.', false);
+          }
+        } catch (_) { showToast('Failed to save.', false); }
+      }
+
+      (function() {
+        var commonWordsStr = 'a an the and or but is are was were be been being have has had do does did will would could should may might must shall can need used to of in for on with at by from as into through during before after above below between under again further then once here there when where why how all each every both few more most other some such no nor not only own same so than too very just also now well back even way any many after first last long great little old right high different small large next early young important public bad able about above accept according across ahead almost alone along already although always among amount another anyone anything anywhere appear approach area around ask away bear beat become because begin behavior behind believe belong beside best better beyond big bit break bring broad build burn buy call care carry case catch cause center change charge check choose claim clear close cold come common concern contain continue control cost country course cover create cross current cut deal death decide deep describe design desire despite destroy develop die differ difficult direct discuss doctor dog door down draw dream drive drop earth east easy eat economy edge effect effort eight either eleven else end enough enter entire environment especially etc ever everyone everything everywhere example except exist expect experience explain express eye face fact fail fall family far fast father feel fight figure fill find fine finish fire five fix follow food foot force form forward four free friend front full fund gain game garden general get give go good government green ground group grow growth half hand happen hard head health hear heart heat heavy help her herself high him himself his hold home hope hospital hot hour house however hundred if image imagine impact improve include increase indeed indicate industry information inside instead interest invest involve its itself job keep key kind know knowledge land language lead learn leave left leg less let level life light like likely line list live look lose lot love low main make man matter mean measure media meet member mention method middle mind miss moment money month mother move movement much my myself name nation natural near network never new news night none north note nothing notice number occur off offer office often oh oil ok onto open order others out outside over page pain part participant particular particularly pass past pay people per perform perhaps person personal plan play point police policy political position possible power practice prepare present president pressure pretty prevent price probably problem process produce product provide pull put quality question quick quite rather reach read real really reason receive recent recognize record red reduce reflect regard region relate remain remember remove report represent require research resource respond result return reveal right rise risk road role room rule run safe say scene school second section see seek seem sell send sense series serious serve set seven several share she short show side sign similar since single situation six size skill social someone something sometimes son soon sort sound source south space speak special specific spend sport stage stand start state statement stay step still stock stop store story strategy street strong structure student study stuff style subject success suggest support sure take talk task teach team technology tell ten term thank that their them these they thing think third this those though thought thousand three throughout throw thus time today together top toward town trade traditional training travel treat tree trial trip trouble true try turn tv twelve twenty two type under understand unit until up upon us using usually value various view visit voice wait walk want war watch water we week west what whether which while white who whole whose wide wife win wish within without woman wonder word work worker world worry write writer writing wrong year yes yet young your';
+        var COMMON_WORDS = new Set(commonWordsStr.split(' '));
+        function getActiveBlogContentEl() {
+          var editModal = document.getElementById('blogEditModal');
+          if (editModal && !editModal.classList.contains('hidden')) return document.getElementById('blogEditContent');
+          return document.getElementById('blogNewContent');
+        }
+        function extractWords(html) {
+          var text = (html || '').replace(/<[^>]+>/g, ' ').replace(/&[#\w]+;/g, ' ');
+          var words = text.match(/\b[a-zA-Z]{2,}\b/g) || [];
+          return words;
+        }
+        function findPotentialMisspellings(content) {
+          var words = extractWords(content);
+          var seen = {};
+          var out = [];
+          for (var i = 0; i < words.length; i++) {
+            var w = words[i].toLowerCase();
+            if (seen[w]) continue;
+            seen[w] = true;
+            if (/^\d+$/.test(w)) continue;
+            if (COMMON_WORDS.has(w)) continue;
+            out.push({ original: words[i], lower: w });
+          }
+          return out.sort(function(a, b) { return a.lower.localeCompare(b.lower); });
+        }
+        function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+        function openProofreadModal() {
+          var el = getActiveBlogContentEl();
+          if (!el) { showToast('Open a post to proofread.', false); return; }
+          var content = el.value || '';
+          var list = findPotentialMisspellings(content);
+          var listEl = document.getElementById('blogProofreadList');
+          var noneEl = document.getElementById('blogProofreadNone');
+          var modal = document.getElementById('blogProofreadModal');
+          if (!listEl || !modal) return;
+          if (list.length === 0) {
+            listEl.innerHTML = '';
+            if (noneEl) { noneEl.classList.remove('hidden'); noneEl.textContent = 'No potential misspellings found.'; }
+          } else {
+            if (noneEl) noneEl.classList.add('hidden');
+            listEl.innerHTML = list.map(function(item) {
+              return '<div class="proofread-item" data-word="' + escapeHtml(item.original) + '" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">' +
+                '<span style="font-weight:600;min-width:100px">' + escapeHtml(item.original) + '</span>' +
+                '<input type="text" class="form-input proofread-correction" placeholder="Correct to..." style="flex:1;min-width:120px;padding:6px 10px;">' +
+                '<button type="button" class="admin-btn admin-btn-primary proofread-apply">Apply</button>' +
+                '<button type="button" class="admin-btn admin-btn-glass proofread-accept">Accept</button>' +
+              '</div>';
+            }).join('');
+            listEl.querySelectorAll('.proofread-apply').forEach(function(btn) {
+              btn.addEventListener('click', function() {
+                var row = btn.closest('.proofread-item');
+                var word = row.getAttribute('data-word');
+                var input = row.querySelector('.proofread-correction');
+                var replacement = (input && input.value && input.value.trim()) ? input.value.trim() : '';
+                if (!replacement) { showToast('Enter a correction.', false); return; }
+                var contentEl = getActiveBlogContentEl();
+                if (!contentEl) return;
+                var regex = new RegExp('\\b' + escapeRegex(word) + '\\b', 'gi');
+                contentEl.value = contentEl.value.replace(regex, replacement);
+                row.remove();
+                showToast('Replaced.', true);
+              });
+            });
+            listEl.querySelectorAll('.proofread-accept').forEach(function(btn) {
+              btn.addEventListener('click', function() {
+                var row = btn.closest('.proofread-item');
+                row.remove();
+                showToast('Accepted (ignored).', true);
+              });
+            });
+          }
+          modal.classList.remove('hidden');
+          modal.style.display = 'flex';
+        }
+        function closeProofreadModal() {
+          var modal = document.getElementById('blogProofreadModal');
+          if (modal) { modal.classList.add('hidden'); modal.style.display = 'none'; }
+        }
+        document.getElementById('blogNewProofreadBtn').addEventListener('click', openProofreadModal);
+        document.getElementById('blogEditProofreadBtn').addEventListener('click', openProofreadModal);
+        document.getElementById('blogProofreadClose').addEventListener('click', closeProofreadModal);
+      })();
+
+      (function blogToolbar() {
+        function getTargetTextarea(btn) {
+          var toolbar = btn.closest('.blog-toolbar');
+          var id = toolbar && toolbar.getAttribute('data-target');
+          return id ? document.getElementById(id) : null;
+        }
+        function wrapSelection(ta, openTag, closeTag) {
+          var start = ta.selectionStart, end = ta.selectionEnd, val = ta.value;
+          var sel = val.slice(start, end);
+          var before = val.slice(0, start), after = val.slice(end);
+          ta.value = before + openTag + sel + closeTag + after;
+          ta.focus();
+          ta.setSelectionRange(start + openTag.length, end + openTag.length);
+        }
+        function insertAtCursor(ta, text) {
+          var start = ta.selectionStart, end = ta.selectionEnd, val = ta.value;
+          ta.value = val.slice(0, start) + text + val.slice(end);
+          ta.focus();
+          ta.setSelectionRange(start + text.length, start + text.length);
+        }
+        function wrapList(ta, tag) {
+          var start = ta.selectionStart, end = ta.selectionEnd, val = ta.value;
+          var sel = val.slice(start, end);
+          if (sel.length > 0) {
+            var lines = sel.split(/\r?\n/);
+            var wrapped = lines.map(function(line) { return '<li>' + line.trim() + '</li>'; }).join('\n');
+            ta.value = val.slice(0, start) + '<' + tag + '>\n' + wrapped + '\n</' + tag + '>\n' + val.slice(end);
+          } else {
+            insertAtCursor(ta, '<' + tag + '>\n<li> </li>\n</' + tag + '>\n');
+          }
+          ta.focus();
+        }
+        document.querySelectorAll('.blog-toolbar').forEach(function(toolbar) {
+          toolbar.querySelectorAll('.blog-tb-btn[data-wrap]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              var ta = getTargetTextarea(btn);
+              if (!ta) return;
+              ta.focus();
+              var tag = btn.getAttribute('data-wrap');
+              if (tag === 'ul' || tag === 'ol') {
+                wrapList(ta, tag);
+                return;
+              }
+              var openTag = '<' + tag + '>', closeTag = '</' + tag + '>';
+              var start = ta.selectionStart, end = ta.selectionEnd;
+              if (start === end) insertAtCursor(ta, openTag + ' ' + closeTag);
+              else wrapSelection(ta, openTag, closeTag);
+            });
+          });
+          toolbar.querySelectorAll('.blog-tb-link').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              var ta = getTargetTextarea(btn);
+              if (!ta) return;
+              ta.focus();
+              var url = prompt('Enter URL for the link (e.g. https://mile12warrior.com or NHTSA.gov):', 'https://');
+              if (url === null) return;
+              url = (url || '').trim();
+              if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+              var start = ta.selectionStart, end = ta.selectionEnd, val = ta.value;
+              var sel = val.slice(start, end) || 'link text';
+              var before = val.slice(0, start), after = val.slice(end);
+              ta.value = before + '<a href="' + url + '">' + sel + '</a>' + after;
+              ta.focus();
+              ta.setSelectionRange(start + url.length + 9, start + url.length + 9 + sel.length);
+            });
+          });
+          toolbar.querySelectorAll('.blog-tb-hr').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              var ta = getTargetTextarea(btn);
+              if (!ta) return;
+              ta.focus();
+              insertAtCursor(ta, '\n<hr>\n');
+            });
+          });
+        });
+      })();
 
       async function loadForum() {
         const el = document.getElementById('forumTable');
@@ -926,6 +1245,20 @@
         if (!user) return;
         loadDashboard();
 
+        var urlParams = new URLSearchParams(window.location.search);
+        var urlTab = urlParams.get('tab');
+        var urlEditId = urlParams.get('edit');
+        if (urlTab === 'blog') {
+          document.querySelectorAll('.admin-tab').forEach(function(b) { b.classList.remove('active'); });
+          document.querySelectorAll('.admin-tab-content').forEach(function(c) { c.classList.add('hidden'); });
+          var blogTabBtn = document.querySelector('.admin-tab[data-tab="blog"]');
+          var blogPanel = document.getElementById('tabBlog');
+          if (blogTabBtn) blogTabBtn.classList.add('active');
+          if (blogPanel) blogPanel.classList.remove('hidden');
+          loadBlog();
+          if (urlEditId) setTimeout(function() { openBlogEdit(urlEditId); }, 400);
+        }
+
         const navToggle = document.getElementById('navToggle');
         const navLinks = document.getElementById('navLinks');
         if (navToggle && navLinks) {
@@ -1010,6 +1343,7 @@
           <a href="/advertise" style="color:var(--text-2)">Advertise</a>
           <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
         </nav>
+        <p style="font-size:0.8rem;color:var(--text-3);">Hosted on <a href="https://railway.app" target="_blank" rel="noopener noreferrer">Railway</a>.</p>
         <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
         <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws that may differ significantly. It is the driver's responsibility to comply with the laws of every state they travel through. California (Caltrans/CALDOT) references reflect our home state and should not be assumed to apply elsewhere.</p>
       </div>

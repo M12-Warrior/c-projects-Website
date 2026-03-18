@@ -179,6 +179,12 @@ try {
   db.exec('CREATE INDEX IF NOT EXISTS idx_reset_tokens_expires ON password_reset_tokens(expires_at)');
 } catch (_) {}
 try {
+  db.exec("ALTER TABLE blog_comments ADD COLUMN status TEXT DEFAULT 'approved'");
+} catch (_) {}
+try {
+  db.exec("UPDATE blog_comments SET status = 'approved' WHERE status IS NULL");
+} catch (_) {}
+try {
   db.exec('ALTER TABLE products ADD COLUMN is_subscription INTEGER DEFAULT 0');
 } catch (_) {}
 try {

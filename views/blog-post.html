@@ -39,7 +39,7 @@
         <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
         <li><a href="/refresh">Refresh</a></li>
         <li><a href="/contact">Contact</a></li>
-        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+        <li id="navAuth"><a href="/register" class="nav-auth-link">Sign up</a> · <a href="/login" class="nav-auth-link">Sign In</a></li>
       </ul>
     </div>
   </nav>
@@ -111,30 +111,103 @@
           const authorName = post.author?.username || 'Unknown';
           const metaStr = formatDate(post.created_at) + ' · ' + escapeHtml(authorName);
 
+          let meUser = null;
+          try {
+            const meRes = await fetch('/api/auth/me', { credentials: 'include' });
+            meUser = (await meRes.json()).user || null;
+          } catch (_) {}
+          const isAdmin = meUser && meUser.role === 'admin';
+          const editMenuHtml = isAdmin ? `
+            <div class="blog-post-actions">
+              <button type="button" class="blog-card-menu-btn" aria-label="Post options" title="Edit post">
+                <span aria-hidden="true">⋮</span>
+              </button>
+              <div class="blog-card-menu-dropdown hidden">
+                <a href="/admin?tab=blog&edit=${post.id}">Edit post</a>
+              </div>
+            </div>
+          ` : '';
           const featuredImg = (post.image && post.image.trim()) ? '<div class="post-featured-image"><img src="' + escapeHtml(post.image) + '" alt=""></div>' : '';
           postContent.innerHTML = `
-            <h1>${escapeHtml(post.title)}</h1>
+            <div class="blog-post-header-row">
+              <h1>${escapeHtml(post.title)}</h1>
+              ${editMenuHtml}
+            </div>
             <div class="post-meta">${metaStr}</div>
             ${featuredImg}
             <div class="post-content">${post.content || ''}</div>
+            <div class="blog-share" aria-label="Share this post">
+              <span class="blog-share-label">Share</span>
+              <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}" target="_blank" rel="noopener noreferrer" class="blog-share-btn" aria-label="Share on Facebook" title="Share on Facebook">Facebook</a>
+              <a href="https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(post.title || '')}" target="_blank" rel="noopener noreferrer" class="blog-share-btn" aria-label="Share on X" title="Share on X">X</a>
+              <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}" target="_blank" rel="noopener noreferrer" class="blog-share-btn" aria-label="Share on LinkedIn" title="Share on LinkedIn">LinkedIn</a>
+              <button type="button" class="blog-share-btn blog-share-copy blog-share-copy-instagram" data-url="${escapeHtml(window.location.href)}" aria-label="Copy link for Instagram" title="Copy link to paste in Instagram">Instagram</button>
+              <button type="button" class="blog-share-btn blog-share-copy" data-url="${escapeHtml(window.location.href)}" aria-label="Copy link" title="Copy link to clipboard">Copy link</button>
+            </div>
           `;
           document.title = escapeHtml(post.title) + ' — Blog — Driver Shield';
 
+          var postBody = postContent.querySelector('.post-content');
+          if (postBody) {
+            postBody.querySelectorAll('a[href^="http"]').forEach(function(a) {
+              a.setAttribute('target', '_blank');
+              a.setAttribute('rel', 'noopener noreferrer');
+            });
+          }
+
+          function copyBlogLink(btn, doneText) {
+            var url = btn.getAttribute('data-url') || window.location.href;
+            var originalText = btn.textContent;
+            navigator.clipboard.writeText(url).then(function() {
+              btn.textContent = doneText || 'Copied!';
+              setTimeout(function() { btn.textContent = originalText; }, 2000);
+            }).catch(function() {
+              var input = document.createElement('input');
+              input.value = url;
+              document.body.appendChild(input);
+              input.select();
+              document.execCommand('copy');
+              document.body.removeChild(input);
+              btn.textContent = doneText || 'Copied!';
+              setTimeout(function() { btn.textContent = originalText; }, 2000);
+            });
+          }
+          postContent.querySelectorAll('.blog-share-copy').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              copyBlogLink(btn, btn.classList.contains('blog-share-copy-instagram') ? 'Copied! Paste in Instagram' : 'Copied!');
+            });
+          });
+
+          if (isAdmin) {
+            const menuBtn = postContent.querySelector('.blog-post-actions .blog-card-menu-btn');
+            const drop = postContent.querySelector('.blog-post-actions .blog-card-menu-dropdown');
+            if (menuBtn && drop) {
+              menuBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                drop.classList.toggle('hidden');
+              });
+              document.addEventListener('click', () => drop.classList.add('hidden'));
+            }
+          }
+
           // Comments
-          const loggedIn = await fetch('/api/auth/me', { credentials: 'include' }).then(r => r.json()).then(d => !!d.user).catch(() => false);
+          const loggedIn = !!meUser;
           const count = comments.length;
+          const signInReason = 'Sign-in is required to comment so conversations stay respectful, accountable, and personalized—and so you can be recognized.';
 
           let commentFormHtml = '';
           if (loggedIn) {
             commentFormHtml = `
               <div class="comment-form">
-                <textarea id="commentInput" class="form-input" placeholder="Write a comment..." rows="4"></textarea>
-                <p style="font-size:0.8rem;color:var(--text-3);margin-top:8px">Only post content you own or have permission to use. Do not paste copyrighted text or images.</p>
+                <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:10px">${signInReason}</p>
+                <textarea id="commentInput" class="form-input" placeholder="Write a comment... (links are not allowed)" rows="4"></textarea>
+                <p style="font-size:0.8rem;color:var(--text-3);margin-top:8px">Only post content you own or have permission to use. Do not paste copyrighted text or images. Links are not permitted.</p>
                 <button type="button" class="form-btn mt-16" id="commentSubmit">Post Comment</button>
               </div>
             `;
           } else {
-            commentFormHtml = `<p class="mt-16"><a href="/login">Sign in to comment</a></p>`;
+            commentFormHtml = `<p class="mt-16">${signInReason} <a href="/login">Sign in to comment</a>.</p>`;
           }
 
           commentsSection.innerHTML = `
@@ -169,21 +242,13 @@
                 });
                 const result = await r.json();
                 if (result.success && result.comment) {
-                  const c = result.comment;
-                  const newComment = document.createElement('div');
-                  newComment.className = 'comment';
-                  newComment.dataset.id = c.id;
-                  newComment.innerHTML = `
-                    <div class="comment-header">
-                      <span class="comment-author">${escapeHtml(c.user?.username || 'Anonymous')}</span>
-                      <span class="comment-date">${formatDate(c.created_at)}</span>
-                    </div>
-                    <div class="comment-body">${escapeHtml(c.content)}</div>
-                  `;
-                  document.getElementById('commentsList').appendChild(newComment);
                   commentInput.value = '';
-                  const h3 = commentsSection.querySelector('h3');
-                  if (h3) h3.textContent = `Comments (${count + 1})`;
+                  const msg = document.createElement('p');
+                  msg.className = 'comment-pending-msg';
+                  msg.style.cssText = 'font-size:0.9rem;color:var(--gold);margin-top:12px;';
+                  msg.textContent = 'Your comment has been submitted and is pending approval.';
+                  const form = commentInput.closest('.comment-form');
+                  if (form && !form.querySelector('.comment-pending-msg')) form.appendChild(msg);
                 }
               } catch (_) {}
               submitBtn.disabled = false;
@@ -221,6 +286,7 @@
           <a href="/advertise" style="color:var(--text-2)">Advertise</a>
           <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
         </nav>
+        <p style="font-size:0.8rem;color:var(--text-3);">Hosted on <a href="https://railway.app" target="_blank" rel="noopener noreferrer">Railway</a>.</p>
         <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
         <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:600px;margin-left:auto;margin-right:auto">Blog content is for educational purposes only and does not constitute professional advice. See our <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>.</p>
         <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws that may differ significantly. It is the driver's responsibility to comply with the laws of every state they travel through. California (Caltrans/CALDOT) references reflect our home state and should not be assumed to apply elsewhere.</p>
