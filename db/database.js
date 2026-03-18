@@ -54,9 +54,6 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
-  try {
-    db.exec('ALTER TABLE blog_posts ADD COLUMN scheduled_at DATETIME');
-  } catch (_) {}
 
   CREATE TABLE IF NOT EXISTS blog_comments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -181,6 +178,9 @@ try {
 } catch (_) {}
 try {
   db.exec('CREATE INDEX IF NOT EXISTS idx_reset_tokens_expires ON password_reset_tokens(expires_at)');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE blog_posts ADD COLUMN scheduled_at DATETIME');
 } catch (_) {}
 try {
   db.exec("ALTER TABLE blog_comments ADD COLUMN status TEXT DEFAULT 'approved'");
