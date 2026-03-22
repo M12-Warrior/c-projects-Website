@@ -57,15 +57,19 @@ router.get('/posts', (req, res) => {
 router.get('/admin/posts', (req, res) => {
   if (!req.session.user || req.session.user.role !== 'admin') return res.status(403).json({ error: 'Admin required' });
   publishScheduled();
-  const posts = db.prepare(`
-    SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published, p.scheduled_at,
-           p.created_at, p.updated_at, u.username AS author_username
-    FROM blog_posts p
-    LEFT JOIN users u ON p.author_id = u.id
-    ORDER BY p.created_at DESC
-  `).all();
-  const out = posts.map(p => ({ ...p, image: ensureHttpsImage(p.image) }));
-  res.json({ posts: out });
+  try {
+    const posts = db.prepare(`
+      SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published, p.scheduled_at,
+             p.created_at, p.updated_at, u.username AS author_username
+      FROM blog_posts p
+      LEFT JOIN users u ON p.author_id = u.id
+      ORDER BY p.created_at DESC
+    `).all();
+    const out = posts.map(p => ({ ...p, image: ensureHttpsImage(p.image) }));
+    res.json({ posts: out });
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to load posts', detail: err.message });
+  }
 });
 
 // GET /api/blog/admin/posts/:id — admin only: single post by id for editing
@@ -222,20 +226,25 @@ router.post('/posts', (req, res) => {
   const isScheduled = sched && new Date(sched).getTime() > Date.now();
   const pub = published ? (isScheduled ? 0 : 1) : 0;
 
-  const insert = db.prepare(`
-    INSERT INTO blog_posts (title, slug, content, excerpt, image, author_id, published, scheduled_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-  const result = insert.run(
-    title.trim(),
-    slug,
-    contentToSave,
-    excerpt && typeof excerpt === 'string' ? excerpt.trim() : null,
-    imageVal,
-    req.session.user.id,
-    pub,
-    sched || null
-  );
+  let result;
+  try {
+    const insert = db.prepare(`
+      INSERT INTO blog_posts (title, slug, content, excerpt, image, author_id, published, scheduled_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    result = insert.run(
+      title.trim(),
+      slug,
+      contentToSave,
+      excerpt && typeof excerpt === 'string' ? excerpt.trim() : null,
+      imageVal,
+      req.session.user.id,
+      pub,
+      sched || null
+    );
+  } catch (err) {
+    return res.status(500).json({ error: 'Database insert failed', detail: err.message });
+  }
 
   const post = db.prepare(`
     SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published, p.scheduled_at,
@@ -286,9 +295,13 @@ router.put('/posts/:id', (req, res) => {
   }
 
   if (updates.length > 0) {
-    updates.push('updated_at = CURRENT_TIMESTAMP');
-    params.push(id);
-    db.prepare(`UPDATE blog_posts SET ${updates.join(', ')} WHERE id = ?`).run(...params);
+    try {
+      updates.push('updated_at = CURRENT_TIMESTAMP');
+      params.push(id);
+      db.prepare(`UPDATE blog_posts SET ${updates.join(', ')} WHERE id = ?`).run(...params);
+    } catch (err) {
+      return res.status(500).json({ error: 'Database update failed', detail: err.message });
+    }
   }
 
   res.json({ success: true });

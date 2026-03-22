@@ -40,6 +40,9 @@ const DIGITAL_GRANT_MAP = {
   'seasoned-packet': [
     { product_slug: 'seasoned-packet', expiresInMonths: null, max_downloads: INDIVIDUAL_PACKET_MAX_DOWNLOADS }
   ],
+  'new-driver-packet': [
+    { product_slug: 'new-driver-packet', expiresInMonths: null, max_downloads: INDIVIDUAL_PACKET_MAX_DOWNLOADS }
+  ],
   'fleet-new-hire-packet': [
     { product_slug: 'fleet-new-hire-packet', expiresInMonths: FLEET_LICENSE_MONTHS, max_downloads: null }
   ],
@@ -109,6 +112,7 @@ const DEFAULT_PRODUCT_IMAGES = {
   'trucker-wellness-journal-monthly': 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80', // wellness/rest
   // Digital — training & materials
   'course-90day': 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=80',                     // laptop/learning
+  'new-driver-packet': 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=80',              // guides/documents
   'seasoned-packet': 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&q=80',                 // documents
   'fleet-new-hire-packet': 'https://images.unsplash.com/photo-1459252619524-371e376d32b2?w=400&q=80',            // orientation/docs
   'fleet-refresher-packet': 'https://images.unsplash.com/photo-1573164713719-8dd4f693d717?w=400&q=80',          // checklist
@@ -386,6 +390,13 @@ router.post('/packet-download-log', requireSession, (req, res) => {
     return res.status(403).json({ error: 'No access or download limit reached' });
   }
   db.prepare('UPDATE product_access_grants SET download_count = download_count + 1 WHERE id = ?').run(grant.id);
+  try {
+    const visitorKey = (req.session && req.sessionID) ? String(req.sessionID) : null;
+    db.prepare(`
+      INSERT INTO download_events (visited_at, visitor_key, user_id, content_type, action, product_slug, path)
+      VALUES (datetime('now'), ?, ?, ?, 'download', ?, '/api/shop/packet-download-log')
+    `).run(visitorKey || String(uid), uid, productSlug, productSlug);
+  } catch (_) {}
   res.json({ success: true });
 });
 

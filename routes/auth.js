@@ -39,6 +39,9 @@ function sendPasswordResetEmail(toEmail, resetLink, callback) {
 // Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Allowed customer category values for segmentation (individual, fleet, school)
+const CUSTOMER_CATEGORIES = ['individual', 'fleet', 'school'];
+
 // Helper: build session user object (include subscription preferences and created_at)
 function toSessionUser(row) {
   return {
@@ -49,6 +52,7 @@ function toSessionUser(row) {
     avatar: row.avatar ?? null,
     bio: row.bio ?? '',
     home_base: row.home_base ?? '',
+    customer_category: row.customer_category ?? null,
     created_at: row.created_at ?? null,
     opt_in_newsletter: row.opt_in_newsletter ? 1 : 0,
     opt_in_blog: row.opt_in_blog ? 1 : 0,
@@ -59,7 +63,7 @@ function toSessionUser(row) {
 
 // POST /api/auth/register
 router.post('/register', (req, res) => {
-  const { username, email, password, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum } = req.body;
+  const { username, email, password, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum, customer_category } = req.body;
 
   if (!username || !email || !password) {
     return res.status(400).json({ error: 'Username, email, and password are required' });
@@ -92,21 +96,25 @@ router.post('/register', (req, res) => {
   const hashedPassword = bcrypt.hashSync(password, 10);
   const n = v => (v === true || v === 1 || v === '1' || v === 'true') ? 1 : 0;
   const homeBase = (req.body.home_base != null && typeof req.body.home_base === 'string') ? req.body.home_base.trim().slice(0, 200) : '';
+  const cat = (customer_category && typeof customer_category === 'string' && CUSTOMER_CATEGORIES.includes(customer_category.trim().toLowerCase()))
+    ? customer_category.trim().toLowerCase()
+    : null;
   const insert = db.prepare(`
-    INSERT INTO users (username, email, password, home_base, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO users (username, email, password, home_base, customer_category, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const result = insert.run(
     trimmedUsername,
     trimmedEmail,
     hashedPassword,
     homeBase,
+    cat,
     n(opt_in_newsletter),
     n(opt_in_blog),
     n(opt_in_product_updates),
     n(opt_in_forum)
   );
-  const user = db.prepare('SELECT id, username, email, role, avatar, bio, home_base, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE id = ?').get(result.lastInsertRowid);
+  const user = db.prepare('SELECT id, username, email, role, avatar, bio, home_base, customer_category, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE id = ?').get(result.lastInsertRowid);
   const sessionUser = toSessionUser(user);
   req.session.user = sessionUser;
 
@@ -127,8 +135,8 @@ router.post('/login', (req, res) => {
   const input = username.trim();
   const isEmail = input.includes('@');
   const user = isEmail
-    ? db.prepare('SELECT id, username, email, password, role, avatar, bio, home_base, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE email = ?').get(input)
-    : db.prepare('SELECT id, username, email, password, role, avatar, bio, home_base, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE username = ?').get(input);
+    ? db.prepare('SELECT id, username, email, password, role, avatar, bio, home_base, customer_category, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE email = ?').get(input)
+    : db.prepare('SELECT id, username, email, password, role, avatar, bio, home_base, customer_category, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE username = ?').get(input);
   if (!user) {
     return res.status(401).json({ error: 'Invalid username or password' });
   }
@@ -163,7 +171,7 @@ router.get('/me', (req, res) => {
   if (!req.session || !req.session.user) {
     return res.json({ user: null });
   }
-  const row = db.prepare('SELECT id, username, email, role, avatar, bio, home_base, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE id = ?').get(req.session.user.id);
+  const row = db.prepare('SELECT id, username, email, role, avatar, bio, home_base, customer_category, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE id = ?').get(req.session.user.id);
   if (!row) return res.json({ user: null });
   res.json({ user: toSessionUser(row) });
 });
@@ -207,21 +215,35 @@ router.put('/change-password', (req, res) => {
   res.json({ success: true, message: 'Password updated. Use your new password next time you sign in.' });
 });
 
-// PUT /api/auth/preferences — update subscription preferences (newsletter, blog, product updates, forum)
+// PUT /api/auth/preferences — update subscription preferences (newsletter, blog, product updates, forum) and optional customer_category
 router.put('/preferences', (req, res) => {
   if (!req.session || !req.session.user) {
     return res.status(401).json({ error: 'Authentication required' });
   }
   const userId = req.session.user.id;
-  const { newsletter, blog, product_updates, forum } = req.body || {};
+  const { newsletter, blog, product_updates, forum, customer_category } = req.body || {};
   const n = v => (v === true || v === 1 || v === '1' || v === 'true') ? 1 : 0;
+  const cat = (customer_category != null && typeof customer_category === 'string' && CUSTOMER_CATEGORIES.includes(customer_category.trim().toLowerCase()))
+    ? customer_category.trim().toLowerCase()
+    : null;
+  // Allow empty string to clear category; pass null for UPDATE
+  const catVal = (customer_category !== undefined && customer_category !== null && String(customer_category).trim() === '') ? null : cat;
   db.prepare(`
-    UPDATE users SET opt_in_newsletter = ?, opt_in_blog = ?, opt_in_product_updates = ?, opt_in_forum = ?
+    UPDATE users SET opt_in_newsletter = ?, opt_in_blog = ?, opt_in_product_updates = ?, opt_in_forum = ?, customer_category = ?
     WHERE id = ?
-  `).run(n(newsletter), n(blog), n(product_updates), n(forum), userId);
-  const row = db.prepare('SELECT id, username, email, role, avatar, bio, home_base, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE id = ?').get(userId);
+  `).run(n(newsletter), n(blog), n(product_updates), n(forum), catVal, userId);
+  const row = db.prepare('SELECT id, username, email, role, avatar, bio, home_base, customer_category, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE id = ?').get(userId);
   req.session.user = toSessionUser(row);
-  res.json({ success: true, preferences: { newsletter: !!row.opt_in_newsletter, blog: !!row.opt_in_blog, product_updates: !!row.opt_in_product_updates, forum: !!row.opt_in_forum } });
+  res.json({
+    success: true,
+    preferences: {
+      newsletter: !!row.opt_in_newsletter,
+      blog: !!row.opt_in_blog,
+      product_updates: !!row.opt_in_product_updates,
+      forum: !!row.opt_in_forum,
+      customer_category: row.customer_category || null
+    }
+  });
 });
 
 // POST /api/auth/forgot-password — request password reset by email (always return same message to avoid leaking accounts)

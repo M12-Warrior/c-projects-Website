@@ -110,7 +110,17 @@
             <label class="flex align-center gap-8" style="cursor:pointer;margin-bottom:10px;"><input type="checkbox" id="pref_newsletter"> Newsletter</label>
             <label class="flex align-center gap-8" style="cursor:pointer;margin-bottom:10px;"><input type="checkbox" id="pref_blog"> Blog updates</label>
             <label class="flex align-center gap-8" style="cursor:pointer;margin-bottom:10px;"><input type="checkbox" id="pref_product_updates"> Product updates</label>
-            <label class="flex align-center gap-8" style="cursor:pointer;"><input type="checkbox" id="pref_forum"> Forum updates</label>
+            <label class="flex align-center gap-8" style="cursor:pointer;margin-bottom:16px;"><input type="checkbox" id="pref_forum"> Forum updates</label>
+          </div>
+          <div class="form-group" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+            <label class="form-label" for="pref_customer_category">Customer type</label>
+            <select id="pref_customer_category" class="form-input" style="max-width:240px;" aria-label="Customer type">
+              <option value="">— Select one —</option>
+              <option value="individual">Individual</option>
+              <option value="fleet">Fleet</option>
+              <option value="school">School</option>
+            </select>
+            <p class="text-muted" style="font-size:0.85rem;margin-top:6px;">Helps us tailor renewal reminders and support.</p>
           </div>
           <p id="preferencesSaved" class="text-muted" style="font-size:0.85rem;margin-top:12px;display:none;">Preferences saved.</p>
         </section>
@@ -242,10 +252,12 @@
         var prefBlog = document.getElementById('pref_blog');
         var prefProduct = document.getElementById('pref_product_updates');
         var prefForum = document.getElementById('pref_forum');
+        var prefCategory = document.getElementById('pref_customer_category');
         if (prefNewsletter) prefNewsletter.checked = !!user.opt_in_newsletter;
         if (prefBlog) prefBlog.checked = !!user.opt_in_blog;
         if (prefProduct) prefProduct.checked = !!user.opt_in_product_updates;
         if (prefForum) prefForum.checked = !!user.opt_in_forum;
+        if (prefCategory) prefCategory.value = (user.customer_category || '').toLowerCase();
       }
 
       async function loadOrders() {
@@ -423,7 +435,9 @@
         var blog = document.getElementById('pref_blog');
         var product = document.getElementById('pref_product_updates');
         var forum = document.getElementById('pref_forum');
+        var categoryEl = document.getElementById('pref_customer_category');
         if (!newsletter || !blog || !product || !forum) return;
+        var customer_category = (categoryEl && categoryEl.value) ? categoryEl.value.trim() : '';
         try {
           const r = await fetch('/api/auth/preferences', {
             method: 'PUT',
@@ -433,7 +447,8 @@
               newsletter: newsletter.checked,
               blog: blog.checked,
               product_updates: product.checked,
-              forum: forum.checked
+              forum: forum.checked,
+              customer_category: customer_category || null
             })
           });
           if (r.ok) {
@@ -444,11 +459,12 @@
               currentUser.opt_in_blog = blog.checked ? 1 : 0;
               currentUser.opt_in_product_updates = product.checked ? 1 : 0;
               currentUser.opt_in_forum = forum.checked ? 1 : 0;
+              currentUser.customer_category = customer_category || null;
             }
           }
         } catch (e) {}
       }
-      ['pref_newsletter', 'pref_blog', 'pref_product_updates', 'pref_forum'].forEach(function(id) {
+      ['pref_newsletter', 'pref_blog', 'pref_product_updates', 'pref_forum', 'pref_customer_category'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.addEventListener('change', saveCommunicationPreferences);
       });

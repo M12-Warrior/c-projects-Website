@@ -2243,6 +2243,43 @@ Packets.fleetRefresher = function () {
    Download & Print Helpers
    ============================================================ */
 Packets.download = function (type) {
+  function track(action, slug) {
+    try {
+      fetch('/api/track-download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ content_type: slug, action: action, product_slug: slug })
+      }).catch(function () {});
+    } catch (_) {}
+  }
+  if (type === 'new-driver') {
+    fetch('/api/shop/packet-access?type=' + encodeURIComponent(type), { credentials: 'include' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.allowed) {
+          alert('New Driver Packet now requires purchase ($9). Redirecting to shop.');
+          window.location.href = '/shop';
+          return;
+        }
+        fetch('/api/shop/packet-download-log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ type: type })
+        }).catch(function () {});
+        Packets.downloadDirect(type, track);
+      })
+      .catch(function () {
+        alert('Please sign in and purchase the New Driver Packet to download.');
+        window.location.href = '/login';
+      });
+    return;
+  }
+  Packets.downloadDirect(type, track);
+};
+
+Packets.downloadDirect = function (type, trackFn) {
   var html, filename;
   switch (type) {
     case 'new-driver': html = Packets.newDriver(); filename = 'Mile12Warrior-New-Driver-Packet.html'; break;
@@ -2255,6 +2292,7 @@ Packets.download = function (type) {
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = filename;
+  if (typeof trackFn === 'function') trackFn('download', filename.replace('.html', '').toLowerCase());
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -2262,6 +2300,35 @@ Packets.download = function (type) {
 };
 
 Packets.print = function (type) {
+  if (type === 'new-driver') {
+    fetch('/api/shop/packet-access?type=' + encodeURIComponent(type), { credentials: 'include' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.allowed) {
+          alert('New Driver Packet now requires purchase ($9). Redirecting to shop.');
+          window.location.href = '/shop';
+          return;
+        }
+        Packets.printDirect(type);
+      })
+      .catch(function () {
+        alert('Please sign in and purchase the New Driver Packet to print.');
+        window.location.href = '/login';
+      });
+    return;
+  }
+  Packets.printDirect(type);
+};
+
+Packets.printDirect = function (type) {
+  try {
+    fetch('/api/track-download', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ content_type: type, action: 'print', product_slug: type })
+    }).catch(function () {});
+  } catch (_) {}
   var html;
   switch (type) {
     case 'new-driver': html = Packets.newDriver(); break;

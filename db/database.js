@@ -174,6 +174,15 @@ try {
   db.exec('ALTER TABLE users ADD COLUMN home_base TEXT DEFAULT ""');
 } catch (_) {}
 try {
+  db.exec('ALTER TABLE users ADD COLUMN customer_category TEXT');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE users ADD COLUMN opt_out_address_book INTEGER DEFAULT 0');
+} catch (_) {}
+try {
+  db.exec('CREATE INDEX IF NOT EXISTS idx_users_customer_category ON users(customer_category)');
+} catch (_) {}
+try {
   db.exec('CREATE TABLE IF NOT EXISTS password_reset_tokens (token TEXT PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id), expires_at DATETIME NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)');
 } catch (_) {}
 try {
@@ -255,11 +264,56 @@ db.exec(`
     visited_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     visitor_key TEXT NOT NULL,
     user_id INTEGER REFERENCES users(id),
-    path TEXT
+    path TEXT,
+    referrer TEXT,
+    utm_source TEXT,
+    utm_medium TEXT,
+    utm_campaign TEXT
   );
   CREATE INDEX IF NOT EXISTS idx_traffic_visits_at ON traffic_visits(visited_at);
   CREATE INDEX IF NOT EXISTS idx_traffic_visits_user ON traffic_visits(user_id);
   CREATE INDEX IF NOT EXISTS idx_traffic_visits_key ON traffic_visits(visitor_key);
+`);
+try {
+  db.exec('ALTER TABLE traffic_visits ADD COLUMN referrer TEXT');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE traffic_visits ADD COLUMN utm_source TEXT');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE traffic_visits ADD COLUMN utm_medium TEXT');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE traffic_visits ADD COLUMN utm_campaign TEXT');
+} catch (_) {}
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS download_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    visited_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    visitor_key TEXT NOT NULL,
+    user_id INTEGER REFERENCES users(id),
+    content_type TEXT NOT NULL,
+    action TEXT NOT NULL,
+    product_slug TEXT,
+    path TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_download_events_at ON download_events(visited_at);
+  CREATE INDEX IF NOT EXISTS idx_download_events_user ON download_events(user_id);
+  CREATE INDEX IF NOT EXISTS idx_download_events_content ON download_events(content_type);
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS address_book (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL UNIQUE,
+    name TEXT,
+    source TEXT,
+    opt_out INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE INDEX IF NOT EXISTS idx_address_book_opt_out ON address_book(opt_out);
 `);
 
 // Forum category "Miles Without Borders" for existing databases (idempotent)
@@ -304,6 +358,7 @@ const seedIfEmpty = () => {
   insertProduct.run('Mile 12 Warrior Kit', 'mile-12-warrior-kit', 'The complete fatigue-fighting toolkit. Includes the wellness journal, a resistance band set, essential oil roller, eye mask for sleeper berth rest, and the Mile 12 quick-reset card deck.', 49.99, 'kits', 30, 1);
 
   insertProduct.run('90-Day Onboarding Course', 'course-90day', '10 self-paced modules, 47 lessons, knowledge checks, and a certificate of completion. Everything a new CDL driver needs for their first 90 days — HOS mastery, fatigue management, inspections, emergency preparedness, defensive driving, and daily routine systems. Includes the New Driver Packet free.', 149.00, 'digital', 9999, 1);
+  insertProduct.run('New Driver Packet', 'new-driver-packet', 'Foundational safety and wellness packet for new CDL drivers. 13 print-ready sections including HOS basics, fatigue management, DVIR checklists, emergency protocol, and daily routines.', 9.00, 'digital', 9999, 1);
   insertProduct.run('Seasoned Driver Packet', 'seasoned-packet', 'Advanced safety and wellness packet for experienced drivers (2+ years). 11 sections covering HOS refresher, advanced fatigue science, long-term health, CSA self-audit, career wellness, and mentorship planning. Print-ready with real regulatory references.', 29.00, 'digital', 9999, 1);
   insertProduct.run('Fleet New Hire Orientation Packet', 'fleet-new-hire-packet', 'Complete new-hire onboarding packet for fleet safety departments. 11 sections with FMCSA compliance, drug/alcohol testing requirements, accident procedures, company policy templates, and formal driver sign-off sheet per 49 CFR 391.51. Unlimited printing per company.', 79.00, 'digital', 9999, 1);
   insertProduct.run('Fleet Seasoned Driver Refresher Packet', 'fleet-refresher-packet', 'Annual/semi-annual refresher for experienced drivers. 10 sections with fatigue self-assessment, 12-month seasonal hazard calendar, regulatory self-audit, mentorship guidance, and formal driver sign-off sheet per 49 CFR 391.51. Unlimited printing per company.', 79.00, 'digital', 9999, 1);
@@ -325,6 +380,31 @@ try {
   const updatePost = db.prepare('UPDATE blog_posts SET content = ?, excerpt = ? WHERE slug = ?');
   for (const post of BLOG_POSTS_SEED) {
     updatePost.run(post.content, post.excerpt, post.slug);
+  }
+} catch (_) {}
+
+// Ensure New Driver Packet exists and remains priced at $9
+try {
+  const existing = db.prepare('SELECT id FROM products WHERE slug = ?').get('new-driver-packet');
+  if (!existing) {
+    db.prepare(`
+      INSERT INTO products (name, slug, description, price, category, stock, active)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      'New Driver Packet',
+      'new-driver-packet',
+      'Foundational safety and wellness packet for new CDL drivers. 13 print-ready sections including HOS basics, fatigue management, DVIR checklists, emergency protocol, and daily routines.',
+      9.00,
+      'digital',
+      9999,
+      1
+    );
+  } else {
+    db.prepare(`
+      UPDATE products
+      SET name = ?, price = ?, category = ?, active = 1
+      WHERE slug = ?
+    `).run('New Driver Packet', 9.00, 'digital', 'new-driver-packet');
   }
 } catch (_) {}
 

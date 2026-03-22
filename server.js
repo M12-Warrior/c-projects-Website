@@ -84,13 +84,41 @@ app.use((req, res, next) => {
   const pathSeg = (req.path || '/').split('?')[0];
   const visitorKey = (req.session && req.sessionID) ? String(req.sessionID) : crypto.createHash('sha256').update((req.get('x-forwarded-for') || req.ip || '') + (req.get('user-agent') || '')).digest('hex').slice(0, 32);
   const userId = (req.session && req.session.user && req.session.user.id) ? req.session.user.id : null;
+  const referrer = (req.get('referer') || '').slice(0, 1024) || null;
+  const utmSource = (req.query && typeof req.query.utm_source === 'string') ? req.query.utm_source.slice(0, 120) : null;
+  const utmMedium = (req.query && typeof req.query.utm_medium === 'string') ? req.query.utm_medium.slice(0, 120) : null;
+  const utmCampaign = (req.query && typeof req.query.utm_campaign === 'string') ? req.query.utm_campaign.slice(0, 200) : null;
   next();
   setImmediate(function() {
     try {
-      const insert = db.prepare('INSERT INTO traffic_visits (visited_at, visitor_key, user_id, path) VALUES (datetime(\'now\'), ?, ?, ?)');
-      insert.run(visitorKey, userId, pathSeg);
+      const insert = db.prepare('INSERT INTO traffic_visits (visited_at, visitor_key, user_id, path, referrer, utm_source, utm_medium, utm_campaign) VALUES (datetime(\'now\'), ?, ?, ?, ?, ?, ?, ?)');
+      insert.run(visitorKey, userId, pathSeg, referrer, utmSource, utmMedium, utmCampaign);
     } catch (_) {}
   });
+});
+
+// Download/print telemetry for free and paid content
+app.post('/api/track-download', (req, res) => {
+  const contentType = (req.body && typeof req.body.content_type === 'string') ? req.body.content_type.trim() : '';
+  const action = (req.body && typeof req.body.action === 'string') ? req.body.action.trim().toLowerCase() : '';
+  const productSlug = (req.body && typeof req.body.product_slug === 'string') ? req.body.product_slug.trim() : null;
+  if (!contentType || (action !== 'download' && action !== 'print')) {
+    return res.status(400).json({ error: 'Invalid tracking payload' });
+  }
+  const visitorKey = (req.session && req.sessionID)
+    ? String(req.sessionID)
+    : crypto.createHash('sha256').update((req.get('x-forwarded-for') || req.ip || '') + (req.get('user-agent') || '')).digest('hex').slice(0, 32);
+  const userId = (req.session && req.session.user && req.session.user.id) ? req.session.user.id : null;
+  const pathSeg = (req.path || '/').split('?')[0];
+  try {
+    db.prepare(`
+      INSERT INTO download_events (visited_at, visitor_key, user_id, content_type, action, product_slug, path)
+      VALUES (datetime('now'), ?, ?, ?, ?, ?, ?)
+    `).run(visitorKey, userId, contentType.slice(0, 120), action, productSlug ? productSlug.slice(0, 120) : null, pathSeg);
+    return res.json({ success: true });
+  } catch (_) {
+    return res.status(500).json({ error: 'Failed to track download event' });
+  }
 });
 
 // API routes

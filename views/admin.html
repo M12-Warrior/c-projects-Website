@@ -86,6 +86,11 @@
         <button type="button" class="admin-tab" data-tab="shop">Shop</button>
         <button type="button" class="admin-tab" data-tab="completions">Completions</button>
         <button type="button" class="admin-tab" data-tab="traffic">Traffic</button>
+        <button type="button" class="admin-tab" data-tab="revenue">Revenue &amp; Tax</button>
+        <button type="button" class="admin-tab" data-tab="downloads">Downloads</button>
+        <button type="button" class="admin-tab" data-tab="renewals">Packets &amp; Renewals</button>
+        <button type="button" class="admin-tab" data-tab="addressBook">Address Book</button>
+        <button type="button" class="admin-tab" data-tab="compliance">Tax &amp; Compliance</button>
         <button type="button" class="admin-tab" data-tab="messages">Messages</button>
       </div>
 
@@ -117,7 +122,7 @@
 
       <div id="tabUsers" class="admin-tab-content hidden">
         <table class="admin-table">
-          <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Category</th><th>Joined</th><th>Actions</th></tr></thead>
           <tbody id="usersTable"></tbody>
         </table>
       </div>
@@ -132,10 +137,18 @@
           </table>
           <p id="blogPendingCommentsNone" class="hidden" style="color:var(--text-3);font-size:0.9rem">No pending comments.</p>
         </div>
-        <div class="flex-between mb-16">
+        <div class="flex-between mb-16" style="flex-wrap:wrap;gap:12px;">
           <h3>Posts</h3>
-          <button type="button" class="btn btn-primary" id="blogNewPostBtn">New Post</button>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <label for="blogListLimit" style="font-size:0.85rem;color:var(--text-2);">Show:</label>
+            <select id="blogListLimit" class="form-input" style="width:auto;min-width:4rem;">
+              <option value="5" selected>5</option>
+              <option value="all">All</option>
+            </select>
+            <button type="button" class="btn btn-primary" id="blogNewPostBtn">New Post (Proofread)</button>
+          </div>
         </div>
+        <p style="color:var(--text-2);font-size:0.9rem;margin-top:-8px;margin-bottom:16px;">Use the table below to edit or delete existing posts. Use New Post to create one.</p>
         <div id="blogNewFormWrap" class="hidden" style="margin-bottom: 24px;">
           <div class="profile-section">
             <form id="blogNewForm">
@@ -188,7 +201,7 @@
           </div>
         </div>
         <table class="admin-table">
-          <thead><tr><th>Title</th><th>Author</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Image</th><th>Title</th><th>Author</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
           <tbody id="blogTable"></tbody>
         </table>
         <div id="blogEditModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:100;overflow-y:auto;padding:24px;">
@@ -322,14 +335,88 @@
             <select id="trafficPeriod" class="form-input" style="width:auto;padding:8px 12px;">
               <option value="day">Daily (today)</option>
               <option value="week" selected>Weekly (last 7 days)</option>
-              <option value="month">Monthly (last 30 days)</option>
+              <option value="month">Past 30 days</option>
+              <option value="ytd">Year to date</option>
               <option value="year">Yearly (last 12 months)</option>
             </select>
             <label style="margin-left:8px;"><input type="checkbox" id="trafficYoy" style="margin-right:6px;"> Year-over-year growth</label>
             <button type="button" class="btn btn-primary" id="trafficRefreshBtn">Refresh</button>
           </div>
           <div id="trafficStats" class="admin-grid"></div>
+          <div class="admin-section" style="margin-top:20px;">
+            <h4>Traffic by source</h4>
+            <table class="admin-table">
+              <thead><tr><th>Source</th><th>Visitors</th><th>Page views</th><th>% of visitors</th></tr></thead>
+              <tbody id="trafficSourcesTable"></tbody>
+            </table>
+          </div>
           <p id="trafficNote" style="font-size:0.8rem;color:var(--text-3);margin-top:16px;"></p>
+        </div>
+      </div>
+
+      <div id="tabRevenue" class="admin-tab-content hidden">
+        <div class="admin-section">
+          <h3>Revenue &amp; tax planning</h3>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+            <label>Fiscal year</label>
+            <select id="revenueFiscalYear" class="form-input" style="width:auto;">
+              <option value="2026" selected>FY2026</option>
+              <option value="2027">FY2027</option>
+              <option value="2028">FY2028</option>
+            </select>
+            <label>Tax set-aside %</label>
+            <input id="revenueTaxRate" class="form-input" type="number" min="0" max="100" step="0.5" value="30" style="width:100px;">
+            <button type="button" class="btn btn-primary" id="revenueRefreshBtn">Refresh</button>
+          </div>
+          <div id="revenueStats" class="admin-grid"></div>
+          <table class="admin-table">
+            <thead><tr><th>Month</th><th>Revenue</th></tr></thead>
+            <tbody id="revenueTable"></tbody>
+          </table>
+          <p style="font-size:0.82rem;color:var(--text-3);margin-top:10px;">Planning estimate only. Consult a tax professional for filing and compliance.</p>
+        </div>
+      </div>
+
+      <div id="tabDownloads" class="admin-tab-content hidden">
+        <div class="admin-section">
+          <h3>Downloads &amp; prints</h3>
+          <table class="admin-table">
+            <thead><tr><th>Content</th><th>Downloads</th><th>Prints</th><th>Total</th></tr></thead>
+            <tbody id="downloadsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="tabRenewals" class="admin-tab-content hidden">
+        <div class="admin-section">
+          <h3>Packet licenses &amp; renewals</h3>
+          <table class="admin-table">
+            <thead><tr><th>User</th><th>Email</th><th>Product</th><th>Purchase</th><th>Expires</th><th>Action</th></tr></thead>
+            <tbody id="renewalsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="tabAddressBook" class="admin-tab-content hidden">
+        <div class="admin-section">
+          <h3>Address book</h3>
+          <table class="admin-table">
+            <thead><tr><th>Email</th><th>Name</th><th>Source</th><th>Opt-out</th><th>Updated</th></tr></thead>
+            <tbody id="addressBookTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="tabCompliance" class="admin-tab-content hidden">
+        <div class="admin-section">
+          <h3>Tax &amp; compliance reference</h3>
+          <ul style="color:var(--text-2);line-height:1.7;">
+            <li>Federal LLC: pass-through reporting, self-employment tax, quarterly estimated payments.</li>
+            <li>California LLC: $800 annual franchise tax plus income-based LLC fee thresholds.</li>
+            <li>California digital goods are generally non-taxable when sold standalone; verify for bundled offers.</li>
+            <li>Sacramento and Riverside business licensing rules can apply based on where operations occur.</li>
+          </ul>
+          <p style="font-size:0.82rem;color:var(--text-3);">Verify current requirements at fmcsa.dot.gov, ftb.ca.gov, and cdtfa.ca.gov. For legal/tax interpretation, consult a CPA or attorney.</p>
         </div>
       </div>
       <div id="tabCompletions" class="admin-tab-content hidden">
@@ -594,26 +681,31 @@
           el.innerHTML = users.map(function(u) {
             const id = u.id;
             const role = u.role || 'user';
+            const cat = (u.customer_category || '').toLowerCase();
+            const catOpts = '<option value="">—</option><option value="individual"' + (cat === 'individual' ? ' selected' : '') + '>Individual</option><option value="fleet"' + (cat === 'fleet' ? ' selected' : '') + '>Fleet</option><option value="school"' + (cat === 'school' ? ' selected' : '') + '>School</option>';
             return '<tr data-id="' + id + '">' +
               '<td>' + escapeHtml(u.username || u.email) + '</td>' +
               '<td>' + escapeHtml(u.email || '—') + '</td>' +
               '<td><select class="form-input role-select" style="max-width:120px; padding:6px;"><option value="user"' + (role === 'user' ? ' selected' : '') + '>user</option><option value="admin"' + (role === 'admin' ? ' selected' : '') + '>admin</option></select></td>' +
+              '<td><select class="form-input category-select" style="max-width:120px; padding:6px;">' + catOpts + '</select></td>' +
               '<td>' + formatDate(u.created_at || u.joined_at) + '</td>' +
               '<td><div class="admin-actions"><button type="button" class="admin-btn admin-btn-primary user-save-role">Save</button><button type="button" class="admin-btn admin-btn-danger user-delete">Delete</button></div></td>' +
             '</tr>';
-          }).join('') || '<tr><td colspan="5">No users</td></tr>';
+          }).join('') || '<tr><td colspan="6">No users</td></tr>';
 
           el.querySelectorAll('.user-save-role').forEach(function(btn) {
             btn.addEventListener('click', async function() {
               const row = btn.closest('tr');
               const id = row.getAttribute('data-id');
               const role = row.querySelector('.role-select').value;
+              const categorySelect = row.querySelector('.category-select');
+              const customer_category = (categorySelect && categorySelect.value) ? categorySelect.value.trim() : '';
               try {
                 const r = await fetch('/api/admin/users/' + id, {
                   method: 'PUT',
                   headers: { 'Content-Type': 'application/json' },
                   credentials: 'include',
-                  body: JSON.stringify({ role: role })
+                  body: JSON.stringify({ role: role, customer_category: customer_category || null })
                 });
                 if (r.ok) showToast('Role updated.', true);
                 else showToast('Failed to update.', false);
@@ -633,7 +725,7 @@
             });
           });
         } catch (e) {
-          el.innerHTML = '<tr><td colspan="5">Could not load users.</td></tr>';
+          el.innerHTML = '<tr><td colspan="6">Could not load users.</td></tr>';
         }
       }
 
@@ -696,47 +788,76 @@
         }
       }
 
+      function renderBlogTableFromCache() {
+        var el = document.getElementById('blogTable');
+        if (!el) return;
+        var posts = window._blogPostsCache;
+        if (!Array.isArray(posts)) { el.innerHTML = '<tr><td colspan="6">No posts yet. Use <strong>New Post</strong> above to create one; then you can edit it here.</td></tr>'; return; }
+        var limitEl = document.getElementById('blogListLimit');
+        var limitVal = limitEl && limitEl.value === 'all' ? null : 5;
+        var list = limitVal ? posts.slice(0, limitVal) : posts;
+        el.innerHTML = list.length ? list.map(function(p) {
+          var status = p.status || (p.published ? 'published' : (p.scheduled_at && new Date(p.scheduled_at) > new Date() ? 'scheduled' : 'draft'));
+          var statusLabel = status;
+          if (status === 'scheduled' && p.scheduled_at) statusLabel = 'Scheduled ' + (new Date(p.scheduled_at).toLocaleString());
+          return '<tr data-id="' + p.id + '">' +
+            '<td>' + (p.image ? '<img class="blog-thumb" src="' + escapeHtml(p.image) + '" alt="">' : '') + '</td>' +
+            '<td>' + escapeHtml(p.title) + '</td>' +
+            '<td>' + escapeHtml(p.author_username || p.author || '—') + '</td>' +
+            '<td><span class="badge-status ' + (status === 'published' ? 'status-delivered' : 'status-pending') + '">' + escapeHtml(statusLabel) + '</span></td>' +
+            '<td>' + formatDate(p.created_at || p.date) + '</td>' +
+            '<td><button type="button" class="admin-btn admin-btn-primary blog-edit" style="margin-right:8px;">Edit</button><button type="button" class="admin-btn admin-btn-primary blog-publish" style="margin-right:8px;">Publish</button><button type="button" class="admin-btn admin-btn-danger blog-delete">Delete</button></td>' +
+          '</tr>';
+        }).join('') : '<tr><td colspan="6">No posts yet. Use <strong>New Post</strong> above to create one; then you can edit it here.</td></tr>';
+        el.querySelectorAll('.blog-edit').forEach(function(btn) {
+          btn.addEventListener('click', function() { var id = btn.closest('tr').getAttribute('data-id'); openBlogEdit(id); });
+        });
+        el.querySelectorAll('.blog-publish').forEach(function(btn) {
+          btn.addEventListener('click', async function() {
+            var id = btn.closest('tr').getAttribute('data-id');
+            await openBlogEdit(id);
+            var publishBtn = document.getElementById('blogEditPublishBtn');
+            if (publishBtn) publishBtn.focus();
+          });
+        });
+        el.querySelectorAll('.blog-delete').forEach(function(btn) {
+          btn.addEventListener('click', async function() {
+            if (!confirmAction('Delete this post?')) return;
+            var row = btn.closest('tr');
+            var id = row.getAttribute('data-id');
+            try {
+              var r = await fetch('/api/blog/posts/' + id, { method: 'DELETE', credentials: 'include' });
+              if (r.ok) { row.remove(); showToast('Post deleted.', true); }
+              else showToast('Failed to delete.', false);
+            } catch (_) { showToast('Failed.', false); }
+          });
+        });
+      }
+
       async function loadBlog() {
         loadBlogCommentsPending();
-        const el = document.getElementById('blogTable');
+        var el = document.getElementById('blogTable');
+        if (!el) return;
         try {
-          const res = await fetch('/api/blog/admin/posts', { credentials: 'include' });
-          if (!res.ok) throw new Error('Failed');
-          const data = await res.json();
-          const posts = data.posts || data || [];
-          el.innerHTML = posts.map(function(p) {
-            var status = p.status || (p.published ? 'published' : (p.scheduled_at && new Date(p.scheduled_at) > new Date() ? 'scheduled' : 'draft'));
-            var statusLabel = status;
-            if (status === 'scheduled' && p.scheduled_at) statusLabel = 'Scheduled ' + (new Date(p.scheduled_at).toLocaleString());
-            return '<tr data-id="' + p.id + '">' +
-              '<td>' + escapeHtml(p.title) + '</td>' +
-              '<td>' + escapeHtml(p.author_username || p.author || '—') + '</td>' +
-              '<td><span class="badge-status ' + (status === 'published' ? 'status-delivered' : 'status-pending') + '">' + escapeHtml(statusLabel) + '</span></td>' +
-              '<td>' + formatDate(p.created_at || p.date) + '</td>' +
-              '<td><button type="button" class="admin-btn admin-btn-primary blog-edit" style="margin-right:8px;">Edit</button><button type="button" class="admin-btn admin-btn-danger blog-delete">Delete</button></td>' +
-            '</tr>';
-          }).join('') || '<tr><td colspan="5">No posts</td></tr>';
-
-          el.querySelectorAll('.blog-edit').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-              const id = btn.closest('tr').getAttribute('data-id');
-              openBlogEdit(id);
-            });
-          });
-          el.querySelectorAll('.blog-delete').forEach(function(btn) {
-            btn.addEventListener('click', async function() {
-              if (!confirmAction('Delete this post?')) return;
-              const row = btn.closest('tr');
-              const id = row.getAttribute('data-id');
-              try {
-                const r = await fetch('/api/blog/posts/' + id, { method: 'DELETE', credentials: 'include' });
-                if (r.ok) { row.remove(); showToast('Post deleted.', true); }
-                else showToast('Failed to delete.', false);
-              } catch (_) { showToast('Failed.', false); }
-            });
-          });
+          var res = await fetch('/api/blog/admin/posts', { credentials: 'include', cache: 'no-store' });
+          var data = await res.json().catch(function() { return {}; });
+          if (!res.ok) {
+            var errMsg = data.error || data.detail || ('Request failed: ' + res.status);
+            showToast('Could not load posts list: ' + errMsg, false);
+            el.innerHTML = '<tr><td colspan="6">Could not load posts. Check the message above or try refreshing.</td></tr>';
+            return;
+          }
+          var posts = Array.isArray(data.posts) ? data.posts : (Array.isArray(data) ? data : []);
+          window._blogPostsCache = posts;
+          renderBlogTableFromCache();
+          var limitEl = document.getElementById('blogListLimit');
+          if (limitEl && !limitEl._blogLimitBound) {
+            limitEl._blogLimitBound = true;
+            limitEl.addEventListener('change', renderBlogTableFromCache);
+          }
         } catch (e) {
-          el.innerHTML = '<tr><td colspan="5">Could not load posts.</td></tr>';
+          showToast('Could not load posts list.', false);
+          el.innerHTML = '<tr><td colspan="6">Could not load posts. Try refreshing the page.</td></tr>';
         }
       }
 
@@ -827,7 +948,15 @@
             showToast(publish ? 'Post published.' : 'Draft saved.', true);
             closeBlogEdit();
             loadBlog();
-          } else showToast('Failed to update.', false);
+          } else {
+            var errMsg = 'Failed to update.';
+            try {
+              var errData = await r.json();
+              if (errData && errData.detail) errMsg = errMsg + ' ' + errData.detail;
+              else if (errData && errData.error) errMsg = errMsg + ' ' + errData.error;
+            } catch (_) {}
+            showToast(errMsg, false);
+          }
         } catch (_) { showToast('Failed to update.', false); }
       }
       document.getElementById('blogEditSaveDraftBtn').addEventListener('click', async function() {
@@ -918,7 +1047,9 @@
               loadBlog();
             }
           } else {
-            showToast(data.error || 'Failed to save.', false);
+            var msg = data.error || 'Failed to save.';
+            if (data.detail) msg = msg + ' ' + data.detail;
+            showToast(msg, false);
           }
         } catch (_) { showToast('Failed to save.', false); }
       }
@@ -1323,6 +1454,7 @@
       async function loadTraffic() {
         const statsEl = document.getElementById('trafficStats');
         const noteEl = document.getElementById('trafficNote');
+        const sourcesEl = document.getElementById('trafficSourcesTable');
         if (!statsEl) return;
         const period = (document.getElementById('trafficPeriod') && document.getElementById('trafficPeriod').value) || 'week';
         const yoy = document.getElementById('trafficYoy') && document.getElementById('trafficYoy').checked;
@@ -1343,11 +1475,110 @@
           if (noteEl) {
             noteEl.textContent = 'Period: ' + periodLabel + (d.yoyGrowth != null && d.previousVisitors != null ? '. Previous period (same length, one year ago): ' + d.previousVisitors + ' visitors.' : '') + ' Individual vs business: we infer "likely business" from fleet product purchases; other traffic is a mix of individuals and unknown.';
           }
+          if (sourcesEl) {
+            const rows = Array.isArray(d.sources) ? d.sources : [];
+            sourcesEl.innerHTML = rows.map(function(s) {
+              return '<tr><td>' + escapeHtml(String(s.source || 'direct')) + '</td><td>' + (s.visitors || 0) + '</td><td>' + (s.views || 0) + '</td><td>' + (s.percent || 0) + '%</td></tr>';
+            }).join('') || '<tr><td colspan="4">No source data yet.</td></tr>';
+          }
         } catch (e) {
           statsEl.innerHTML = '<p class="text-muted">Could not load traffic. Data appears after visitors load pages (not API calls).</p>';
           if (noteEl) noteEl.textContent = '';
+          if (sourcesEl) sourcesEl.innerHTML = '<tr><td colspan="4">Could not load sources.</td></tr>';
         }
       }
+
+      async function loadRevenue() {
+        const fy = (document.getElementById('revenueFiscalYear') && document.getElementById('revenueFiscalYear').value) || '2026';
+        const taxRate = (document.getElementById('revenueTaxRate') && document.getElementById('revenueTaxRate').value) || '30';
+        const statsEl = document.getElementById('revenueStats');
+        const tableEl = document.getElementById('revenueTable');
+        if (!statsEl || !tableEl) return;
+        try {
+          const res = await fetch('/api/admin/revenue-tax?fiscal_year=' + encodeURIComponent(fy) + '&tax_rate=' + encodeURIComponent(taxRate), { credentials: 'include' });
+          const data = await res.json();
+          statsEl.innerHTML =
+            '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(data.totalRevenue || 0) + '</span><span class="admin-stat-label">Revenue</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(data.taxSetAside || 0) + '</span><span class="admin-stat-label">Tax set-aside</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(data.netAfterSetAside || 0) + '</span><span class="admin-stat-label">Net after set-aside</span></div>';
+          tableEl.innerHTML = (data.months || []).map(function(m) {
+            return '<tr><td>' + escapeHtml(m.month_key) + '</td><td>' + formatPrice(m.revenue) + '</td></tr>';
+          }).join('') || '<tr><td colspan="2">No fiscal revenue found.</td></tr>';
+        } catch (_) {
+          statsEl.innerHTML = '<p class="text-muted">Could not load fiscal revenue.</p>';
+          tableEl.innerHTML = '<tr><td colspan="2">Could not load.</td></tr>';
+        }
+      }
+
+      async function loadDownloads() {
+        const el = document.getElementById('downloadsTable');
+        if (!el) return;
+        try {
+          const res = await fetch('/api/admin/downloads?period=month', { credentials: 'include' });
+          const data = await res.json();
+          el.innerHTML = (data.rows || []).map(function(r) {
+            return '<tr><td>' + escapeHtml(r.content_type) + '</td><td>' + (r.downloads || 0) + '</td><td>' + (r.prints || 0) + '</td><td>' + (r.total || 0) + '</td></tr>';
+          }).join('') || '<tr><td colspan="4">No events yet.</td></tr>';
+        } catch (_) {
+          el.innerHTML = '<tr><td colspan="4">Could not load.</td></tr>';
+        }
+      }
+
+      async function loadRenewals() {
+        const el = document.getElementById('renewalsTable');
+        if (!el) return;
+        try {
+          const res = await fetch('/api/admin/packets-renewals?within_days=90', { credentials: 'include' });
+          const data = await res.json();
+          const grants = data.grants || [];
+          el.innerHTML = grants.map(function(g) {
+            return '<tr>' +
+              '<td>' + escapeHtml(g.username || '—') + '</td>' +
+              '<td>' + escapeHtml(g.email || '—') + '</td>' +
+              '<td>' + escapeHtml(g.product_slug || '—') + '</td>' +
+              '<td>' + formatDate(g.order_created_at || g.granted_at) + '</td>' +
+              '<td>' + (g.expires_at ? formatDate(g.expires_at) : 'No expiry') + '</td>' +
+              '<td><button type="button" class="admin-btn admin-btn-primary renewal-remind" data-email="' + escapeHtml(g.email || '') + '" data-context="' + escapeHtml(g.product_slug || '') + '">Send reminder</button></td>' +
+              '</tr>';
+          }).join('') || '<tr><td colspan="6">No packet renewals in this window.</td></tr>';
+          el.querySelectorAll('.renewal-remind').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              const email = btn.getAttribute('data-email');
+              const context = btn.getAttribute('data-context');
+              if (!email) return;
+              const r = await fetch('/api/admin/send-renewal-reminder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ email: email, context: context })
+              });
+              showToast(r.ok ? 'Reminder queued.' : 'Failed to queue reminder.', r.ok);
+            });
+          });
+        } catch (_) {
+          el.innerHTML = '<tr><td colspan="6">Could not load.</td></tr>';
+        }
+      }
+
+      async function loadAddressBook() {
+        const el = document.getElementById('addressBookTable');
+        if (!el) return;
+        try {
+          const res = await fetch('/api/admin/address-book', { credentials: 'include' });
+          const data = await res.json();
+          const contacts = data.contacts || [];
+          el.innerHTML = contacts.map(function(c) {
+            return '<tr><td>' + escapeHtml(c.email || '') + '</td><td>' + escapeHtml(c.name || '—') + '</td><td>' + escapeHtml(c.source || '—') + '</td><td>' + (c.opt_out ? 'Yes' : 'No') + '</td><td>' + formatDate(c.updated_at || c.created_at) + '</td></tr>';
+          }).join('') || '<tr><td colspan="5">No contacts.</td></tr>';
+        } catch (_) {
+          el.innerHTML = '<tr><td colspan="5">Could not load.</td></tr>';
+        }
+      }
+
+      window.loadRevenue = loadRevenue;
+      window.loadDownloads = loadDownloads;
+      window.loadRenewals = loadRenewals;
+      window.loadAddressBook = loadAddressBook;
 
       async function loadCompletions() {
         const el = document.getElementById('completionsTable');
@@ -1432,7 +1663,6 @@
 
         var urlParams = new URLSearchParams(window.location.search);
         var urlTab = urlParams.get('tab');
-        var urlEditId = urlParams.get('edit');
         if (urlTab === 'blog') {
           document.querySelectorAll('.admin-tab').forEach(function(b) { b.classList.remove('active'); });
           document.querySelectorAll('.admin-tab-content').forEach(function(c) { c.classList.add('hidden'); });
@@ -1441,7 +1671,6 @@
           if (blogTabBtn) blogTabBtn.classList.add('active');
           if (blogPanel) blogPanel.classList.remove('hidden');
           loadBlog();
-          if (urlEditId) setTimeout(function() { openBlogEdit(urlEditId); }, 400);
         }
 
         const navToggle = document.getElementById('navToggle');
@@ -1499,6 +1728,12 @@
         if (trafficPeriod) trafficPeriod.addEventListener('change', loadTraffic);
         if (trafficYoy) trafficYoy.addEventListener('change', loadTraffic);
         if (trafficRefreshBtn) trafficRefreshBtn.addEventListener('click', loadTraffic);
+        var revenueRefreshBtn = document.getElementById('revenueRefreshBtn');
+        var revenueFiscalYear = document.getElementById('revenueFiscalYear');
+        var revenueTaxRate = document.getElementById('revenueTaxRate');
+        if (revenueRefreshBtn) revenueRefreshBtn.addEventListener('click', loadRevenue);
+        if (revenueFiscalYear) revenueFiscalYear.addEventListener('change', loadRevenue);
+        if (revenueTaxRate) revenueTaxRate.addEventListener('change', loadRevenue);
 
         function onScroll() {
           const navbar = document.getElementById('navbar');

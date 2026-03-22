@@ -54,6 +54,23 @@ const CHECKLISTS = {
   }
 };
 
+function trackDownloadEvent(contentType, action, productSlug) {
+  try {
+    return fetch('/api/track-download', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        content_type: contentType,
+        action: action,
+        product_slug: productSlug || null
+      })
+    }).catch(function() {});
+  } catch (_) {
+    return Promise.resolve();
+  }
+}
+
 function buildPrintHTML(keys) {
   const lists = keys.map(function(key) {
     const cl = CHECKLISTS[key];
@@ -90,6 +107,15 @@ function printChecklist(id) {
     keys = [map[id] || 'breakdown'];
   }
 
+  var contentMap = {
+    'checklist-breakdown': 'roadmap-breakdown',
+    'checklist-firstaid': 'roadmap-firstaid',
+    'checklist-comms': 'roadmap-comms',
+    'checklist-protocol': 'roadmap-protocol',
+    'all-emergency': 'roadmap-all'
+  };
+  trackDownloadEvent(contentMap[id] || 'roadmap-breakdown', 'print');
+
   var win = window.open('', '_blank', 'width=800,height=900');
   win.document.write('<!DOCTYPE html><html><head><title>Mile 12 Warrior - Checklist</title>' +
     '<style>' +
@@ -115,6 +141,8 @@ function downloadChecklist(id) {
     keys = [id];
     filename = 'Mile12Warrior-' + CHECKLISTS[id].title.replace(/\s+/g, '-') + '.html';
   }
+
+  trackDownloadEvent(id === 'all' ? 'roadmap-all' : ('roadmap-' + id), 'download');
 
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Mile 12 Warrior - ' +
     (id === 'all' ? 'All Emergency Checklists' : CHECKLISTS[keys[0]].title) +
@@ -419,6 +447,11 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(function (r) { return r.json(); })
       .then(function (data) {
         if (!data.allowed) {
+          if (type === 'new-driver') {
+            alert('New Driver Packet is $9. Redirecting you to shop.');
+            window.location.href = '/shop';
+            return;
+          }
           alert('You don\'t have access or your download limit has been reached. This license is for your use only. Purchase again or renew your fleet license if needed.');
           return;
         }

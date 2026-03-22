@@ -1099,6 +1099,15 @@ textarea.form-input {
 .admin-table tr:hover td {
   background: rgba(255, 255, 255, 0.02);
 }
+.blog-thumb {
+  width: 72px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  display: block;
+}
 .admin-tabs {
   display: flex;
   gap: 4px;
