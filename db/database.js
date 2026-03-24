@@ -340,7 +340,7 @@ const seedIfEmpty = () => {
   insertUser.run('admin', 'joyce@mile12warrior.com', bcrypt.hashSync('admin123', 10), 'admin');
 
   const insertCategory = db.prepare(`
-    INSERT INTO forum_categories (name, slug, description, sort_order) VALUES (?, ?, ?, ?)
+    INSERT OR IGNORE INTO forum_categories (name, slug, description, sort_order) VALUES (?, ?, ?, ?)
   `);
   insertCategory.run('General Discussion', 'general', 'Chat about anything related to life on the road.', 0);
   insertCategory.run('Safety Tips', 'safety-tips', 'Share and discuss safety practices, near-misses, and lessons learned.', 1);
