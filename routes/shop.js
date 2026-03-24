@@ -1,7 +1,10 @@
 const express = require('express');
 const db = require('../db/database');
 const subscriptionRouter = require('./subscription');
-
+const AuthorizeNet = require('authorizenet');
+const ApiContracts = AuthorizeNet.APIContracts;
+const ApiControllers = AuthorizeNet.APIControllers;
+const constants = AuthorizeNet.Constants;
 const router = express.Router();
 
 // Require session (401 if not logged in)
@@ -164,28 +167,109 @@ router.get('/products/:slug', (req, res) => {
 });
 
 // 3. POST /api/shop/orders — Require session, create order
-router.post('/orders', requireSession, (req, res) => {
-  const { items = [], shipping = {} } = req.body || {};
+// router.post('/orders', requireSession, (req, res) => {
+//   const { items = [], shipping = {} } = req.body || {};
+
+//   if (!Array.isArray(items) || items.length === 0) {
+//     return res.status(400).json({ error: 'Items array is required and must not be empty' });
+//   }
+
+//   const { name, address, city, state, zip } = shipping;
+//   if (!name || typeof name !== 'string' || !name.trim()) {
+//     return res.status(400).json({ error: 'Shipping name is required' });
+//   }
+//   if (!address || typeof address !== 'string' || !address.trim()) {
+//     return res.status(400).json({ error: 'Shipping address is required' });
+//   }
+//   if (!city || typeof city !== 'string' || !city.trim()) {
+//     return res.status(400).json({ error: 'Shipping city is required' });
+//   }
+//   if (!state || typeof state !== 'string' || !state.trim()) {
+//     return res.status(400).json({ error: 'Shipping state is required' });
+//   }
+//   if (!zip || typeof zip !== 'string' || !zip.trim()) {
+//     return res.status(400).json({ error: 'Shipping zip is required' });
+//   }
+
+//   const insertOrder = db.prepare(`
+//     INSERT INTO orders (user_id, total, status, shipping_name, shipping_address, shipping_city, shipping_state, shipping_zip)
+//     VALUES (?, ?, 'pending', ?, ?, ?, ?, ?)
+//   `);
+//   const insertOrderItem = db.prepare(`
+//     INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)
+//   `);
+//   const updateStock = db.prepare(`UPDATE products SET stock = stock - ? WHERE id = ?`);
+//   const getProduct = db.prepare(`SELECT id, price, stock, subscription_plan FROM products WHERE id = ? AND active = 1`);
+
+//   let total = 0;
+//   const validatedItems = [];
+
+//   for (const item of items) {
+//     const productId = parseInt(item.product_id, 10);
+//     const quantity = parseInt(item.quantity, 10);
+//     if (isNaN(productId) || isNaN(quantity) || quantity < 1) {
+//       return res.status(400).json({ error: `Invalid item: product_id and quantity required (quantity >= 1)` });
+//     }
+
+//     const product = getProduct.get(productId);
+//     if (!product) {
+//       return res.status(400).json({ error: `Product ${productId} not found or inactive` });
+//     }
+//     if (product.stock < quantity) {
+//       return res.status(400).json({ error: `Insufficient stock for product ${productId}. Available: ${product.stock}` });
+//     }
+
+//     validatedItems.push({ product_id: productId, quantity, price: product.price, subscription_plan: product.subscription_plan });
+//     total += product.price * quantity;
+//   }
+
+//   const run = db.transaction(() => {
+//     const orderResult = insertOrder.run(
+//       req.session.user.id,
+//       total,
+//       name.trim(),
+//       address.trim(),
+//       city.trim(),
+//       state.trim(),
+//       zip.trim()
+//     );
+//     const orderId = orderResult.lastInsertRowid;
+
+//     for (const item of validatedItems) {
+//       insertOrderItem.run(orderId, item.product_id, item.quantity, item.price);
+//       updateStock.run(item.quantity, item.product_id);
+//     }
+
+//     return { id: orderId, total, status: 'pending' };
+//   });
+
+//   const order = run();
+
+//   for (const item of validatedItems) {
+//     if (item.subscription_plan === 'wellness_journal') {
+//       try {
+//         subscriptionRouter.activateWellnessSubscription(req.session.user.id);
+//       } catch (_) {}
+//       break;
+//     }
+//   }
+
+//   res.json({ success: true, order });
+// });
+// ==================== NEW AUTHORIZE.NET PAYMENT ROUTE (TEST MODE) ====================
+router.post('/orders', requireSession, async (req, res) => {
+  const { items = [], shipping = {}, opaqueDataDescriptor, opaqueDataValue } = req.body || {};
 
   if (!Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({ error: 'Items array is required and must not be empty' });
+    return res.status(400).json({ error: 'Items array is required' });
+  }
+  if (!opaqueDataDescriptor || !opaqueDataValue) {
+    return res.status(400).json({ error: 'Payment data is required' });
   }
 
   const { name, address, city, state, zip } = shipping;
-  if (!name || typeof name !== 'string' || !name.trim()) {
-    return res.status(400).json({ error: 'Shipping name is required' });
-  }
-  if (!address || typeof address !== 'string' || !address.trim()) {
-    return res.status(400).json({ error: 'Shipping address is required' });
-  }
-  if (!city || typeof city !== 'string' || !city.trim()) {
-    return res.status(400).json({ error: 'Shipping city is required' });
-  }
-  if (!state || typeof state !== 'string' || !state.trim()) {
-    return res.status(400).json({ error: 'Shipping state is required' });
-  }
-  if (!zip || typeof zip !== 'string' || !zip.trim()) {
-    return res.status(400).json({ error: 'Shipping zip is required' });
+  if (!name || !address || !city || !state || !zip) {
+    return res.status(400).json({ error: 'Complete shipping info required' });
   }
 
   const insertOrder = db.prepare(`
@@ -205,55 +289,101 @@ router.post('/orders', requireSession, (req, res) => {
     const productId = parseInt(item.product_id, 10);
     const quantity = parseInt(item.quantity, 10);
     if (isNaN(productId) || isNaN(quantity) || quantity < 1) {
-      return res.status(400).json({ error: `Invalid item: product_id and quantity required (quantity >= 1)` });
+      return res.status(400).json({ error: 'Invalid item' });
     }
-
     const product = getProduct.get(productId);
-    if (!product) {
-      return res.status(400).json({ error: `Product ${productId} not found or inactive` });
-    }
-    if (product.stock < quantity) {
-      return res.status(400).json({ error: `Insufficient stock for product ${productId}. Available: ${product.stock}` });
-    }
+    if (!product) return res.status(400).json({ error: `Product ${productId} not found` });
+    if (product.stock < quantity) return res.status(400).json({ error: `Insufficient stock` });
 
     validatedItems.push({ product_id: productId, quantity, price: product.price, subscription_plan: product.subscription_plan });
     total += product.price * quantity;
   }
 
-  const run = db.transaction(() => {
-    const orderResult = insertOrder.run(
-      req.session.user.id,
-      total,
-      name.trim(),
-      address.trim(),
-      city.trim(),
-      state.trim(),
-      zip.trim()
-    );
-    const orderId = orderResult.lastInsertRowid;
+  // === AUTHORIZE.NET CHARGE (SANDBOX — TEST MODE) ===
+  try {
+    const merchantAuthentication = new ApiContracts.MerchantAuthenticationType();
+    merchantAuthentication.setName(process.env.AUTHORIZE_LOGIN_ID);
+    merchantAuthentication.setTransactionKey(process.env.AUTHORIZE_TRANSACTION_KEY);
+
+    const opaqueData = new ApiContracts.OpaqueDataType();
+    opaqueData.setDataDescriptor(opaqueDataDescriptor);
+    opaqueData.setDataValue(opaqueDataValue);
+
+    const transactionRequest = new ApiContracts.TransactionRequestType();
+    transactionRequest.setTransactionType(ApiContracts.transactionTypeEnum.AUTH_CAPTURE_TRANSACTION);
+    transactionRequest.setAmount(total.toFixed(2));
+    transactionRequest.setOpaqueData(opaqueData);
+
+    const billTo = new ApiContracts.CustomerAddressType();
+    billTo.setFirstName(name.split(' ')[0]);
+    billTo.setLastName(name.split(' ').slice(1).join(' ') || '');
+    billTo.setAddress(address);
+    billTo.setCity(city);
+    billTo.setState(state);
+    billTo.setZip(zip);
+    transactionRequest.setBillTo(billTo);
+
+    const createRequest = new ApiContracts.CreateTransactionRequest();
+    createRequest.setMerchantAuthentication(merchantAuthentication);
+    createRequest.setTransactionRequest(transactionRequest);
+
+    const controller = new ApiControllers.CreateTransactionController(createRequest.getJSON());
+    controller.setEnvironment(constants.api.transactionMode.PRODUCTION);c
+
+    const response = await new Promise((resolve, reject) => {
+      controller.execute(() => {
+        try { resolve(controller.getResponse()); } catch (e) { reject(e); }
+      });
+    });
+
+    if (response.getMessages().getResultCode() !== 'Ok') {
+      return res.status(400).json({ error: response.getMessages().getMessage()[0].getText() });
+    }
+
+    const transResponse = response.getTransactionResponse();
+    const transactionId = transResponse.getTransId();
+    const authCode = transResponse.getAuthCode();
+
+    const run = db.transaction(() => {
+      const orderResult = insertOrder.run(
+        req.session.user.id, total, name.trim(), address.trim(), city.trim(), state.trim(), zip.trim()
+      );
+      const orderId = orderResult.lastInsertRowid;
+
+      for (const item of validatedItems) {
+        insertOrderItem.run(orderId, item.product_id, item.quantity, item.price);
+        updateStock.run(item.quantity, item.product_id);
+      }
+
+      db.prepare(`
+        UPDATE orders 
+        SET payment_status = 'paid', 
+            transaction_id = ?, 
+            auth_code = ?, 
+            paid_at = datetime('now'), 
+            payment_method = 'authorize.net' 
+        WHERE id = ?
+      `).run(transactionId, authCode, orderId);
+
+      return { id: orderId, total, status: 'paid' };
+    });
+
+    const order = run();
 
     for (const item of validatedItems) {
-      insertOrderItem.run(orderId, item.product_id, item.quantity, item.price);
-      updateStock.run(item.quantity, item.product_id);
+      if (item.subscription_plan === 'wellness_journal') {
+        try { subscriptionRouter.activateWellnessSubscription(req.session.user.id); } catch (_) {}
+        break;
+      }
     }
+    createProductAccessGrantsForOrder(order.id);
 
-    return { id: orderId, total, status: 'pending' };
-  });
-
-  const order = run();
-
-  for (const item of validatedItems) {
-    if (item.subscription_plan === 'wellness_journal') {
-      try {
-        subscriptionRouter.activateWellnessSubscription(req.session.user.id);
-      } catch (_) {}
-      break;
-    }
+    res.json({ success: true, order });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Payment failed. Please try again or contact us.' });
   }
-
-  res.json({ success: true, order });
 });
-
 // 4. GET /api/shop/orders — Require session, return user's orders with items
 router.get('/orders', requireSession, (req, res) => {
   const orders = db.prepare(`
