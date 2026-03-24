@@ -203,6 +203,21 @@ try {
 try {
   db.exec('ALTER TABLE products ADD COLUMN subscription_plan TEXT');
 } catch (_) {}
+try {
+  db.exec("ALTER TABLE orders ADD COLUMN payment_status TEXT DEFAULT 'pending'");
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE orders ADD COLUMN transaction_id TEXT');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE orders ADD COLUMN auth_code TEXT');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE orders ADD COLUMN paid_at DATETIME');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE orders ADD COLUMN payment_method TEXT');
+} catch (_) {}
 // Subscriber journal: personal notes and progress for wellness journal subscribers
 db.exec(`
   CREATE TABLE IF NOT EXISTS subscriber_journal_entries (
