@@ -23,6 +23,155 @@ function requireAdmin(req, res, next) {
   next();
 }
 
+// Authorize.net SDK: execute() does not invoke the callback when Axios fails (apicontrollersbase.js).
+const AUTHORIZE_EXECUTE_TIMEOUT_MS = 125000;
+
+function executeAuthorizeController(controller) {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let pollInterval;
+    let timeoutId;
+    const cleanup = () => {
+      if (pollInterval) clearInterval(pollInterval);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+
+    pollInterval = setInterval(() => {
+      const err = typeof controller.getError === 'function' ? controller.getError() : null;
+      if (err && !settled) {
+        settled = true;
+        cleanup();
+        reject(err);
+      }
+    }, 100);
+
+    controller.execute(() => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      try {
+        const err = typeof controller.getError === 'function' ? controller.getError() : null;
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(controller.getResponse());
+      } catch (e) {
+        reject(e);
+      }
+    });
+
+    timeoutId = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      const err = typeof controller.getError === 'function' ? controller.getError() : null;
+      reject(err || new Error('Authorize.net request timed out or did not complete'));
+    }, AUTHORIZE_EXECUTE_TIMEOUT_MS);
+  });
+}
+
+function summarizeAxiosError(err) {
+  if (!err) return null;
+  const out = {
+    name: err.name,
+    message: err.message,
+    code: err.code,
+  };
+  if (err.response) {
+    out.httpStatus = err.response.status;
+    out.httpStatusText = err.response.statusText;
+    const d = err.response.data;
+    if (d != null) {
+      try {
+        const s = typeof d === 'string' ? d : JSON.stringify(d);
+        out.responseBodySnippet = s.length > 2000 ? `${s.slice(0, 2000)}…` : s;
+      } catch (_) {
+        out.responseBodySnippet = '[unserializable]';
+      }
+    }
+  }
+  return out;
+}
+
+function summarizeAuthorizeTransactionResponse(response) {
+  const out = {};
+  const msgs = response.getMessages();
+  if (msgs) {
+    out.resultCode = msgs.getResultCode();
+    const mlist = msgs.getMessage();
+    out.apiMessages = [];
+    if (mlist) {
+      const arr = Array.isArray(mlist) ? mlist : [mlist];
+      for (const m of arr) {
+        if (m && m.getCode && m.getText) {
+          out.apiMessages.push({ code: m.getCode(), text: m.getText() });
+        }
+      }
+    }
+  }
+  const tr = response.getTransactionResponse();
+  if (tr) {
+    out.transaction = {
+      responseCode: tr.getResponseCode(),
+      transId: tr.getTransId(),
+      authCode: tr.getAuthCode(),
+      avsResultCode: tr.getAvsResultCode(),
+      cvvResultCode: tr.getCvvResultCode(),
+      accountNumber: tr.getAccountNumber(),
+    };
+    const errs = tr.getErrors();
+    if (errs && errs.getError) {
+      const el = errs.getError();
+      const arr = Array.isArray(el) ? el : el ? [el] : [];
+      out.transactionErrors = arr.map((e) => ({
+        code: e.getErrorCode ? e.getErrorCode() : undefined,
+        text: e.getErrorText ? e.getErrorText() : undefined,
+      }));
+    }
+    const trMsgs = tr.getMessages && tr.getMessages();
+    if (trMsgs && trMsgs.getMessage) {
+      const ml = trMsgs.getMessage();
+      const arr = Array.isArray(ml) ? ml : ml ? [ml] : [];
+      out.transactionMessages = arr.map((m) => ({
+        code: m.getCode ? m.getCode() : undefined,
+        description: m.getDescription ? m.getDescription() : undefined,
+      }));
+    }
+  }
+  return out;
+}
+
+function logAuthorizePaymentFailure(context) {
+  console.error('[authorize.net]', JSON.stringify(context));
+}
+
+function firstApiLevelMessage(msgs) {
+  if (!msgs) return 'Payment could not be processed.';
+  const mlist = msgs.getMessage();
+  if (!mlist) return 'Payment could not be processed.';
+  const arr = Array.isArray(mlist) ? mlist : [mlist];
+  const first = arr[0];
+  if (first && first.getText) return first.getText();
+  return 'Payment could not be processed.';
+}
+
+function firstDeclineUserMessage(tr) {
+  const errs = tr.getErrors && tr.getErrors();
+  if (errs && errs.getError) {
+    const el = errs.getError();
+    const arr = Array.isArray(el) ? el : el ? [el] : [];
+    if (arr[0] && arr[0].getErrorText) return arr[0].getErrorText();
+  }
+  const trMsgs = tr.getMessages && tr.getMessages();
+  if (trMsgs && trMsgs.getMessage) {
+    const ml = trMsgs.getMessage();
+    const arr = Array.isArray(ml) ? ml : ml ? [ml] : [];
+    if (arr[0] && arr[0].getDescription) return arr[0].getDescription();
+  }
+  return 'Payment was declined. Please try another card or contact your bank.';
+}
+
 // Fleet license duration (months); individual packet download cap
 const FLEET_LICENSE_MONTHS = 12;
 const INDIVIDUAL_PACKET_MAX_DOWNLOADS = 5;
@@ -256,6 +405,30 @@ router.get('/products/:slug', (req, res) => {
 
 //   res.json({ success: true, order });
 // });
+// Accept.js (browser) + API charge must use the same merchant: Login ID + Public Client Key here, Transaction Key on charge.
+router.get('/payment-config', (req, res) => {
+  const loginId = (process.env.AUTHORIZE_LOGIN_ID || '').trim();
+  const publicKey = (process.env.AUTHORIZE_PUBLIC_CLIENT_KEY || '').trim();
+  const useProd = process.env.AUTHORIZE_USE_PRODUCTION === '1';
+  if (!loginId || !publicKey) {
+    return res.json({
+      configured: false,
+      mode: useProd ? 'production' : 'sandbox',
+      message:
+        'Set AUTHORIZE_LOGIN_ID and AUTHORIZE_PUBLIC_CLIENT_KEY in the server environment (same merchant as AUTHORIZE_TRANSACTION_KEY).',
+    });
+  }
+  res.json({
+    configured: true,
+    mode: useProd ? 'production' : 'sandbox',
+    acceptScriptUrl: useProd
+      ? 'https://js.authorize.net/v1/Accept.js'
+      : 'https://jstest.authorize.net/v1/Accept.js',
+    apiLoginId: loginId,
+    publicClientKey: publicKey,
+  });
+});
+
 // ==================== NEW AUTHORIZE.NET PAYMENT ROUTE (TEST MODE) ====================
 router.post('/orders', requireSession, async (req, res) => {
   const { items = [], shipping = {}, opaqueDataDescriptor, opaqueDataValue } = req.body || {};
@@ -305,14 +478,15 @@ router.post('/orders', requireSession, async (req, res) => {
     merchantAuthentication.setName(process.env.AUTHORIZE_LOGIN_ID);
     merchantAuthentication.setTransactionKey(process.env.AUTHORIZE_TRANSACTION_KEY);
 
+    const transactionRequest = new ApiContracts.TransactionRequestType();
+    transactionRequest.setTransactionType(ApiContracts.TransactionTypeEnum.AUTHCAPTURETRANSACTION);
+    transactionRequest.setAmount(total.toFixed(2));
     const opaqueData = new ApiContracts.OpaqueDataType();
     opaqueData.setDataDescriptor(opaqueDataDescriptor);
     opaqueData.setDataValue(opaqueDataValue);
-
-    const transactionRequest = new ApiContracts.TransactionRequestType();
-    transactionRequest.setTransactionType(ApiContracts.transactionTypeEnum.AUTH_CAPTURE_TRANSACTION);
-    transactionRequest.setAmount(total.toFixed(2));
-    transactionRequest.setOpaqueData(opaqueData);
+    const paymentType = new ApiContracts.PaymentType();
+    paymentType.setOpaqueData(opaqueData);
+    transactionRequest.setPayment(paymentType);
 
     const billTo = new ApiContracts.CustomerAddressType();
     billTo.setFirstName(name.split(' ')[0]);
@@ -328,19 +502,53 @@ router.post('/orders', requireSession, async (req, res) => {
     createRequest.setTransactionRequest(transactionRequest);
 
     const controller = new ApiControllers.CreateTransactionController(createRequest.getJSON());
-    controller.setEnvironment(constants.api.transactionMode.PRODUCTION);c
+    // SDK expects full gateway URL (see authorizenet lib/apicontrollersbase.js), not an enum.
+    const authorizeEndpoint =
+      process.env.AUTHORIZE_USE_PRODUCTION === '1'
+        ? constants.endpoint.production
+        : constants.endpoint.sandbox;
+    controller.setEnvironment(authorizeEndpoint);
 
-    const response = await new Promise((resolve, reject) => {
-      controller.execute(() => {
-        try { resolve(controller.getResponse()); } catch (e) { reject(e); }
+    const raw = await executeAuthorizeController(controller);
+    const innerPayload = raw && raw.createTransactionResponse ? raw.createTransactionResponse : raw;
+    const response = new ApiContracts.CreateTransactionResponse(innerPayload);
+
+    const topMessages = response.getMessages();
+    if (!topMessages || topMessages.getResultCode() !== 'Ok') {
+      logAuthorizePaymentFailure({
+        event: 'api_messages_not_ok',
+        userId: req.session.user.id,
+        amount: total.toFixed(2),
+        endpoint: authorizeEndpoint,
+        summary: summarizeAuthorizeTransactionResponse(response),
       });
-    });
-
-    if (response.getMessages().getResultCode() !== 'Ok') {
-      return res.status(400).json({ error: response.getMessages().getMessage()[0].getText() });
+      return res.status(400).json({ error: firstApiLevelMessage(topMessages) });
     }
 
     const transResponse = response.getTransactionResponse();
+    if (!transResponse) {
+      logAuthorizePaymentFailure({
+        event: 'missing_transaction_response',
+        userId: req.session.user.id,
+        amount: total.toFixed(2),
+        endpoint: authorizeEndpoint,
+        summary: summarizeAuthorizeTransactionResponse(response),
+      });
+      return res.status(400).json({ error: 'Payment could not be processed.' });
+    }
+
+    const cardResponseCode = transResponse.getResponseCode();
+    if (cardResponseCode !== '1') {
+      logAuthorizePaymentFailure({
+        event: 'transaction_declined_or_error',
+        userId: req.session.user.id,
+        amount: total.toFixed(2),
+        endpoint: authorizeEndpoint,
+        summary: summarizeAuthorizeTransactionResponse(response),
+      });
+      return res.status(400).json({ error: firstDeclineUserMessage(transResponse) });
+    }
+
     const transactionId = transResponse.getTransId();
     const authCode = transResponse.getAuthCode();
 
@@ -380,14 +588,26 @@ router.post('/orders', requireSession, async (req, res) => {
 
     res.json({ success: true, order });
   } catch (err) {
-    console.error(err);
+    const isAxios = err && (err.isAxiosError === true || err.name === 'AxiosError');
+    logAuthorizePaymentFailure({
+      event: isAxios ? 'axios_transport_error' : 'payment_exception',
+      userId: req.session.user.id,
+      amount: total.toFixed(2),
+      endpoint:
+        process.env.AUTHORIZE_USE_PRODUCTION === '1'
+          ? constants.endpoint.production
+          : constants.endpoint.sandbox,
+      axios: isAxios ? summarizeAxiosError(err) : undefined,
+      error: !isAxios ? { name: err.name, message: err.message } : undefined,
+    });
     return res.status(500).json({ error: 'Payment failed. Please try again or contact us.' });
   }
 });
 // 4. GET /api/shop/orders — Require session, return user's orders with items
 router.get('/orders', requireSession, (req, res) => {
   const orders = db.prepare(`
-    SELECT o.id, o.total, o.status, o.shipping_name, o.shipping_address, o.shipping_city, o.shipping_state, o.shipping_zip, o.created_at
+    SELECT o.id, o.total, o.status, o.payment_status, o.paid_at,
+           o.shipping_name, o.shipping_address, o.shipping_city, o.shipping_state, o.shipping_zip, o.created_at
     FROM orders o
     WHERE o.user_id = ?
     ORDER BY o.created_at DESC

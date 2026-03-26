@@ -193,6 +193,17 @@
         return 'status-pending';
       }
 
+      function getPaymentBadge(ps) {
+        const p = (ps || '').toLowerCase();
+        if (p === 'paid') {
+          return { cls: 'payment-paid', label: 'Paid', title: 'Payment: captured' };
+        }
+        if (p === 'pending' || !p) {
+          return { cls: 'payment-pending', label: 'Unpaid', title: 'Payment: not completed' };
+        }
+        return { cls: 'payment-unknown', label: escapeHtml(String(ps || '')), title: 'Payment status' };
+      }
+
       let currentUser = null;
 
       async function checkAuth() {
@@ -274,8 +285,9 @@
           el.innerHTML = orders.map(function(o) {
             const id = o.id || o.order_number || o.orderId || '—';
             const total = formatPrice(o.total || o.total_amount || 0);
-            const status = (o.status || 'pending').toLowerCase();
-            const statusClass = getStatusClass(o.status);
+            const fulfill = (o.status || 'pending').toLowerCase();
+            const fulfillClass = getStatusClass(o.status);
+            const pay = getPaymentBadge(o.payment_status);
             const items = o.items || o.line_items || [];
             const itemsHtml = items.map(function(i) {
               const qty = i.quantity || 1;
@@ -288,7 +300,10 @@
               '<div class="order-card-header">' +
                 '<span class="order-num">#' + escapeHtml(String(id)) + '</span>' +
                 '<span class="order-date">' + formatDate(o.created_at || o.date) + '</span>' +
-                '<span class="badge-status ' + statusClass + '">' + escapeHtml(status) + '</span>' +
+                '<span class="order-badges">' +
+                  '<span class="badge-payment ' + pay.cls + '" title="' + escapeHtml(pay.title) + '">' + pay.label + '</span>' +
+                  '<span class="badge-status ' + fulfillClass + '" title="Order / fulfillment status">' + escapeHtml(fulfill) + '</span>' +
+                '</span>' +
                 '<span class="order-total">' + total + '</span>' +
                 (hasItems ? '<button type="button" class="order-toggle" aria-label="Toggle items">▼</button>' : '') +
               '</div>' +

@@ -1308,6 +1308,32 @@ textarea.form-input {
   background: rgba(248, 113, 113, 0.12);
   color: var(--red);
 }
+.order-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.badge-payment {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.payment-paid {
+  background: rgba(52, 211, 153, 0.14);
+  color: var(--green);
+}
+.payment-pending {
+  background: rgba(251, 191, 36, 0.14);
+  color: var(--amber);
+}
+.payment-unknown {
+  background: rgba(161, 161, 170, 0.12);
+  color: var(--text-3);
+}
 .empty-state {
   text-align: center;
   padding: 60px 20px;

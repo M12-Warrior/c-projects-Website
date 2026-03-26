@@ -38,19 +38,20 @@ So: **direct CC, Apple Pay, and Google Pay** are in scope with Authorize.net; **
 When the mail arrives, add these to your **Railway** project (or your server’s environment). Use **Sandbox** values first; switch to **Production** when you go live.
 
 ```bash
-# Authorize.net — Sandbox (testing)
-AUTHORIZE_NET_API_LOGIN_ID=your_sandbox_api_login_id
-AUTHORIZE_NET_TRANSACTION_KEY=your_sandbox_transaction_key
-AUTHORIZE_NET_PUBLIC_CLIENT_KEY=your_sandbox_public_client_key
-AUTHORIZE_NET_ENVIRONMENT=sandbox
+# Authorize.net credentials (same merchant account for all 3)
+AUTHORIZE_LOGIN_ID=your_sandbox_api_login_id
+AUTHORIZE_TRANSACTION_KEY=your_sandbox_transaction_key
+AUTHORIZE_PUBLIC_CLIENT_KEY=your_sandbox_public_client_key
 
-# When going live, switch to production values and set:
-# AUTHORIZE_NET_ENVIRONMENT=production
+# Mode switch
+# Sandbox: leave unset or set to 0
+# Production: set to 1
+AUTHORIZE_USE_PRODUCTION=0
 ```
 
-- **API Login ID** and **Transaction Key** → from letter or Merchant Interface.
-- **Public Client Key** → create in Merchant Interface (Security Settings → Manage Public Client Key); one for sandbox, one for production.
-- **AUTHORIZE_NET_ENVIRONMENT** → `sandbox` or `production`.
+- **API Login ID** and **Transaction Key** -> from letter or Merchant Interface.
+- **Public Client Key** -> create in Merchant Interface (Security Settings -> Manage Public Client Key); one for sandbox, one for production.
+- **AUTHORIZE_USE_PRODUCTION** -> `0` (sandbox) or `1` (production).
 
 ---
 
@@ -101,14 +102,14 @@ No card data will be stored on your server; only the nonce is sent from the brow
    Create one for Sandbox and one for Production. You’ll need the **Public Client Key** in the front-end (Accept.js).
 
 4. **Add environment variables**  
-   In Railway (or your host): add `AUTHORIZE_NET_API_LOGIN_ID`, `AUTHORIZE_NET_TRANSACTION_KEY`, `AUTHORIZE_NET_PUBLIC_CLIENT_KEY`, and `AUTHORIZE_NET_ENVIRONMENT=sandbox`.  
+   In Railway (or your host): add `AUTHORIZE_LOGIN_ID`, `AUTHORIZE_TRANSACTION_KEY`, `AUTHORIZE_PUBLIC_CLIENT_KEY`, and `AUTHORIZE_USE_PRODUCTION=0` for sandbox.  
    Use **Sandbox** credentials first.
 
 5. **Tell your developer (or follow the implementation doc)**  
    “Credentials are in; environment variables are set.” Then we can:
    - Add the payment route and Accept.js integration.
    - Run a test transaction in Sandbox (test card numbers are in the Authorize.net docs).
-   - Switch to production credentials and `AUTHORIZE_NET_ENVIRONMENT=production` when you’re ready to go live.
+   - Switch to production credentials and set `AUTHORIZE_USE_PRODUCTION=1` when you’re ready to go live.
 
 6. **Optional: Apple Pay / Google Pay**  
    After basic card payments work, we can add digital wallets (may require domain verification and extra setup in the Authorize.net dashboard).
@@ -136,6 +137,77 @@ Never use these in production.
 - **Public Client Key** is safe to use in browser JavaScript; it’s meant for Accept.js.
 - **Transaction Key** must only be used on the server (Node). Keep it in env vars on Railway (or your server).
 - Run the live site over **HTTPS** (you already do on Railway).
+
+---
+
+## Local sandbox smoke test (repeatable)
+
+Use this when local checkout shows HTTPS/tokenization errors or when you want a clean payment test.
+
+1. **Start one server process only**
+
+```powershell
+Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force
+cd C:\Projects\Website
+$env:AUTHORIZE_LOGIN_ID="..."
+$env:AUTHORIZE_TRANSACTION_KEY="..."
+$env:AUTHORIZE_PUBLIC_CLIENT_KEY="..."
+$env:AUTHORIZE_USE_PRODUCTION="0"
+npm start
+```
+
+2. **Start HTTPS tunnel in a second terminal**
+
+```powershell
+& "C:\Program Files (x86)\cloudflared\cloudflared.exe" tunnel --url http://localhost:3000
+```
+
+3. **Use the current tunnel URL only** (`https://...trycloudflare.com`)
+   - Verify config first: `/api/shop/payment-config`
+   - Expect: `configured=true`, `mode="sandbox"`, `acceptScriptUrl` on `jstest.authorize.net`
+
+4. **Run test checkout**
+   - Login/register on same tunnel host
+   - Card: `4111111111111111`
+   - Expiry: future date
+   - CVV: `123`
+
+5. **Interpret status correctly**
+   - `payment_status=paid` means charge succeeded
+   - `status=pending` is fulfillment/shipping workflow, not unpaid
+
+6. **After testing**
+   - Rotate sandbox keys if they were exposed during debugging/chat/screenshots
+   - Keep test orders/users for regression testing (or clean later in a separate pass)
+
+---
+
+## Production (live) test purchase — checklist
+
+Do this on **Railway** (or your host) with **HTTPS** only — no tunnel needed for real customers.
+
+1. In **Authorize.net production** merchant interface: **API Login ID**, generate **Transaction Key**, create **Public Client Key** (live).
+2. Set host environment variables:
+   - `AUTHORIZE_LOGIN_ID` = production login ID
+   - `AUTHORIZE_TRANSACTION_KEY` = production transaction key
+   - `AUTHORIZE_PUBLIC_CLIENT_KEY` = production public client key
+   - `AUTHORIZE_USE_PRODUCTION=1`
+3. Redeploy/restart so the app picks up new variables.
+4. Open `https://yourdomain.com/api/shop/payment-config` and confirm:
+   - `configured: true`
+   - `mode: "production"`
+   - `acceptScriptUrl` uses `https://js.authorize.net/v1/Accept.js`
+5. Use a **real** card you control; expect a **real** charge (small amount item is easiest).
+6. Verify in **Profile → Orders** and in **Authorize.net** transaction search that the payment matches.
+7. If anything fails, check server logs for lines starting with `[authorize.net]` (no card data).
+
+**Rollback:** set `AUTHORIZE_USE_PRODUCTION=0` and sandbox credentials again, redeploy — only for emergency testing, not for normal customer traffic.
+
+---
+
+## Local `.env` (optional)
+
+The app loads `.env` from the project root on startup (`dotenv`). Copy `.env.example` to `.env`, fill values, and run `npm start` — no need to paste keys into PowerShell each session.
 
 ---
 

@@ -48,8 +48,8 @@
       <h1 class="page-title">Checkout</h1>
 
       <div id="paymentSandboxBanner" class="glass-card" style="margin-bottom:24px;padding:20px 24px;border-left:4px solid var(--gold);">
-        <p style="margin:0;font-weight:600;color:var(--text);">Secure checkout — Authorize.net sandbox</p>
-        <p style="margin:8px 0 0 0;font-size:0.9rem;color:var(--text-2);">This site uses <strong>test mode</strong> for development. Use sandbox test card numbers from <a href="https://developer.authorize.net/hello_world/testing_guide.html" target="_blank" rel="noopener noreferrer" style="color:var(--gold);">Authorize.net</a>. No live charges until production credentials and live Accept.js are enabled.</p>
+        <p id="paymentBannerTitle" style="margin:0;font-weight:600;color:var(--text);">Secure checkout</p>
+        <p id="paymentBannerBody" style="margin:8px 0 0 0;font-size:0.9rem;color:var(--text-2);">Loading payment settings…</p>
       </div>
 
       <div id="checkoutFormWrap">
@@ -130,7 +130,7 @@
               </fieldset>
               <div id="checkoutError" class="form-error hidden"></div>
               <p style="font-size:0.8rem;color:var(--text-3);margin-bottom:16px;line-height:1.5">By placing your order you agree to our <a href="/terms" style="color:var(--text-2)">Terms of Service</a> and <a href="/terms#refunds" style="color:var(--text-2)">Refund Policy</a>. Physical items: 30-day returns for refund or exchange. Digital products (course, packets): see Refund Policy; generally no refund after access.</p>
-              <button type="submit" class="form-btn" id="placeOrderBtn">Place Order</button>
+              <button type="submit" class="form-btn" id="placeOrderBtn" disabled>Place Order</button>
               <p id="paymentDisabledNote" style="display:none;margin-top:12px;font-size:0.9rem;color:var(--text-2);"></p>
             </form>
           </div>
@@ -180,14 +180,10 @@
   <script src="/js/main.js"></script>
   <script>
 (function() {
-  // SANDBOX TEST MODE — Authorize.net Accept.js (https://js.authorize.net/v1/Accept.js)
-  // Use sandbox API Login ID + Public Client Key. For production: js.authorize.net and live keys (then switch server to production API mode).
-  var ACCEPT_SANDBOX_API_LOGIN_ID = '2Lfx62NtmL';
-var ACCEPT_SANDBOX_CLIENT_KEY = '37uj92YKb55WnAXCA437J78wnjfVTGSyEat3zhHZL39qyqAz5BN36ULx2Luq777r';
-var ACCEPT_SANDBOX_SCRIPT_URL = 'https://js.authorize.net/v1/Accept.js';
-
+  // Accept.js URL + public keys come from GET /api/shop/payment-config (server .env). Same merchant as AUTHORIZE_TRANSACTION_KEY.
 
   var CART_KEY = 'driver_shield_cart';
+  var payConfig = null;
 
   function escapeHtml(str) {
     if (!str) return '';
@@ -289,26 +285,49 @@ var ACCEPT_SANDBOX_SCRIPT_URL = 'https://js.authorize.net/v1/Accept.js';
     if (el) el.classList.add('hidden');
   }
 
-  function loadAcceptSandboxScript() {
+  function loadAcceptScript(scriptUrl) {
     return new Promise(function(resolve, reject) {
       if (typeof window.Accept !== 'undefined' && typeof window.Accept.dispatchData === 'function') {
         resolve();
         return;
       }
-      var existing = document.querySelector('script[data-accept-sandbox]');
+      var sel = 'script[data-authorize-accept="1"]';
+      var existing = document.querySelector(sel);
+      if (existing && existing.src !== scriptUrl) {
+        existing.remove();
+        existing = null;
+      }
       if (existing) {
         existing.addEventListener('load', function() { resolve(); });
         existing.addEventListener('error', function() { reject(new Error('Could not load payment script.')); });
         return;
       }
       var s = document.createElement('script');
-      s.src = ACCEPT_SANDBOX_SCRIPT_URL;
+      s.src = scriptUrl;
       s.async = true;
-      s.setAttribute('data-accept-sandbox', '1');
+      s.setAttribute('data-authorize-accept', '1');
       s.onload = function() { resolve(); };
       s.onerror = function() { reject(new Error('Could not load payment script. Check your connection and try again.')); };
       document.head.appendChild(s);
     });
+  }
+
+  function applyPaymentBanner(paymentCfg) {
+    var titleEl = document.getElementById('paymentBannerTitle');
+    var bodyEl = document.getElementById('paymentBannerBody');
+    if (!titleEl || !bodyEl) return;
+    if (!paymentCfg || !paymentCfg.configured) {
+      titleEl.textContent = 'Checkout unavailable';
+      bodyEl.innerHTML = '<strong>Payment is not configured on the server.</strong> Set <code style="font-size:0.85em">AUTHORIZE_LOGIN_ID</code>, <code style="font-size:0.85em">AUTHORIZE_PUBLIC_CLIENT_KEY</code>, and <code style="font-size:0.85em">AUTHORIZE_TRANSACTION_KEY</code> in the environment, then restart the app.';
+      return;
+    }
+    if (paymentCfg.mode === 'production') {
+      titleEl.textContent = 'Secure checkout — Authorize.net (live)';
+      bodyEl.innerHTML = 'Card payments are processed in <strong>production</strong>. Your card will be charged for real.';
+      return;
+    }
+    titleEl.textContent = 'Secure checkout — Authorize.net sandbox (test mode)';
+    bodyEl.innerHTML = 'Use sandbox test card numbers from <a href="https://developer.authorize.net/hello_world/testing_guide.html" target="_blank" rel="noopener noreferrer" style="color:var(--gold);">Authorize.net</a>. No live charges. Server must use sandbox credentials (do not set <code style="font-size:0.85em">AUTHORIZE_USE_PRODUCTION</code>).';
   }
 
   function normalizeYear(y) {
@@ -325,8 +344,12 @@ var ACCEPT_SANDBOX_SCRIPT_URL = 'https://js.authorize.net/v1/Accept.js';
     return t;
   }
 
-  function tokenizeCardSandbox() {
+  function tokenizeCard() {
     return new Promise(function(resolve, reject) {
+      if (!payConfig || !payConfig.configured) {
+        reject(new Error('Payment is not configured. Refresh the page or contact support.'));
+        return;
+      }
       var numEl = document.getElementById('cardNumber');
       var moEl = document.getElementById('expMonth');
       var yrEl = document.getElementById('expYear');
@@ -343,15 +366,10 @@ var ACCEPT_SANDBOX_SCRIPT_URL = 'https://js.authorize.net/v1/Accept.js';
         reject(new Error('Please enter your card number, expiration, and security code.'));
         return;
       }
-      if (!ACCEPT_SANDBOX_API_LOGIN_ID || ACCEPT_SANDBOX_API_LOGIN_ID.indexOf('YOUR_') === 0 ||
-          !ACCEPT_SANDBOX_CLIENT_KEY || ACCEPT_SANDBOX_CLIENT_KEY.indexOf('YOUR_') === 0) {
-        reject(new Error('Payment is not configured yet (sandbox keys). Please try again later.'));
-        return;
-      }
       var secureData = {
         authData: {
-          clientKey: ACCEPT_SANDBOX_CLIENT_KEY,
-          apiLoginID: ACCEPT_SANDBOX_API_LOGIN_ID
+          clientKey: payConfig.publicClientKey,
+          apiLoginID: payConfig.apiLoginId
         },
         cardData: {
           cardNumber: cardNumber,
@@ -387,6 +405,30 @@ var ACCEPT_SANDBOX_SCRIPT_URL = 'https://js.authorize.net/v1/Accept.js';
     updateAuthLink();
     updateCartBadge();
 
+    var placeBtn = document.getElementById('placeOrderBtn');
+    var noteEl = document.getElementById('paymentDisabledNote');
+
+    try {
+      var cfgRes = await fetch('/api/shop/payment-config');
+      var cfg = await cfgRes.json().catch(function() { return {}; });
+      payConfig = cfg && cfg.configured ? cfg : null;
+      applyPaymentBanner(cfg || { configured: false });
+      if (!cfg || !cfg.configured) {
+        if (placeBtn) placeBtn.disabled = true;
+        if (noteEl) {
+          noteEl.style.display = 'block';
+          noteEl.textContent = (cfg && cfg.message) ? cfg.message : 'Payment is not configured on the server.';
+        }
+      }
+    } catch (_) {
+      applyPaymentBanner({ configured: false });
+      if (placeBtn) placeBtn.disabled = true;
+      if (noteEl) {
+        noteEl.style.display = 'block';
+        noteEl.textContent = 'Could not load payment configuration. Check your connection and try again.';
+      }
+    }
+
     var cart = getCart();
     if (cart.length === 0) {
       document.getElementById('checkoutFormWrap').classList.add('hidden');
@@ -397,12 +439,19 @@ var ACCEPT_SANDBOX_SCRIPT_URL = 'https://js.authorize.net/v1/Accept.js';
 
     renderSummary();
 
-    try {
-      await loadAcceptSandboxScript();
-    } catch (err) {
-      showError(err.message || 'Could not load payment. Please try again.');
+    if (!payConfig || !payConfig.configured) {
       return;
     }
+
+    try {
+      await loadAcceptScript(payConfig.acceptScriptUrl);
+    } catch (err) {
+      showError(err.message || 'Could not load payment. Please try again.');
+      if (placeBtn) placeBtn.disabled = true;
+      return;
+    }
+
+    if (placeBtn) placeBtn.disabled = false;
 
     document.getElementById('shippingForm').addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -428,7 +477,7 @@ var ACCEPT_SANDBOX_SCRIPT_URL = 'https://js.authorize.net/v1/Accept.js';
       var opaqueDataDescriptor;
       var opaqueDataValue;
       try {
-        var tok = await tokenizeCardSandbox();
+        var tok = await tokenizeCard();
         opaqueDataDescriptor = tok.opaqueDataDescriptor;
         opaqueDataValue = tok.opaqueDataValue;
       } catch (tokErr) {
