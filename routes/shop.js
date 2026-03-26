@@ -26,6 +26,12 @@ function requireAdmin(req, res, next) {
 // Authorize.net SDK: execute() does not invoke the callback when Axios fails (apicontrollersbase.js).
 const AUTHORIZE_EXECUTE_TIMEOUT_MS = 125000;
 
+/** Strip BOM / whitespace from pasted Railway secrets (invalid auth if Transaction Key has trailing newline). */
+function envAuthorizeCredential(raw) {
+  if (raw == null) return '';
+  return String(raw).replace(/^\uFEFF/, '').trim();
+}
+
 function executeAuthorizeController(controller) {
   return new Promise((resolve, reject) => {
     let settled = false;
@@ -407,8 +413,8 @@ router.get('/products/:slug', (req, res) => {
 // });
 // Accept.js (browser) + API charge must use the same merchant: Login ID + Public Client Key here, Transaction Key on charge.
 router.get('/payment-config', (req, res) => {
-  const loginId = (process.env.AUTHORIZE_LOGIN_ID || '').trim();
-  const publicKey = (process.env.AUTHORIZE_PUBLIC_CLIENT_KEY || '').trim();
+  const loginId = envAuthorizeCredential(process.env.AUTHORIZE_LOGIN_ID);
+  const publicKey = envAuthorizeCredential(process.env.AUTHORIZE_PUBLIC_CLIENT_KEY);
   const useProd = process.env.AUTHORIZE_USE_PRODUCTION === '1';
   if (!loginId || !publicKey) {
     const missing = [];
@@ -476,11 +482,22 @@ router.post('/orders', requireSession, async (req, res) => {
     total += product.price * quantity;
   }
 
-  // === AUTHORIZE.NET CHARGE (SANDBOX — TEST MODE) ===
+  // === AUTHORIZE.NET CHARGE ===
   try {
+    const loginId = envAuthorizeCredential(process.env.AUTHORIZE_LOGIN_ID);
+    const transactionKey = envAuthorizeCredential(process.env.AUTHORIZE_TRANSACTION_KEY);
+    if (!loginId || !transactionKey) {
+      console.error('[authorize.net]', JSON.stringify({
+        event: 'missing_merchant_credentials',
+        userId: req.session.user.id,
+        hasLoginId: Boolean(loginId),
+        hasTransactionKey: Boolean(transactionKey),
+      }));
+      return res.status(500).json({ error: 'Payment configuration error. Please contact support.' });
+    }
     const merchantAuthentication = new ApiContracts.MerchantAuthenticationType();
-    merchantAuthentication.setName(process.env.AUTHORIZE_LOGIN_ID);
-    merchantAuthentication.setTransactionKey(process.env.AUTHORIZE_TRANSACTION_KEY);
+    merchantAuthentication.setName(loginId);
+    merchantAuthentication.setTransactionKey(transactionKey);
 
     const transactionRequest = new ApiContracts.TransactionRequestType();
     transactionRequest.setTransactionType(ApiContracts.TransactionTypeEnum.AUTHCAPTURETRANSACTION);
