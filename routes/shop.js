@@ -411,11 +411,15 @@ router.get('/payment-config', (req, res) => {
   const publicKey = (process.env.AUTHORIZE_PUBLIC_CLIENT_KEY || '').trim();
   const useProd = process.env.AUTHORIZE_USE_PRODUCTION === '1';
   if (!loginId || !publicKey) {
+    const missing = [];
+    if (!loginId) missing.push('AUTHORIZE_LOGIN_ID');
+    if (!publicKey) missing.push('AUTHORIZE_PUBLIC_CLIENT_KEY');
     return res.json({
       configured: false,
       mode: useProd ? 'production' : 'sandbox',
       message:
         'Set AUTHORIZE_LOGIN_ID and AUTHORIZE_PUBLIC_CLIENT_KEY in the server environment (same merchant as AUTHORIZE_TRANSACTION_KEY).',
+      missing,
     });
   }
   res.json({

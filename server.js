@@ -1,4 +1,8 @@
-require('dotenv').config();
+// Railway/prod injects env before Node starts; avoid loading .env in production so an empty
+// local .env file in the image cannot define blank secrets.
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 const express = require('express');
 const path = require('path');
