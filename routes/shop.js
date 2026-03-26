@@ -26,10 +26,17 @@ function requireAdmin(req, res, next) {
 // Authorize.net SDK: execute() does not invoke the callback when Axios fails (apicontrollersbase.js).
 const AUTHORIZE_EXECUTE_TIMEOUT_MS = 125000;
 
-/** Strip BOM / whitespace from pasted Railway secrets (invalid auth if Transaction Key has trailing newline). */
+/** Strip BOM / whitespace / wrapping quotes from pasted Railway secrets. */
 function envAuthorizeCredential(raw) {
   if (raw == null) return '';
-  return String(raw).replace(/^\uFEFF/, '').trim();
+  let s = String(raw).replace(/^\uFEFF/, '').trim();
+  if (
+    (s.startsWith('"') && s.endsWith('"')) ||
+    (s.startsWith("'") && s.endsWith("'"))
+  ) {
+    s = s.slice(1, -1).trim();
+  }
+  return s;
 }
 
 function executeAuthorizeController(controller) {
@@ -541,6 +548,7 @@ router.post('/orders', requireSession, async (req, res) => {
         userId: req.session.user.id,
         amount: total.toFixed(2),
         endpoint: authorizeEndpoint,
+        credentialMeta: { loginIdLen: loginId.length, transactionKeyLen: transactionKey.length },
         summary: summarizeAuthorizeTransactionResponse(response),
       });
       return res.status(400).json({ error: firstApiLevelMessage(topMessages) });
