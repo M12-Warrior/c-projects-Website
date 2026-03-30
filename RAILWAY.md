@@ -63,8 +63,8 @@ Redeploy after adding the volume and `DB_PATH`.
 - **`DB_PATH`** — Set to `/data/drivershield.db` (or your volume path) so the SQLite file persists.
 - **`NODE_ENV`** — Set to `production` in production.
 - **`SESSION_SECRET`** — (Recommended in production.) A long random string for signing session cookies; if unset, a default is used.
-- **`BASE_URL`** — (Optional.) Full site URL (e.g. `https://mile12warrior.com`) for password-reset emails; otherwise derived from the request.
-- **SMTP** (optional, for password reset): `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `SMTP_PORT`, `FROM_EMAIL`.
+- **`BASE_URL`** — (Optional.) Full site URL (e.g. `https://mile12warrior.com`) for password-reset and **order confirmation** receipt links; otherwise derived from the request.
+- **SMTP** (optional, for password reset and **shop order confirmation emails**): `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `SMTP_PORT`, `FROM_EMAIL`. Without SMTP, orders still complete but no confirmation email is sent.
 
 ---
 

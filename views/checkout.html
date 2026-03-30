@@ -141,6 +141,7 @@
         <div class="auth-card">
           <h2 style="font-family: var(--font); margin-bottom: 16px;">Order Placed!</h2>
           <p style="color: var(--text-2); margin-bottom: 8px;">Order ID: <strong id="orderIdDisplay"></strong></p>
+          <p style="margin-top: 16px;"><a id="orderReceiptLink" href="#" class="btn btn-primary hidden">View full receipt</a></p>
           <div id="digitalAccessBlurb" style="display: none; text-align: left; margin: 20px 0; padding: 16px; background: var(--bg); border-radius: var(--radius); border-left: 4px solid var(--gold);">
             <p style="font-weight: 600; color: var(--text); margin: 0 0 8px 0; font-size: 0.95rem;">Your digital access</p>
             <p id="digitalAccessText" style="color: var(--text-2); font-size: 0.88rem; margin: 0; line-height: 1.5;"></p>
@@ -507,7 +508,13 @@
           document.getElementById('checkoutFormWrap').classList.add('hidden');
           document.getElementById('paymentSandboxBanner').classList.add('hidden');
           document.getElementById('orderConfirmation').classList.remove('hidden');
-          document.getElementById('orderIdDisplay').textContent = (data.order && data.order.id) || data.order_id || data.id || '—';
+          var oid = (data.order && data.order.id) || data.order_id || data.id;
+          document.getElementById('orderIdDisplay').textContent = oid || '—';
+          var receiptL = document.getElementById('orderReceiptLink');
+          if (receiptL && oid) {
+            receiptL.href = '/shop/order/' + oid;
+            receiptL.classList.remove('hidden');
+          }
           var digitalSlugs = (placedCart || []).map(function(i) { return (i.slug || ''); }).filter(Boolean);
           var hasCourse = digitalSlugs.some(function(s) { return s === 'course-90day' || s === 'complete-bundle'; });
           var hasPacket = digitalSlugs.some(function(s) { return s === 'seasoned-packet'; }) || hasCourse;

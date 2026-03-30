@@ -23,6 +23,61 @@ function requireAdmin(req, res, next) {
   next();
 }
 
+/** Canonical site URL for links in emails (prefer BASE_URL env). */
+function publicBaseUrl(req) {
+  const env = (process.env.BASE_URL || '').trim().replace(/\/$/, '');
+  if (env) return env;
+  const host = req.get('host') || 'localhost:3000';
+  const proto = req.get('x-forwarded-proto') || (process.env.NODE_ENV === 'production' ? 'https' : 'http');
+  return `${proto}://${host}`;
+}
+
+/** Order confirmation email; does not throw. Logs if SMTP missing or send fails. */
+function sendOrderConfirmationEmail(toEmail, orderId, receiptUrl, totalNum) {
+  const totalStr = typeof totalNum === 'number' ? totalNum.toFixed(2) : String(totalNum || '0');
+  const text =
+    'Thank you for your purchase at Mile 12 Warrior.\n\n' +
+    `Order #${orderId} — total $${totalStr}\n\n` +
+    `View your receipt anytime (sign in may be required):\n${receiptUrl}\n\n` +
+    'Questions? Reply to this email or use the Contact page on our site.\n\n' +
+    'This message is for your records. Mile 12 Warrior provides educational information, not legal or medical advice.';
+  const siteOrigin = receiptUrl.replace(/\/shop\/order\/\d+.*$/, '');
+  const contactUrl = `${siteOrigin}/contact`;
+  const html =
+    '<p>Thank you for your purchase at <strong>Mile 12 Warrior</strong>.</p>' +
+    `<p><strong>Order #${orderId}</strong> — total <strong>$${totalStr}</strong></p>` +
+    `<p><a href="${receiptUrl}">View your receipt</a> (sign in may be required).</p>` +
+    `<p>Questions? <a href="${contactUrl}">Contact us</a>.</p>` +
+    '<p style="font-size:0.85rem;color:#666">Educational information only; not legal or medical advice.</p>';
+  try {
+    const host = process.env.SMTP_HOST;
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
+    if (host && user && pass) {
+      const nodemailer = require('nodemailer');
+      const port = parseInt(process.env.SMTP_PORT, 10) || 587;
+      const from = process.env.FROM_EMAIL || process.env.SMTP_USER || 'noreply@mile12warrior.com';
+      const transport = nodemailer.createTransport({ host, port, secure: port === 465, auth: { user, pass } });
+      transport.sendMail(
+        {
+          from,
+          to: toEmail,
+          subject: `Mile 12 Warrior — Order #${orderId} confirmed`,
+          text,
+          html,
+        },
+        function (err) {
+          if (err) console.error('[order confirmation email]', err);
+        }
+      );
+      return;
+    }
+  } catch (e) {
+    console.error('[order confirmation email]', e && e.message);
+  }
+  console.log('[order confirmation email] No SMTP; receipt URL for order', orderId, ':', receiptUrl);
+}
+
 // Authorize.net SDK: execute() does not invoke the callback when Axios fails (apicontrollersbase.js).
 const AUTHORIZE_EXECUTE_TIMEOUT_MS = 125000;
 
@@ -616,6 +671,19 @@ router.post('/orders', requireSession, async (req, res) => {
     createProductAccessGrantsForOrder(order.id);
 
     res.json({ success: true, order });
+
+    const base = publicBaseUrl(req);
+    const receiptUrl = `${base}/shop/order/${order.id}`;
+    setImmediate(() => {
+      try {
+        const row = db.prepare('SELECT email FROM users WHERE id = ?').get(req.session.user.id);
+        if (row && row.email) {
+          sendOrderConfirmationEmail(String(row.email).trim(), order.id, receiptUrl, total);
+        }
+      } catch (e) {
+        console.error('[order confirmation email] enqueue failed', e && e.message);
+      }
+    });
   } catch (err) {
     const isAxios = err && (err.isAxiosError === true || err.name === 'AxiosError');
     logAuthorizePaymentFailure({
@@ -653,6 +721,35 @@ router.get('/orders', requireSession, (req, res) => {
   });
 
   res.json({ orders: ordersWithItems });
+});
+
+// 4a. GET /api/shop/orders/:id — Single order + line items (owner only); for receipt page
+router.get('/orders/:id', requireSession, (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id) || id < 1) {
+    return res.status(400).json({ error: 'Invalid order id' });
+  }
+  const order = db.prepare(`
+    SELECT o.id, o.user_id, o.total, o.status, o.payment_status, o.paid_at,
+           o.shipping_name, o.shipping_address, o.shipping_city, o.shipping_state, o.shipping_zip, o.created_at,
+           o.transaction_id, o.auth_code, o.payment_method
+    FROM orders o
+    WHERE o.id = ?
+  `).get(id);
+  if (!order) {
+    return res.status(404).json({ error: 'Order not found' });
+  }
+  if (order.user_id !== req.session.user.id) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  const items = db.prepare(`
+    SELECT oi.id, oi.product_id, oi.quantity, oi.price, p.name AS product_name, p.slug AS product_slug
+    FROM order_items oi
+    LEFT JOIN products p ON p.id = oi.product_id
+    WHERE oi.order_id = ?
+  `).all(id);
+  const { user_id, ...safe } = order;
+  res.json({ order: { ...safe, items } });
 });
 
 // 4b. GET /api/shop/course-access — Has the current user purchased the full course or complete bundle? (for course page gate)

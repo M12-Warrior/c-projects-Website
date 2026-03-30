@@ -305,6 +305,7 @@
                   '<span class="badge-status ' + fulfillClass + '" title="Order / fulfillment status">' + escapeHtml(fulfill) + '</span>' +
                 '</span>' +
                 '<span class="order-total">' + total + '</span>' +
+                '<a href="/shop/order/' + escapeHtml(String(id)) + '" class="btn btn-glass order-receipt-btn">Receipt</a>' +
                 (hasItems ? '<button type="button" class="order-toggle" aria-label="Toggle items">▼</button>' : '') +
               '</div>' +
               (hasItems ? '<div class="order-items hidden">' + itemsHtml + '</div>' : '') +

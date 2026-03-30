@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order receipt — Mile 12 Warrior</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #fff !important; }
+      .receipt-card { box-shadow: none !important; border: 1px solid #ccc; }
+    }
+    .receipt-meta { font-size: 0.9rem; color: var(--text-2); margin-bottom: 20px; }
+    .receipt-row { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .receipt-ship { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .receipt-ship dt { font-size: 0.78rem; color: var(--text-3); margin-top: 8px; }
+    .receipt-ship dd { margin: 2px 0 0 0; }
+  </style>
+</head>
+<body>
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled no-print" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.svg" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';var s=this.nextElementSibling;if(s)s.style.display='flex';">
+        <span class="nav-logo-fallback" style="display:none;">
+          <svg class="logo-svg logo-shield" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </span>
+      </a>
+      <button type="button" class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="/contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container">
+      <h1 class="page-title">Order receipt</h1>
+      <p class="text-muted no-print" style="font-size:0.9rem;margin-bottom:20px;">For your records. Payment card details are not stored on our servers.</p>
+
+      <div id="receiptLoading" class="glass-card" style="padding:24px;">
+        <p class="text-muted">Loading order…</p>
+      </div>
+
+      <div id="receiptError" class="glass-card hidden" style="padding:24px;border-left:4px solid var(--text-3);">
+        <p id="receiptErrorText" class="text-muted">We couldn’t load this order.</p>
+        <p class="no-print" style="margin-top:16px;"><a href="/profile" class="btn btn-glass">Back to profile</a></p>
+      </div>
+
+      <div id="receiptApp" class="hidden">
+        <div class="no-print" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;align-items:center;">
+          <button type="button" class="btn btn-primary" id="receiptPrintBtn">Print / Save as PDF</button>
+          <a href="/profile" class="btn btn-glass">My orders</a>
+        </div>
+
+        <div class="glass-card receipt-card" style="padding:28px;">
+          <p style="margin:0 0 4px 0;font-weight:600;font-size:1.1rem;">Mile 12 Warrior LLC</p>
+          <p class="receipt-meta" id="receiptOrderLine"></p>
+
+          <h2 style="font-size:1rem;margin:20px 0 12px 0;color:var(--text);">Items</h2>
+          <div id="receiptItems"></div>
+
+          <div class="receipt-row" style="font-weight:600;margin-top:16px;border-bottom:none;">
+            <span>Total</span>
+            <span id="receiptTotal"></span>
+          </div>
+
+          <div class="receipt-ship">
+            <h2 style="font-size:1rem;margin:0 0 12px 0;">Ship to</h2>
+            <dl style="margin:0;">
+              <dt>Name</dt><dd id="shipName"></dd>
+              <dt>Address</dt><dd id="shipAddr"></dd>
+              <dt>City, State ZIP</dt><dd id="shipCity"></dd>
+            </dl>
+          </div>
+
+          <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);">
+            <h2 style="font-size:1rem;margin:0 0 8px 0;">Payment</h2>
+            <p class="text-muted" style="font-size:0.88rem;margin:0;" id="receiptPay"></p>
+          </div>
+
+          <p style="font-size:0.75rem;color:var(--text-3);margin-top:24px;line-height:1.5;">This receipt is for your records. Mile 12 Warrior provides educational information, not legal or medical advice. For FMCSA and compliance questions, see fmcsa.dot.gov and qualified professionals.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer no-print" style="margin-top:60px">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N St. #8325, Sacramento, CA 95816</p>
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+          <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
+          <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>
+          <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>
+        </nav>
+        <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+(function() {
+  function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+  function formatDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+  }
+  function formatPrice(n) {
+    return '$' + (Number(n) || 0).toFixed(2);
+  }
+
+  const m = window.location.pathname.match(/\/shop\/order\/(\d+)/);
+  const orderId = m ? m[1] : null;
+  const loadingEl = document.getElementById('receiptLoading');
+  const errEl = document.getElementById('receiptError');
+  const errText = document.getElementById('receiptErrorText');
+  const appEl = document.getElementById('receiptApp');
+
+  if (!orderId) {
+    loadingEl.classList.add('hidden');
+    errEl.classList.remove('hidden');
+    errText.textContent = 'Invalid order link.';
+    return;
+  }
+
+  document.getElementById('receiptPrintBtn').addEventListener('click', function() { window.print(); });
+
+  const navToggle = document.getElementById('navToggle');
+  const navLinks = document.getElementById('navLinks');
+  if (navToggle && navLinks) {
+    navToggle.addEventListener('click', function() {
+      navToggle.classList.toggle('active');
+      navLinks.classList.toggle('open');
+    });
+  }
+
+  fetch('/api/shop/orders/' + orderId, { credentials: 'include' })
+    .then(function(res) {
+      if (res.status === 401) {
+        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+        return null;
+      }
+      return res.json().then(function(data) { return { ok: res.ok, data: data }; });
+    })
+    .then(function(result) {
+      if (!result) return;
+      loadingEl.classList.add('hidden');
+      if (!result.ok || !result.data || !result.data.order) {
+        errEl.classList.remove('hidden');
+        errText.textContent = (result.data && result.data.error) || 'Order not found or access denied.';
+        return;
+      }
+      const o = result.data.order;
+      const items = o.items || [];
+      appEl.classList.remove('hidden');
+      document.title = 'Order #' + o.id + ' — Mile 12 Warrior';
+
+      document.getElementById('receiptOrderLine').innerHTML =
+        'Order <strong>#' + escapeHtml(String(o.id)) + '</strong> · Placed ' + escapeHtml(formatDate(o.created_at)) +
+        (o.paid_at ? ' · Paid ' + escapeHtml(formatDate(o.paid_at)) : '');
+
+      document.getElementById('receiptTotal').textContent = formatPrice(o.total);
+      document.getElementById('shipName').textContent = o.shipping_name || '—';
+      document.getElementById('shipAddr').textContent = o.shipping_address || '—';
+      document.getElementById('shipCity').textContent =
+        [o.shipping_city, o.shipping_state, o.shipping_zip].filter(Boolean).join(', ') || '—';
+
+      var payParts = [];
+      if (o.payment_status === 'paid') payParts.push('Payment status: Paid');
+      else payParts.push('Payment status: ' + (o.payment_status || '—'));
+      if (o.payment_method) payParts.push('Processor: ' + o.payment_method);
+      if (o.transaction_id) payParts.push('Transaction reference: ' + o.transaction_id);
+      if (o.auth_code) payParts.push('Authorization code: ' + o.auth_code);
+      document.getElementById('receiptPay').textContent = payParts.join(' · ') || '—';
+
+      var itemsEl = document.getElementById('receiptItems');
+      itemsEl.innerHTML = items.map(function(i) {
+        var name = escapeHtml(i.product_name || i.name || 'Item');
+        var qty = i.quantity || 1;
+        var line = formatPrice((i.price || 0) * qty);
+        return '<div class="receipt-row"><span>' + name + ' × ' + qty + '</span><span>' + line + '</span></div>';
+      }).join('') || '<p class="text-muted">No line items.</p>';
+    })
+    .catch(function() {
+      loadingEl.classList.add('hidden');
+      errEl.classList.remove('hidden');
+      errText.textContent = 'Network error. Try again.';
+    });
+})();
+  </script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

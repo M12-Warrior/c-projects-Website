@@ -112,6 +112,23 @@
         loginError.classList.add('hidden');
       }
 
+      function getSafeRedirect() {
+        try {
+          const p = new URLSearchParams(window.location.search);
+          let r = p.get('redirect');
+          if (!r) return null;
+          r = decodeURIComponent(r);
+          if (r.startsWith('/') && !r.startsWith('//')) return r;
+        } catch (e) {}
+        return null;
+      }
+
+      function afterLoginPath(role) {
+        const red = getSafeRedirect();
+        if (red) return red;
+        return role === 'admin' ? '/admin' : '/';
+      }
+
       async function checkAuth() {
         try {
           const res = await fetch('/api/auth/me', { credentials: 'include' });
@@ -119,7 +136,7 @@
           const user = data.user || null;
           updateNavFromAuth(user);
           if (user) {
-            window.location.replace(user.role === 'admin' ? '/admin' : '/');
+            window.location.replace(afterLoginPath(user.role));
             return true;
           }
           return false;
@@ -170,7 +187,7 @@
 
             if (res.ok) {
               const role = data.role || (data.user && data.user.role);
-              window.location.replace(role === 'admin' ? '/admin' : '/');
+              window.location.replace(afterLoginPath(role));
               return;
             }
 

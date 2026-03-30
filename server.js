@@ -212,6 +212,10 @@ app.get('/shop/checkout', requireLogin, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'checkout.html'));
 });
 
+app.get('/shop/order/:id', requireLogin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'shop-order.html'));
+});
+
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'login.html'));
 });
