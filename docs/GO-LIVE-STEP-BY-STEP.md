@@ -154,7 +154,7 @@ The site ships with a default admin account so you can log in. You **must** chan
 ## Part E: Quick check that everything works
 
 - [ ] Homepage loads at https://mile12warrior.com
-- [ ] You can open Shop, Cart, Checkout (checkout shows “Online payment coming soon” and doesn’t actually charge)
+- [ ] You can open Shop, Cart, Checkout (checkout uses **Authorize.net** when `AUTHORIZE_*` variables are set on the server; use **sandbox** first — see [PAYMENTS-AUTHORIZE-NET-SETUP.md](PAYMENTS-AUTHORIZE-NET-SETUP.md))
 - [ ] You can log in as admin and change your password
 - [ ] Logo and header image look correct (they’re in `public/images/`)
 
@@ -180,12 +180,16 @@ After the site is live, use this process whenever you make changes so the **live
 
 ---
 
-## Later: when you add real payment
+## Payments (Authorize.net) on the live site
 
-1. In your code, open **views/checkout.html**.
-2. Find the line: **`var PAYMENT_COMING_SOON = true;`**
-3. Change it to: **`var PAYMENT_COMING_SOON = false;`**
-4. Commit and push to GitHub. Railway will redeploy. You can then remove or hide the “Online payment coming soon” banner and the small notes on the shop and cart pages if you want.
+Checkout accepts cards when these are set in Railway (or your host) and the app is redeployed:
+
+- **`AUTHORIZE_LOGIN_ID`**, **`AUTHORIZE_TRANSACTION_KEY`**, **`AUTHORIZE_PUBLIC_CLIENT_KEY`**
+- **`AUTHORIZE_USE_PRODUCTION`** — `0` for sandbox testing, `1` for live charges only after you switch credentials
+
+Full setup and testing: **[PAYMENTS-AUTHORIZE-NET-SETUP.md](PAYMENTS-AUTHORIZE-NET-SETUP.md)**. You can confirm configuration at **`/api/shop/payment-config`** on your domain (returns `configured` and `mode` without secrets).
+
+Shop and cart pages describe **live secure checkout** once payment env vars are configured.
 
 ---
 

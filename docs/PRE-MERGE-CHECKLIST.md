@@ -6,7 +6,7 @@ Use this before merging to your main branch or deploying to your live site (e.g.
 
 ## Code / repo
 
-- [ ] **Payment coming soon** — Checkout has `PAYMENT_COMING_SOON = true` in `views/checkout.html`. Leave it `true` until the payment gateway is live; then set to `false` and optionally remove the “coming soon” banner and notes on shop/cart.
+- [ ] **Payments** — For live card checkout, set **`AUTHORIZE_*`** env vars on the host (see [PAYMENTS-AUTHORIZE-NET-SETUP.md](PAYMENTS-AUTHORIZE-NET-SETUP.md)); verify **`/api/shop/payment-config`**. Shop/cart copy assumes checkout is available when configured.
 - [ ] **No secrets in repo** — No `.env` or real API keys committed (they’re in host env vars).
 - [ ] **Brand assets** — `public/images/logo.png` (or `.svg`) and `public/images/hero-bg.png` are present and committed.
 
