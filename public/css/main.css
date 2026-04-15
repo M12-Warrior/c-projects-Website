@@ -93,6 +93,7 @@ a:hover { color: var(--gold-light); }
   width: 0;
   transition: none;
   box-shadow: 0 0 8px var(--gold-glow);
+  pointer-events: none;
 }
 
 /* ---------- CONTAINER ---------- */
@@ -107,7 +108,7 @@ a:hover { color: var(--gold-light); }
 .navbar {
   position: fixed;
   top: 0; left: 0; right: 0;
-  z-index: 10000;
+  z-index: 10050;
   background: rgba(44, 44, 46, 0.85);
   backdrop-filter: blur(24px) saturate(1.2);
   -webkit-backdrop-filter: blur(24px) saturate(1.2);
@@ -191,6 +192,8 @@ a:hover { color: var(--gold-light); }
   border: none;
   cursor: pointer;
   padding: 8px;
+  position: relative;
+  z-index: 2;
 }
 
 .nav-toggle span {
@@ -201,6 +204,16 @@ a:hover { color: var(--gold-light); }
   border-radius: 2px;
   transition: 0.3s var(--ease);
   transform-origin: center;
+}
+
+.nav-toggle:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 3px;
+}
+
+.phase-tab:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 2px;
 }
 
 /* ---------- HERO ---------- */
@@ -1926,6 +1939,7 @@ a:hover { color: var(--gold-light); }
   .nav-links {
     position: fixed;
     top: 64px; left: 0; right: 0;
+    z-index: 10049;
     background: rgba(5, 6, 8, 0.97);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
@@ -1936,6 +1950,7 @@ a:hover { color: var(--gold-light); }
     transform: translateY(-110%);
     opacity: 0;
     visibility: hidden;
+    pointer-events: none;
     transition: all 0.35s var(--ease);
   }
 
@@ -1943,6 +1958,7 @@ a:hover { color: var(--gold-light); }
     transform: translateY(0);
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
   }
 
   .nav-toggle { display: flex; }
@@ -1994,6 +2010,10 @@ a:hover { color: var(--gold-light); }
 
   .nav-container { height: 56px; }
   html { scroll-padding-top: 60px; }
+
+  .nav-links {
+    top: 56px;
+  }
 
   .container { padding: 0 18px; }
 }

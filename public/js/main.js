@@ -214,15 +214,28 @@ document.addEventListener('DOMContentLoaded', () => {
   const navToggle = document.getElementById('navToggle');
   const navLinks = document.getElementById('navLinks');
   if (navToggle && navLinks) {
+    navToggle.setAttribute('aria-expanded', 'false');
+    navToggle.setAttribute('aria-controls', 'navLinks');
+
+    function setMobileNavOpen(open) {
+      navToggle.classList.toggle('active', open);
+      navLinks.classList.toggle('open', open);
+      navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
     navToggle.addEventListener('click', function () {
-      navToggle.classList.toggle('active');
-      navLinks.classList.toggle('open');
+      setMobileNavOpen(!navLinks.classList.contains('open'));
     });
     navLinks.querySelectorAll('a').forEach(function (link) {
       link.addEventListener('click', function () {
-        navToggle.classList.remove('active');
-        navLinks.classList.remove('open');
+        setMobileNavOpen(false);
       });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && navLinks.classList.contains('open')) {
+        setMobileNavOpen(false);
+        navToggle.focus();
+      }
     });
   }
 
@@ -470,33 +483,97 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   };
 
-  // --- Phase tab navigation (with channel-switch feedback) ---
+  // --- Phase tab navigation (with channel-switch feedback + keyboard) ---
   const phaseTabs = document.getElementById('phaseTabs');
   if (phaseTabs) {
-    phaseTabs.addEventListener('click', function(e) {
-      const tab = e.target.closest('.phase-tab');
-      if (!tab) return;
+    phaseTabs.setAttribute('role', 'tablist');
+    phaseTabs.setAttribute('aria-label', 'Driver safety roadmap sections');
+    const phaseTabButtons = phaseTabs.querySelectorAll('.phase-tab');
+
+    const phaseTabScrollBehavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? 'auto'
+      : 'smooth';
+
+    function activatePhaseTab(tab) {
+      if (!tab || !tab.dataset.tab) return;
       const target = tab.dataset.tab;
 
       tab.classList.remove('phase-tab--click');
       void tab.offsetWidth;
       tab.classList.add('phase-tab--click');
-      setTimeout(function() { tab.classList.remove('phase-tab--click'); }, 200);
+      setTimeout(function () {
+        tab.classList.remove('phase-tab--click');
+      }, 200);
 
-      phaseTabs.querySelectorAll('.phase-tab').forEach(function(t) { t.classList.remove('active'); });
+      phaseTabButtons.forEach(function (t) {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
       tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
 
-      document.querySelectorAll('.phase-panel').forEach(function(p) { p.classList.remove('active'); });
+      document.querySelectorAll('.phase-panel').forEach(function (p) {
+        p.classList.remove('active');
+      });
       var panel = document.getElementById('panel-' + target);
       if (panel) {
         panel.classList.add('active');
         var rect = phaseTabs.getBoundingClientRect();
         if (rect.top < 0 || rect.top > 120) {
-          phaseTabs.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          phaseTabs.scrollIntoView({ behavior: phaseTabScrollBehavior, block: 'start' });
         }
       }
 
-      tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      tab.scrollIntoView({ behavior: phaseTabScrollBehavior, block: 'nearest', inline: 'center' });
+    }
+
+    phaseTabButtons.forEach(function (t) {
+      var tid = t.dataset.tab;
+      if (!tid) return;
+      t.setAttribute('role', 'tab');
+      t.setAttribute('id', 'phase-tab-' + tid);
+      t.setAttribute('aria-controls', 'panel-' + tid);
+      t.setAttribute('aria-selected', t.classList.contains('active') ? 'true' : 'false');
+      var p = document.getElementById('panel-' + tid);
+      if (p) {
+        p.setAttribute('role', 'tabpanel');
+        p.setAttribute('aria-labelledby', 'phase-tab-' + tid);
+      }
+    });
+
+    phaseTabs.addEventListener('click', function (e) {
+      const tab = e.target.closest('.phase-tab');
+      if (!tab) return;
+      activatePhaseTab(tab);
+    });
+
+    phaseTabs.addEventListener('keydown', function (e) {
+      const tabs = Array.from(phaseTabButtons);
+      var cur = tabs.indexOf(document.activeElement);
+      if (cur < 0) {
+        cur = tabs.findIndex(function (t) {
+          return t.classList.contains('active');
+        });
+      }
+      if (cur < 0) cur = 0;
+      var next = cur;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        next = (cur + 1) % tabs.length;
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        next = (cur - 1 + tabs.length) % tabs.length;
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        next = 0;
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        next = tabs.length - 1;
+      } else {
+        return;
+      }
+      activatePhaseTab(tabs[next]);
+      tabs[next].focus();
     });
   }
 
