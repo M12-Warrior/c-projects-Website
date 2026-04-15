@@ -5,8 +5,12 @@ Path: public/images/products/
 URL path: /images/products/
 
 Place one image per product in this folder. The site looks for files by product slug.
-Use either .jpg or .png (e.g. course-90day.jpg or course-90day.png).
-To change an image, replace the file keeping the same name.
+
+**Order tried (when no Admin "Image URL" is set):** `<slug>.svg` → `<slug>.jpg` → `<slug>.png`
+- **SVG:** Generated placeholders live in-repo (`node scripts/generate-product-placeholders.js`). Replace with your own SVG or add JPG/PNG with the same slug to override.
+- **JPG / PNG:** e.g. `course-90day.jpg` — use for real product photos.
+
+Shop digital cards no longer use external stock URLs; local SVGs keep images working offline and behind strict networks.
 
 Digital products (top section):
   course-90day.jpg     — 90-Day Onboarding Course

@@ -127,7 +127,7 @@
               </div>
             </div>
           ` : '';
-          const featuredImg = (post.image && post.image.trim()) ? '<div class="post-featured-image"><img src="' + escapeHtml(post.image) + '" alt=""></div>' : '';
+          const featuredImg = (post.image && post.image.trim()) ? '<div class="post-featured-image"><img src="' + escapeHtml(post.image) + '" alt="" onerror="this.parentElement.style.display=\'none\'"></div>' : '';
           postContent.innerHTML = `
             <div class="blog-post-header-row">
               <h1>${escapeHtml(post.title)}</h1>

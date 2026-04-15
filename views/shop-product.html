@@ -172,8 +172,15 @@
                 '</ul>' +
               '</div>'
             : '';
-          const imgHtml = product.image
-            ? '<img src="' + escapeHtml(product.image) + '" alt="" class="product-detail-image">'
+          var imgBase = '/images/products/';
+          var slugForImg = product.slug || slug || '';
+          var imgSrc = product.image || (imgBase + slugForImg + '.svg');
+          var imgOnerr = '';
+          if (!product.image && slugForImg) {
+            imgOnerr = ' onerror="if(!this.dataset._j){this.dataset._j=1;this.src=\'' + imgBase + slugForImg + '.jpg\';return;}if(!this.dataset._p){this.dataset._p=1;this.src=\'' + imgBase + slugForImg + '.png\';return;}this.style.display=\'none\';"';
+          }
+          const imgHtml = (product.image || slugForImg)
+            ? '<img src="' + escapeHtml(imgSrc) + '" alt="" class="product-detail-image"' + imgOnerr + '>'
             : '<div class="product-image" style="height: 320px;">' + placeholderIcon + '</div>';
           const subBadge = isSub ? '<span style="display:inline-block;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue);background:rgba(59,130,246,0.15);padding:4px 10px;border-radius:4px;margin-left:12px;font-weight:600;vertical-align:middle;">Monthly subscription</span>' : '';
           const formHtml = isSub

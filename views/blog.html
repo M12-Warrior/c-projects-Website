@@ -111,7 +111,7 @@
           }
           grid.innerHTML = posts.map(post => {
             const imgHtml = post.image
-              ? `<img src="${escapeHtml(post.image)}" alt="">`
+              ? `<img src="${escapeHtml(post.image)}" alt="" onerror="this.style.display='none'">`
               : `<span>${placeholderIcon}</span>`;
             const editMenu = isAdmin ? `
               <div class="blog-card-actions">

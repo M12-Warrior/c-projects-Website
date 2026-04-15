@@ -154,14 +154,6 @@
       function renderDigitalProducts() {
         var dg = document.getElementById('digitalGrid');
         if (!dg) return;
-        var digitalStockImages = {
-          'course-90day': 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=80',
-          'seasoned-packet': 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&q=80',
-          'fleet-new-hire-packet': 'https://images.unsplash.com/photo-1459252619524-371e376d32b2?w=400&q=80',
-          'fleet-refresher-packet': 'https://images.unsplash.com/photo-1573164713719-8dd4f693d717?w=400&q=80',
-          'fleet-bundle': 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=80',
-          'complete-bundle': 'https://images.unsplash.com/photo-1499750315157-5cbaf2ff4b58?w=400&q=80'
-        };
         var digital = [
           { id: 'course-90day', name: '90-Day Onboarding Course', price: 149, desc: '10 modules, 47 lessons, quizzes, and certificate. Everything new drivers need.', link: '/course', badge: 'Course' },
           { id: 'seasoned-packet', name: 'Seasoned Driver Packet', price: 29, desc: 'Advanced strategies for experienced drivers. 11 sections.', badge: 'Tier 2' },
@@ -175,12 +167,13 @@
           var btnHtml = p.link
             ? '<a href="' + p.link + '" class="btn-add-cart" style="text-align:center;text-decoration:none;display:block">View Course</a>'
             : '<button type="button" class="btn-add-cart" onclick="addDigitalToCart(\'' + p.id + '\',\'' + escapeHtml(p.name) + '\',' + p.price + ')">Add to Cart</button>';
-          var imgPath = digitalStockImages[p.id] || (productImageBase + p.id + '.jpg');
+          var imgPath = productImageBase + p.id + '.svg';
+          var imgPathJpg = productImageBase + p.id + '.jpg';
           var imgPathPng = productImageBase + p.id + '.png';
           var placeholderHtml = '<div class="product-image-placeholder" style="display:none;height:100%;min-height:140px;background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(52,211,153,0.08));align-items:center;justify-content:center;flex-direction:column;gap:8px">' +
             '<span style="font-family:var(--mono);font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;padding:4px 12px;border:1px solid rgba(99,102,241,0.3);border-radius:4px;color:var(--blue)">' + escapeHtml(p.badge) + '</span>' +
             '</div>';
-          var onerr = "if(!this.dataset.triedPng){ this.dataset.triedPng='1'; this.src='" + imgPathPng + "'; return; } var pl=this.nextElementSibling; if(pl){ pl.style.display='flex'; } this.style.display='none';";
+          var onerr = "if(!this.dataset.triedJpg){ this.dataset.triedJpg='1'; this.src='" + imgPathJpg + "'; return; } if(!this.dataset.triedPng){ this.dataset.triedPng='1'; this.src='" + imgPathPng + "'; return; } var pl=this.nextElementSibling; if(pl){ pl.style.display='flex'; } this.style.display='none';";
           return '<article class="product-card">' +
             '<div class="product-image product-image--digital" style="height:140px;display:flex;align-items:stretch;justify-content:center">' +
               '<img src="' + escapeHtml(imgPath) + '" alt="" style="width:100%;height:100%;object-fit:cover" onerror="' + onerr + '">' +
@@ -229,9 +222,11 @@
             var productImageBase = '/images/products/';
             subGrid.innerHTML = subscriptionProducts.map(function(p) {
               var slug = p.slug || p.id || '';
-              var imgSrc = p.image || (productImageBase + slug + '.jpg');
+              var imgSrc = p.image || (productImageBase + slug + '.svg');
               var fallbackSpan = '<span class="product-image-fallback" style="display:none;width:100%;height:100%;align-items:center;justify-content:center;color:var(--text-3)">' + placeholderIcon + '</span>';
-              var onerr = "if(!this.dataset.triedPng){ this.dataset.triedPng='1'; this.src='" + productImageBase + slug + ".png'; return; } this.style.display='none'; var ph=this.nextElementSibling; if(ph) ph.style.display='flex';";
+              var onerr = p.image
+                ? "this.style.display='none'; var ph=this.nextElementSibling; if(ph) ph.style.display='flex';"
+                : "if(!this.dataset.triedJpg){ this.dataset.triedJpg='1'; this.src='" + productImageBase + slug + ".jpg'; return; } if(!this.dataset.triedPng){ this.dataset.triedPng='1'; this.src='" + productImageBase + slug + ".png'; return; } this.style.display='none'; var ph=this.nextElementSibling; if(ph) ph.style.display='flex';";
               return '<article class="product-card">' +
                 '<a href="/shop/product/' + escapeHtml(slug) + '">' +
                   '<div class="product-image">' +
@@ -273,11 +268,11 @@
           var productImageBase = '/images/products/';
           grid.innerHTML = products.map(function(p) {
             var slug = p.slug || p.id || '';
-            var imgSrc = p.image || (productImageBase + slug + '.jpg');
+            var imgSrc = p.image || (productImageBase + slug + '.svg');
             var fallbackSpan = '<span class="product-image-fallback" style="display:none;width:100%;height:100%;align-items:center;justify-content:center;color:var(--text-3)">' + placeholderIcon + '</span>';
             var onerr = p.image
               ? "this.style.display='none'; var ph=this.nextElementSibling; if(ph) ph.style.display='flex';"
-              : "if(!this.dataset.triedPng){ this.dataset.triedPng='1'; this.src='" + productImageBase + slug + ".png'; return; } this.style.display='none'; var ph=this.nextElementSibling; if(ph) ph.style.display='flex';";
+              : "if(!this.dataset.triedJpg){ this.dataset.triedJpg='1'; this.src='" + productImageBase + slug + ".jpg'; return; } if(!this.dataset.triedPng){ this.dataset.triedPng='1'; this.src='" + productImageBase + slug + ".png'; return; } this.style.display='none'; var ph=this.nextElementSibling; if(ph) ph.style.display='flex';";
             var imgHtml = '<img src="' + escapeHtml(imgSrc) + '" alt="" onerror="' + onerr + '">' + fallbackSpan;
             return '<article class="product-card">' +
               '<a href="/shop/product/' + escapeHtml(slug) + '">' +
