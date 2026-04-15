@@ -203,8 +203,6 @@
     (function() {
       var navbar = document.getElementById('navbar');
       var progressBar = document.getElementById('scrollProgress');
-      var navToggle = document.getElementById('navToggle');
-      var navLinks = document.getElementById('navLinks');
       function onScroll() {
         if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 20);
         if (progressBar) {
@@ -214,18 +212,6 @@
       }
       window.addEventListener('scroll', onScroll, { passive: true });
       onScroll();
-      if (navToggle && navLinks) {
-        navToggle.addEventListener('click', function() {
-          navToggle.classList.toggle('active');
-          navLinks.classList.toggle('open');
-        });
-        navLinks.querySelectorAll('a').forEach(function(a) {
-          a.addEventListener('click', function() {
-            navToggle.classList.remove('active');
-            navLinks.classList.remove('open');
-          });
-        });
-      }
     })();
   </script>
 

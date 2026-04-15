@@ -312,15 +312,6 @@
         await checkAuth();
         await checkSubscription();
 
-        const navToggle = document.getElementById('navToggle');
-        const navLinks = document.getElementById('navLinks');
-        if (navToggle && navLinks) {
-          navToggle.addEventListener('click', function() {
-            navToggle.classList.toggle('active');
-            navLinks.classList.toggle('open');
-          });
-        }
-
         function onScroll() {
           const navbar = document.getElementById('navbar');
           const progressBar = document.getElementById('scrollProgress');

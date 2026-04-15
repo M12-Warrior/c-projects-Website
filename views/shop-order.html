@@ -147,15 +147,6 @@
 
   document.getElementById('receiptPrintBtn').addEventListener('click', function() { window.print(); });
 
-  const navToggle = document.getElementById('navToggle');
-  const navLinks = document.getElementById('navLinks');
-  if (navToggle && navLinks) {
-    navToggle.addEventListener('click', function() {
-      navToggle.classList.toggle('active');
-      navLinks.classList.toggle('open');
-    });
-  }
-
   fetch('/api/shop/orders/' + orderId, { credentials: 'include' })
     .then(function(res) {
       if (res.status === 401) {

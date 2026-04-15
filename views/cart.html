@@ -181,15 +181,6 @@
         } catch (_) {}
       }
 
-      var navToggle = document.getElementById('navToggle');
-      var navLinks = document.getElementById('navLinks');
-      if (navToggle && navLinks) {
-        navToggle.addEventListener('click', function() {
-          navToggle.classList.toggle('active');
-          navLinks.classList.toggle('open');
-        });
-      }
-
       function onScroll() {
         var navbar = document.getElementById('navbar');
         var progressBar = document.getElementById('scrollProgress');

@@ -158,16 +158,6 @@
 
   <script>
     (function() {
-      // Mobile nav toggle
-      const navToggle = document.getElementById('navToggle');
-      const navLinks = document.getElementById('navLinks');
-      if (navToggle && navLinks) {
-        navToggle.addEventListener('click', () => {
-          navToggle.classList.toggle('active');
-          navLinks.classList.toggle('open');
-        });
-      }
-
       // Update navbar auth link
       async function updateAuthLink() {
         const authLink = document.querySelector('.nav-auth-link');

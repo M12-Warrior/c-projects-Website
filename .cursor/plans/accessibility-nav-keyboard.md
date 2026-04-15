@@ -15,3 +15,9 @@
 ## Deploy
 
 Commit and push; no new env vars.
+
+## Follow-up (mobile menu “won’t open” on inner pages)
+
+**Cause:** Pages that inlined a hamburger `click` handler *and* load `main.js` registered **two** toggles per tap → open then immediately close.
+
+**Fix:** Remove inline mobile-nav `click` wiring from all views that include `/js/main.js`; `main.js` is the single source of truth.
