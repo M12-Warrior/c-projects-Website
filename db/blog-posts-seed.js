@@ -9,6 +9,7 @@ module.exports = [
     title: 'Sleep Management for Commercial Drivers: Staying Alert Within HOS Limits',
     slug: 'sleep-management-commercial-drivers',
     excerpt: 'Practical tips for quality rest within FMCSA Hours of Service requirements.',
+    image: '/images/products/trucker-wellness-journal.svg',
     content: `<p>Ever hit that point in your shift where your eyes feel like sandpaper and the white line starts to blur? You're not alone. For commercial drivers, how you sleep isn't just a comfort issue—it's the difference between a safe run and a close call. The good news? With a few habits and a clear picture of the rules, you can turn your off-duty time into real recovery.</p>
 
 <p>Under FMCSA Hours of Service rules (49 CFR Part 395), you must take at least 10 consecutive hours off duty before driving again. You can confirm current rules and guidance at <a href="https://www.fmcsa.dot.gov/regulations/hours-of-service" target="_blank" rel="noopener noreferrer">FMCSA Hours of Service</a>. That 10-hour window is your legal minimum, but what you do with it determines whether you're actually rested or just legally compliant. The drivers who treat sleep as part of the job—not an afterthought—are the ones who stay sharp, avoid violations, and build careers that last.</p>
@@ -61,6 +62,7 @@ module.exports = [
     title: 'Mental Health on the Road: Building Resilience as a Trucker',
     slug: 'mental-health-on-the-road',
     excerpt: 'Strategies for maintaining mental wellness during long hauls.',
+    image: '/images/products/course-90day.svg',
     content: `<p>You've probably had that moment: miles of highway, the same playlist for the hundredth time, and a wave of loneliness or stress that hits out of nowhere. Long hours behind the wheel, time away from family, and the pressure of deadlines don't just wear on your body—they wear on your mind. The good news? Mental wellness is something you can build, and it's as critical to safety as your pre-trip.</p>
 
 <p>Stress, isolation, and fatigue are common in trucking. They're not signs of weakness. They're the predictable result of a job that asks a lot of you. The drivers who thrive aren't the ones who never feel low—they're the ones who have habits and support so that when tough days come, they have something to lean on.</p>
@@ -111,6 +113,7 @@ module.exports = [
     title: 'Mile 12: Where Our Journey Gets Real',
     slug: 'mile-12-where-our-journey-gets-real',
     excerpt: 'The critical turning point every driver faces — and how to make it your strength.',
+    image: '/images/products/complete-bundle.svg',
     content: `<p>There's a moment on every long run when the highway wins. Not literally—you're still rolling—but your body and mind start to wave the white flag. That moment has a name here at Mile 12 Warrior, and we want every driver to know it. Every long-haul driver knows the feeling. You're hours into a run. The highway stretches in front of you, and your body starts sending signals—heavy eyes, wandering focus, that urge to just push a little farther. That moment has a name here: Mile 12. It's not a literal mile marker. It's the point where fatigue gets real and the temptation to push through is strongest. It's also the moment that defines what kind of driver you choose to be.</p>
 
 <p>At Mile 12 Warrior, we believe that moment is actually a gift. It's the turning point where awareness becomes action. Instead of reaching for another energy drink or ignoring the signs, Mile 12 is where you can choose to be a warrior: make the smart call, pull over, reset, and come back stronger.</p>
@@ -161,6 +164,7 @@ module.exports = [
     title: 'Truck Driver Fatigue: 5 Quick Resets to Stay Alert on Long Hauls',
     slug: '5-quick-resets-stay-alert',
     excerpt: 'Five proven techniques to fight fatigue between rest stops.',
+    image: '/images/products/reflective-safety-vest.svg',
     content: `<p>You know the drill: one minute you're fine, the next you're blinking too long or your mind is wandering off the road. Fatigue doesn't announce itself with a warning bell. It creeps in—heavy eyelids, wandering thoughts, microsleeps that last just long enough to drift across a lane line. When it hits, you need more than willpower; you need a toolkit of quick resets that actually work. Here are five that drivers and researchers swear by.</p>
 
 <p>Remember: these are bridges to your next proper rest, not replacements for sleep. Under <a href="https://www.fmcsa.dot.gov/regulations/hours-of-service" target="_blank" rel="noopener noreferrer">FMCSA Hours of Service</a> rules (49 CFR Part 395), you must take required breaks and your full 10-hour off-duty. Use these when you need to stay sharp until you can safely stop and rest.</p>
@@ -213,6 +217,7 @@ module.exports = [
     title: 'Embracing Change with Confidence: A Trucker\'s Guide',
     slug: 'embracing-change-with-confidence',
     excerpt: 'How professional drivers can build adaptability and thrive through career transitions.',
+    image: '/images/products/seasoned-packet.svg',
     content: `<p>Whether you've been driving for six months or twenty years, you've already lived through a lot of change. New routes, new regulations, new technology, new bosses—it never really stops. For truck drivers, adaptability isn't just a nice-to-have; it's survival. Change is the only constant on the road. New routes, new regulations, new technology, new bosses. For truck drivers, adaptability isn't just a nice-to-have—it's survival. Whether you're switching from days to nights, going from company driver to owner-operator, or just dealing with a detour that blows your schedule, how you respond to change defines your career.</p>
 
 <p>It's normal to feel uneasy when the rules shift or the route changes. The drivers who last are the ones who learn to treat change as part of the job and even as an opportunity. Here's how to build that mindset and the confidence to back it up.</p>
@@ -265,6 +270,7 @@ module.exports = [
     title: 'How to Set Healthy Boundaries Without Feeling Guilty',
     slug: 'setting-healthy-boundaries',
     excerpt: 'The mindset shift every driver needs for a sustainable, guilt-free career.',
+    image: '/images/products/new-driver-packet.svg',
     content: `<p>Say "no" lately? If you're like a lot of drivers, the word doesn't come easy. We're under constant pressure to say yes. Yes to the extra load. Yes to the tighter delivery window. Yes to skipping the break because dispatch is pushing. After a while, "no" can feel impossible—or selfish. But here's the truth: setting boundaries isn't selfish. It's the foundation of a career that lasts.</p>
 
 <p>Without boundaries, you burn out. You risk your safety, your health, and your relationships. With them, you protect what matters and show up better for everyone—including your company. The trick is knowing what your boundaries are and holding them without drowning in guilt.</p>

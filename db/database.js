@@ -302,6 +302,34 @@ try {
   db.exec('ALTER TABLE traffic_visits ADD COLUMN utm_campaign TEXT');
 } catch (_) {}
 
+// Paid orders: align fulfillment status (was left "pending" while payment_status became "paid")
+try {
+  db.prepare(`
+    UPDATE orders SET status = 'processing'
+    WHERE COALESCE(payment_status, '') = 'paid'
+      AND LOWER(TRIM(COALESCE(status, ''))) = 'pending'
+      AND EXISTS (
+        SELECT 1 FROM order_items oi
+        JOIN products p ON p.id = oi.product_id
+        WHERE oi.order_id = orders.id
+          AND LOWER(COALESCE(p.category, '')) NOT IN ('digital', 'subscription')
+      )
+  `).run();
+} catch (_) {}
+try {
+  db.prepare(`
+    UPDATE orders SET status = 'completed'
+    WHERE COALESCE(payment_status, '') = 'paid'
+      AND LOWER(TRIM(COALESCE(status, ''))) = 'pending'
+      AND NOT EXISTS (
+        SELECT 1 FROM order_items oi
+        JOIN products p ON p.id = oi.product_id
+        WHERE oi.order_id = orders.id
+          AND LOWER(COALESCE(p.category, '')) NOT IN ('digital', 'subscription')
+      )
+  `).run();
+} catch (_) {}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS download_events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -329,6 +357,14 @@ db.exec(`
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
   CREATE INDEX IF NOT EXISTS idx_address_book_opt_out ON address_book(opt_out);
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS cms_page_content (
+    page_key TEXT PRIMARY KEY,
+    content_json TEXT NOT NULL DEFAULT '{}',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 // Forum category "Miles Without Borders" for existing databases (idempotent)
@@ -381,10 +417,10 @@ const seedIfEmpty = () => {
   insertProduct.run('Complete Bundle (Course + All Packets)', 'complete-bundle', 'Everything Mile 12 Warrior offers in one package: the 90-Day Onboarding Course (10 modules), all 4 safety packets (New Driver, Seasoned Driver, Fleet New Hire, Fleet Refresher), and certificate of completion. Save $87 vs. buying separately.', 249.00, 'digital', 9999, 1);
 
   const insertPost = db.prepare(`
-    INSERT INTO blog_posts (title, slug, content, excerpt, author_id, published) VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO blog_posts (title, slug, content, excerpt, image, author_id, published) VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
   for (const post of BLOG_POSTS_SEED) {
-    insertPost.run(post.title, post.slug, post.content, post.excerpt, 1, 1);
+    insertPost.run(post.title, post.slug, post.content, post.excerpt, post.image || null, 1, 1);
   }
 };
 
@@ -392,9 +428,9 @@ seedIfEmpty();
 
 // Refresh blog post content so existing DBs get updated copy (tone, length, structure, CTA)
 try {
-  const updatePost = db.prepare('UPDATE blog_posts SET content = ?, excerpt = ? WHERE slug = ?');
+  const updatePost = db.prepare('UPDATE blog_posts SET content = ?, excerpt = ?, image = ? WHERE slug = ?');
   for (const post of BLOG_POSTS_SEED) {
-    updatePost.run(post.content, post.excerpt, post.slug);
+    updatePost.run(post.content, post.excerpt, post.image || null, post.slug);
   }
 } catch (_) {}
 

@@ -91,7 +91,7 @@
         </div>
         <div class="form-group" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
           <span class="form-label" style="display:block;margin-bottom:10px;">Subscribe / Unsubscribe</span>
-          <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:12px;">Choose which updates you want. You can change these anytime in your Profile.</p>
+          <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:12px;">Choose which updates you want. You can change these anytime under <a href="/profile">Cab settings</a> (or from <a href="/account">My cab</a> once you’re signed in).</p>
           <label class="flex align-center gap-8" style="cursor:pointer;margin-bottom:8px;"><input type="checkbox" name="opt_in_newsletter" value="1"> Newsletter</label>
           <label class="flex align-center gap-8" style="cursor:pointer;margin-bottom:8px;"><input type="checkbox" name="opt_in_blog" value="1"> Blog updates</label>
           <label class="flex align-center gap-8" style="cursor:pointer;margin-bottom:8px;"><input type="checkbox" name="opt_in_product_updates" value="1"> Product updates</label>
@@ -143,7 +143,7 @@
           const user = data.user || null;
           updateNavFromAuth(user);
           if (user) {
-            window.location.replace(user.role === 'admin' ? '/admin' : '/');
+            window.location.replace(user.role === 'admin' ? '/admin' : '/account');
             return true;
           }
           return false;
@@ -212,7 +212,7 @@
             const data = res.ok ? await res.json().catch(() => ({})) : await res.json().catch(() => ({}));
 
             if (res.ok) {
-              window.location.replace('/');
+              window.location.replace('/account');
               return;
             }
 

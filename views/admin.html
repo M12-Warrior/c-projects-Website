@@ -66,7 +66,8 @@
         <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
         <li><a href="/refresh">Refresh</a></li>
         <li><a href="/contact">Contact</a></li>
-        <li><a href="/profile">Profile</a></li>
+        <li><a href="/account">My cab</a></li>
+        <li><a href="/profile">Cab settings</a></li>
         <li><a href="/admin" class="active">Admin</a></li>
         <li><a href="#" id="adminNavSignOut">Sign Out</a></li>
       </ul>
@@ -84,6 +85,7 @@
         <button type="button" class="admin-tab" data-tab="blog">Blog</button>
         <button type="button" class="admin-tab" data-tab="forum">Forum</button>
         <button type="button" class="admin-tab" data-tab="shop">Shop</button>
+        <button type="button" class="admin-tab" data-tab="services">Services page</button>
         <button type="button" class="admin-tab" data-tab="completions">Completions</button>
         <button type="button" class="admin-tab" data-tab="traffic">Traffic</button>
         <button type="button" class="admin-tab" data-tab="revenue">Revenue &amp; Tax</button>
@@ -290,7 +292,8 @@
                 <div class="form-group"><label class="form-label">Name</label><input type="text" name="name" class="form-input" required></div>
                 <div class="form-group"><label class="form-label">Description</label><textarea name="description" class="form-input content-editor" rows="3"></textarea></div>
                 <div class="form-group"><label class="form-label">Price</label><input type="number" name="price" class="form-input" step="0.01" min="0" required></div>
-                <div class="form-group"><label class="form-label">Image (URL)</label><input type="url" name="image" class="form-input" placeholder="https://... or /images/products/slug.jpg"></div>
+                <div class="form-group"><label class="form-label">Image (URL or path)</label><input type="text" name="image" id="productNewImageUrl" class="form-input" placeholder="https://... or /uploads/... or /images/products/slug.jpg"></div>
+                <div class="form-group"><input type="file" id="productNewImageFile" accept="image/*" class="hidden"><button type="button" class="btn btn-glass" id="productNewImageUploadBtn">Upload image from computer</button></div>
                 <div class="form-group"><label class="form-label">Category</label><input type="text" name="category" class="form-input"></div>
                 <div class="form-group"><label class="form-label">Stock</label><input type="number" name="stock" class="form-input" min="0" value="0"></div>
                 <div class="flex-between mt-16">
@@ -304,13 +307,21 @@
             <thead><tr><th>Name</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="productsTable"></tbody>
           </table>
-          <div id="productEditModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:10000;" role="dialog" aria-modal="true" aria-label="Edit product image">
-            <div class="product-edit-modal-inner" style="max-width:420px;width:90%;position:relative;z-index:10001;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;" onclick="event.stopPropagation()">
-              <h4 style="margin-top:0;">Edit product image</h4>
-              <p id="productEditName" style="color:var(--text-2);margin-bottom:12px;"></p>
-              <div class="form-group"><label class="form-label">Image (URL)</label><input type="url" id="productEditImage" class="form-input" placeholder="https://... or /images/products/slug.jpg"></div>
-              <p style="font-size:0.85rem;color:var(--text-3);margin-top:4px;">Or add a file named <code>&lt;slug&gt;.jpg</code> or <code>.png</code> in <code>public/images/products/</code> and leave this blank.</p>
-              <div class="flex-between mt-16">
+          <div id="productEditModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:10000;overflow-y:auto;padding:20px;" role="dialog" aria-modal="true" aria-label="Edit product">
+            <div class="product-edit-modal-inner" style="max-width:520px;width:100%;position:relative;z-index:10001;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;max-height:90vh;overflow-y:auto;" onclick="event.stopPropagation()">
+              <h4 style="margin-top:0;">Edit product</h4>
+              <p style="font-size:0.85rem;color:var(--text-3);margin-bottom:8px;">Slug is used in URLs and cart keys; it does not change when you rename the product.</p>
+              <p id="productEditSlugDisplay" style="color:var(--text-2);font-size:0.9rem;margin-bottom:12px;"></p>
+              <div class="form-group"><label class="form-label">Name</label><input type="text" id="productEditNameInput" class="form-input"></div>
+              <div class="form-group"><label class="form-label">Description</label><textarea id="productEditDescription" class="form-input content-editor" rows="4"></textarea></div>
+              <div class="form-group"><label class="form-label">Price</label><input type="number" id="productEditPrice" class="form-input" step="0.01" min="0"></div>
+              <div class="form-group"><label class="form-label">Stock</label><input type="number" id="productEditStock" class="form-input" min="0"></div>
+              <div class="form-group"><label class="form-label">Category</label><input type="text" id="productEditCategory" class="form-input"></div>
+              <div class="form-group"><label class="form-label">Image (URL or path)</label><input type="text" id="productEditImage" class="form-input" placeholder="/uploads/... or https://..."></div>
+              <div class="form-group"><input type="file" id="productEditImageFile" accept="image/*" class="hidden"><button type="button" class="btn btn-glass" id="productEditImageUploadBtn">Upload image from computer</button></div>
+              <div class="form-group"><label><input type="checkbox" id="productEditActive"> Active (visible in shop catalog)</label></div>
+              <p style="font-size:0.85rem;color:var(--text-3);margin-top:4px;">You can also add <code>public/images/products/&lt;slug&gt;.jpg</code> and clear the image field to use the file fallback.</p>
+              <div class="flex-between mt-16" style="flex-wrap:wrap;gap:10px;">
                 <button type="button" class="btn btn-glass" id="productEditCancel">Cancel</button>
                 <button type="button" class="btn btn-primary" id="productEditSave">Save</button>
               </div>
@@ -323,6 +334,48 @@
             <thead><tr><th>Order #</th><th>User</th><th>Total</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
             <tbody id="shopOrdersTable"></tbody>
           </table>
+        </div>
+      </div>
+
+      <div id="tabServices" class="admin-tab-content hidden">
+        <div class="admin-section">
+          <h3>Services page content</h3>
+          <p style="color:var(--text-2);font-size:0.9rem;margin-bottom:16px;">Overrides the public <a href="/services">/services</a> page. Clear a field and save to remove that override and show the template default again. Upload images to <code>/uploads/</code> via the button below, or paste a URL or path.</p>
+          <p id="cmsServicesUpdated" class="text-muted" style="font-size:0.85rem;margin-bottom:12px;"></p>
+          <div class="profile-section" style="max-width:720px;">
+            <h4 style="margin-top:0;">Hero</h4>
+            <div class="form-group"><label class="form-label">Title</label><input type="text" id="cmsSvcHeroTitle" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Subtitle</label><textarea id="cmsSvcHeroSubtitle" class="form-input" rows="2"></textarea></div>
+            <div class="form-group"><label class="form-label">Hero background image (URL or path)</label><input type="text" id="cmsSvcHeroImageUrl" class="form-input" placeholder="/uploads/... optional"></div>
+            <div class="form-group"><input type="file" id="cmsSvcHeroImageFile" accept="image/*" class="hidden"><button type="button" class="btn btn-glass" id="cmsSvcHeroImageUploadBtn">Upload hero image</button></div>
+            <h4>Featured course block</h4>
+            <div class="form-group"><label class="form-label">Section title</label><input type="text" id="cmsSvcFeaturedSectionTitle" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Section description</label><textarea id="cmsSvcFeaturedSectionDesc" class="form-input" rows="2"></textarea></div>
+            <div class="form-group"><label class="form-label">Course title (H3)</label><input type="text" id="cmsSvcCourseTitle" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Course tagline</label><textarea id="cmsSvcCourseTagline" class="form-input" rows="3"></textarea></div>
+            <div class="form-group"><label class="form-label">Price line (e.g. $149)</label><input type="text" id="cmsSvcCoursePriceLine" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Price note</label><input type="text" id="cmsSvcCoursePriceNote" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Preview note</label><input type="text" id="cmsSvcCoursePreviewNote" class="form-input"></div>
+            <h4>Safety packets section</h4>
+            <div class="form-group"><label class="form-label">Title</label><input type="text" id="cmsSvcSafetySectionTitle" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Description</label><textarea id="cmsSvcSafetySectionDesc" class="form-input" rows="2"></textarea></div>
+            <h4>Consulting section</h4>
+            <div class="form-group"><label class="form-label">Title</label><input type="text" id="cmsSvcConsultingSectionTitle" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Description</label><textarea id="cmsSvcConsultingSectionDesc" class="form-input" rows="2"></textarea></div>
+            <div class="form-group"><label class="form-label">Card 1 title</label><input type="text" id="cmsSvcConsultingCard1Title" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Card 1 body</label><textarea id="cmsSvcConsultingCard1Body" class="form-input" rows="2"></textarea></div>
+            <div class="form-group"><label class="form-label">Card 2 title</label><input type="text" id="cmsSvcConsultingCard2Title" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Card 2 body</label><textarea id="cmsSvcConsultingCard2Body" class="form-input" rows="2"></textarea></div>
+            <div class="form-group"><label class="form-label">Card 3 title</label><input type="text" id="cmsSvcConsultingCard3Title" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Card 3 body</label><textarea id="cmsSvcConsultingCard3Body" class="form-input" rows="2"></textarea></div>
+            <h4>Bottom banner</h4>
+            <div class="form-group"><label class="form-label">Title</label><input type="text" id="cmsSvcReadyBannerTitle" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Body</label><textarea id="cmsSvcReadyBannerBody" class="form-input" rows="2"></textarea></div>
+            <div class="form-group"><label class="form-label">Contact line</label><input type="text" id="cmsSvcReadyBannerContact" class="form-input"></div>
+            <div class="flex-between mt-16" style="flex-wrap:wrap;gap:10px;">
+              <button type="button" class="btn btn-primary" id="cmsServicesSaveBtn">Save services page</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -487,6 +540,7 @@
         if (status === 'processing') return 'status-processing';
         if (status === 'shipped') return 'status-shipped';
         if (status === 'delivered') return 'status-delivered';
+        if (status === 'completed') return 'status-completed';
         if (status === 'cancelled') return 'status-cancelled';
         return 'status-pending';
       }
@@ -1370,32 +1424,45 @@
           const data = await res.json();
           const products = data.products || data || [];
           prodEl.innerHTML = products.map(function(p) {
-            return '<tr data-id="' + (p.id || '') + '" data-slug="' + escapeHtml(p.slug || '') + '" data-name="' + escapeHtml(p.name || '') + '" data-image="' + escapeHtml((p.image || '') + '') + '">' +
-              '<td>' + escapeHtml(p.name) + '</td><td>' + formatPrice(p.price) + '</td><td>' + (p.stock ?? '—') + '</td><td>' + escapeHtml(p.status || 'active') + '</td>' +
-              '<td><button type="button" class="admin-btn admin-btn-primary product-edit-btn">Edit image</button></td></tr>';
+            var st = (p.active === 0 || p.active === false) ? 'inactive' : 'active';
+            return '<tr data-id="' + (p.id || '') + '">' +
+              '<td>' + escapeHtml(p.name) + '</td><td>' + formatPrice(p.price) + '</td><td>' + (p.stock ?? '—') + '</td><td>' + st + '</td>' +
+              '<td><button type="button" class="admin-btn admin-btn-primary product-edit-btn">Edit</button></td></tr>';
           }).join('') || '<tr><td colspan="5">No products</td></tr>';
         } catch (_) {
           prodEl.innerHTML = '<tr><td colspan="5">Could not load</td></tr>';
         }
         var modal = document.getElementById('productEditModal');
-        var editName = document.getElementById('productEditName');
-        var editImage = document.getElementById('productEditImage');
-        var editProductId = null;
-        function openEdit(productId, name, currentImage) {
-          editProductId = productId;
-          if (modal) modal.setAttribute('data-edit-product-id', productId || '');
-          if (editName) editName.textContent = name || '';
-          if (editImage) editImage.value = currentImage || '';
-          if (modal) {
-            modal.classList.remove('hidden');
-            modal.style.display = 'flex';
-          }
-        }
         function closeEdit() {
-          editProductId = null;
           if (modal) {
             modal.classList.add('hidden');
             modal.style.display = 'none';
+            modal.removeAttribute('data-edit-product-id');
+          }
+        }
+        async function openEdit(productId) {
+          if (!productId || !modal) return;
+          modal.setAttribute('data-edit-product-id', productId);
+          try {
+            var r = await fetch('/api/shop/admin/product/' + productId, { credentials: 'include' });
+            if (!r.ok) throw new Error('bad');
+            var d = await r.json();
+            var p = d.product;
+            if (!p) throw new Error('none');
+            var slugEl = document.getElementById('productEditSlugDisplay');
+            if (slugEl) slugEl.textContent = 'Slug: ' + (p.slug || '');
+            document.getElementById('productEditNameInput').value = p.name || '';
+            document.getElementById('productEditDescription').value = p.description || '';
+            document.getElementById('productEditPrice').value = p.price != null ? String(p.price) : '';
+            document.getElementById('productEditStock').value = p.stock != null ? String(p.stock) : '';
+            document.getElementById('productEditCategory').value = p.category || '';
+            document.getElementById('productEditImage').value = (p.image && String(p.image).trim()) ? p.image : '';
+            document.getElementById('productEditActive').checked = !(p.active === 0 || p.active === false);
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+          } catch (_) {
+            showToast('Could not load product.', false);
+            closeEdit();
           }
         }
         if (modal && !window._productEditModalBound) {
@@ -1409,24 +1476,59 @@
           if (saveBtn) saveBtn.addEventListener('click', async function() {
             var id = modal && modal.getAttribute('data-edit-product-id');
             if (!id) return;
-            var url = (editImage && editImage.value) ? editImage.value.trim() : '';
+            var nameEl = document.getElementById('productEditNameInput');
+            var name = (nameEl && nameEl.value) ? nameEl.value.trim() : '';
+            if (!name) { showToast('Name is required.', false); return; }
+            var price = parseFloat(document.getElementById('productEditPrice').value);
+            if (isNaN(price) || price < 0) { showToast('Valid price required.', false); return; }
+            var stock = parseInt(document.getElementById('productEditStock').value, 10);
+            if (isNaN(stock) || stock < 0) { showToast('Valid stock required.', false); return; }
+            var payload = {
+              name: name,
+              description: (document.getElementById('productEditDescription').value || '').trim() || null,
+              price: price,
+              stock: stock,
+              category: (document.getElementById('productEditCategory').value || '').trim() || null,
+              image: (document.getElementById('productEditImage').value || '').trim() || null,
+              active: document.getElementById('productEditActive').checked
+            };
             try {
               var r = await fetch('/api/shop/products/' + id, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ image: url || null })
+                body: JSON.stringify(payload)
               });
-              if (r.ok) { showToast('Image updated.', true); closeEdit(); loadShop(); }
-              else showToast('Failed.', false);
+              if (r.ok) { showToast('Product updated.', true); closeEdit(); loadShop(); }
+              else showToast('Failed to save.', false);
             } catch (_) { showToast('Failed.', false); }
           });
+          var peFile = document.getElementById('productEditImageFile');
+          var peBtn = document.getElementById('productEditImageUploadBtn');
+          if (peBtn && peFile) {
+            peBtn.addEventListener('click', function() { peFile.click(); });
+            peFile.addEventListener('change', async function() {
+              if (!this.files || !this.files[0]) return;
+              var fd = new FormData();
+              fd.append('image', this.files[0]);
+              try {
+                var r = await fetch('/api/upload', { method: 'POST', credentials: 'include', body: fd });
+                var data = await r.json();
+                if (data.success && data.url) {
+                  var inp = document.getElementById('productEditImage');
+                  if (inp) inp.value = data.url;
+                  showToast('Image uploaded.', true);
+                } else showToast(data.error || 'Upload failed.', false);
+              } catch (_) { showToast('Upload failed.', false); }
+              this.value = '';
+            });
+          }
         }
         prodEl.querySelectorAll('.product-edit-btn').forEach(function(btn) {
           btn.addEventListener('click', function() {
             var row = btn.closest('tr');
             if (!row) return;
-            openEdit(row.getAttribute('data-id'), row.getAttribute('data-name'), row.getAttribute('data-image'));
+            openEdit(row.getAttribute('data-id'));
           });
         });
         try {
@@ -1446,6 +1548,7 @@
                 '<option value="processing"' + (status === 'processing' ? ' selected' : '') + '>processing</option>' +
                 '<option value="shipped"' + (status === 'shipped' ? ' selected' : '') + '>shipped</option>' +
                 '<option value="delivered"' + (status === 'delivered' ? ' selected' : '') + '>delivered</option>' +
+                '<option value="completed"' + (status === 'completed' ? ' selected' : '') + '>completed</option>' +
                 '<option value="cancelled"' + (status === 'cancelled' ? ' selected' : '') + '>cancelled</option>' +
               '</select></td>' +
               '<td>' + formatDate(o.created_at || o.date) + '</td>' +
@@ -1472,6 +1575,119 @@
           });
         } catch (_) {
           ordEl.innerHTML = '<tr><td colspan="6">Could not load orders</td></tr>';
+        }
+      }
+
+      async function loadServices() {
+        var note = document.getElementById('cmsServicesUpdated');
+        try {
+          var r = await fetch('/api/admin/cms/pages/services', { credentials: 'include' });
+          if (!r.ok) throw new Error('fail');
+          var d = await r.json();
+          var f = d.fields || {};
+          if (note) {
+            note.textContent = d.updated_at
+              ? ('Last saved: ' + formatDate(d.updated_at))
+              : 'No custom content saved yet — template defaults show on the site.';
+          }
+          function setVal(id, v) {
+            var el = document.getElementById(id);
+            if (el) el.value = v != null && v !== undefined ? String(v) : '';
+          }
+          setVal('cmsSvcHeroTitle', f.heroTitle);
+          setVal('cmsSvcHeroSubtitle', f.heroSubtitle);
+          setVal('cmsSvcHeroImageUrl', f.heroImageUrl);
+          setVal('cmsSvcFeaturedSectionTitle', f.featuredSectionTitle);
+          setVal('cmsSvcFeaturedSectionDesc', f.featuredSectionDesc);
+          setVal('cmsSvcCourseTitle', f.courseTitle);
+          setVal('cmsSvcCourseTagline', f.courseTagline);
+          setVal('cmsSvcCoursePriceLine', f.coursePriceLine);
+          setVal('cmsSvcCoursePriceNote', f.coursePriceNote);
+          setVal('cmsSvcCoursePreviewNote', f.coursePreviewNote);
+          setVal('cmsSvcSafetySectionTitle', f.safetySectionTitle);
+          setVal('cmsSvcSafetySectionDesc', f.safetySectionDesc);
+          setVal('cmsSvcConsultingSectionTitle', f.consultingSectionTitle);
+          setVal('cmsSvcConsultingSectionDesc', f.consultingSectionDesc);
+          setVal('cmsSvcConsultingCard1Title', f.consultingCard1Title);
+          setVal('cmsSvcConsultingCard1Body', f.consultingCard1Body);
+          setVal('cmsSvcConsultingCard2Title', f.consultingCard2Title);
+          setVal('cmsSvcConsultingCard2Body', f.consultingCard2Body);
+          setVal('cmsSvcConsultingCard3Title', f.consultingCard3Title);
+          setVal('cmsSvcConsultingCard3Body', f.consultingCard3Body);
+          setVal('cmsSvcReadyBannerTitle', f.readyBannerTitle);
+          setVal('cmsSvcReadyBannerBody', f.readyBannerBody);
+          setVal('cmsSvcReadyBannerContact', f.readyBannerContact);
+        } catch (_) {
+          if (note) note.textContent = 'Could not load saved content.';
+        }
+        if (!window._cmsServicesBindOnce) {
+          window._cmsServicesBindOnce = true;
+          var heroFile = document.getElementById('cmsSvcHeroImageFile');
+          var heroBtn = document.getElementById('cmsSvcHeroImageUploadBtn');
+          if (heroBtn && heroFile) {
+            heroBtn.addEventListener('click', function() { heroFile.click(); });
+            heroFile.addEventListener('change', async function() {
+              if (!this.files || !this.files[0]) return;
+              var fd = new FormData();
+              fd.append('image', this.files[0]);
+              try {
+                var up = await fetch('/api/upload', { method: 'POST', credentials: 'include', body: fd });
+                var data = await up.json();
+                if (data.success && data.url) {
+                  var inp = document.getElementById('cmsSvcHeroImageUrl');
+                  if (inp) inp.value = data.url;
+                  showToast('Image uploaded.', true);
+                } else showToast(data.error || 'Upload failed.', false);
+              } catch (_) { showToast('Upload failed.', false); }
+              this.value = '';
+            });
+          }
+          var saveBtn = document.getElementById('cmsServicesSaveBtn');
+          if (saveBtn) {
+            saveBtn.addEventListener('click', async function() {
+              function val(id) {
+                var el = document.getElementById(id);
+                return el ? el.value.trim() : '';
+              }
+              var fields = {
+                heroTitle: val('cmsSvcHeroTitle'),
+                heroSubtitle: val('cmsSvcHeroSubtitle'),
+                heroImageUrl: val('cmsSvcHeroImageUrl'),
+                featuredSectionTitle: val('cmsSvcFeaturedSectionTitle'),
+                featuredSectionDesc: val('cmsSvcFeaturedSectionDesc'),
+                courseTitle: val('cmsSvcCourseTitle'),
+                courseTagline: val('cmsSvcCourseTagline'),
+                coursePriceLine: val('cmsSvcCoursePriceLine'),
+                coursePriceNote: val('cmsSvcCoursePriceNote'),
+                coursePreviewNote: val('cmsSvcCoursePreviewNote'),
+                safetySectionTitle: val('cmsSvcSafetySectionTitle'),
+                safetySectionDesc: val('cmsSvcSafetySectionDesc'),
+                consultingSectionTitle: val('cmsSvcConsultingSectionTitle'),
+                consultingSectionDesc: val('cmsSvcConsultingSectionDesc'),
+                consultingCard1Title: val('cmsSvcConsultingCard1Title'),
+                consultingCard1Body: val('cmsSvcConsultingCard1Body'),
+                consultingCard2Title: val('cmsSvcConsultingCard2Title'),
+                consultingCard2Body: val('cmsSvcConsultingCard2Body'),
+                consultingCard3Title: val('cmsSvcConsultingCard3Title'),
+                consultingCard3Body: val('cmsSvcConsultingCard3Body'),
+                readyBannerTitle: val('cmsSvcReadyBannerTitle'),
+                readyBannerBody: val('cmsSvcReadyBannerBody'),
+                readyBannerContact: val('cmsSvcReadyBannerContact')
+              };
+              try {
+                var sr = await fetch('/api/admin/cms/pages/services', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ fields: fields })
+                });
+                if (sr.ok) {
+                  showToast('Services page saved.', true);
+                  loadServices();
+                } else showToast('Save failed.', false);
+              } catch (_) { showToast('Save failed.', false); }
+            });
+          }
         }
       }
 
@@ -1507,6 +1723,30 @@
           } else showToast('Failed to create.', false);
         } catch (_) { showToast('Failed.', false); }
       });
+
+      (function bindProductNewImageUpload() {
+        if (window._productNewImageUploadBound) return;
+        window._productNewImageUploadBound = true;
+        var pnFile = document.getElementById('productNewImageFile');
+        var pnBtn = document.getElementById('productNewImageUploadBtn');
+        var pnUrl = document.getElementById('productNewImageUrl');
+        if (!pnBtn || !pnFile) return;
+        pnBtn.addEventListener('click', function() { pnFile.click(); });
+        pnFile.addEventListener('change', async function() {
+          if (!this.files || !this.files[0]) return;
+          var fd = new FormData();
+          fd.append('image', this.files[0]);
+          try {
+            var r = await fetch('/api/upload', { method: 'POST', credentials: 'include', body: fd });
+            var data = await r.json();
+            if (data.success && data.url) {
+              if (pnUrl) pnUrl.value = data.url;
+              showToast('Image uploaded.', true);
+            } else showToast(data.error || 'Upload failed.', false);
+          } catch (_) { showToast('Upload failed.', false); }
+          this.value = '';
+        });
+      })();
 
       async function loadTraffic() {
         const statsEl = document.getElementById('trafficStats');
@@ -1632,11 +1872,6 @@
         }
       }
 
-      window.loadRevenue = loadRevenue;
-      window.loadDownloads = loadDownloads;
-      window.loadRenewals = loadRenewals;
-      window.loadAddressBook = loadAddressBook;
-
       async function loadCompletions() {
         const el = document.getElementById('completionsTable');
         if (!el) return;
@@ -1712,6 +1947,20 @@
           el.innerHTML = '<p class="text-muted">Could not load messages.</p>';
         }
       }
+
+      window.loadDashboard = loadDashboard;
+      window.loadUsers = loadUsers;
+      window.loadBlog = loadBlog;
+      window.loadForum = loadForum;
+      window.loadShop = loadShop;
+      window.loadServices = loadServices;
+      window.loadTraffic = loadTraffic;
+      window.loadCompletions = loadCompletions;
+      window.loadMessages = loadMessages;
+      window.loadRevenue = loadRevenue;
+      window.loadDownloads = loadDownloads;
+      window.loadRenewals = loadRenewals;
+      window.loadAddressBook = loadAddressBook;
 
       (async function init() {
         const user = await checkAuth();

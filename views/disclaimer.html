@@ -150,7 +150,7 @@
           const res = await fetch('/api/auth/me', { credentials: 'include' });
           const data = await res.json();
           if (data.user) {
-            navAuth.innerHTML = '<span style="color: var(--text-2); font-size: 0.8rem; padding: 6px 14px;">' + escapeHtml(data.user.username) + '</span><a href="/profile" style="padding: 6px 14px;">Profile</a><a href="#" class="nav-logout-link" style="padding: 6px 14px; color: var(--text-3);">Logout</a>';
+            navAuth.innerHTML = '<span style="color: var(--text-2); font-size: 0.8rem; padding: 6px 14px;">' + escapeHtml(data.user.username) + '</span><a href="/account" style="padding: 6px 14px;">My cab</a><a href="/profile" style="padding: 6px 10px;color:var(--text-2);font-size:0.8rem;">Cab settings</a><a href="#" class="nav-logout-link" style="padding: 6px 14px; color: var(--text-3);">Logout</a>';
             navAuth.querySelector('.nav-logout-link')?.addEventListener('click', async function(e) {
               e.preventDefault();
               await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });

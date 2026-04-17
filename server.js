@@ -129,6 +129,7 @@ app.post('/api/track-download', (req, res) => {
 
 // API routes
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/account', require('./routes/account'));
 app.use('/api/blog', require('./routes/blog'));
 app.use('/api/forum', require('./routes/forum'));
 app.use('/api/shop', require('./routes/shop'));
@@ -138,6 +139,7 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/contact', require('./routes/contact'));
 app.use('/api/course', require('./routes/course'));
 app.use('/api/upload', require('./routes/upload'));
+app.use('/api/cms', require('./routes/cms'));
 
 // Auth helpers
 const requireLogin = (req, res, next) => {
@@ -230,6 +232,10 @@ app.get('/forgot-password', (req, res) => {
 
 app.get('/reset-password', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'reset-password.html'));
+});
+
+app.get('/account', requireLogin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'account.html'));
 });
 
 app.get('/profile', requireLogin, (req, res) => {

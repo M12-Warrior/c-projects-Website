@@ -259,7 +259,7 @@
       var data = await res.json();
       if (data.user) {
         var li = authLink.closest('li');
-        li.innerHTML = '<span style="color: var(--text-2); font-size: 0.8rem; padding: 6px 14px;">' + escapeHtml(data.user.username) + '</span><a href="/profile" style="padding: 6px 14px;">Profile</a><a href="#" class="nav-logout-link" style="padding: 6px 14px; color: var(--text-3);">Logout</a>';
+        li.innerHTML = '<span style="color: var(--text-2); font-size: 0.8rem; padding: 6px 14px;">' + escapeHtml(data.user.username) + '</span><a href="/account" style="padding: 6px 14px;">My cab</a><a href="/profile" style="padding: 6px 10px;color:var(--text-2);font-size:0.8rem;">Cab settings</a><a href="#" class="nav-logout-link" style="padding: 6px 14px; color: var(--text-3);">Logout</a>';
         var logoutLink = li.querySelector('.nav-logout-link');
         if (logoutLink) logoutLink.addEventListener('click', async function(e) {
           e.preventDefault();
@@ -537,7 +537,7 @@
           }
           if (window.refreshReveal) window.refreshReveal();
           setTimeout(function() {
-            window.location.href = '/profile';
+            window.location.href = '/account';
           }, 5000);
         } else {
           var serverMsg = (data && (data.message || data.error)) || '';

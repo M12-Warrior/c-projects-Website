@@ -18,6 +18,8 @@
     .pricing-section-title{font-family:var(--font);font-size:1.5rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:6px}
     .pricing-section-desc{color:var(--text-2);font-size:0.92rem;margin-bottom:24px;line-height:1.65;max-width:680px}
 
+    .services-hero.cms-bg{background-size:cover;background-position:center;border-radius:var(--radius);padding:40px 28px;margin-bottom:8px;border:1px solid var(--border)}
+    .services-hero.cms-bg .page-title,.services-hero.cms-bg .page-subtitle{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.55)}
     .course-showcase{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:36px;display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:center}
     .course-info h3{font-family:var(--font);font-size:1.4rem;font-weight:700;margin-bottom:8px;letter-spacing:-0.02em}
     .course-info .course-tagline{color:var(--text-2);font-size:0.95rem;line-height:1.7;margin-bottom:18px}
@@ -126,13 +128,13 @@
 
       <!-- ===== COURSE ===== -->
       <div class="pricing-section">
-        <h2 class="pricing-section-title">Featured: 90-Day Onboarding Course</h2>
-        <p class="pricing-section-desc">The complete step-by-step program that prepares new CDL drivers for their first 90 days on the road. Everything they don't teach in CDL school.</p>
+        <h2 class="pricing-section-title" data-cms="featuredSectionTitle">Featured: 90-Day Onboarding Course</h2>
+        <p class="pricing-section-desc" data-cms="featuredSectionDesc">The complete step-by-step program that prepares new CDL drivers for their first 90 days on the road. Everything they don't teach in CDL school.</p>
 
         <div class="course-showcase">
           <div class="course-info">
-            <h3>New Driver 90-Day Onboarding Course</h3>
-            <p class="course-tagline">10 self-paced modules covering HOS mastery, fatigue science, physical and mental health, inspections, emergency preparedness, defensive driving, and daily routine systems. Pass knowledge checks to advance. Earn a certificate of completion.</p>
+            <h3 data-cms="courseTitle">New Driver 90-Day Onboarding Course</h3>
+            <p class="course-tagline" data-cms="courseTagline">10 self-paced modules covering HOS mastery, fatigue science, physical and mental health, inspections, emergency preparedness, defensive driving, and daily routine systems. Pass knowledge checks to advance. Earn a certificate of completion.</p>
             <div class="course-stats">
               <div class="cs"><span class="cs-num">10</span><span class="cs-label">Modules</span></div>
               <div class="cs"><span class="cs-num">47</span><span class="cs-label">Lessons</span></div>
@@ -158,10 +160,10 @@
           <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px">
             <div>
               <div class="course-price-area" style="justify-content:center">
-                <span class="course-price">$149</span>
-                <span class="course-price-note">one-time payment</span>
+                <span class="course-price" data-cms="coursePriceLine">$149</span>
+                <span class="course-price-note" data-cms="coursePriceNote">one-time payment</span>
               </div>
-              <p style="font-size:0.78rem;color:var(--text-3);margin-bottom:4px">Module 1 always free to preview</p>
+              <p style="font-size:0.78rem;color:var(--text-3);margin-bottom:4px" data-cms="coursePreviewNote">Module 1 always free to preview</p>
               <p style="font-size:0.72rem;color:var(--text-3)">Market comparison: ELDT courses $50–$500 · Fleet programs $100–$250/driver</p>
             </div>
             <div class="course-cta" style="justify-content:center">
@@ -174,8 +176,8 @@
 
       <!-- ===== SAFETY PACKETS ===== -->
       <div class="pricing-section">
-        <h2 class="pricing-section-title">Safety &amp; Wellness Packets</h2>
-        <p class="pricing-section-desc">Professional, print-ready safety packets for individual drivers and fleet safety departments. Complete with checklists, regulatory references, fillable forms, and sign-off sheets.</p>
+        <h2 class="pricing-section-title" data-cms="safetySectionTitle">Safety &amp; Wellness Packets</h2>
+        <p class="pricing-section-desc" data-cms="safetySectionDesc">Professional, print-ready safety packets for individual drivers and fleet safety departments. Complete with checklists, regulatory references, fillable forms, and sign-off sheets.</p>
 
         <div class="pricing-grid">
           <div class="price-card">
@@ -283,13 +285,13 @@
 
       <!-- ===== CONSULTING ===== -->
       <div class="pricing-section">
-        <h2 class="pricing-section-title">Consulting &amp; Custom Training</h2>
-        <p class="pricing-section-desc">Personalized support for individual drivers and fleet operations. Built from 25+ years of real-world driving experience.</p>
+        <h2 class="pricing-section-title" data-cms="consultingSectionTitle">Consulting &amp; Custom Training</h2>
+        <p class="pricing-section-desc" data-cms="consultingSectionDesc">Personalized support for individual drivers and fleet operations. Built from 25+ years of real-world driving experience.</p>
 
         <div class="consulting-grid">
           <div class="glass-card consulting-card">
-            <h4>Driver Wellness Coaching</h4>
-            <p>One-on-one support for individual drivers working through fatigue, health challenges, career transitions, or the mental toll of life on the road.</p>
+            <h4 data-cms="consultingCard1Title">Driver Wellness Coaching</h4>
+            <p data-cms="consultingCard1Body">One-on-one support for individual drivers working through fatigue, health challenges, career transitions, or the mental toll of life on the road.</p>
             <ul class="consulting-features">
               <li>Personalized fatigue management plan</li>
               <li>Nutrition and exercise guidance</li>
@@ -301,8 +303,8 @@
           </div>
 
           <div class="glass-card consulting-card">
-            <h4>Fleet Safety Program Design</h4>
-            <p>We work with your safety department to build or improve your driver wellness and safety training program — reducing incidents, improving CSA scores, and lowering insurance premiums.</p>
+            <h4 data-cms="consultingCard2Title">Fleet Safety Program Design</h4>
+            <p data-cms="consultingCard2Body">We work with your safety department to build or improve your driver wellness and safety training program — reducing incidents, improving CSA scores, and lowering insurance premiums.</p>
             <ul class="consulting-features">
               <li>Safety culture assessment</li>
               <li>Custom training materials</li>
@@ -314,8 +316,8 @@
           </div>
 
           <div class="glass-card consulting-card">
-            <h4>Community &amp; Content</h4>
-            <p>Free resources for every driver — articles, guides, peer support forums, and a growing community of professionals committed to doing this job the right way.</p>
+            <h4 data-cms="consultingCard3Title">Community &amp; Content</h4>
+            <p data-cms="consultingCard3Body">Free resources for every driver — articles, guides, peer support forums, and a growing community of professionals committed to doing this job the right way.</p>
             <ul class="consulting-features">
               <li>Blog with driver-focused articles</li>
               <li>Community forum for peer support</li>
@@ -329,9 +331,9 @@
       </div>
 
       <div class="ready-banner">
-        <h3>Questions? Let's Talk.</h3>
-        <p>Whether you're an individual driver, a fleet safety director, or an insurance partner — we're here to help.</p>
-        <p>joyce@mile12warrior.com | (916) 292-7411</p>
+        <h3 data-cms="readyBannerTitle">Questions? Let's Talk.</h3>
+        <p data-cms="readyBannerBody">Whether you're an individual driver, a fleet safety director, or an insurance partner — we're here to help.</p>
+        <p data-cms="readyBannerContact">joyce@mile12warrior.com | (916) 292-7411</p>
         <a href="/contact" class="btn btn-primary"><span>Contact Us</span></a>
       </div>
     </div>
@@ -433,7 +435,7 @@
           var res = await fetch('/api/auth/me', { credentials: 'include' });
           var data = await res.json();
           if (data.user) {
-            navAuth.innerHTML = '<span style="color:var(--text-2);font-size:0.8rem;padding:6px 14px">' + escapeHtml(data.user.username) + '</span><a href="/profile" style="padding:6px 14px">Profile</a><a href="#" class="nav-logout-link" style="padding:6px 14px;color:var(--text-3)">Logout</a>';
+            navAuth.innerHTML = '<span style="color:var(--text-2);font-size:0.8rem;padding:6px 14px">' + escapeHtml(data.user.username) + '</span><a href="/account" style="padding:6px 14px">My cab</a><a href="/profile" style="padding:6px 10px;color:var(--text-2);font-size:0.8rem">Cab settings</a><a href="#" class="nav-logout-link" style="padding:6px 14px;color:var(--text-3)">Logout</a>';
             navAuth.querySelector('.nav-logout-link')?.addEventListener('click', async function(e) {
               e.preventDefault();
               await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
@@ -457,6 +459,32 @@
       onScroll();
       updateCartBadge();
       updateAuthLink();
+    })();
+  </script>
+  <script>
+    (function() {
+      function applyCms(fields) {
+        if (!fields || typeof fields !== 'object') return;
+        Object.keys(fields).forEach(function(k) {
+          var v = fields[k];
+          if (v == null || String(v).trim() === '') return;
+          if (k === 'heroImageUrl') {
+            var hero = document.getElementById('servicesHero');
+            if (hero && typeof v === 'string') {
+              hero.classList.add('cms-bg');
+              var u = v.trim();
+              hero.style.backgroundImage = 'linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.45)), url(' + JSON.stringify(u) + ')';
+            }
+            return;
+          }
+          var el = document.querySelector('[data-cms="' + k.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"]');
+          if (el) el.textContent = String(v);
+        });
+      }
+      fetch('/api/cms/pages/services')
+        .then(function(r) { return r.json(); })
+        .then(function(d) { applyCms(d.fields); if (window.refreshReveal) window.refreshReveal(); })
+        .catch(function() {});
     })();
   </script>
   <script src="/js/main.js"></script>

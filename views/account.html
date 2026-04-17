@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My cab — Mile 12 Warrior</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.png" alt="Mile 12 Warrior logo: gold highway shield with M and 12; 1 Social Butterfly at bottom" class="nav-logo-img" onerror="this.style.display='none';var s=this.nextElementSibling;if(s)s.style.display='flex';">
+        <span class="nav-logo-fallback" style="display:none;">
+          <svg class="logo-svg logo-shield" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 2L26 2L28 8L28 18Q28 28 16 30Q4 28 4 18L4 8L6 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 13h16M8 17h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><text x="16" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">M</text><text x="16" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">12</text></svg>
+          <span>Mile 12 Warrior</span>
+        </span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/#roadmap">Roadmap</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/refresh">Refresh</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="/account" class="active">My cab</a></li>
+        <li><a href="/profile">Cab settings</a></li>
+        <li><a href="#" id="navSignOut">Sign Out</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container">
+      <div class="account-dashboard" id="accountDashboard">
+        <div class="mb-16 hidden" id="adminLinkWrap">
+          <a href="/admin" class="btn btn-primary" id="adminDashboardLink">Admin Dashboard</a>
+        </div>
+
+        <div class="account-hero reveal" id="accountHero">
+          <p class="account-hero-kicker" id="accountKicker">Dispatch board</p>
+          <h1 id="accountHeadline">Loading your lane…</h1>
+          <p class="account-hero-lead" id="accountLead">Hang tight while we sync your rig.</p>
+          <div class="account-stat-row" id="accountStatRow" style="display:none"></div>
+        </div>
+
+        <div class="account-tablist" role="tablist" aria-label="Account sections">
+          <button type="button" class="account-tab" role="tab" id="tabBtnHome" aria-selected="true" aria-controls="tabPanelHome">Home</button>
+          <button type="button" class="account-tab" role="tab" id="tabBtnAccess" aria-selected="false" aria-controls="tabPanelAccess">Your access</button>
+          <button type="button" class="account-tab" role="tab" id="tabBtnOrders" aria-selected="false" aria-controls="tabPanelOrders">Purchase log</button>
+        </div>
+
+        <div class="account-panel" role="tabpanel" id="tabPanelHome" aria-labelledby="tabBtnHome">
+          <section class="profile-section account-access-card reveal">
+            <h3>Who’s on this channel</h3>
+            <p class="text-muted" style="font-size:0.9rem;margin-bottom:12px;">Your handle is how other drivers know you on the forum — same spirit as a CB handle.</p>
+            <div class="account-cb-card">
+              <h3>CB handle</h3>
+              <p class="account-cb-handle" id="cbHandleDisplay">—</p>
+              <p class="text-muted" style="font-size:0.85rem;margin-top:8px;">Registered on your account. Change it? Contact us — we’ll sort it from the yard office.</p>
+            </div>
+            <div class="account-cb-card" id="micStatusCard" style="margin-top:14px;">
+              <h3>Mic status</h3>
+              <p id="micStatusText" class="text-muted" style="font-size:0.9rem;line-height:1.5;">—</p>
+              <div id="micToggleWrap" class="mt-16" style="display:none">
+                <label class="flex align-center gap-8" style="cursor:pointer">
+                  <input type="checkbox" id="micVisibleCheck" checked>
+                  <span>Show my CB mic by default on the forum</span>
+                </label>
+                <p class="text-muted" style="font-size:0.82rem;margin-top:8px;margin-left:24px">Session-only “quiet cab” (incognito) still lives on the <a href="/forum">Forum</a>.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="profile-section reveal" style="margin-top:16px">
+            <h3>Quick links</h3>
+            <p style="font-size:0.92rem;color:var(--text-2);line-height:1.6;margin-bottom:12px;">
+              <a href="/profile">Cab settings &amp; password</a> ·
+              <a href="/shop">Shop</a> ·
+              <a href="/forum">Forum</a> ·
+              <a href="/contact">Contact</a>
+            </p>
+            <p style="font-size:0.82rem;color:var(--text-3);max-width:52ch">
+              Mile 12 Warrior shares educational information about safety and wellness on the road. It is not legal or medical advice. For compliance questions, verify current regulations at <a href="https://www.fmcsa.dot.gov" rel="noopener noreferrer">fmcsa.dot.gov</a> or <a href="https://dot.ca.gov" rel="noopener noreferrer">dot.ca.gov</a> and consult qualified professionals.
+            </p>
+          </section>
+        </div>
+
+        <div class="account-panel" role="tabpanel" id="tabPanelAccess" hidden aria-labelledby="tabBtnAccess">
+          <p class="page-subtitle reveal" style="margin-bottom:20px;font-size:0.95rem">Everything you’ve paid for and unlocked — your open loads on this haul.</p>
+          <div class="account-access-grid" id="accessGrid"></div>
+          <p id="accessEmpty" class="text-muted reveal" style="display:none;margin-top:16px">No digital keys yet. When you grab the course, journal subscription, or packets from the shop, they’ll show up here.</p>
+        </div>
+
+        <div class="account-panel" role="tabpanel" id="tabPanelOrders" hidden aria-labelledby="tabBtnOrders">
+          <p class="page-subtitle reveal" style="margin-bottom:16px;font-size:0.95rem">Receipts and line items — the paperwork side of the road.</p>
+          <div id="ordersList"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <script>
+    (function() {
+      function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      function formatDate(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      function formatPrice(n) {
+        return '$' + (Number(n) || 0).toFixed(2);
+      }
+
+      function showToast(msg, success) {
+        const el = document.getElementById('toast');
+        if (!el) return;
+        el.textContent = msg;
+        el.className = 'toast toast-' + (success ? 'success' : 'error');
+        el.classList.add('show');
+        setTimeout(function() { el.classList.remove('show'); }, 2500);
+      }
+
+      function getStatusClass(s) {
+        const status = (s || '').toLowerCase();
+        if (status === 'pending') return 'status-pending';
+        if (status === 'processing') return 'status-processing';
+        if (status === 'shipped') return 'status-shipped';
+        if (status === 'delivered') return 'status-delivered';
+        if (status === 'completed') return 'status-completed';
+        if (status === 'cancelled') return 'status-cancelled';
+        return 'status-pending';
+      }
+
+      function getPaymentBadge(ps) {
+        const p = (ps || '').toLowerCase();
+        if (p === 'paid') {
+          return { cls: 'payment-paid', label: 'Paid', title: 'Payment: captured' };
+        }
+        if (p === 'pending' || !p) {
+          return { cls: 'payment-pending', label: 'Unpaid', title: 'Payment: not completed' };
+        }
+        return { cls: 'payment-unknown', label: escapeHtml(String(ps || '')), title: 'Payment status' };
+      }
+
+      function fulfillmentBadgeText(status, paymentStatus) {
+        var s = (status || '').toLowerCase();
+        var p = (paymentStatus || '').toLowerCase();
+        var map = { pending: 'Pending', processing: 'Processing', shipped: 'Shipped', delivered: 'Delivered', completed: 'Complete', cancelled: 'Cancelled' };
+        var word = map[s] || (status ? status.charAt(0).toUpperCase() + status.slice(1).toLowerCase() : '—');
+        var title = 'Fulfillment: ' + (status || '—');
+        if (p === 'paid' && s === 'pending') {
+          title = 'Payment captured. Older orders may still show pending — open Receipt for details, or contact us.';
+        } else if (p === 'paid' && s === 'processing') {
+          title = 'Payment captured. We are preparing your shipment or finishing digital access.';
+        } else if (p === 'paid' && s === 'completed') {
+          title = 'Payment captured. Digital items are unlocked; physical items are treated as fulfilled for this order.';
+        }
+        return { text: word, title: title };
+      }
+
+      const ROAD_LINES = [
+        'Every mile you run clean is a mile you own.',
+        'Master the clock, the load, and your head — that’s how pros age gracefully out here.',
+        'You’re not just steering wheels; you’re building a career that gets home in one piece.',
+        'The road tests everyone. Showing up here means you’re already in the fight.',
+        'Keep stacking good days — they add up faster than miles on the odometer.'
+      ];
+
+      function greetingPrefix() {
+        const h = new Date().getHours();
+        if (h < 12) return 'Morning';
+        if (h < 17) return 'Afternoon';
+        return 'Evening';
+      }
+
+      function buildHeadline(user, summary) {
+        const handle = user.username || user.email || 'driver';
+        const line = ROAD_LINES[(user.id || 0) % ROAD_LINES.length];
+        return greetingPrefix() + ', ' + escapeHtml(handle) + '. ' + line;
+      }
+
+      function buildLead(user, summary) {
+        const parts = [];
+        if (user.home_base) {
+          parts.push('Home base on file: <strong>' + escapeHtml(user.home_base) + '</strong>. Where you fuel up matters.');
+        }
+        if (summary.subscription && summary.subscription.active) {
+          parts.push('Your Wellness Journal subscription is live — journal, forum mic, and blog access are keyed up.');
+        } else if (summary.course_access) {
+          parts.push('You’ve got the 90-day class unlocked. Work the modules at your pace — certificate’s waiting at the finish line.');
+        } else {
+          parts.push('This is your personal cab: handles, receipts, and every door you’ve unlocked with us.');
+        }
+        if (summary.course_certificate && summary.course_certificate.certificate_number) {
+          parts.push('Certificate <span class="account-cb-handle" style="font-size:0.95rem">' + escapeHtml(summary.course_certificate.certificate_number) + '</span> is on file.');
+        }
+        return parts.length ? parts.join(' ') : 'Welcome aboard. Use the tabs above to see what you’ve unlocked and what you’ve bought.';
+      }
+
+      async function checkAuth() {
+        try {
+          const res = await fetch('/api/auth/me', { credentials: 'include' });
+          if (!res.ok) {
+            window.location.replace('/login?redirect=' + encodeURIComponent('/account'));
+            return null;
+          }
+          const data = await res.json();
+          const user = data.user || data;
+          if (!user) {
+            window.location.replace('/login?redirect=' + encodeURIComponent('/account'));
+            return null;
+          }
+          return user;
+        } catch (e) {
+          window.location.replace('/login?redirect=' + encodeURIComponent('/account'));
+          return null;
+        }
+      }
+
+      async function loadSummary() {
+        const res = await fetch('/api/account/summary', { credentials: 'include' });
+        if (!res.ok) throw new Error('summary');
+        return res.json();
+      }
+
+      function setTab(which) {
+        var homeBtn = document.getElementById('tabBtnHome');
+        var accessBtn = document.getElementById('tabBtnAccess');
+        var ordersBtn = document.getElementById('tabBtnOrders');
+        var homePanel = document.getElementById('tabPanelHome');
+        var accessPanel = document.getElementById('tabPanelAccess');
+        var ordersPanel = document.getElementById('tabPanelOrders');
+        var map = [
+          { btn: homeBtn, panel: homePanel, id: 'home' },
+          { btn: accessBtn, panel: accessPanel, id: 'access' },
+          { btn: ordersBtn, panel: ordersPanel, id: 'orders' }
+        ];
+        map.forEach(function(m) {
+          var sel = m.id === which;
+          m.btn.setAttribute('aria-selected', sel ? 'true' : 'false');
+          m.panel.hidden = !sel;
+        });
+        if (typeof window.refreshReveal === 'function') {
+          window.refreshReveal();
+          if (which === 'orders' || which === 'access') {
+            requestAnimationFrame(function() { window.refreshReveal(); });
+          }
+        }
+      }
+
+      function wireTabs() {
+        document.getElementById('tabBtnHome').addEventListener('click', function() { setTab('home'); });
+        document.getElementById('tabBtnAccess').addEventListener('click', function() { setTab('access'); });
+        document.getElementById('tabBtnOrders').addEventListener('click', function() { setTab('orders'); });
+      }
+
+      function renderAccess(summary) {
+        var grid = document.getElementById('accessGrid');
+        var empty = document.getElementById('accessEmpty');
+        var items = summary.access || [];
+        if (items.length === 0) {
+          grid.innerHTML = '';
+          empty.style.display = 'block';
+          return;
+        }
+        empty.style.display = 'none';
+        grid.innerHTML = items.map(function(a) {
+          return '<article class="account-access-card reveal glass-card">' +
+            '<h3>' + escapeHtml(a.title) + '</h3>' +
+            '<p>' + escapeHtml(a.blurb || '') + '</p>' +
+            '<a class="btn btn-primary" href="' + escapeHtml(a.href) + '">' + escapeHtml(a.cta_label || 'Open') + '</a>' +
+            '</article>';
+        }).join('');
+      }
+
+      function renderMic(summary) {
+        var mic = summary.mic || {};
+        var textEl = document.getElementById('micStatusText');
+        var toggleWrap = document.getElementById('micToggleWrap');
+        var check = document.getElementById('micVisibleCheck');
+        if (!mic.has_mic_privilege) {
+          textEl.innerHTML = 'No CB mic badge on file yet. <strong>Trucker Wellness Journal</strong> (monthly) lights up the mic tiers on the forum when you’re subscribed.';
+          if (toggleWrap) toggleWrap.style.display = 'none';
+          return;
+        }
+        var tierLabel = mic.tier_label ? ' (' + escapeHtml(mic.tier_label) + ')' : '';
+        var vis = mic.mic_visible !== false;
+        var status = vis
+          ? 'You’re showing the mic — tier <strong>' + mic.tier + '</strong>' + tierLabel + '. When you post on the forum, other drivers see you keying up.'
+          : 'You’ve got the mic <strong>stowed</strong> by default — forum posts won’t show the badge until you turn visibility back on here.';
+        textEl.innerHTML = status;
+        if (toggleWrap) {
+          toggleWrap.style.display = 'block';
+          check.checked = vis;
+          check.onchange = async function() {
+            try {
+              var r = await fetch('/api/subscription/mic-visible', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ visible: check.checked })
+              });
+              if (r.ok) {
+                showToast('Mic preference saved.', true);
+                summary.mic.mic_visible = check.checked;
+                renderMic(summary);
+              } else showToast('Could not save.', false);
+            } catch (e) { showToast('Could not save.', false); }
+          };
+        }
+      }
+
+      async function loadOrders() {
+        var el = document.getElementById('ordersList');
+        try {
+          var res = await fetch('/api/shop/orders', { credentials: 'include' });
+          if (!res.ok) throw new Error('orders');
+          var data = await res.json();
+          var orders = data.orders || data || [];
+          if (orders.length === 0) {
+            el.innerHTML = '<p class="text-muted reveal glass-card">No purchases logged yet. When you roll through the <a href="/shop">shop</a>, your receipts land here.</p>';
+            return;
+          }
+          el.innerHTML = orders.map(function(o) {
+            var id = o.id || o.order_number || o.orderId || '—';
+            var total = formatPrice(o.total || o.total_amount || 0);
+            var fulfill = (o.status || 'pending').toLowerCase();
+            var fulfillClass = getStatusClass(o.status);
+            var pay = getPaymentBadge(o.payment_status);
+            var fulfillBadge = fulfillmentBadgeText(o.status, o.payment_status);
+            var items = o.items || o.line_items || [];
+            var itemsHtml = items.map(function(i) {
+              var qty = i.quantity || 1;
+              var name = escapeHtml(i.name || i.product_name || 'Item');
+              var price = formatPrice(i.price || i.unit_price || 0);
+              return '<div class="order-item-row"><span>' + name + ' × ' + qty + '</span><span>' + price + '</span></div>';
+            }).join('');
+            var hasItems = items.length > 0;
+            return '<div class="order-card reveal glass-card" data-order-id="' + escapeHtml(String(id)) + '">' +
+              '<div class="order-card-header">' +
+                '<span class="order-num">#' + escapeHtml(String(id)) + '</span>' +
+                '<span class="order-date">' + formatDate(o.created_at || o.date) + '</span>' +
+                '<span class="order-badges">' +
+                  '<span class="badge-payment ' + pay.cls + '" title="' + escapeHtml(pay.title) + '">' + pay.label + '</span>' +
+                  '<span class="badge-status ' + fulfillClass + '" title="' + escapeHtml(fulfillBadge.title) + '">' + escapeHtml(fulfillBadge.text) + '</span>' +
+                '</span>' +
+                '<span class="order-total">' + total + '</span>' +
+                '<a href="/shop/order/' + escapeHtml(String(id)) + '" class="btn btn-glass order-receipt-btn">Receipt</a>' +
+                (hasItems ? '<button type="button" class="order-toggle" aria-label="Toggle items">▼</button>' : '') +
+              '</div>' +
+              (hasItems ? '<div class="order-items hidden">' + itemsHtml + '</div>' : '') +
+            '</div>';
+          }).join('');
+
+          el.querySelectorAll('.order-toggle').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              var card = btn.closest('.order-card');
+              var items = card.querySelector('.order-items');
+              if (items) {
+                items.classList.toggle('hidden');
+                btn.textContent = items.classList.contains('hidden') ? '▼' : '▲';
+              }
+            });
+          });
+        } catch (err) {
+          el.innerHTML = '<p class="text-muted">Could not load orders.</p>';
+        }
+      }
+
+      document.getElementById('navSignOut').addEventListener('click', function(e) {
+        e.preventDefault();
+        fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).then(function() {
+          window.location.replace('/');
+        }).catch(function() { window.location.replace('/'); });
+      });
+
+      wireTabs();
+
+      (async function init() {
+        var user = await checkAuth();
+        if (!user) return;
+        var summary;
+        try {
+          summary = await loadSummary();
+        } catch (e) {
+          document.getElementById('accountHeadline').textContent = 'Could not load your cab.';
+          document.getElementById('accountLead').textContent = 'Try refreshing the page.';
+          return;
+        }
+
+        var u = summary.user || user;
+        document.getElementById('accountHeadline').innerHTML = buildHeadline(u, summary);
+        document.getElementById('accountLead').innerHTML = buildLead(u, summary);
+        document.getElementById('cbHandleDisplay').textContent = summary.cb_handle || u.username || '—';
+
+        var statRow = document.getElementById('accountStatRow');
+        var stats = [];
+        stats.push('Member since <strong>' + formatDate(u.created_at) + '</strong>');
+        if (summary.journal_entry_count > 0) {
+          stats.push('Journal entries <strong>' + summary.journal_entry_count + '</strong>');
+        }
+        if (summary.subscription && summary.subscription.active && summary.subscription.current_period_end) {
+          stats.push('Sub renews <strong>' + formatDate(summary.subscription.current_period_end) + '</strong>');
+        }
+        statRow.innerHTML = stats.map(function(s) { return '<span class="account-stat">' + s + '</span>'; }).join('');
+        statRow.style.display = 'flex';
+
+        if (u.role === 'admin') {
+          document.getElementById('adminLinkWrap').classList.remove('hidden');
+        }
+
+        renderMic(summary);
+        renderAccess(summary);
+
+        loadOrders();
+
+        if (typeof window.refreshReveal === 'function') {
+          window.refreshReveal();
+        }
+      })();
+    })();
+  </script>
+
+  <footer class="footer" style="margin-top:60px">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N St. #8325, Sacramento, CA 95816</p>
+        <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+          <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
+          <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>
+          <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>
+          <a href="/advertise" style="color:var(--text-2)">Advertise</a>
+          <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
+        </nav>
+        <p style="font-size:0.8rem;color:var(--text-3);">Hosted on <a href="https://railway.app" target="_blank" rel="noopener noreferrer">Railway</a>.</p>
+        <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws that may differ significantly. It is the driver's responsibility to comply with the laws of every state they travel through. California (Caltrans/CALDOT) references reflect our home state and should not be assumed to apply elsewhere.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

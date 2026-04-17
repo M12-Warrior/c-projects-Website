@@ -1025,7 +1025,7 @@ pages.register = () => {
 pages.profile = () => {
   const html = `
 <div class="page page-enter">
-  <div class="page-header"><h1 class="page-title">Profile</h1></div>
+  <div class="page-header"><h1 class="page-title">My cab</h1></div>
   <div id="profileContent"><p class="empty-state-m">Loading...</p></div>
 </div>`;
 
@@ -1462,7 +1462,7 @@ pages.privacy = () => {
 
     <h3 style="color:var(--text);font-size:0.95rem;margin-top:20px;margin-bottom:8px">1. Information We Collect</h3>
     <p><strong>Account Information:</strong> Username, email address, password (hashed via bcrypt &mdash; never stored in plaintext).</p>
-    <p><strong>Profile Information:</strong> Bio and profile preferences (voluntarily provided).</p>
+    <p><strong>Account &amp; cab information:</strong> Bio and preferences (voluntarily provided).</p>
     <p><strong>Transaction Data:</strong> Shipping address, order history, purchase amounts for merchandise orders.</p>
     <p><strong>Communications:</strong> Contact form submissions, forum posts, blog comments, support messages.</p>
     <p><strong>Usage Data:</strong> Pages visited, features used, timestamps, device/browser information.</p>

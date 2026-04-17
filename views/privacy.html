@@ -60,11 +60,8 @@
       <!-- 2. Information We Collect -->
       <h2>Information We Collect</h2>
 
-      <h3>Account Information</h3>
-      <p>When you create an account, we collect your username, email address, and password. Passwords are cryptographically hashed and are never stored in plaintext.</p>
-
-      <h3>Profile Information</h3>
-      <p>You may voluntarily provide additional profile information such as a bio and profile preferences. This information is optional and can be updated or removed at any time.</p>
+      <h3>Account &amp; cab information</h3>
+      <p>When you create an account, we collect your username, email address, and password. Passwords are cryptographically hashed and are never stored in plaintext. You may voluntarily add details such as a bio, home base, and preferences. That extra information is optional and can be updated or removed at any time.</p>
 
       <h3>Transaction Data</h3>
       <p>If you purchase merchandise through the Service, we collect your shipping address, order history, and purchase amounts to fulfill and track your orders.</p>
@@ -268,7 +265,7 @@
           const res = await fetch('/api/auth/me', { credentials: 'include' });
           const data = await res.json();
           if (data.user) {
-            navAuth.innerHTML = '<span style="color: var(--text-2); font-size: 0.8rem; padding: 6px 14px;">' + escapeHtml(data.user.username) + '</span><a href="/profile" style="padding: 6px 14px;">Profile</a><a href="#" class="nav-logout-link" style="padding: 6px 14px; color: var(--text-3);">Logout</a>';
+            navAuth.innerHTML = '<span style="color: var(--text-2); font-size: 0.8rem; padding: 6px 14px;">' + escapeHtml(data.user.username) + '</span><a href="/account" style="padding: 6px 14px;">My cab</a><a href="/profile" style="padding: 6px 10px;color:var(--text-2);font-size:0.8rem;">Cab settings</a><a href="#" class="nav-logout-link" style="padding: 6px 14px; color: var(--text-3);">Logout</a>';
             navAuth.querySelector('.nav-logout-link')?.addEventListener('click', async function(e) {
               e.preventDefault();
               await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });

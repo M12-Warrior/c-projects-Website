@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
     '.section-header, .resource-pill, .exercise-chip, .exercise-section, ' +
     '.section-header-about, .about-section, .page-section, .blog-card, .forum-card, ' +
     '.contact-card, .consulting-card, .page-title, .about-page-intro, ' +
-    '.service-card, .legal-page section';
+    '.service-card, .legal-page section, .account-access-card, .account-hero';
   const revealTargets = document.querySelectorAll(revealSelector);
 
   const revealObserver = new IntersectionObserver(
@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const staggerContainers =
     '.card-grid, .hazard-bento, .roadmap-grid, .resource-row, .exercise-chips, ' +
-    '.page-container, .blog-grid, .about-section';
+    '.page-container, .blog-grid, .about-section, .account-access-grid';
   function observeRevealTargets(targets) {
     targets.forEach(el => {
       if (el.classList.contains('reveal') && el.dataset.revealObserved) return;
@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
   fetch('/api/auth/me').then(r => r.json()).then(data => {
     if (data.user) {
       navAuth.innerHTML = `
-        <a href="/profile" style="color:var(--text-2);font-size:0.8rem;">${data.user.username}</a>
+        <a href="/account" style="color:var(--text-2);font-size:0.8rem;">${data.user.username}</a>
         &nbsp;
         <a href="#" id="navLogout" style="color:var(--text-3);font-size:0.78rem;">Sign Out</a>
       `;

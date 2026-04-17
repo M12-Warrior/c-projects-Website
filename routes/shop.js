@@ -312,6 +312,80 @@ function createProductAccessGrantsForOrder(orderId) {
   }
 }
 
+/** Links to show on receipts for digital / subscription line items */
+function receiptLinksForProduct(slug, category, isSubscription) {
+  const links = [];
+  const c = String(category || '').toLowerCase();
+  const ss = String(slug || '').trim();
+  if (isSubscription) {
+    links.push({ label: 'My Journal', href: '/journal' });
+    links.push({ label: 'Print / download journal PDF', href: '/journal/print' });
+    links.push({ label: 'Forum access', href: '/forum' });
+    return links;
+  }
+  if (c !== 'digital') return links;
+  if (ss === 'course-90day' || ss === 'complete-bundle') {
+    links.push({ label: '90-Day Onboarding Course', href: '/course' });
+  }
+  const packetSlugs = [
+    'new-driver-packet',
+    'seasoned-packet',
+    'fleet-new-hire-packet',
+    'fleet-refresher-packet',
+    'fleet-bundle',
+    'complete-bundle',
+    'course-90day'
+  ];
+  if (packetSlugs.indexOf(ss) !== -1) {
+    links.push({ label: 'Packets & printable tools (Services)', href: '/services' });
+  }
+  return links;
+}
+
+function fulfillmentSummary(status, paymentStatus) {
+  const s = String(status || '').toLowerCase();
+  const p = String(paymentStatus || '').toLowerCase();
+  if (p !== 'paid') {
+    return {
+      headline: 'Awaiting payment',
+      detail: 'Finish payment so we can fulfill this order.',
+      code: 'unpaid'
+    };
+  }
+  if (s === 'pending') {
+    return {
+      headline: 'Payment received',
+      detail:
+        'Fulfillment still shows as pending on older orders. We are syncing records — refresh later, or contact us. New orders show Processing or Complete after payment.',
+      code: 'paid_pending'
+    };
+  }
+  if (s === 'processing') {
+    return {
+      headline: 'Processing',
+      detail: 'Payment captured. We are preparing your shipment or finishing digital setup.',
+      code: 'processing'
+    };
+  }
+  if (s === 'shipped') {
+    return { headline: 'Shipped', detail: 'Your package is on the way.', code: 'shipped' };
+  }
+  if (s === 'delivered') {
+    return { headline: 'Delivered', detail: 'Carrier shows this order as delivered.', code: 'delivered' };
+  }
+  if (s === 'completed') {
+    return {
+      headline: 'Complete',
+      detail: 'Digital access is active. Physical items (if any) are treated as fulfilled for this order.',
+      code: 'completed'
+    };
+  }
+  if (s === 'cancelled') {
+    return { headline: 'Cancelled', detail: 'This order was cancelled.', code: 'cancelled' };
+  }
+  return { headline: status || '—', detail: '', code: s || 'unknown' };
+}
+
 // Generate slug from name: lowercase, spaces to hyphens, remove non-alphanumeric
 function slugify(name) {
   return String(name)
@@ -321,27 +395,23 @@ function slugify(name) {
     .replace(/[^a-z0-9-]/g, '');
 }
 
-// Free stock images (Unsplash CDN) — one unique image per product, trucking/road themed where possible
+// In-repo SVG art (served from /public) — reliable on laptops, offline dev, and networks that block third-party CDNs.
 const DEFAULT_PRODUCT_IMAGES = {
-  // Merchandise & gear — real-time use on the road
-  'mile-12-warrior-t-shirt': 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80',           // apparel
-  'reflective-safety-vest': 'https://images.unsplash.com/photo-1589994965851-a8f479c573a9?w=400&q=80',         // high-vis safety
-  'trucker-wellness-journal': 'https://images.unsplash.com/photo-1507925925852-0d7876ec2f8e?w=400&q=80',       // journal/notebook
-  'mile-12-warrior-kit': 'https://images.unsplash.com/photo-1595435934249-5d2d4c8f6853?w=400&q=80',             // gear/kit
-  // Subscription — wellness on the road
-  'trucker-wellness-journal-monthly': 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80', // wellness/rest
-  // Digital — training & materials
-  'course-90day': 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=80',                     // laptop/learning
-  'new-driver-packet': 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=80',              // guides/documents
-  'seasoned-packet': 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&q=80',                 // documents
-  'fleet-new-hire-packet': 'https://images.unsplash.com/photo-1459252619524-371e376d32b2?w=400&q=80',            // orientation/docs
-  'fleet-refresher-packet': 'https://images.unsplash.com/photo-1573164713719-8dd4f693d717?w=400&q=80',          // checklist
-  'fleet-bundle': 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=80',                       // package
-  'complete-bundle': 'https://images.unsplash.com/photo-1499750315157-5cbaf2ff4b58?w=400&q=80'                   // full set
+  'mile-12-warrior-t-shirt': '/images/products/mile-12-warrior-t-shirt.svg',
+  'reflective-safety-vest': '/images/products/reflective-safety-vest.svg',
+  'trucker-wellness-journal': '/images/products/trucker-wellness-journal.svg',
+  'mile-12-warrior-kit': '/images/products/mile-12-warrior-kit.svg',
+  'trucker-wellness-journal-monthly': '/images/products/trucker-wellness-journal-monthly.svg',
+  'course-90day': '/images/products/course-90day.svg',
+  'new-driver-packet': '/images/products/new-driver-packet.svg',
+  'seasoned-packet': '/images/products/seasoned-packet.svg',
+  'fleet-new-hire-packet': '/images/products/fleet-new-hire-packet.svg',
+  'fleet-refresher-packet': '/images/products/fleet-refresher-packet.svg',
+  'fleet-bundle': '/images/products/fleet-bundle.svg',
+  'complete-bundle': '/images/products/complete-bundle.svg'
 };
 
-// Fallback — truck on highway (unique, no repeat)
-const FALLBACK_PRODUCT_IMAGE = 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=80';
+const FALLBACK_PRODUCT_IMAGE = '/images/logo.png';
 
 function ensureHttpsImage(url) {
   if (!url || typeof url !== 'string') return url;
@@ -349,11 +419,29 @@ function ensureHttpsImage(url) {
   return u.replace(/^http:\/\//i, 'https://');
 }
 function applyDefaultImage(products) {
-  return Array.isArray(products) ? products.map(p => {
-    const img = p.image && p.image.trim() ? ensureHttpsImage(p.image) : (DEFAULT_PRODUCT_IMAGES[p.slug] || FALLBACK_PRODUCT_IMAGE);
-    return { ...p, image: img };
-  }) : products;
+  if (!Array.isArray(products)) return products;
+  return products.map((p) => {
+    const slug = p.slug;
+    const local = slug ? DEFAULT_PRODUCT_IMAGES[slug] : null;
+    if (local) return { ...p, image: local };
+    const dbImg = p.image && String(p.image).trim();
+    if (dbImg) return { ...p, image: ensureHttpsImage(dbImg) };
+    return { ...p, image: FALLBACK_PRODUCT_IMAGE };
+  });
 }
+
+// Admin: single product by id (any active flag) for dashboard edit
+router.get('/admin/product/:id', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) return res.status(400).json({ error: 'Invalid product ID' });
+  const product = db.prepare(`
+    SELECT id, name, slug, description, price, image, category, stock, active, created_at,
+           COALESCE(is_subscription, 0) AS is_subscription, subscription_plan
+    FROM products WHERE id = ?
+  `).get(id);
+  if (!product) return res.status(404).json({ error: 'Product not found' });
+  res.json({ product });
+});
 
 // 1. GET /api/shop/products — Return all active products
 router.get('/products', (req, res) => {
@@ -519,13 +607,16 @@ router.post('/orders', requireSession, async (req, res) => {
 
   const insertOrder = db.prepare(`
     INSERT INTO orders (user_id, total, status, shipping_name, shipping_address, shipping_city, shipping_state, shipping_zip)
-    VALUES (?, ?, 'pending', ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const insertOrderItem = db.prepare(`
     INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)
   `);
   const updateStock = db.prepare(`UPDATE products SET stock = stock - ? WHERE id = ?`);
-  const getProduct = db.prepare(`SELECT id, price, stock, subscription_plan FROM products WHERE id = ? AND active = 1`);
+  const getProduct = db.prepare(`
+    SELECT id, price, stock, subscription_plan, category, slug
+    FROM products WHERE id = ? AND active = 1
+  `);
 
   let total = 0;
   const validatedItems = [];
@@ -540,9 +631,22 @@ router.post('/orders', requireSession, async (req, res) => {
     if (!product) return res.status(400).json({ error: `Product ${productId} not found` });
     if (product.stock < quantity) return res.status(400).json({ error: `Insufficient stock` });
 
-    validatedItems.push({ product_id: productId, quantity, price: product.price, subscription_plan: product.subscription_plan });
+    validatedItems.push({
+      product_id: productId,
+      quantity,
+      price: product.price,
+      subscription_plan: product.subscription_plan,
+      category: product.category,
+      slug: product.slug
+    });
     total += product.price * quantity;
   }
+
+  const hasPhysicalItem = validatedItems.some((i) => {
+    const c = String(i.category || '').toLowerCase();
+    return c !== 'digital' && c !== 'subscription';
+  });
+  const initialOrderStatus = hasPhysicalItem ? 'processing' : 'completed';
 
   // === AUTHORIZE.NET CHARGE ===
   try {
@@ -638,7 +742,7 @@ router.post('/orders', requireSession, async (req, res) => {
 
     const run = db.transaction(() => {
       const orderResult = insertOrder.run(
-        req.session.user.id, total, name.trim(), address.trim(), city.trim(), state.trim(), zip.trim()
+        req.session.user.id, total, initialOrderStatus, name.trim(), address.trim(), city.trim(), state.trim(), zip.trim()
       );
       const orderId = orderResult.lastInsertRowid;
 
@@ -657,7 +761,7 @@ router.post('/orders', requireSession, async (req, res) => {
         WHERE id = ?
       `).run(transactionId, authCode, orderId);
 
-      return { id: orderId, total, status: 'paid' };
+      return { id: orderId, total, status: initialOrderStatus, payment_status: 'paid' };
     });
 
     const order = run();
@@ -743,13 +847,19 @@ router.get('/orders/:id', requireSession, (req, res) => {
     return res.status(403).json({ error: 'Access denied' });
   }
   const items = db.prepare(`
-    SELECT oi.id, oi.product_id, oi.quantity, oi.price, p.name AS product_name, p.slug AS product_slug
+    SELECT oi.id, oi.product_id, oi.quantity, oi.price, p.name AS product_name, p.slug AS product_slug,
+           p.category AS product_category, COALESCE(p.is_subscription, 0) AS is_subscription
     FROM order_items oi
     LEFT JOIN products p ON p.id = oi.product_id
     WHERE oi.order_id = ?
   `).all(id);
+  const enrichedItems = items.map((row) => ({
+    ...row,
+    receipt_links: receiptLinksForProduct(row.product_slug, row.product_category, !!row.is_subscription)
+  }));
   const { user_id, ...safe } = order;
-  res.json({ order: { ...safe, items } });
+  const fulfillment = fulfillmentSummary(safe.status, safe.payment_status);
+  res.json({ order: { ...safe, items: enrichedItems, fulfillment } });
 });
 
 // 4b. GET /api/shop/course-access — Has the current user purchased the full course or complete bundle? (for course page gate)

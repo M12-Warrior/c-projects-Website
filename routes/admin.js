@@ -484,4 +484,40 @@ router.get('/export/preferences', (req, res) => {
   res.send(lines.join('\n'));
 });
 
+function normalizeCmsKey(raw) {
+  return String(raw || '').replace(/[^a-z0-9-]/gi, '').slice(0, 64);
+}
+
+// GET /api/admin/cms/pages/:key — load editable fields for a page (admin)
+router.get('/cms/pages/:key', (req, res) => {
+  const key = normalizeCmsKey(req.params.key);
+  if (!key) return res.status(400).json({ error: 'Invalid page key' });
+  try {
+    const row = db.prepare('SELECT content_json, updated_at FROM cms_page_content WHERE page_key = ?').get(key);
+    const fields = row && row.content_json ? JSON.parse(row.content_json) : {};
+    return res.json({ key, fields: fields && typeof fields === 'object' ? fields : {}, updated_at: (row && row.updated_at) || null });
+  } catch (e) {
+    return res.status(500).json({ error: 'Could not load page content' });
+  }
+});
+
+// PUT /api/admin/cms/pages/:key — replace stored overrides from form (empty values omit keys)
+router.put('/cms/pages/:key', (req, res) => {
+  const key = normalizeCmsKey(req.params.key);
+  if (!key) return res.status(400).json({ error: 'Invalid page key' });
+  const incoming = req.body && req.body.fields && typeof req.body.fields === 'object' ? req.body.fields : {};
+  const next = {};
+  Object.keys(incoming).forEach((k) => {
+    const v = incoming[k];
+    if (v !== '' && v != null && v !== undefined) next[k] = typeof v === 'string' ? v : String(v);
+  });
+  const json = JSON.stringify(next);
+  db.prepare(`
+    INSERT INTO cms_page_content (page_key, content_json, updated_at)
+    VALUES (?, ?, datetime('now'))
+    ON CONFLICT(page_key) DO UPDATE SET content_json = excluded.content_json, updated_at = datetime('now')
+  `).run(key, json);
+  return res.json({ success: true, key, fields: next });
+});
+
 module.exports = router;
