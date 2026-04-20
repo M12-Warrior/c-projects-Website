@@ -442,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateCartBadge() {
     try {
-      const cart = JSON.parse(localStorage.getItem('driverShieldCart')) || [];
+      const cart = JSON.parse(localStorage.getItem('driver_shield_cart')) || [];
       const count = cart.reduce((s, i) => s + i.quantity, 0);
       if (cartBadge) {
         cartBadge.textContent = count > 0 ? count : '';
