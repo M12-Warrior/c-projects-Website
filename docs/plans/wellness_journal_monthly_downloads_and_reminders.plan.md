@@ -21,14 +21,14 @@ todos:
     content: "When last month of current purchase block is fully downloaded, surface reminder to continue before next month starts"
     status: pending
   - id: order-complete-last-month-downloaded
-    content: "When last recorded/paid month for that order is downloaded, set orders.status to completed (or equivalent) — same value in customer receipt/purchase log and admin order list/detail"
-    status: pending
+    content: "v1: POST /api/journal/fulfillment-log marks latest paid wellness order complete when subscriber opens print/download page; per-month tracker still TODO"
+    status: completed
   - id: half-price-after-15th
-    content: "First-time journal monthly purchase: if checkout date is day 16–last day of month, charge 50% of list price; show clear line item/reason; server must recompute—never trust client total alone"
-    status: pending
+    content: "routes/shop.js: first paid wellness order, LA day>15 → 50% unit price (server-side)"
+    status: completed
   - id: renewals-align-first
-    content: "After initial purchase, align subscription period / next charge date to 1st of month (see Decision 7); update activateWellnessSubscription or successor logic"
-    status: pending
+    content: "routes/subscription.js + lib/laTime.js: period end next month 1st LA; renew +1 month LA"
+    status: completed
 isProject: false
 ---
 

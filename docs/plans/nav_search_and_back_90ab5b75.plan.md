@@ -3,8 +3,8 @@ name: Nav search and back
 overview: Fix the broken mobile menu by removing duplicate nav-toggle listeners where `main.js` already runs, align cart badge storage with the rest of the shop, then add a global GET search (static routes + blog + shop via existing APIs), a back control with safe fallback, and normalize the full nav (including refresh) across pages. In Admin, add a three-dot overflow control on product/shop images to upload or edit images (covers packets and merchandise rows in the same products table).
 todos:
   - id: fix-main-js
-    content: "Partial: navAuth + cart badge use driver_shield_cart (main.js fixed 2026-04); aria-expanded on toggle present. Still TODO: initNavBack(), global search wiring"
-    status: pending
+    content: "navAuth + cart key + Search link injection (main.js). Optional initNavBack not added"
+    status: completed
   - id: dedupe-listeners
     content: "Audited 2026-04: no navToggle click handlers in views; mobile menu handled by public/js/main.js only"
     status: completed
@@ -12,8 +12,8 @@ todos:
     content: Add canonical nav with back + search form; main.css layout; fix refresh.html Home link; batch HTML updates
     status: pending
   - id: search-route-page
-    content: server.js GET /search; views/search.html with static index + blog + shop API filtering and refreshReveal
-    status: pending
+    content: "GET /search + views/search.html; blog + shop APIs + static routes (2026-04)"
+    status: completed
   - id: verify-mobile-nav
     content: Smoke-test ≤768px hamburger on course, login, forum, and search pages
     status: pending

@@ -239,6 +239,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Global Search link (nav plan): one consistent link when main.js runs
+  if (navLinks && !document.getElementById('navSearchLink')) {
+    const li = document.createElement('li');
+    li.innerHTML = '<a href="/search" id="navSearchLink">Search</a>';
+    const firstLi = navLinks.querySelector('li');
+    if (firstLi) firstLi.after(li);
+    else navLinks.appendChild(li);
+  }
+
   // --- Back to top ---
   if (backToTop) {
     backToTop.addEventListener('click', function () {

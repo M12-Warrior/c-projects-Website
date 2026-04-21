@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../db/database');
 const subscriptionRouter = require('./subscription');
+const { laNow, isJournalHalfPriceFirstMonthDay } = require('../lib/laTime');
 const AuthorizeNet = require('authorizenet');
 const ApiContracts = AuthorizeNet.APIContracts;
 const ApiControllers = AuthorizeNet.APIControllers;
@@ -21,6 +22,42 @@ function requireAdmin(req, res, next) {
     return res.status(403).json({ error: 'Admin access required' });
   }
   next();
+}
+
+/** Paid orders that included the monthly wellness journal (before current checkout). */
+function countPaidWellnessJournalOrders(userId) {
+  const row = db.prepare(`
+    SELECT COUNT(DISTINCT o.id) AS c
+    FROM orders o
+    JOIN order_items oi ON oi.order_id = o.id
+    JOIN products p ON p.id = oi.product_id
+    WHERE o.user_id = ?
+      AND p.subscription_plan = 'wellness_journal'
+      AND COALESCE(o.payment_status, '') = 'paid'
+  `).get(userId);
+  return row && row.c != null ? row.c : 0;
+}
+
+/** Digital-only (packet) orders: mark complete after first logged packet download. */
+function maybeCompleteDigitalOnlyOrderAfterPacketDownload(grantId) {
+  const row = db.prepare(`
+    SELECT g.order_id, o.status
+    FROM product_access_grants g
+    JOIN orders o ON o.id = g.order_id
+    WHERE g.id = ?
+  `).get(grantId);
+  if (!row || String(row.status).toLowerCase() !== 'processing') return;
+  const rows = db.prepare(`
+    SELECT p.category
+    FROM order_items oi
+    JOIN products p ON p.id = oi.product_id
+    WHERE oi.order_id = ?
+  `).all(row.order_id);
+  const onlyDigital =
+    rows.length > 0 && rows.every((r) => String(r.category || '').toLowerCase() === 'digital');
+  if (onlyDigital) {
+    db.prepare(`UPDATE orders SET status = 'completed' WHERE id = ?`).run(row.order_id);
+  }
 }
 
 /** Canonical site URL for links in emails (prefer BASE_URL env). */
@@ -620,6 +657,7 @@ router.post('/orders', requireSession, async (req, res) => {
 
   let total = 0;
   const validatedItems = [];
+  const priorWellnessPaid = countPaidWellnessJournalOrders(req.session.user.id);
 
   for (const item of items) {
     const productId = parseInt(item.product_id, 10);
@@ -631,22 +669,37 @@ router.post('/orders', requireSession, async (req, res) => {
     if (!product) return res.status(400).json({ error: `Product ${productId} not found` });
     if (product.stock < quantity) return res.status(400).json({ error: `Insufficient stock` });
 
+    let unitPrice = product.price;
+    if (
+      product.subscription_plan === 'wellness_journal' &&
+      priorWellnessPaid === 0 &&
+      isJournalHalfPriceFirstMonthDay(laNow())
+    ) {
+      unitPrice = Math.round(product.price * 50) / 100;
+    }
+
     validatedItems.push({
       product_id: productId,
       quantity,
-      price: product.price,
+      price: unitPrice,
       subscription_plan: product.subscription_plan,
       category: product.category,
       slug: product.slug
     });
-    total += product.price * quantity;
+    total += unitPrice * quantity;
   }
 
   const hasPhysicalItem = validatedItems.some((i) => {
     const c = String(i.category || '').toLowerCase();
     return c !== 'digital' && c !== 'subscription';
   });
-  const initialOrderStatus = hasPhysicalItem ? 'processing' : 'completed';
+  const needsDigitalFulfillment =
+    !hasPhysicalItem &&
+    validatedItems.every((i) => {
+      const c = String(i.category || '').toLowerCase();
+      return c === 'digital' || c === 'subscription';
+    });
+  const initialOrderStatus = hasPhysicalItem ? 'processing' : needsDigitalFulfillment ? 'processing' : 'completed';
 
   // === AUTHORIZE.NET CHARGE ===
   try {
@@ -976,6 +1029,9 @@ router.post('/packet-download-log', requireSession, (req, res) => {
     return res.status(403).json({ error: 'No access or download limit reached' });
   }
   db.prepare('UPDATE product_access_grants SET download_count = download_count + 1 WHERE id = ?').run(grant.id);
+  try {
+    maybeCompleteDigitalOnlyOrderAfterPacketDownload(grant.id);
+  } catch (_) {}
   try {
     const visitorKey = (req.session && req.sessionID) ? String(req.sessionID) : null;
     db.prepare(`

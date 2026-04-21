@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search — Mile 12 Warrior</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}</style>
+</head>
+<body>
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.png" alt="" class="nav-logo-img" onerror="this.style.display='none'">
+        <span class="nav-logo-fallback" style="display:flex"><span>Mile 12 Warrior</span></span>
+      </a>
+      <button type="button" class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/login">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container" style="max-width:720px">
+      <h1 class="page-title">Search</h1>
+      <p class="text-muted" style="margin-bottom:20px">Find pages, blog posts, and shop products.</p>
+      <form id="searchForm" class="glass-card" style="padding:20px;margin-bottom:24px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+        <label for="q" class="sr-only">Search</label>
+        <input type="search" id="q" name="q" class="form-input" placeholder="Keywords…" style="flex:1;min-width:200px" autocomplete="off">
+        <button type="submit" class="btn btn-primary">Search</button>
+        <button type="button" class="btn btn-glass" id="navBackBtn">Back</button>
+      </form>
+      <div id="searchResults" class="search-results"></div>
+    </div>
+  </main>
+
+  <footer class="footer" style="margin-top:48px">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>&copy; 2026 Mile 12 Warrior LLC</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+  <script>
+(function() {
+  var STATIC = [
+    { title: 'Home', href: '/', kw: 'home roadmap main' },
+    { title: 'About', href: '/about', kw: 'about joyce founder' },
+    { title: 'Services', href: '/services', kw: 'services packets training fleet' },
+    { title: 'Shop', href: '/shop', kw: 'shop store cart products journal course' },
+    { title: 'Blog', href: '/blog', kw: 'blog articles news' },
+    { title: 'Forum', href: '/forum', kw: 'forum community discussion' },
+    { title: 'Course', href: '/course', kw: 'course 90 day onboarding cdl training' },
+    { title: 'Contact', href: '/contact', kw: 'contact email message support' },
+    { title: 'Refresh', href: '/refresh', kw: 'refresh wellness resources' },
+    { title: 'Privacy', href: '/privacy', kw: 'privacy policy' },
+    { title: 'Terms', href: '/terms', kw: 'terms of service' },
+    { title: 'Disclaimer', href: '/disclaimer', kw: 'disclaimer legal' },
+    { title: 'Accessibility', href: '/accessibility', kw: 'accessibility a11y' }
+  ];
+
+  function norm(s) {
+    return String(s || '').toLowerCase();
+  }
+
+  function matches(q, text) {
+    if (!q) return true;
+    var words = q.split(/\s+/).filter(Boolean);
+    var t = norm(text);
+    return words.every(function(w) { return t.indexOf(w) !== -1; });
+  }
+
+  var form = document.getElementById('searchForm');
+  var input = document.getElementById('q');
+  var out = document.getElementById('searchResults');
+  var backBtn = document.getElementById('navBackBtn');
+
+  if (backBtn) {
+    backBtn.addEventListener('click', function() {
+      if (window.history.length > 1) window.history.back();
+      else window.location.href = '/';
+    });
+  }
+
+  function esc(s) {
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function render(q, blogPosts, products) {
+    var html = '';
+    var n = 0;
+    STATIC.forEach(function(p) {
+      var blob = p.title + ' ' + p.kw + ' ' + p.href;
+      if (matches(q, blob)) {
+        n++;
+        html += '<div class="glass-card" style="padding:14px;margin-bottom:10px"><a href="' + esc(p.href) + '">' + esc(p.title) + '</a><p class="text-muted" style="font-size:0.82rem;margin:6px 0 0 0">' + esc(p.href) + '</p></div>';
+      }
+    });
+    (blogPosts || []).forEach(function(post) {
+      var blob = (post.title || '') + ' ' + (post.excerpt || '') + ' ' + (post.slug || '');
+      if (matches(q, blob)) {
+        n++;
+        html += '<div class="glass-card" style="padding:14px;margin-bottom:10px"><span style="font-size:0.7rem;color:var(--text-3)">Blog</span><br><a href="/blog/' + esc(post.slug) + '">' + esc(post.title) + '</a></div>';
+      }
+    });
+    (products || []).forEach(function(pr) {
+      var blob = (pr.name || '') + ' ' + (pr.description || '') + ' ' + (pr.slug || '');
+      if (matches(q, blob)) {
+        n++;
+        html += '<div class="glass-card" style="padding:14px;margin-bottom:10px"><span style="font-size:0.7rem;color:var(--text-3)">Shop</span><br><a href="/shop/product/' + esc(pr.slug) + '">' + esc(pr.name) + '</a></div>';
+      }
+    });
+    if (!n) {
+      html = '<p class="text-muted">No matches. Try different keywords.</p>';
+    } else {
+      html = '<p style="font-size:0.9rem;margin-bottom:16px;color:var(--text-2)">' + n + ' result(s)</p>' + html;
+    }
+    out.innerHTML = html;
+  }
+
+  function run() {
+    var q = (input.value || '').trim();
+    var url = new URL(window.location.href);
+    if (q) url.searchParams.set('q', q); else url.searchParams.delete('q');
+    window.history.replaceState({}, '', url.pathname + (q ? ('?q=' + encodeURIComponent(q)) : ''));
+
+    Promise.all([
+      fetch('/api/blog/posts').then(function(r) { return r.json(); }).catch(function() { return { posts: [] }; }),
+      fetch('/api/shop/products').then(function(r) { return r.json(); }).catch(function() { return { products: [] }; })
+    ]).then(function(pair) {
+      var posts = (pair[0] && pair[0].posts) ? pair[0].posts : [];
+      var products = (pair[1] && pair[1].products) ? pair[1].products : [];
+      render(norm(q), posts, products);
+    });
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    run();
+  });
+
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('q')) {
+    input.value = params.get('q');
+  }
+  run();
+})();
+  </script>
+</body>
+</html>

@@ -6,11 +6,11 @@ todos:
     content: "Define which order shapes qualify: digital-only (all line items category digital / no ship-to physical SKU); mixed cart behavior (e.g. digital line complete on download, order stays processing until physical ships)"
     status: pending
   - id: download-signal
-    content: "Use existing hooks: POST /api/shop/packet-download-log increments product_access_grants.download_count; add/join journal PDF or course access signals if those paths do not hit the same endpoint"
-    status: pending
+    content: "Packet path: packet-download-log; journal subscription: POST /api/journal/fulfillment-log from journal-print"
+    status: completed
   - id: order-status-update
-    content: "On first qualifying download for a digital-only order, set orders.status (or a dedicated fulfillment field) to completed; ensure idempotent (one transition)"
-    status: pending
+    content: "Digital-only (category digital) orders start processing; completed after first packet download. Journal subscription orders: fulfillment-log after print page"
+    status: completed
   - id: ui-copy
     content: "Update purchase log, receipt (shop-order.html), and account.html fulfillment text so “complete” matches the new rule; keep physical messaging unchanged"
     status: pending

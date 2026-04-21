@@ -42,8 +42,8 @@ todos:
     content: Public QR target /login (user G16); admin print kit PNG-SVG + UTM
     status: pending
   - id: contact-form-admin-email
-    content: Mirror contact POST to email admin@mile12warrior.com when SMTP set (E13 yes)
-    status: pending
+    content: "routes/contact.js mirrors to ADMIN_EMAIL or FROM_EMAIL when SMTP_* set (.env.example documented)"
+    status: completed
   - id: subscription-prepay-checkout
     content: Future 30/60/90/120/365 day purchase options at checkout + entitlement length for journal downloads/perks (B4)
     status: pending

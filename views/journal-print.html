@@ -100,6 +100,7 @@
             document.getElementById('journalPrintApp').style.display = 'block';
             var btn = document.getElementById('printBtn');
             if (btn) btn.addEventListener('click', function() { window.print(); });
+            fetch('/api/journal/fulfillment-log', { method: 'POST', credentials: 'include' }).catch(function() {});
           } else {
             document.getElementById('journalGate').style.display = 'block';
           }

@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../db/database');
+const { laNow, wellnessFirstPeriodEnd, wellnessRenewPeriodEnd } = require('../lib/laTime');
 
 const router = express.Router();
 const PLAN_WELLNESS = 'wellness_journal';
@@ -91,11 +92,12 @@ function getSubscriberTierForUser(userId) {
   return tierFromMonths(months);
 }
 
-// Create or renew subscription when user purchases wellness journal monthly
+// Create or renew subscription when user purchases wellness journal monthly.
+// Period boundaries use America/Los_Angeles; renewals align to calendar months (1st).
 function activateWellnessSubscription(userId) {
-  const now = new Date();
-  const periodEnd = new Date(now);
-  periodEnd.setMonth(periodEnd.getMonth() + 1);
+  const nowDt = laNow();
+  const nowJs = nowDt.toJSDate();
+  const firstPeriodEnd = wellnessFirstPeriodEnd();
 
   const active = db.prepare(`
     SELECT id, started_at, current_period_end
@@ -107,10 +109,10 @@ function activateWellnessSubscription(userId) {
 
   if (active) {
     const end = new Date(active.current_period_end);
-    if (end > now) {
-      end.setMonth(end.getMonth() + 1);
-      db.prepare('UPDATE subscriptions SET current_period_end = ? WHERE id = ?').run(end.toISOString(), active.id);
-      return { started_at: active.started_at, current_period_end: end };
+    if (end > nowJs) {
+      const nextEnd = wellnessRenewPeriodEnd(active.current_period_end);
+      db.prepare('UPDATE subscriptions SET current_period_end = ? WHERE id = ?').run(nextEnd.toISO(), active.id);
+      return { started_at: active.started_at, current_period_end: nextEnd.toJSDate() };
     }
   }
 
@@ -122,10 +124,10 @@ function activateWellnessSubscription(userId) {
     LIMIT 1
   `).get(userId, PLAN_WELLNESS);
 
-  let startedAt = now;
+  let startedAt = nowJs;
   if (cancelled && cancelled.cancelled_at) {
     const cancelledAt = new Date(cancelled.cancelled_at);
-    if (now - cancelledAt < THIRTY_DAYS_MS && cancelled.started_at) {
+    if (nowJs - cancelledAt < THIRTY_DAYS_MS && cancelled.started_at) {
       startedAt = new Date(cancelled.started_at);
     }
   }
@@ -133,9 +135,9 @@ function activateWellnessSubscription(userId) {
   db.prepare(`
     INSERT INTO subscriptions (user_id, plan, status, started_at, current_period_end)
     VALUES (?, ?, 'active', ?, ?)
-  `).run(userId, PLAN_WELLNESS, startedAt.toISOString(), periodEnd.toISOString());
+  `).run(userId, PLAN_WELLNESS, startedAt.toISOString(), firstPeriodEnd.toISO());
 
-  return { started_at: startedAt, current_period_end: periodEnd };
+  return { started_at: startedAt, current_period_end: firstPeriodEnd.toJSDate() };
 }
 
 // POST /api/subscription/cancel — cancel wellness subscription (stores previous_tier for 30-day restore)

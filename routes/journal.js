@@ -106,4 +106,28 @@ router.delete('/entries/:id', requireSession, requireWellnessSubscriber, (req, r
   res.json({ success: true });
 });
 
+// POST /api/journal/fulfillment-log — After subscriber uses print/download flow, mark paid wellness orders complete (v1).
+router.post('/fulfillment-log', requireSession, (req, res) => {
+  const userId = req.session.user.id;
+  try {
+    const row = db.prepare(`
+      SELECT o.id FROM orders o
+      JOIN order_items oi ON oi.order_id = o.id
+      JOIN products p ON p.id = oi.product_id
+      WHERE o.user_id = ?
+        AND COALESCE(o.payment_status, '') = 'paid'
+        AND o.status = 'processing'
+        AND p.subscription_plan = 'wellness_journal'
+      ORDER BY o.created_at DESC
+      LIMIT 1
+    `).get(userId);
+    if (row) {
+      db.prepare(`UPDATE orders SET status = 'completed' WHERE id = ?`).run(row.id);
+    }
+  } catch (e) {
+    console.error('[journal fulfillment-log]', e && e.message);
+  }
+  res.json({ success: true });
+});
+
 module.exports = router;

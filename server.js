@@ -287,6 +287,11 @@ app.get('/accessibility', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'accessibility.html'));
 });
 
+app.get('/search', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.sendFile(path.join(__dirname, 'views', 'search.html'));
+});
+
 const server = app.listen(PORT, () => {
   console.log('Mile 12 Warrior running on port', PORT, '→ https://mile12warrior.com');
 });

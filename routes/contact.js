@@ -30,6 +30,34 @@ router.post('/', (req, res) => {
     `);
     insert.run(name.trim(), email.trim(), finalSubject || null, message.trim());
 
+    const adminTo = (process.env.ADMIN_EMAIL || process.env.FROM_EMAIL || 'admin@mile12warrior.com').trim();
+    try {
+      const host = process.env.SMTP_HOST;
+      const user = process.env.SMTP_USER;
+      const pass = process.env.SMTP_PASS;
+      if (host && user && pass) {
+        const nodemailer = require('nodemailer');
+        const port = parseInt(process.env.SMTP_PORT, 10) || 587;
+        const from = process.env.FROM_EMAIL || process.env.SMTP_USER || 'noreply@mile12warrior.com';
+        const transport = nodemailer.createTransport({ host, port, secure: port === 465, auth: { user, pass } });
+        const subj = finalSubject || '(no subject)';
+        transport.sendMail(
+          {
+            from,
+            to: adminTo,
+            replyTo: email.trim(),
+            subject: `[Contact] ${subj}`,
+            text: `From: ${name.trim()} <${email.trim()}>\n\n${message.trim()}`,
+          },
+          function (err) {
+            if (err) console.error('[contact email admin]', err);
+          }
+        );
+      }
+    } catch (e) {
+      console.error('[contact email admin]', e && e.message);
+    }
+
     // Keep a lightweight guest address book for follow-up and involvement tracking.
     const optedOut = opt_out_address_book === true || opt_out_address_book === 1 || opt_out_address_book === '1';
     db.prepare(`
