@@ -4,8 +4,9 @@
   "description": "",
   "main": "server.js",
   "scripts": {
+    "prestart": "node scripts/verify-boot-encoding.js",
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node scripts/verify-boot-encoding.js && node scripts/test-tier1-guest-access.js && node scripts/test-module1-preview-access.js",
     "logo:transparent": "node scripts/logo-transparent-bg.js"
   },
   "keywords": [],

@@ -1,0 +1,9 @@
+* text=auto
+*.js text eol=lf
+*.json text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.md text eol=lf
+routes/*.js text eol=lf
+lib/*.js text eol=lf
+scripts/*.js text eol=lf
