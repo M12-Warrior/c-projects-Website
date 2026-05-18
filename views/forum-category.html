@@ -47,10 +47,13 @@
     <div class="page-container">
       <a href="/forum" class="text-muted" style="display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px; font-size: 0.88rem; text-decoration: none;">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Back to Forum
+        Back to Driver Lounge
       </a>
-      <div class="flex-between mb-16">
+      <div class="flex-between mb-16 forum-category-header">
+        <div>
         <h1 class="page-title" id="categoryTitle">Loading…</h1>
+        <p class="page-subtitle forum-category-subtitle hidden" id="categorySubtitle"></p>
+        </div>
         <a href="/forum/new-thread" class="btn btn-primary hidden" id="newThreadBtn">
           <span>New Thread</span>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -166,8 +169,18 @@
           } else {
             if (gateCard) gateCard.style.display = 'none';
           }
-          titleEl.textContent = cat.name || 'Category';
-          document.title = (cat.name || 'Category') + ' — Mile 12 Warrior Forum';
+          if (slug === 'general') {
+            document.body.classList.add('forum-coffee-shop');
+            titleEl.textContent = cat.name || 'Coffee Shop — Main Lounge';
+            const sub = document.getElementById('categorySubtitle');
+            if (sub) {
+              sub.textContent = cat.description || 'Pull up a seat. The main lounge for road stories, wins, and everyday convos.';
+              sub.classList.remove('hidden');
+            }
+          } else {
+            titleEl.textContent = cat.name || 'Room';
+          }
+          document.title = (titleEl.textContent) + ' — Mile 12 Warrior Forum';
           listEl.innerHTML = threads.map(function(t) {
             const badges = [];
             if (t.pinned) badges.push('<span class="thread-badge badge-pinned">Pinned</span>');

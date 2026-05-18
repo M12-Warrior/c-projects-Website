@@ -2017,3 +2017,151 @@ a:hover { color: var(--gold-light); }
 
   .container { padding: 0 18px; }
 }
+
+/* ---------- SITE-WIDE CHECKOUT NOTICE ---------- */
+.checkout-banner {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  z-index: 10040;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 44px 10px 20px;
+  background: rgba(62, 62, 66, 0.97);
+  border-bottom: 1px solid rgba(230, 184, 0, 0.35);
+  font-size: 0.84rem;
+  color: var(--text-2);
+  line-height: 1.4;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+.checkout-banner-text {
+  margin: 0;
+  text-align: center;
+  max-width: 720px;
+}
+.checkout-banner-text strong {
+  color: var(--gold-light);
+  font-weight: 600;
+}
+.checkout-banner-dismiss {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+}
+.checkout-banner-dismiss:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+body.has-checkout-banner .page-shell {
+  padding-top: 120px;
+}
+@media (max-width: 480px) {
+  .checkout-banner {
+    top: 56px;
+    font-size: 0.78rem;
+    padding: 8px 40px 8px 14px;
+  }
+  body.has-checkout-banner .page-shell {
+    padding-top: 112px;
+  }
+}
+
+/* ---------- HOMEPAGE COFFEE SUPPORT ---------- */
+.coffee-support {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.coffee-support h4 {
+  font-family: var(--font);
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+.coffee-support > p {
+  font-size: 0.84rem;
+  color: var(--text-2);
+  margin-bottom: 14px;
+}
+.coffee-amounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.coffee-amount {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  cursor: default;
+}
+.coffee-amount-active {
+  border-color: var(--gold);
+  color: var(--gold-light);
+  background: rgba(230, 184, 0, 0.1);
+}
+.coffee-amount-soon {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.coffee-soon {
+  display: block;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+.coffee-thank-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 360px;
+}
+.coffee-thank-form input {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.88rem;
+}
+.coffee-thank-success {
+  font-size: 0.88rem;
+  color: var(--green);
+  margin: 0;
+  display: none;
+}
+.coffee-thank-success.show {
+  display: block;
+}
+.coffee-thank-success.error {
+  color: var(--red);
+}
+.coffee-shop-link {
+  margin-top: 14px;
+  font-size: 0.85rem;
+}
+.coffee-shop-link a {
+  color: var(--gold);
+}
+.packet-tier-free {
+  color: var(--green);
+}

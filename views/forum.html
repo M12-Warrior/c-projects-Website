@@ -56,14 +56,20 @@
         </div>
       </div>
 
-      <div class="forum-starter glass-card" style="margin-bottom:24px;padding:16px 20px;border-left:4px solid var(--gold);">
-        <p style="font-size:1.05rem;font-weight:600;color:var(--text);margin:0 0 4px 0;">What do you haul?</p>
-        <p style="font-size:0.9rem;color:var(--text-2);margin:0;">Drop a reply in any thread and tell us — dry van, reefer, flatbed, tanker, local, OTR, or something else. It’s how we get to know each other.</p>
+      <a href="/forum/category/general" class="forum-coffee-lounge glass-card">
+        <span class="forum-coffee-badge">Main lounge</span>
+        <h2 class="forum-coffee-title">Coffee Shop</h2>
+        <p class="forum-coffee-desc">Pull up a seat — our default room for road stories, wins, and everyday convos.</p>
+        <span class="forum-coffee-cta">Enter the Coffee Shop &rarr;</span>
+      </a>
+      <div class="forum-starter glass-card">
+        <p class="forum-starter-lead">What do you haul?</p>
+        <p class="forum-starter-sub">Drop a reply in the Coffee Shop or any room — dry van, reefer, flatbed, tanker, local, OTR, or something else.</p>
       </div>
       <div class="flex-between mb-16">
         <div>
-          <h1 class="page-title">Community Forum</h1>
-          <p class="page-subtitle">Connect with fellow drivers. Share tips. Ask questions.</p>
+          <h1 class="page-title">Driver Lounge</h1>
+          <p class="page-subtitle">Warm up in the Coffee Shop, then browse rooms for safety, wellness, gear, and Mile 12 moments.</p>
           <p style="margin-top:12px;font-size:0.88rem"><a href="/forum/rules" style="color:var(--gold)">Forum Rules &amp; Trucker Lingo</a> — please read before posting.</p>
         </div>
         <a href="/forum/new-thread" class="btn btn-primary hidden" id="newThreadBtn">
@@ -72,6 +78,7 @@
         </a>
       </div>
 
+      <h2 class="forum-rooms-heading">All rooms</h2>
       <div id="forumCategories" class="forum-categories">
         <!-- Populated by JS -->
       </div>
@@ -114,18 +121,27 @@
           const r = await fetch('/api/forum/categories', { credentials: 'include' });
           const data = await r.json();
           const cats = Array.isArray(data) ? data : (data.categories || []);
+          cats.sort(function(a, b) {
+            if (a.slug === 'general') return -1;
+            if (b.slug === 'general') return 1;
+            return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+          });
           el.innerHTML = cats.map(function(c) {
-            return '<a href="/forum/category/' + (c.slug || c.id) + '" class="forum-cat">' +
+            const isLounge = c.slug === 'general';
+            const roomLabel = isLounge ? 'Main lounge' : 'Room';
+            const latest = (c.latest_thread && c.latest_thread.updated_at) || c.latest_activity || c.latestActivity || '';
+            return '<a href="/forum/category/' + (c.slug || c.id) + '" class="forum-cat' + (isLounge ? ' forum-cat-lounge' : '') + '">' +
               '<div class="forum-cat-info">' +
-                '<h3>' + (c.name || 'Category') + '</h3>' +
+                '<span class="forum-cat-room-tag">' + roomLabel + '</span>' +
+                '<h3>' + (c.name || 'Room') + '</h3>' +
                 '<p>' + (c.description || '') + '</p>' +
               '</div>' +
               '<div class="forum-cat-stats">' +
                 '<div>' + ((c.thread_count ?? c.threadCount ?? 0)) + ' threads</div>' +
-                '<div>' + formatDate(c.latest_activity || c.latestActivity) + '</div>' +
+                '<div>' + formatDate(latest) + '</div>' +
               '</div>' +
             '</a>';
-          }).join('') || '<p class="text-muted">No categories yet.</p>';
+          }).join('') || '<p class="text-muted">No rooms yet.</p>';
         } catch (e) {
           el.innerHTML = '<p class="text-muted">Unable to load categories.</p>';
         }

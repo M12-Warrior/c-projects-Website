@@ -1,4 +1,4 @@
-// --- Checklist Data (used by download & print) ---
+﻿// --- Checklist Data (used by download & print) ---
 const CHECKLISTS = {
   breakdown: {
     title: 'Breakdown Kit Essentials',
@@ -184,7 +184,40 @@ function downloadChecklist(id) {
   URL.revokeObjectURL(a.href);
 }
 
+function initCheckoutBanner() {
+  try {
+    if (sessionStorage.getItem('checkoutBannerDismissed') === '1') return;
+  } catch (_) {}
+  const navbar = document.getElementById('navbar');
+  if (!navbar || document.getElementById('checkoutBanner')) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'checkoutBanner';
+  banner.className = 'checkout-banner';
+  banner.setAttribute('role', 'status');
+  banner.innerHTML =
+    '<p class="checkout-banner-text">' +
+    '<strong>Online checkout is coming back soon.</strong> You can still browse the shop and print free packets.' +
+    '</p>' +
+    '<button type="button" class="checkout-banner-dismiss" aria-label="Dismiss checkout notice">&times;</button>';
+
+  navbar.insertAdjacentElement('afterend', banner);
+  document.body.classList.add('has-checkout-banner');
+
+  const dismissBtn = banner.querySelector('.checkout-banner-dismiss');
+  if (dismissBtn) {
+    dismissBtn.addEventListener('click', function () {
+      banner.remove();
+      document.body.classList.remove('has-checkout-banner');
+      try {
+        sessionStorage.setItem('checkoutBannerDismissed', '1');
+      } catch (_) {}
+    });
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  initCheckoutBanner();
 
   // --- Scroll progress bar (shared: all pages) ---
   const progressBar = document.getElementById('scrollProgress');
@@ -583,6 +616,53 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       activatePhaseTab(tabs[next]);
       tabs[next].focus();
+    });
+  }
+
+  // --- $0 Thank you (homepage coffee support) ---
+  const thankYouForm = document.getElementById('thankYouForm');
+  if (thankYouForm) {
+    thankYouForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const nameEl = document.getElementById('tyName');
+      const emailEl = document.getElementById('tyEmail');
+      const successEl = document.getElementById('tySuccess');
+      const submitBtn = thankYouForm.querySelector('button[type="submit"]');
+      const name = nameEl ? nameEl.value.trim() : '';
+      const email = emailEl ? emailEl.value.trim() : '';
+      if (submitBtn) submitBtn.disabled = true;
+      try {
+        const r = await fetch('/api/thank-you', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ name: name || null, email: email || null })
+        });
+        const data = await r.json().catch(function () { return {}; });
+        if (!r.ok) {
+          if (successEl) {
+            successEl.textContent = data.error || 'Something went wrong. Please try again.';
+            successEl.classList.add('show', 'error');
+          }
+          if (submitBtn) submitBtn.disabled = false;
+          return;
+        }
+        if (successEl) {
+          successEl.textContent = data.message || 'Thank you! We appreciate you.';
+          successEl.classList.add('show');
+          successEl.classList.remove('error');
+        }
+        thankYouForm.querySelectorAll('input').forEach(function (inp) {
+          inp.value = '';
+        });
+        if (submitBtn) submitBtn.style.display = 'none';
+      } catch (_) {
+        if (successEl) {
+          successEl.textContent = 'Unable to send. Please try again later.';
+          successEl.classList.add('show', 'error');
+        }
+        if (submitBtn) submitBtn.disabled = false;
+      }
     });
   }
 

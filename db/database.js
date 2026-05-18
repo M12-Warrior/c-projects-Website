@@ -125,6 +125,13 @@ db.exec(`
     price REAL NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS thank_you_submissions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    email TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
   CREATE TABLE IF NOT EXISTS contact_messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -367,6 +374,18 @@ db.exec(`
   );
 `);
 
+// Rebrand General Discussion → Coffee Shop lounge (existing databases)
+try {
+  db.prepare(`
+    UPDATE forum_categories
+    SET name = ?, description = ?
+    WHERE slug = 'general'
+  `).run(
+    'Coffee Shop — Main Lounge',
+    'Pull up a seat. Our main lounge for road stories, wins, and everyday convos — like your favorite truck stop coffee shop.'
+  );
+} catch (_) {}
+
 // Forum category "Miles Without Borders" for existing databases (idempotent)
 try {
   const exists = db.prepare('SELECT id FROM forum_categories WHERE slug = ?').get('miles-without-borders');
@@ -393,7 +412,12 @@ const seedIfEmpty = () => {
   const insertCategory = db.prepare(`
     INSERT OR IGNORE INTO forum_categories (name, slug, description, sort_order) VALUES (?, ?, ?, ?)
   `);
-  insertCategory.run('General Discussion', 'general', 'Chat about anything related to life on the road.', 0);
+  insertCategory.run(
+    'Coffee Shop — Main Lounge',
+    'general',
+    'Pull up a seat. Our main lounge for road stories, wins, and everyday convos — like your favorite truck stop coffee shop.',
+    0
+  );
   insertCategory.run('Safety Tips', 'safety-tips', 'Share and discuss safety practices, near-misses, and lessons learned.', 1);
   insertCategory.run('Health & Wellness', 'health-wellness', 'Physical fitness, mental health, nutrition, and self-care for drivers.', 2);
   insertCategory.run('Equipment & Tech', 'equipment-tech', 'Trucks, trailers, ELDs, dashcams, and gear recommendations.', 3);
