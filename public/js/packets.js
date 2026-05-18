@@ -2240,6 +2240,157 @@ Packets.fleetRefresher = function () {
 };
 
 /* ============================================================
+   Tier 1 online checklist (guest-friendly, localStorage)
+   ============================================================ */
+Packets.getNewDriverChecklist = function () {
+  return [
+    {
+      id: 'start',
+      title: 'Getting Started',
+      items: [
+        'Review Sections 2–5 before your first solo trip',
+        'Use pre-trip and post-trip checklists every day',
+        'Verify breakdown and first aid kits weekly',
+        'Follow the daily routine until it becomes habit',
+        'Keep emergency contacts accessible in your cab'
+      ]
+    },
+    {
+      id: 'hos',
+      title: 'HOS & ELD',
+      items: [
+        'ELD connected and recording vehicle motion',
+        'Correct duty status selected when duty changes',
+        'Logs reviewed daily and certified within 24 hours',
+        'Paper backup logs available if ELD fails',
+        '30-minute break planned before 8 hours of driving'
+      ]
+    },
+    {
+      id: 'pretrip-engine',
+      title: 'Pre-Trip — Engine Compartment',
+      items: [
+        'Oil level within proper range',
+        'Coolant level adequate, no leaks',
+        'Belts and hoses in good condition',
+        'No fluid leaks under the vehicle'
+      ]
+    },
+    {
+      id: 'pretrip-cab',
+      title: 'Pre-Trip — Cab Interior',
+      items: [
+        'Seat belt functions properly',
+        'Mirrors adjusted, clean, and undamaged',
+        'Horn, wipers, and defroster working',
+        'Emergency equipment present (triangles, extinguisher, fuses)',
+        'ELD functioning and current'
+      ]
+    },
+    {
+      id: 'pretrip-exterior',
+      title: 'Pre-Trip — Lights, Tires & Brakes',
+      items: [
+        'All lights operational (head, tail, brake, turn, marker, hazards)',
+        'Tire pressure and tread depth adequate on all axles',
+        'Air pressure builds to governor cut-out',
+        'Service and parking brakes apply and release properly'
+      ]
+    },
+    {
+      id: 'pretrip-coupling',
+      title: 'Pre-Trip — Coupling & Cargo (if applicable)',
+      items: [
+        'Fifth wheel and kingpin secured (tug test performed)',
+        'Air and electrical lines connected, no leaks',
+        'Landing gear fully raised and handle secured',
+        'Cargo secure, balanced, and within weight limits'
+      ]
+    },
+    {
+      id: 'posttrip',
+      title: 'Post-Trip DVIR',
+      items: [
+        'Complete DVIR with date, vehicle number, and odometer',
+        'Note any defects discovered during the day',
+        'Report defects to maintenance as required',
+        'Sign and retain a copy of the DVIR'
+      ]
+    },
+    {
+      id: 'breakdown',
+      title: 'Breakdown Kit (FMCSA + essentials)',
+      items: [
+        'Three reflective warning triangles (49 CFR 393.95)',
+        'Fire extinguisher rated and inspected',
+        'Spare fuses (if vehicle uses fuses)',
+        'High-visibility safety vest (ANSI Class 2+)',
+        'Flashlight with extra batteries',
+        'Jumper cables or portable jump starter'
+      ]
+    },
+    {
+      id: 'firstaid',
+      title: 'First Aid Kit',
+      items: [
+        'Adhesive bandages and sterile gauze stocked',
+        'Antiseptic wipes and nitrile gloves',
+        'Tourniquet and trauma shears accessible',
+        'Personal prescription medications on board',
+        'Expired items replaced this month'
+      ]
+    },
+    {
+      id: 'roadside',
+      title: 'Roadside Safety Protocol',
+      items: [
+        'Pull completely off the roadway',
+        'Hazard flashers on immediately',
+        'High-visibility vest on before exiting cab',
+        'Triangles placed at 10, 100, and 200 feet',
+        'Work on passenger side away from traffic',
+        'Call dispatch or 911 with exact location'
+      ]
+    },
+    {
+      id: 'morning',
+      title: 'Daily Routine — Morning',
+      items: [
+        'Drink 16 oz of water upon waking',
+        'Stretch for 5 minutes',
+        'Eat a real breakfast (protein + complex carbs)',
+        'Complete full pre-trip inspection',
+        'Check weather and road conditions for route',
+        'Verify ELD status and log on duty'
+      ]
+    },
+    {
+      id: 'onroad',
+      title: 'Daily Routine — On the Road',
+      items: [
+        'Maintain 7-second following distance',
+        'Check mirrors every 5–8 seconds',
+        'Break every 2–3 hours (stretch, hydrate, walk)',
+        'Monitor fatigue — nap if drowsy',
+        'Phone stowed or hands-free only',
+        'Track HOS and plan stops before clocks run out'
+      ]
+    },
+    {
+      id: 'evening',
+      title: 'Daily Routine — Evening',
+      items: [
+        'Complete post-trip DVIR',
+        'Walk 15–30 minutes after parking',
+        'Call or video chat with family',
+        'Limit screen time 30–60 minutes before bed',
+        'Target 7–8 hours of sleep'
+      ]
+    }
+  ];
+};
+
+/* ============================================================
    Download & Print Helpers
    ============================================================ */
 Packets.download = function (type) {
@@ -2254,26 +2405,7 @@ Packets.download = function (type) {
     } catch (_) {}
   }
   if (type === 'new-driver') {
-    fetch('/api/shop/packet-access?type=' + encodeURIComponent(type), { credentials: 'include' })
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        if (!data.allowed) {
-          alert('New Driver Packet now requires purchase ($9). Redirecting to shop.');
-          window.location.href = '/shop';
-          return;
-        }
-        fetch('/api/shop/packet-download-log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ type: type })
-        }).catch(function () {});
-        Packets.downloadDirect(type, track);
-      })
-      .catch(function () {
-        alert('Please sign in and purchase the New Driver Packet to download.');
-        window.location.href = '/login';
-      });
+    Packets.downloadDirect(type, track);
     return;
   }
   Packets.downloadDirect(type, track);
@@ -2301,20 +2433,7 @@ Packets.downloadDirect = function (type, trackFn) {
 
 Packets.print = function (type) {
   if (type === 'new-driver') {
-    fetch('/api/shop/packet-access?type=' + encodeURIComponent(type), { credentials: 'include' })
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        if (!data.allowed) {
-          alert('New Driver Packet now requires purchase ($9). Redirecting to shop.');
-          window.location.href = '/shop';
-          return;
-        }
-        Packets.printDirect(type);
-      })
-      .catch(function () {
-        alert('Please sign in and purchase the New Driver Packet to print.');
-        window.location.href = '/login';
-      });
+    Packets.printDirect(type);
     return;
   }
   Packets.printDirect(type);

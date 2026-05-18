@@ -163,6 +163,10 @@ app.get('/about', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'about.html'));
 });
 
+app.get('/packets/new-driver', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'packets-new-driver.html'));
+});
+
 app.get('/services', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'services.html'));
 });

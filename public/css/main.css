@@ -2165,3 +2165,123 @@ body.has-checkout-banner .page-shell {
 .packet-tier-free {
   color: var(--green);
 }
+
+/* ---------- TIER 1 ONLINE CHECKLIST ---------- */
+.tier1-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 72px 16px 24px;
+  overflow-y: auto;
+}
+.tier1-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  z-index: -1;
+}
+.tier1-modal-panel {
+  width: 100%;
+  max-width: 720px;
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+  padding: 24px 28px 28px;
+  margin: 0 auto;
+}
+.tier1-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.tier1-modal-header h2 {
+  margin: 8px 0 6px;
+  font-size: 1.35rem;
+}
+.tier1-modal-sub {
+  font-size: 0.88rem;
+  color: var(--text-2);
+  margin: 0;
+  line-height: 1.5;
+}
+.tier1-modal-close {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-2);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.tier1-modal-close:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.1);
+}
+.tier1-modal-body {
+  padding-top: 4px;
+}
+.tier1-progress {
+  margin-bottom: 20px;
+}
+.tier1-progress-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.tier1-progress-fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--gold), var(--green));
+  border-radius: 4px;
+  transition: width 0.25s ease;
+}
+.tier1-progress-label {
+  font-size: 0.8rem;
+  color: var(--text-3);
+  margin: 8px 0 0;
+}
+.tier1-section {
+  margin-bottom: 22px;
+}
+.tier1-section h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--gold);
+  margin: 0 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tier1-check {
+  display: flex;
+  margin-bottom: 6px;
+}
+.tier1-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+body.tier1-modal-open {
+  overflow: hidden;
+}
+.tier1-page-intro {
+  max-width: 720px;
+  margin: 0 auto 24px;
+}
+.tier1-page-panel {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px 32px;
+}

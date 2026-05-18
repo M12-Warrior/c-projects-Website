@@ -503,8 +503,9 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(function (data) {
         if (!data.allowed) {
           if (type === 'new-driver') {
-            alert('New Driver Packet is $9. Redirecting you to shop.');
-            window.location.href = '/shop';
+            if (typeof Packets !== 'undefined' && typeof Packets.download === 'function') {
+              Packets.download(type);
+            }
             return;
           }
           alert('You don\'t have access or your download limit has been reached. This license is for your use only. Purchase again or renew your fleet license if needed.');
