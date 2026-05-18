@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../db/database');
+const micBadge = require('../lib/micBadge');
 
 const router = express.Router();
 const PLAN_WELLNESS = 'wellness_journal';
@@ -102,7 +103,7 @@ router.get('/summary', requireSession, (req, res) => {
 
   const user = db.prepare(`
     SELECT id, username, email, role, avatar, bio, home_base, customer_category, created_at,
-           opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum
+           opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum, mic_color
     FROM users WHERE id = ?
   `).get(userId);
   if (!user) {
@@ -222,11 +223,17 @@ router.get('/summary', requireSession, (req, res) => {
     });
   }
 
+  const micLit = micBadge.hasPaidOrder(userId);
+  const micColor = micBadge.normalizeMicColor(user.mic_color);
+
   const mic = {
     has_mic_privilege: sub.subscription.active,
     mic_visible: sub.mic_visible,
     tier: sub.subscription.active ? sub.subscription.tier : 0,
-    tier_label: sub.subscription.active ? tierLabel(sub.subscription.tier) : ''
+    tier_label: sub.subscription.active ? tierLabel(sub.subscription.tier) : '',
+    mic_color: micColor,
+    mic_lit: micLit,
+    mic_colors: micBadge.MIC_COLORS
   };
 
   res.json({
@@ -254,6 +261,34 @@ router.get('/summary', requireSession, (req, res) => {
     journal_entry_count: journalCount,
     digital_access: digitalAccess,
     access
+  });
+});
+
+// PATCH /api/account/mic-color — save CB mic badge color (whitelist)
+router.patch('/mic-color', requireSession, (req, res) => {
+  const userId = req.session.user.id;
+  const raw = req.body && Object.prototype.hasOwnProperty.call(req.body, 'mic_color')
+    ? req.body.mic_color
+    : undefined;
+
+  if (raw === undefined) {
+    return res.status(400).json({ error: 'mic_color is required (use null to reset to tier default)' });
+  }
+
+  if (raw !== null && raw !== '' && !micBadge.isValidMicColor(raw)) {
+    return res.status(400).json({
+      error: 'Invalid mic color',
+      allowed: micBadge.MIC_COLORS
+    });
+  }
+
+  const color = micBadge.normalizeMicColor(raw);
+  db.prepare('UPDATE users SET mic_color = ? WHERE id = ?').run(color, userId);
+
+  res.json({
+    success: true,
+    mic_color: color,
+    mic_lit: micBadge.hasPaidOrder(userId)
   });
 });
 

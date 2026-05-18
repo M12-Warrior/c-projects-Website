@@ -187,6 +187,9 @@ try {
   db.exec('ALTER TABLE users ADD COLUMN opt_out_address_book INTEGER DEFAULT 0');
 } catch (_) {}
 try {
+  db.exec('ALTER TABLE users ADD COLUMN mic_color TEXT DEFAULT NULL');
+} catch (_) {}
+try {
   db.exec('CREATE INDEX IF NOT EXISTS idx_users_customer_category ON users(customer_category)');
 } catch (_) {}
 try {

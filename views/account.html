@@ -57,6 +57,22 @@
           <h1 id="accountHeadline">Loading your lane…</h1>
           <p class="account-hero-lead" id="accountLead">Hang tight while we sync your rig.</p>
           <div class="account-stat-row" id="accountStatRow" style="display:none"></div>
+          <div class="account-mic-hero hidden" id="accountMicHero" aria-live="polite">
+            <div class="account-mic-preview-wrap">
+              <div class="account-mic-preview" id="accountMicPreview" aria-hidden="true"></div>
+              <p class="account-mic-preview-label" id="accountMicPreviewLabel">CB mic</p>
+            </div>
+            <div class="account-mic-picker" id="accountMicPicker">
+              <h3>Your CB mic badge</h3>
+              <p class="account-mic-picker-lead" id="accountMicPickerLead">—</p>
+              <p class="account-mic-lit-note is-off" id="accountMicLitNote">—</p>
+              <div class="account-mic-swatches" id="accountMicSwatches" role="group" aria-label="Mic badge color"></div>
+              <div class="account-mic-save-row">
+                <button type="button" class="btn btn-primary" id="accountMicSaveBtn" disabled>Save mic color</button>
+                <span class="text-muted" style="font-size:0.82rem" id="accountMicSaveHint"></span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="account-tablist" role="tablist" aria-label="Account sections">
@@ -181,6 +197,140 @@
           title = 'Payment captured. Digital items are unlocked; physical items are treated as fulfilled for this order.';
         }
         return { text: word, title: title };
+      }
+
+      const CB_MIC_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>';
+      const MIC_COLOR_LABELS = {
+        gray: 'Gray', black: 'Black', gold: 'Gold', white: 'White',
+        pink: 'Pink', navy: 'Navy blue', orange: 'Safety orange', red: 'Red'
+      };
+
+      function micBadgeClassList(mic, selectedColor) {
+        var classes = ['cb-mic'];
+        var color = selectedColor !== undefined ? selectedColor : (mic && mic.mic_color);
+        var tier = mic && mic.tier ? mic.tier : 0;
+        if (color) {
+          classes.push('cb-mic-color-' + color);
+        } else if (tier > 0) {
+          classes.push('cb-mic-tier-' + tier);
+        }
+        if (mic && mic.mic_lit) classes.push('cb-mic-lit');
+        return classes.join(' ');
+      }
+
+      var micPickerState = { saved: null, draft: null, dirty: false };
+
+      function renderMicHero(summary) {
+        var hero = document.getElementById('accountMicHero');
+        var mic = summary.mic || {};
+        if (!hero) return;
+
+        if (!mic.has_mic_privilege) {
+          hero.classList.add('hidden');
+          return;
+        }
+
+        hero.classList.remove('hidden');
+        micPickerState.saved = mic.mic_color || null;
+        micPickerState.draft = micPickerState.saved;
+        micPickerState.dirty = false;
+
+        var preview = document.getElementById('accountMicPreview');
+        preview.innerHTML = '<span class="' + micBadgeClassList(mic, micPickerState.draft) + '" title="CB mic preview">' + CB_MIC_SVG + '</span>';
+
+        var tierLabel = mic.tier_label ? ' (' + mic.tier_label + ')' : '';
+        document.getElementById('accountMicPreviewLabel').textContent =
+          'Tier ' + (mic.tier || 1) + tierLabel;
+
+        document.getElementById('accountMicPickerLead').textContent =
+          'Pick a paint job for your forum mic. Leave it on tier default to match your subscription tenure color.';
+
+        var litEl = document.getElementById('accountMicLitNote');
+        if (mic.mic_lit) {
+          litEl.textContent = 'Lit up — you have at least one paid purchase on file. Your mic glows on the forum.';
+          litEl.classList.remove('is-off');
+        } else {
+          litEl.textContent = 'Not lit yet — any paid shop purchase lights up your mic badge.';
+          litEl.classList.add('is-off');
+        }
+
+        var swatches = document.getElementById('accountMicSwatches');
+        var colors = mic.mic_colors || Object.keys(MIC_COLOR_LABELS);
+        var swatchHtml = colors.map(function(c) {
+          var label = MIC_COLOR_LABELS[c] || c;
+          var pressed = micPickerState.draft === c;
+          return '<button type="button" class="account-mic-swatch" data-color="' + escapeHtml(c) + '" aria-pressed="' + (pressed ? 'true' : 'false') + '" aria-label="' + escapeHtml(label) + '"></button>';
+        }).join('');
+        swatchHtml += '<button type="button" class="account-mic-swatch-tier" id="accountMicTierDefault" aria-pressed="' +
+          (micPickerState.draft == null ? 'true' : 'false') + '">Tier default</button>';
+        swatches.innerHTML = swatchHtml;
+
+        swatches.querySelectorAll('.account-mic-swatch').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            micPickerState.draft = btn.getAttribute('data-color');
+            micPickerState.dirty = micPickerState.draft !== micPickerState.saved;
+            updateMicPickerUi(summary);
+          });
+        });
+        var tierBtn = document.getElementById('accountMicTierDefault');
+        if (tierBtn) {
+          tierBtn.addEventListener('click', function() {
+            micPickerState.draft = null;
+            micPickerState.dirty = micPickerState.saved != null;
+            updateMicPickerUi(summary);
+          });
+        }
+
+        var saveBtn = document.getElementById('accountMicSaveBtn');
+        saveBtn.onclick = async function() {
+          if (!micPickerState.dirty) return;
+          saveBtn.disabled = true;
+          try {
+            var r = await fetch('/api/account/mic-color', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ mic_color: micPickerState.draft })
+            });
+            var data = await r.json().catch(function() { return {}; });
+            if (!r.ok) {
+              showToast(data.error || 'Could not save mic color.', false);
+              saveBtn.disabled = false;
+              return;
+            }
+            micPickerState.saved = data.mic_color != null ? data.mic_color : null;
+            micPickerState.draft = micPickerState.saved;
+            micPickerState.dirty = false;
+            summary.mic.mic_color = micPickerState.saved;
+            if (data.mic_lit != null) summary.mic.mic_lit = !!data.mic_lit;
+            showToast('Mic color saved.', true);
+            updateMicPickerUi(summary);
+            renderMic(summary);
+          } catch (e) {
+            showToast('Could not save mic color.', false);
+            saveBtn.disabled = false;
+          }
+        };
+
+        updateMicPickerUi(summary);
+      }
+
+      function updateMicPickerUi(summary) {
+        var mic = summary.mic || {};
+        var preview = document.getElementById('accountMicPreview');
+        if (preview) {
+          preview.innerHTML = '<span class="' + micBadgeClassList(mic, micPickerState.draft) + '" title="CB mic preview">' + CB_MIC_SVG + '</span>';
+        }
+        document.querySelectorAll('.account-mic-swatch').forEach(function(btn) {
+          var c = btn.getAttribute('data-color');
+          btn.setAttribute('aria-pressed', c === micPickerState.draft ? 'true' : 'false');
+        });
+        var tierBtn = document.getElementById('accountMicTierDefault');
+        if (tierBtn) tierBtn.setAttribute('aria-pressed', micPickerState.draft == null ? 'true' : 'false');
+        var saveBtn = document.getElementById('accountMicSaveBtn');
+        var hint = document.getElementById('accountMicSaveHint');
+        if (saveBtn) saveBtn.disabled = !micPickerState.dirty;
+        if (hint) hint.textContent = micPickerState.dirty ? 'Unsaved changes' : '';
       }
 
       const ROAD_LINES = [
@@ -434,6 +584,7 @@
           document.getElementById('adminLinkWrap').classList.remove('hidden');
         }
 
+        renderMicHero(summary);
         renderMic(summary);
         renderAccess(summary);
 

@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../db/database');
 const subscriptionRouter = require('./subscription');
+const micBadge = require('../lib/micBadge');
 
 const router = express.Router();
 
@@ -82,7 +83,7 @@ router.get('/categories/:slug', (req, res) => {
     ORDER BY t.pinned DESC, t.updated_at DESC
   `).all(category.id);
 
-  const threadsWithUser = threads.map(t => ({
+  const threadsWithUser = micBadge.attachMicFields(threads.map(t => ({
     id: t.id,
     category_id: t.category_id,
     user_id: t.user_id,
@@ -96,7 +97,7 @@ router.get('/categories/:slug', (req, res) => {
     created_at: t.created_at,
     updated_at: t.updated_at,
     reply_count: t.reply_count || 0
-  }));
+  })));
 
   res.json({
     category: {
@@ -125,6 +126,7 @@ router.get('/threads/:slug', (req, res) => {
     return res.status(404).json({ error: 'Thread not found' });
   }
 
+  const threadMic = micBadge.micFieldsForUser(row.user_id);
   const thread = {
     id: row.id,
     category_id: row.category_id,
@@ -132,6 +134,8 @@ router.get('/threads/:slug', (req, res) => {
     username: row.username,
     home_base: row.home_base || null,
     subscriber_tier: subscriberTier(row.user_id),
+    mic_color: threadMic.mic_color,
+    mic_lit: threadMic.mic_lit,
     title: row.title,
     slug: row.slug,
     pinned: row.pinned,
@@ -149,7 +153,7 @@ router.get('/threads/:slug', (req, res) => {
     ORDER BY r.created_at ASC
   `).all(row.id);
 
-  const repliesWithUser = replies.map(r => ({
+  const repliesWithUser = micBadge.attachMicFields(replies.map(r => ({
     id: r.id,
     thread_id: r.thread_id,
     user_id: r.user_id,
@@ -158,7 +162,7 @@ router.get('/threads/:slug', (req, res) => {
     subscriber_tier: subscriberTier(r.user_id),
     content: r.content,
     created_at: r.created_at
-  }));
+  })));
 
   res.json({ thread, replies: repliesWithUser });
 });
@@ -247,6 +251,7 @@ router.post('/threads/:slug/replies', requireSession, (req, res) => {
     WHERE r.id = ?
   `).get(replyId);
 
+  const replyMic = micBadge.micFieldsForUser(reply.user_id);
   res.status(201).json({
     success: true,
     reply: {
@@ -255,6 +260,8 @@ router.post('/threads/:slug/replies', requireSession, (req, res) => {
       user_id: reply.user_id,
       username: reply.username,
       subscriber_tier: subscriberTier(reply.user_id),
+      mic_color: replyMic.mic_color,
+      mic_lit: replyMic.mic_lit,
       content: reply.content,
       created_at: reply.created_at
     }
