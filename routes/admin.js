@@ -1,5 +1,7 @@
 const express = require('express');
 const db = require('../db/database');
+const micBadge = require('../lib/micBadge');
+const subscriptionRouter = require('./subscription');
 
 const router = express.Router();
 
@@ -64,6 +66,17 @@ router.get('/stats', (req, res) => {
   const revenueRow = db.prepare("SELECT COALESCE(SUM(total), 0) as total FROM orders WHERE status != 'cancelled'").get();
   const totalRevenue = revenueRow.total;
   const totalProducts = db.prepare('SELECT COUNT(*) as count FROM products').get().count;
+  let totalThankYou = 0;
+  let recentThankYou = [];
+  try {
+    totalThankYou = db.prepare('SELECT COUNT(*) as count FROM thank_you_submissions').get().count;
+    recentThankYou = db.prepare(`
+      SELECT id, name, email, created_at FROM thank_you_submissions
+      ORDER BY created_at DESC LIMIT 5
+    `).all();
+  } catch (_) {}
+  const totalContactMessages = db.prepare('SELECT COUNT(*) as count FROM contact_messages').get().count;
+  const unreadContactMessages = db.prepare('SELECT COUNT(*) as count FROM contact_messages WHERE read = 0').get().count;
   const recentUsers = db.prepare(`
     SELECT id, username, email, role, created_at FROM users
     ORDER BY created_at DESC LIMIT 5
@@ -84,6 +97,10 @@ router.get('/stats', (req, res) => {
       total_orders: totalOrders,
       total_revenue: totalRevenue,
       total_products: totalProducts,
+      total_thank_you: totalThankYou,
+      total_contact_messages: totalContactMessages,
+      unread_contact_messages: unreadContactMessages,
+      recent_thank_you: recentThankYou,
       recent_users: recentUsers,
       recent_orders: recentOrders,
     },
@@ -94,9 +111,24 @@ const CUSTOMER_CATEGORIES = ['individual', 'fleet', 'school'];
 
 // GET /api/admin/users
 router.get('/users', (req, res) => {
-  const users = db.prepare(`
-    SELECT id, username, email, role, customer_category, created_at FROM users
+  const rows = db.prepare(`
+    SELECT id, username, email, role, customer_category, created_at, mic_color FROM users
+    ORDER BY username ASC
   `).all();
+  const users = rows.map((u) => {
+    const tier = subscriptionRouter.getSubscriberTierForUser(u.id);
+    return {
+      id: u.id,
+      username: u.username,
+      email: u.email,
+      role: u.role,
+      customer_category: u.customer_category,
+      created_at: u.created_at,
+      mic_color: micBadge.normalizeMicColor(u.mic_color),
+      mic_lit: micBadge.hasPaidOrder(u.id),
+      subscriber_tier: tier
+    };
+  });
   res.json({ users });
 });
 

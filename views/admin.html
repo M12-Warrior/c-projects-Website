@@ -113,6 +113,15 @@
           </table>
         </div>
         <div class="admin-section">
+          <h3>Homepage sign-ups</h3>
+          <p style="color:var(--text-2);margin-bottom:12px;font-size:0.9rem">Free thank-you notes ($0 coffee) and contact/newsletter messages from the site.</p>
+          <table class="admin-table">
+            <thead><tr><th>Name</th><th>Email</th><th>Submitted</th></tr></thead>
+            <tbody id="recentThankYouTable"></tbody>
+          </table>
+          <p id="recentThankYouNone" class="hidden text-muted" style="font-size:0.9rem;margin-top:8px">No thank-you sign-ups yet.</p>
+        </div>
+        <div class="admin-section">
           <h3>Data &amp; communications</h3>
           <p style="color:var(--text-2);margin-bottom:12px;font-size:0.9rem">Export contacts by preference. Newsletter list includes only users who opted in. Use in line with our Privacy Policy; honor opt-outs.</p>
           <div style="display:flex;flex-wrap:wrap;gap:10px;">
@@ -124,7 +133,7 @@
 
       <div id="tabUsers" class="admin-tab-content hidden">
         <table class="admin-table">
-          <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Category</th><th>Joined</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Handle</th><th>Mic</th><th>Email</th><th>Role</th><th>Category</th><th>Joined</th><th>Actions</th></tr></thead>
           <tbody id="usersTable"></tbody>
         </table>
       </div>
@@ -521,6 +530,28 @@
         return '$' + (Number(n) || 0).toFixed(2);
       }
 
+      const CB_MIC_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" width="16" height="16"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>';
+
+      function adminMicBadgeClasses(tier, micColor, micLit) {
+        var classes = ['cb-mic', 'admin-user-mic'];
+        if (micColor) {
+          classes.push('cb-mic-color-' + micColor);
+        } else if (tier > 0) {
+          classes.push('cb-mic-tier-' + tier);
+        }
+        if (micLit) classes.push('cb-mic-lit');
+        return classes.join(' ');
+      }
+
+      function adminMicBadgeHtml(u) {
+        var tier = u.subscriber_tier || 0;
+        var color = u.mic_color || null;
+        var lit = !!u.mic_lit;
+        var colorLabel = color ? color : (tier > 0 ? 'tier ' + tier : 'none');
+        var litLabel = lit ? 'lit' : 'not lit';
+        return '<span class="' + adminMicBadgeClasses(tier, color, lit) + '" title="Color: ' + escapeHtml(colorLabel) + ', ' + litLabel + '">' + CB_MIC_SVG + '</span>';
+      }
+
       function showToast(msg, success) {
         const el = document.getElementById('toast');
         if (!el) return;
@@ -743,6 +774,8 @@
         const statsEl = document.getElementById('dashboardStats');
         const usersEl = document.getElementById('recentUsersTable');
         const ordersEl = document.getElementById('recentOrdersTable');
+        const thankYouEl = document.getElementById('recentThankYouTable');
+        const thankYouNone = document.getElementById('recentThankYouNone');
         try {
           const res = await fetch('/api/admin/stats', { credentials: 'include' });
           if (!res.ok) throw new Error('Failed');
@@ -752,9 +785,24 @@
             '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_users ?? s.totalUsers ?? 0) + '</span><span class="admin-stat-label">Users</span></div>' +
             '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_posts ?? s.totalPosts ?? 0) + '</span><span class="admin-stat-label">Posts</span></div>' +
             '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_threads ?? s.totalThreads ?? 0) + '</span><span class="admin-stat-label">Threads</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_thank_you ?? 0) + '</span><span class="admin-stat-label">Thank-you sign-ups</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_contact_messages ?? 0) + '</span><span class="admin-stat-label">Contact / newsletter</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + (s.unread_contact_messages ?? 0) + '</span><span class="admin-stat-label">Unread messages</span></div>' +
             '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_orders ?? s.totalOrders ?? 0) + '</span><span class="admin-stat-label">Orders</span></div>' +
             '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(s.total_revenue ?? s.totalRevenue ?? 0) + '</span><span class="admin-stat-label">Revenue</span></div>' +
             '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_products ?? s.totalProducts ?? 0) + '</span><span class="admin-stat-label">Products</span></div>';
+          if (thankYouEl) {
+            const rows = s.recent_thank_you || [];
+            if (rows.length === 0) {
+              thankYouEl.innerHTML = '';
+              if (thankYouNone) thankYouNone.classList.remove('hidden');
+            } else {
+              if (thankYouNone) thankYouNone.classList.add('hidden');
+              thankYouEl.innerHTML = rows.map(function(t) {
+                return '<tr><td>' + escapeHtml(t.name || '—') + '</td><td>' + escapeHtml(t.email || '—') + '</td><td>' + formatDate(t.created_at) + '</td></tr>';
+              }).join('');
+            }
+          }
         } catch (e) {
           statsEl.innerHTML = '<p class="text-muted">Could not load stats.</p>';
         }
@@ -796,13 +844,14 @@
             const catOpts = '<option value="">—</option><option value="individual"' + (cat === 'individual' ? ' selected' : '') + '>Individual</option><option value="fleet"' + (cat === 'fleet' ? ' selected' : '') + '>Fleet</option><option value="school"' + (cat === 'school' ? ' selected' : '') + '>School</option>';
             return '<tr data-id="' + id + '">' +
               '<td>' + escapeHtml(u.username || u.email) + '</td>' +
+              '<td>' + adminMicBadgeHtml(u) + '</td>' +
               '<td>' + escapeHtml(u.email || '—') + '</td>' +
               '<td><select class="form-input role-select" style="max-width:120px; padding:6px;"><option value="user"' + (role === 'user' ? ' selected' : '') + '>user</option><option value="admin"' + (role === 'admin' ? ' selected' : '') + '>admin</option></select></td>' +
               '<td><select class="form-input category-select" style="max-width:120px; padding:6px;">' + catOpts + '</select></td>' +
               '<td>' + formatDate(u.created_at || u.joined_at) + '</td>' +
               '<td><div class="admin-actions"><button type="button" class="admin-btn admin-btn-primary user-save-role">Save</button><button type="button" class="admin-btn admin-btn-danger user-delete">Delete</button></div></td>' +
             '</tr>';
-          }).join('') || '<tr><td colspan="6">No users</td></tr>';
+          }).join('') || '<tr><td colspan="7">No users</td></tr>';
 
           el.querySelectorAll('.user-save-role').forEach(function(btn) {
             btn.addEventListener('click', async function() {

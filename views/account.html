@@ -240,10 +240,12 @@
 
         var tierLabel = mic.tier_label ? ' (' + mic.tier_label + ')' : '';
         document.getElementById('accountMicPreviewLabel').textContent =
-          'Tier ' + (mic.tier || 1) + tierLabel;
+          mic.tier > 0 ? ('Tier ' + mic.tier + tierLabel) : 'Your CB mic';
 
         document.getElementById('accountMicPickerLead').textContent =
-          'Pick a paint job for your forum mic. Leave it on tier default to match your subscription tenure color.';
+          mic.can_show_on_forum
+            ? 'Pick a paint job for your forum mic. Leave it on tier default to match your subscription tenure color.'
+            : 'Pick your mic color now — it saves to your handle. Subscribe to Trucker Wellness Journal (monthly) to show the mic on forum posts.';
 
         var litEl = document.getElementById('accountMicLitNote');
         if (mic.mic_lit) {
@@ -454,7 +456,15 @@
         var toggleWrap = document.getElementById('micToggleWrap');
         var check = document.getElementById('micVisibleCheck');
         if (!mic.has_mic_privilege) {
-          textEl.innerHTML = 'No CB mic badge on file yet. <strong>Trucker Wellness Journal</strong> (monthly) lights up the mic tiers on the forum when you’re subscribed.';
+          textEl.innerHTML = 'Sign in to customize your CB mic badge color.';
+          if (toggleWrap) toggleWrap.style.display = 'none';
+          return;
+        }
+        if (!mic.can_show_on_forum) {
+          var litNote = mic.mic_lit
+            ? ' Your mic is <strong>lit</strong> on the forum from a paid shop purchase.'
+            : ' Any paid shop purchase lights up your mic glow on the forum.';
+          textEl.innerHTML = 'Your handle keeps the color you pick above. <strong>Trucker Wellness Journal</strong> (monthly) adds the tiered CB mic next to your name on forum posts.' + litNote;
           if (toggleWrap) toggleWrap.style.display = 'none';
           return;
         }
@@ -566,7 +576,15 @@
         var u = summary.user || user;
         document.getElementById('accountHeadline').innerHTML = buildHeadline(u, summary);
         document.getElementById('accountLead').innerHTML = buildLead(u, summary);
-        document.getElementById('cbHandleDisplay').textContent = summary.cb_handle || u.username || '—';
+        var handleText = summary.cb_handle || u.username || '—';
+        var handleEl = document.getElementById('cbHandleDisplay');
+        var micForHandle = summary.mic || {};
+        if (micForHandle.has_mic_privilege) {
+          handleEl.innerHTML = escapeHtml(handleText) +
+            ' <span class="' + micBadgeClassList(micForHandle, micForHandle.mic_color) + '" title="CB mic by your handle">' + CB_MIC_SVG + '</span>';
+        } else {
+          handleEl.textContent = handleText;
+        }
 
         var statRow = document.getElementById('accountStatRow');
         var stats = [];

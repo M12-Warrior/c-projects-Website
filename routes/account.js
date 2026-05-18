@@ -225,12 +225,18 @@ router.get('/summary', requireSession, (req, res) => {
 
   const micLit = micBadge.hasPaidOrder(userId);
   const micColor = micBadge.normalizeMicColor(user.mic_color);
+  const isAdmin = (user.role || '') === 'admin';
+  const subActive = sub.subscription.active;
+  // My Cab color picker: every logged-in user; admins always. Forum badge still needs active journal sub.
+  const hasMicPicker = true;
 
   const mic = {
-    has_mic_privilege: sub.subscription.active,
+    has_mic_privilege: hasMicPicker,
+    can_show_on_forum: subActive,
+    is_admin: isAdmin,
     mic_visible: sub.mic_visible,
-    tier: sub.subscription.active ? sub.subscription.tier : 0,
-    tier_label: sub.subscription.active ? tierLabel(sub.subscription.tier) : '',
+    tier: subActive ? sub.subscription.tier : 0,
+    tier_label: subActive ? tierLabel(sub.subscription.tier) : '',
     mic_color: micColor,
     mic_lit: micLit,
     mic_colors: micBadge.MIC_COLORS

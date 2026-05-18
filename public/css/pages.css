@@ -1465,6 +1465,19 @@ body.forum-coffee-shop .forum-category-header .page-title {
   width: 48px;
   height: 48px;
 }
+.account-cb-handle .cb-mic {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+.account-cb-handle .cb-mic svg {
+  width: 1.1em;
+  height: 1.1em;
+}
+.admin-user-mic {
+  display: inline-flex;
+  vertical-align: middle;
+}
 .account-mic-preview-label {
   font-size: 0.78rem;
   color: var(--text-3);
