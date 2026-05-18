@@ -18,8 +18,29 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 const isProduction = process.env.NODE_ENV === 'production';
+
+const DEFAULT_SESSION_SECRET = 'drivershield-secret-key-2026';
+let sessionSecret = process.env.SESSION_SECRET;
+if (isProduction) {
+  if (!sessionSecret || !String(sessionSecret).trim()) {
+    console.error('FATAL: SESSION_SECRET must be set in production (Railway Variables).');
+    process.exit(1);
+  }
+  if (sessionSecret === DEFAULT_SESSION_SECRET) {
+    console.error('FATAL: SESSION_SECRET must not use the default dev value in production.');
+    process.exit(1);
+  }
+} else {
+  if (!sessionSecret || !String(sessionSecret).trim()) {
+    sessionSecret = DEFAULT_SESSION_SECRET;
+    console.warn('[security] Using default SESSION_SECRET; set SESSION_SECRET in .env for local dev.');
+  } else if (sessionSecret === DEFAULT_SESSION_SECRET) {
+    console.warn('[security] SESSION_SECRET matches the default dev value; use a unique secret.');
+  }
+}
 
 // Redirect HTTP to HTTPS in production (Railway sends X-Forwarded-Proto)
 if (isProduction) {
@@ -52,11 +73,17 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+const sessionCookie = { maxAge: 24 * 60 * 60 * 1000 };
+if (isProduction) {
+  sessionCookie.secure = true;
+  sessionCookie.httpOnly = true;
+  sessionCookie.sameSite = 'lax';
+}
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'drivershield-secret-key-2026',
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24 hours
+  cookie: sessionCookie
 }));
 app.use(express.static(path.join(__dirname, 'public'), {
   etag: false,

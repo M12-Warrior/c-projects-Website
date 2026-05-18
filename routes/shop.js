@@ -630,17 +630,20 @@ router.get('/orders/all', requireAdmin, (req, res) => {
   res.json({ orders: ordersWithItems });
 });
 
-// 9. PUT /api/shop/orders/:id — Admin only, update order status
+// 9. PUT /api/shop/orders/:id — Admin only, update order status.
+// Digital access grants run only when payment is verified: payment_status already paid,
+// or body.confirm_fulfillment === true after manual/Stripe verification.
+// Optional mark_paid: true sets payment_status to paid (do not use for unpaid orders).
 router.put('/orders/:id', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) return res.status(400).json({ error: 'Invalid order ID' });
 
-  const { status } = req.body || {};
+  const { status, confirm_fulfillment, mark_paid } = req.body || {};
   if (!status || typeof status !== 'string' || !status.trim()) {
     return res.status(400).json({ error: 'Status is required' });
   }
 
-  const existing = db.prepare('SELECT id, status FROM orders WHERE id = ?').get(id);
+  const existing = db.prepare('SELECT id, status, payment_status FROM orders WHERE id = ?').get(id);
   if (!existing) return res.status(404).json({ error: 'Order not found' });
 
   const newStatus = status.trim().toLowerCase();
@@ -649,7 +652,18 @@ router.put('/orders/:id', requireAdmin, (req, res) => {
 
   db.prepare('UPDATE orders SET status = ? WHERE id = ?').run(status.trim(), id);
 
-  if (wasPending && isCompleted) {
+  if (mark_paid === true) {
+    db.prepare(`
+      UPDATE orders SET payment_status = 'paid', paid_at = COALESCE(paid_at, datetime('now'))
+      WHERE id = ?
+    `).run(id);
+  }
+
+  const paymentRow = db.prepare('SELECT payment_status FROM orders WHERE id = ?').get(id);
+  const alreadyPaid = String(paymentRow?.payment_status || '').toLowerCase() === 'paid';
+  const mayGrantAccess = confirm_fulfillment === true || alreadyPaid;
+
+  if (wasPending && isCompleted && mayGrantAccess) {
     try {
       createProductAccessGrantsForOrder(id);
     } catch (err) {

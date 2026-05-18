@@ -402,15 +402,33 @@ try {
   }
 } catch (_) {}
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+function resolveInitialAdminPassword() {
+  const fromEnv = process.env.ADMIN_INITIAL_PASSWORD;
+  if (fromEnv && String(fromEnv).trim()) {
+    return String(fromEnv).trim();
+  }
+  if (isProduction) {
+    return null;
+  }
+  return 'admin123';
+}
+
 // Seed data (only if tables are empty)
 const seedIfEmpty = () => {
   const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
   if (userCount.count > 0) return;
 
-  const insertUser = db.prepare(`
-    INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)
-  `);
-  insertUser.run('admin', 'joyce@mile12warrior.com', bcrypt.hashSync('admin123', 10), 'admin');
+  const adminPassword = resolveInitialAdminPassword();
+  if (adminPassword) {
+    const insertUser = db.prepare(`
+      INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)
+    `);
+    insertUser.run('admin', 'joyce@mile12warrior.com', bcrypt.hashSync(adminPassword, 10), 'admin');
+  } else if (isProduction) {
+    console.warn('[database] Empty production DB: set ADMIN_INITIAL_PASSWORD in Railway to create the first admin, or register and promote manually.');
+  }
 
   const insertCategory = db.prepare(`
     INSERT OR IGNORE INTO forum_categories (name, slug, description, sort_order) VALUES (?, ?, ?, ?)
@@ -486,14 +504,17 @@ try {
   }
 } catch (_) {}
 
-// Ensure at least one admin exists (e.g. if DB had users before seed ran)
+// Ensure at least one admin exists (e.g. if DB had users before seed ran) — never use admin123 in production
 try {
   const adminCount = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'admin'").get();
   if (adminCount.count === 0) {
-    const insertAdmin = db.prepare(`
-      INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)
-    `);
-    insertAdmin.run('admin', 'joyce@mile12warrior.com', bcrypt.hashSync('admin123', 10), 'admin');
+    const adminPassword = resolveInitialAdminPassword();
+    if (adminPassword) {
+      const insertAdmin = db.prepare(`
+        INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)
+      `);
+      insertAdmin.run('admin', 'joyce@mile12warrior.com', bcrypt.hashSync(adminPassword, 10), 'admin');
+    }
   }
 } catch (_) {}
 

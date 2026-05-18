@@ -1,9 +1,19 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const db = require('../db/database');
 
 const router = express.Router();
+const isProduction = process.env.NODE_ENV === 'production';
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many login attempts. Try again later.' }
+});
 
 const RESET_TOKEN_EXPIRY_HOURS = 1;
 
@@ -32,7 +42,11 @@ function sendPasswordResetEmail(toEmail, resetLink, callback) {
   } catch (e) {
     // nodemailer not installed or config missing
   }
-  console.log('[Password reset] No SMTP configured. Reset link for', toEmail, ':', resetLink);
+  if (isProduction) {
+    console.log('[Password reset] No SMTP configured; reset email not sent for', toEmail, '(configure SMTP_HOST, SMTP_USER, SMTP_PASS on Railway).');
+  } else {
+    console.log('[Password reset] No SMTP configured. Reset link for', toEmail, ':', resetLink);
+  }
   if (callback) callback(true);
 }
 
@@ -125,7 +139,7 @@ router.post('/register', (req, res) => {
 });
 
 // POST /api/auth/login
-router.post('/login', (req, res) => {
+router.post('/login', loginLimiter, (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {

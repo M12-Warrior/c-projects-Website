@@ -1,9 +1,18 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const db = require('../db/database');
 
 const router = express.Router();
 
-router.post('/', (req, res) => {
+const thankYouLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many submissions. Please try again in a minute.' }
+});
+
+router.post('/', thankYouLimiter, (req, res) => {
   const name =
     req.body && typeof req.body.name === 'string' && req.body.name.trim()
       ? req.body.name.trim().slice(0, 120)

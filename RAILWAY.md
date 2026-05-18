@@ -61,17 +61,19 @@ Redeploy after adding the volume and `DB_PATH`.
 
 - **`PORT`** — Railway sets this automatically; the app uses `process.env.PORT || 3000`.
 - **`DB_PATH`** — Set to `/data/drivershield.db` (or your volume path) so the SQLite file persists.
-- **`NODE_ENV`** — Set to `production` in production.
-- **`SESSION_SECRET`** — (Recommended in production.) A long random string for signing session cookies; if unset, a default is used.
-- **`BASE_URL`** — (Optional.) Full site URL (e.g. `https://mile12warrior.com`) for password-reset and **order confirmation** receipt links; otherwise derived from the request.
-- **SMTP** (optional, for password reset and **shop order confirmation emails**): `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `SMTP_PORT`, `FROM_EMAIL`. Without SMTP, orders still complete but no confirmation email is sent.
+- **`NODE_ENV`** — Set to **`production`** on Railway (required for secure session cookies and secret checks).
+- **`SESSION_SECRET`** — **Required in production.** A long random string (32+ chars) for signing session cookies. The app **will not start** if this is missing or still set to the dev default. Generate one locally, e.g. `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`, and paste into Railway Variables.
+- **`ADMIN_INITIAL_PASSWORD`** — **Required on first deploy** to an empty production database if you need the seeded `admin` user. Use a strong password; the app does **not** seed `admin123` in production. After first login, change the password under Account.
+- **`BASE_URL`** — (Recommended.) Full site URL (`https://mile12warrior.com`) for password-reset and order receipt links.
+- **SMTP** (recommended in production): `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `SMTP_PORT`, `FROM_EMAIL`. Without SMTP, password-reset emails are not sent (reset links are not logged in production).
+- **Stripe** (when you enable payments): `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`. See **`docs/PAYMENTS-STRIPE-SETUP.md`**. If test keys were ever exposed, rotate the secret key in the Stripe Dashboard before deploying new values.
 
 ---
 
 ## 6. After deploy
 
 - Open **https://mile12warrior.com** (or your Railway URL) and confirm the site loads.
-- Log in with your admin user (from seed: `admin` / `admin123` — change the password in production).
+- Log in with your admin user. **Production:** set `ADMIN_INITIAL_PASSWORD` before first boot on an empty DB, or create an admin another way — default `admin123` is **not** seeded in production. Change the password immediately after first login.
 - Confirm the **logo** and **header image** show correctly; they’re at `public/images/logo.png` and `public/images/hero-bg.png`.
 
 ---
@@ -84,6 +86,6 @@ Redeploy after adding the volume and `DB_PATH`.
 | 2 | Create a Railway project, connect GitHub, deploy. |
 | 3 | Add a **Volume** (e.g. `/data`) and set **`DB_PATH=/data/drivershield.db`**. |
 | 4 | Add custom domain **mile12warrior.com** in Railway; point Hostinger DNS to Railway. |
-| 5 | Redeploy if needed; change default admin password after first login. |
+| 5 | Set **`SESSION_SECRET`** and **`ADMIN_INITIAL_PASSWORD`** (empty DB); redeploy; change admin password after first login. |
 
 The site is already styled with **concrete gray**, **safety yellow/gold**, and **silver/chrome** so it matches your trucking/safety brand and works with your existing header and logo.
