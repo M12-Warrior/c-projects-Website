@@ -53,6 +53,8 @@
     .pc-features li{font-size:0.78rem;color:var(--text-2);padding:5px 0 5px 16px;position:relative;border-bottom:1px dotted rgba(255,255,255,0.04)}
     .pc-features li::before{content:'•';position:absolute;left:0;color:var(--blue);font-weight:700}
     .pc-actions{margin-top:auto}
+    .pc-actions-tier1{display:flex;flex-direction:column;gap:8px}
+    .pc-actions-tier1 .btn{width:100%;justify-content:center}
 
     .bundle-row{margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
     .bundle-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;display:flex;align-items:center;gap:20px;transition:border-color 0.25s}
@@ -177,7 +179,7 @@
       <div class="pricing-section">
         <h2 class="pricing-section-title" data-cms="safetySectionTitle">Safety &amp; Wellness Packets</h2>
         <p class="pricing-section-desc" data-cms="safetySectionDesc">Professional, print-ready safety packets for individual drivers and fleet safety departments. Complete with checklists, regulatory references, fillable forms, and sign-off sheets.</p>
-        <p style="font-size:0.88rem;color:var(--text-2);max-width:720px;margin:-8px auto 20px;text-align:center;line-height:1.55">Online purchasing for these packets is opening soon. You will be able to check out here when checkout returns.</p>
+        <p style="font-size:0.88rem;color:var(--text-2);max-width:720px;margin:-8px auto 20px;text-align:center;line-height:1.55"><strong>Tier 1 New Driver Packet is free for everyone</strong> — view online or print below. Paid packets (Tiers 2–4) will be available for checkout when purchasing opens.</p>
 
         <div class="pricing-grid">
           <div class="price-card">
@@ -194,8 +196,14 @@
               <li>Roadside safety protocol</li>
               <li>Daily routine checklists</li>
             </ul>
-            <div class="pc-actions">
-              <span class="btn btn-primary" style="width:100%;opacity:0.65;cursor:default;text-align:center;display:inline-block" role="status">Purchases opening soon</span>
+            <div class="pc-actions pc-actions-tier1">
+              <button type="button" class="btn btn-primary" onclick="Tier1Checklist.open()">
+                <span>View Packet Online</span>
+              </button>
+              <button type="button" class="btn btn-secondary" onclick="Packets.print('new-driver')">
+                <span>Print Free Packet</span>
+              </button>
+              <a href="/packets/new-driver" class="btn btn-secondary" style="text-decoration:none">Full-page checklist</a>
             </div>
           </div>
 
@@ -377,6 +385,7 @@
 
   <div id="toast" class="toast" aria-live="polite"></div>
   <script src="/js/packets.js"></script>
+  <script src="/js/tier1-checklist.js"></script>
   <script>
     (function() {
       var CART_KEY = 'driver_shield_cart';
