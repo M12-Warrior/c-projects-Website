@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../db/database');
+const { hasModule1PreviewAccess } = require('../lib/module1PreviewAccess');
 const router = express.Router();
 
 // Require session (401 if not logged in)
@@ -337,23 +338,15 @@ router.get('/orders/:id', requireSession, (req, res) => {
   res.json({ order: { ...safe, items: enrichedItems, fulfillment } });
 });
 
-// 4b. GET /api/shop/course-access — Has the current user purchased the full course or complete bundle? (for course page gate)
-// Course access does not expire; fleet packet access uses packet-access and expires at 12 months.
-router.get('/course-access', (req, res) => {
-  if (!req.session || !req.session.user) {
-    return res.json({ hasCourseAccess: false });
-  }
-  const uid = req.session.user.id;
+function userHasPaidCourseAccess(userId) {
   const now = new Date().toISOString();
-  // Prefer valid grant (course-90day grant has no expiry)
   const grantRow = db.prepare(`
     SELECT 1 FROM product_access_grants
     WHERE user_id = ? AND product_slug = 'course-90day'
       AND (expires_at IS NULL OR expires_at > ?)
     LIMIT 1
-  `).get(uid, now);
-  if (grantRow) return res.json({ hasCourseAccess: true });
-  // Fallback: completed order with course (backward compat / before grants existed)
+  `).get(userId, now);
+  if (grantRow) return true;
   const orderRow = db.prepare(`
     SELECT 1
     FROM orders o
@@ -362,8 +355,26 @@ router.get('/course-access', (req, res) => {
     WHERE o.user_id = ? AND o.status != 'cancelled'
       AND p.slug IN ('course-90day', 'complete-bundle')
     LIMIT 1
-  `).get(uid);
-  res.json({ hasCourseAccess: !!orderRow });
+  `).get(userId);
+  return !!orderRow;
+}
+
+// 4b. GET /api/shop/course-access — Paid course + module 1 preview flags (for course page gate)
+// Course access does not expire; fleet packet access uses packet-access and expires at 12 months.
+// Module 1 preview is allowlisted test accounts only (see lib/module1PreviewAccess.js).
+router.get('/course-access', (req, res) => {
+  if (!req.session || !req.session.user) {
+    return res.json({ hasCourseAccess: false, hasModule1Preview: false });
+  }
+  const uid = req.session.user.id;
+  const hasCourseAccess = userHasPaidCourseAccess(uid);
+  if (hasCourseAccess) {
+    return res.json({ hasCourseAccess: true, hasModule1Preview: true });
+  }
+  const userRow = db.prepare('SELECT id, username, email, role FROM users WHERE id = ?').get(uid);
+  const previewUser = userRow || req.session.user;
+  const hasModule1Preview = hasModule1PreviewAccess(previewUser);
+  res.json({ hasCourseAccess: false, hasModule1Preview });
 });
 
 // 4c. GET /api/shop/packet-access — Can the current user download this packet? (type: new-driver | seasoned-driver | fleet-new-hire | fleet-refresher)

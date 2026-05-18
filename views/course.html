@@ -191,7 +191,7 @@
       </div>
       <div class="course-ctas">
         <button type="button" class="btn btn-primary" id="enrollBtn" disabled style="opacity:0.65;cursor:default">Enrollment opening soon</button>
-        <button type="button" class="btn btn-glass" onclick="selectModule(1)">Preview Module 1 Free</button>
+        <button type="button" class="btn btn-glass" id="previewModule1Btn" style="display:none" onclick="selectModule(1)">Preview Module 1</button>
         <a href="/contact" class="btn btn-glass" style="text-decoration:none;margin-top:8px;display:inline-block">Contact us</a>
       </div>
     </section>
@@ -252,8 +252,7 @@
 var COURSE_DATA = {
   1: {
     title: 'Welcome & Your First 90 Days',
-    free: true,
-    overview: 'This introductory module orients you to the Mile 12 Warrior program, explains how the course works, maps out your 90-day journey, and helps you set meaningful safety goals. Module 1 is always free — start here.',
+    overview: 'This introductory module orients you to the Mile 12 Warrior program, explains how the course works, maps out your 90-day journey, and helps you set meaningful safety goals.',
     lessons: [
       {
         id: '1.1',
@@ -633,6 +632,13 @@ var CB_REWARDS = {
 
 var STORAGE_KEY = 'm12w_course';
 var activeModule = null;
+var accessFlags = { hasCourseAccess: false, hasModule1Preview: false };
+
+function canOpenModule(id) {
+  if (accessFlags.hasCourseAccess) return true;
+  if (id === 1 && accessFlags.hasModule1Preview) return true;
+  return false;
+}
 
 function getProgress() {
   try {
@@ -645,7 +651,7 @@ function getProgress() {
 function defaultProgress() {
   var p = { purchased: false, modules: {}, studentName: '' };
   for (var i = 1; i <= 10; i++) {
-    p.modules[i] = { unlocked: i === 1, completed: false, lessons: [], quizScore: null };
+    p.modules[i] = { unlocked: false, completed: false, lessons: [], quizScore: null };
   }
   return p;
 }
@@ -698,7 +704,7 @@ function renderSidebar() {
     if (mp.completed) cls += ' completed';
     var status = '';
     if (mp.completed) status = '<span style="color:var(--green)">\u2713</span>';
-    else if (mp.unlocked || mod.free) status = '<span style="color:var(--text-3)">\u25CB</span>';
+    else if (mp.unlocked || canOpenModule(i)) status = '<span style="color:var(--text-3)">\u25CB</span>';
     else status = '<span style="color:var(--text-3)">\uD83D\uDD12</span>';
     var num = i < 10 ? '0' + i : '' + i;
     var lc = mod.lessons.length;
@@ -723,15 +729,22 @@ function selectModule(id) {
   var main = document.getElementById('courseMain');
   if (!main) return;
 
-  if (!mp.unlocked && !mod.free) {
+  if (!canOpenModule(id)) {
+    if (id === 1) {
+      renderModule1Locked(main);
+      return;
+    }
     if (!p.purchased) {
       renderPurchaseOverlay(main);
       return;
-    } else {
-      mp.unlocked = true;
-      p.modules[id] = mp;
-      saveProgress(p);
     }
+    mp.unlocked = true;
+    p.modules[id] = mp;
+    saveProgress(p);
+  } else if (!mp.unlocked) {
+    mp.unlocked = true;
+    p.modules[id] = mp;
+    saveProgress(p);
   }
 
   var allDone = true;
@@ -743,7 +756,7 @@ function selectModule(id) {
 
   var num = id < 10 ? '0' + id : '' + id;
   var html = '<div class="module-header">';
-  html += '<div class="module-num-label">Module ' + num + (mod.free ? '<span class="free-badge">Free</span>' : '') + '</div>';
+  html += '<div class="module-num-label">Module ' + num + (id === 1 && accessFlags.hasModule1Preview && !accessFlags.hasCourseAccess ? '<span class="free-badge">Preview</span>' : '') + '</div>';
   html += '<h2 class="module-title">' + mod.title + '</h2>';
   html += '<p class="module-overview">' + mod.overview + '</p>';
   html += '</div>';
@@ -866,7 +879,7 @@ function submitQuiz(modId) {
   mp.quizScore = score;
   if (score >= 70) {
     mp.completed = true;
-    if (modId < 10) {
+    if (modId < 10 && accessFlags.hasCourseAccess) {
       var next = p.modules[modId + 1];
       next.unlocked = true;
     }
@@ -898,11 +911,22 @@ function getModule1PurchaseCtaHtml() {
   return html;
 }
 
+function renderModule1Locked(main) {
+  var html = '<div class="purchase-overlay">';
+  html += '<div class="purchase-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>';
+  html += '<h2>Module 1 preview</h2>';
+  html += '<p>Module 1 preview is available to authorized test accounts only. Sign in with an approved account, or purchase the full course when enrollment opens.</p>';
+  html += '<p style="margin-top:16px"><a href="/login" class="btn btn-primary">Sign in</a> <a href="/shop" class="btn btn-glass" style="margin-left:8px">Shop</a></p>';
+  html += '<p style="font-size:.82rem;color:var(--text-3);margin-top:16px"><a href="/contact">Contact us</a> about course access.</p>';
+  html += '</div>';
+  main.innerHTML = html;
+}
+
 function renderPurchaseOverlay(main) {
   var html = '<div class="purchase-overlay">';
   html += '<div class="purchase-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>';
   html += '<h2>Full course — enrollment opening soon</h2>';
-  html += '<p>Module 1 is free to preview. Paid access to all 10 modules, quizzes, your New Driver Packet, and your Certificate of Completion will be available for purchase here soon.</p>';
+  html += '<p>Paid access to all 10 modules, quizzes, your New Driver Packet, and your Certificate of Completion will be available for purchase here soon.</p>';
   html += '<p style="margin-top:16px"><a href="/contact" class="btn btn-primary">Contact us</a> <a href="/shop" class="btn btn-glass" style="margin-left:8px">Shop</a></p>';
   html += '<button class="purchase-restore" onclick="restoreAccess()">Already enrolled? Restore access</button>';
   html += '</div>';
@@ -910,6 +934,7 @@ function renderPurchaseOverlay(main) {
 }
 
 function previewFullCourse() {
+  if (!accessFlags.hasCourseAccess) return;
   var p = getProgress();
   p.purchased = true;
   for (var i = 1; i <= 10; i++) { p.modules[i].unlocked = true; }
@@ -925,15 +950,20 @@ function purchaseCourse() {
 }
 
 function restoreAccess() {
-  var p = getProgress();
-  if (p.purchased) {
-    for (var i = 1; i <= 10; i++) p.modules[i].unlocked = true;
-    saveProgress(p);
-    renderSidebar();
-    if (activeModule) selectModule(activeModule);
-  } else {
-    alert('No previous enrollment found in this browser. If you enrolled on a different device, please contact support at joyce@mile12warrior.com.');
-  }
+  fetch('/api/shop/course-access', { credentials: 'include' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      applyAccessFlags(data);
+      if (accessFlags.hasCourseAccess || accessFlags.hasModule1Preview) {
+        if (activeModule) selectModule(activeModule);
+        else if (accessFlags.hasModule1Preview) selectModule(1);
+        return;
+      }
+      alert('No course enrollment found for this account. If you purchased on another account, sign in with that account or contact support at joyce@mile12warrior.com.');
+    })
+    .catch(function() {
+      alert('Unable to verify access. Please sign in and try again.');
+    });
 }
 
 var lastCertificateNumber = null;
@@ -1186,31 +1216,46 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+function applyAccessFlags(data) {
+  accessFlags.hasCourseAccess = !!data.hasCourseAccess;
+  accessFlags.hasModule1Preview = !!data.hasModule1Preview;
+  var prog = getProgress();
+  if (!prog.modules || !prog.modules[1]) {
+    prog = defaultProgress();
+  }
+  if (accessFlags.hasCourseAccess) {
+    prog.purchased = true;
+    for (var i = 1; i <= 10; i++) prog.modules[i].unlocked = true;
+  } else {
+    prog.purchased = false;
+    for (var i = 1; i <= 10; i++) {
+      if (!prog.modules[i]) prog.modules[i] = { unlocked: false, completed: false, lessons: [], quizScore: null };
+      prog.modules[i].unlocked = (i === 1 && accessFlags.hasModule1Preview);
+    }
+  }
+  saveProgress(prog);
+  var previewBtn = document.getElementById('previewModule1Btn');
+  if (previewBtn) {
+    previewBtn.style.display = (accessFlags.hasModule1Preview && !accessFlags.hasCourseAccess) ? '' : 'none';
+  }
+  updateHeroProgress();
+  renderSidebar();
+}
+
 function init() {
   var p = getProgress();
   if (!p.modules || !p.modules[1]) {
     p = defaultProgress();
     saveProgress(p);
   }
-  if (p.purchased) {
-    for (var i = 1; i <= 10; i++) p.modules[i].unlocked = true;
-    saveProgress(p);
-  }
-  fetch('/api/shop/course-access', { credentials: 'include' })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (data.hasCourseAccess) {
-        var prog = getProgress();
-        prog.purchased = true;
-        for (var i = 1; i <= 10; i++) prog.modules[i].unlocked = true;
-        saveProgress(prog);
-        updateHeroProgress();
-        renderSidebar();
-      }
-    })
-    .catch(function() {});
   updateHeroProgress();
   renderSidebar();
+  fetch('/api/shop/course-access', { credentials: 'include' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) { applyAccessFlags(data); })
+    .catch(function() {
+      applyAccessFlags({ hasCourseAccess: false, hasModule1Preview: false });
+    });
 }
 
 // Nav toggle
