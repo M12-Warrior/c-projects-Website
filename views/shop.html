@@ -48,7 +48,7 @@
       <h1 class="page-title">Shop</h1>
       <p class="page-subtitle">Digital training, safety packets, and gear — everything a professional driver needs.</p>
       <p style="font-size:0.85rem;color:var(--text-3);margin-top:-8px;margin-bottom:8px">Our <a href="/terms#refunds" style="color:var(--text-2)">Refund Policy</a> is available before purchase: physical items may be returned within 30 days; digital products (course, packets) have limited refund eligibility. See <a href="/terms" style="color:var(--text-2)">Terms of Service</a> for full details.</p>
-      <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:24px">Secure online checkout is available at cart checkout (card payments processed securely). Browse, add to cart, and complete your purchase when you’re ready. Questions or pre-orders? <a href="/contact" style="color:var(--gold)">Contact us</a>.</p>
+      <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:24px"><strong>Online purchasing is opening soon.</strong> You will be able to buy products and subscriptions here when checkout returns. Browse prices and descriptions below, or <a href="/contact" style="color:var(--gold)">contact us</a> with questions.</p>
 
       <div id="subscriptionSection" style="margin-bottom:32px;display:none">
         <h2 style="font-family:var(--font);font-size:1.2rem;font-weight:700;margin-bottom:8px">Subscriptions</h2>
@@ -93,43 +93,11 @@
         } catch (_) { return []; }
       }
 
-      function saveCart(cart) {
-        localStorage.setItem(CART_KEY, JSON.stringify(cart));
-        updateCartBadge();
-      }
-
       function updateCartBadge() {
         const cart = getCart();
         const total = cart.reduce((s, i) => s + (i.quantity || 1), 0);
         const badge = document.getElementById('cartBadge');
         if (badge) badge.textContent = total;
-      }
-
-      function showToast(msg, success) {
-        const el = document.getElementById('toast');
-        if (!el) return;
-        el.textContent = msg;
-        el.className = 'toast toast-' + (success ? 'success' : 'error');
-        el.classList.add('show');
-        setTimeout(() => el.classList.remove('show'), 2500);
-      }
-
-      function addToCart(product) {
-        const cart = getCart();
-        const existing = cart.find(p => String(p.product_id) === String(product.id));
-        if (existing) {
-          existing.quantity = (existing.quantity || 1) + 1;
-        } else {
-          cart.push({
-            product_id: product.id,
-            name: product.name,
-            price: product.price,
-            quantity: 1,
-            slug: product.slug
-          });
-        }
-        saveCart(cart);
-        showToast('Added to cart!', true);
       }
 
       async function updateAuthLink() {
@@ -166,7 +134,7 @@
         dg.innerHTML = digital.map(function(p) {
           var btnHtml = p.link
             ? '<a href="' + p.link + '" class="btn-add-cart" style="text-align:center;text-decoration:none;display:block">View Course</a>'
-            : '<button type="button" class="btn-add-cart" onclick="addDigitalToCart(\'' + p.id + '\',\'' + escapeHtml(p.name) + '\',' + p.price + ')">Add to Cart</button>';
+            : '<span class="btn-add-cart" style="text-align:center;display:block;opacity:0.65;cursor:default" aria-disabled="true">Purchases opening soon</span>';
           var imgPath = productImageBase + p.id + '.svg';
           var imgPathJpg = productImageBase + p.id + '.jpg';
           var imgPathPng = productImageBase + p.id + '.png';
@@ -188,17 +156,6 @@
           '</article>';
         }).join('');
       }
-
-      window.addDigitalToCart = function(id, name, price) {
-        var cart = getCart();
-        if (cart.find(function(i) { return i.product_id === id; })) {
-          showToast('Already in your cart!', true);
-          return;
-        }
-        cart.push({ product_id: id, name: name, price: price, quantity: 1, slug: id, digital: true });
-        saveCart(cart);
-        showToast('Added to cart!', true);
-      };
 
       async function loadProducts() {
         const grid = document.getElementById('shopGrid');
@@ -240,21 +197,10 @@
                   '<p style="font-size:0.8rem;color:var(--blue);margin-top:8px">CB mic badge &middot; Forum & Blog access &middot; Incognito option</p>' +
                 '</div>' +
                 '<div class="product-actions">' +
-                  '<button type="button" class="btn-add-cart" data-id="' + escapeHtml(String(p.id)) + '" data-name="' + escapeHtml(p.name) + '" data-price="' + escapeHtml(String(p.price)) + '" data-slug="' + escapeHtml(slug) + '">Subscribe</button>' +
+                  '<span class="btn-add-cart" style="opacity:0.65;cursor:default;text-align:center;display:block" aria-disabled="true">Purchases opening soon</span>' +
                 '</div>' +
               '</article>';
             }).join('');
-            subGrid.querySelectorAll('.btn-add-cart').forEach(function(btn) {
-              btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                addToCart({
-                  id: btn.dataset.id,
-                  name: btn.dataset.name || '',
-                  price: parseFloat(btn.dataset.price) || 0,
-                  slug: btn.dataset.slug || ''
-                });
-              });
-            });
           }
 
           if (products.length === 0 && subscriptionProducts.length === 0) {
@@ -284,22 +230,11 @@
                 '<p class="product-desc">' + escapeHtml((p.description || '').slice(0, 100)) + ((p.description || '').length > 100 ? '&hellip;' : '') + '</p>' +
               '</div>' +
               '<div class="product-actions">' +
-                '<button type="button" class="btn-add-cart" data-id="' + escapeHtml(String(p.id)) + '" data-name="' + escapeHtml(p.name) + '" data-price="' + escapeHtml(String(p.price)) + '" data-slug="' + escapeHtml(slug) + '">Add to Cart</button>' +
+                '<span class="btn-add-cart" style="opacity:0.65;cursor:default;text-align:center;display:block" aria-disabled="true">Purchases opening soon</span>' +
               '</div>' +
             '</article>';
           }).join('');
 
-          grid.querySelectorAll('.btn-add-cart').forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
-              e.preventDefault();
-              addToCart({
-                id: btn.dataset.id,
-                name: btn.dataset.name || '',
-                price: parseFloat(btn.dataset.price) || 0,
-                slug: btn.dataset.slug || ''
-              });
-            });
-          });
         } catch (err) {
           grid.innerHTML = '<div class="empty-state"><p>Could not load products. Please try again later.</p></div>';
         }

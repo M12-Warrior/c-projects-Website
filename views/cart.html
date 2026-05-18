@@ -46,12 +46,12 @@
   <main class="page-shell">
     <div class="page-container cart-page">
       <h1 class="page-title">Your Cart</h1>
-      <p style="font-size:0.85rem;color:var(--text-2);margin-top:-8px;margin-bottom:20px">Continue to checkout to enter shipping and pay securely with your card. Pre-order or bulk questions? <a href="/contact" style="color:var(--gold)">Contact us</a>.</p>
+      <p style="font-size:0.85rem;color:var(--text-2);margin-top:-8px;margin-bottom:20px">Online checkout is opening soon. You can still browse products below. Questions? <a href="/contact" style="color:var(--gold)">Contact us</a>.</p>
       <div id="cartContent">
         <div id="cartItems"></div>
         <div id="cartActions" class="hidden" style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap;">
           <a href="/shop" class="btn btn-glass">Continue Shopping</a>
-          <a href="/shop/checkout" class="btn btn-primary" id="checkoutBtn">Checkout</a>
+          <a href="/shop/checkout" class="btn btn-primary">Checkout status</a>
         </div>
       </div>
       <div id="cartEmpty" class="empty-state hidden">
@@ -101,14 +101,11 @@
         var cartItems = document.getElementById('cartItems');
         var cartActions = document.getElementById('cartActions');
         var cartEmpty = document.getElementById('cartEmpty');
-        var checkoutBtn = document.getElementById('checkoutBtn');
-
         if (cart.length === 0) {
           cartItems.innerHTML = '';
           if (cartActions) cartActions.classList.add('hidden');
           if (cartActions && cartActions.style) cartActions.style.display = 'none';
           if (cartEmpty) cartEmpty.classList.remove('hidden');
-          if (checkoutBtn) checkoutBtn.setAttribute('disabled', 'disabled');
           return;
         }
 
@@ -117,7 +114,6 @@
           cartActions.classList.remove('hidden');
           cartActions.style.display = 'flex';
         }
-        if (checkoutBtn) checkoutBtn.removeAttribute('disabled');
 
         var total = 0;
         cartItems.innerHTML = cart.map(function(item, idx) {

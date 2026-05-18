@@ -50,8 +50,6 @@
     </div>
   </main>
 
-  <div id="toast" class="toast" aria-live="polite"></div>
-
   <script>
     (function() {
       const CART_KEY = 'driver_shield_cart';
@@ -81,44 +79,11 @@
         } catch (_) { return []; }
       }
 
-      function saveCart(cart) {
-        localStorage.setItem(CART_KEY, JSON.stringify(cart));
-        updateCartBadge();
-      }
-
       function updateCartBadge() {
         const cart = getCart();
         const total = cart.reduce(function(s, i) { return s + (i.quantity || 1); }, 0);
         const badge = document.getElementById('cartBadge');
         if (badge) badge.textContent = total;
-      }
-
-      function showToast(msg, success) {
-        const el = document.getElementById('toast');
-        if (!el) return;
-        el.textContent = msg;
-        el.className = 'toast toast-' + (success ? 'success' : 'error');
-        el.classList.add('show');
-        setTimeout(function() { el.classList.remove('show'); }, 2500);
-      }
-
-      function addToCart(product, quantity) {
-        const cart = getCart();
-        const qty = Math.max(1, parseInt(quantity, 10) || 1);
-        const existing = cart.find(function(p) { return String(p.product_id) === String(product.id); });
-        if (existing) {
-          existing.quantity = (existing.quantity || 1) + qty;
-        } else {
-          cart.push({
-            product_id: product.id,
-            name: product.name,
-            price: product.price,
-            quantity: qty,
-            slug: product.slug
-          });
-        }
-        saveCart(cart);
-        showToast('Added to cart!', true);
       }
 
       async function updateAuthLink() {
@@ -183,15 +148,8 @@
             ? '<img src="' + escapeHtml(imgSrc) + '" alt="" class="product-detail-image"' + imgOnerr + '>'
             : '<div class="product-image" style="height: 320px;">' + placeholderIcon + '</div>';
           const subBadge = isSub ? '<span style="display:inline-block;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue);background:rgba(59,130,246,0.15);padding:4px 10px;border-radius:4px;margin-left:12px;font-weight:600;vertical-align:middle;">Monthly subscription</span>' : '';
-          const formHtml = isSub
-            ? '<form id="addToCartForm" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">' +
-                '<button type="submit" class="btn-add-cart">Subscribe now</button>' +
-              '</form>'
-            : '<form id="addToCartForm" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">' +
-                '<label class="form-label" style="margin: 0;">Quantity</label>' +
-                '<input type="number" id="qty" name="quantity" min="1" value="1" class="form-input" style="width: 80px;">' +
-                '<button type="submit" class="btn-add-cart">Add to Cart</button>' +
-              '</form>';
+          const formHtml =
+            '<p style="font-size:0.9rem;color:var(--text-2);line-height:1.55;margin:0">Purchases opening soon. You will be able to subscribe or add this product to your cart here shortly. <a href="/contact" style="color:var(--gold)">Contact us</a> with questions.</p>';
           container.innerHTML =
             '<div class="product-detail-wrap" style="max-width: 700px;">' +
               '<div style="margin-bottom: 24px;">' + imgHtml + '</div>' +
@@ -201,13 +159,6 @@
               benefitsBlock +
               formHtml +
             '</div>';
-
-          container.querySelector('#addToCartForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            var qtyEl = document.getElementById('qty');
-            var qty = qtyEl ? qtyEl.value : 1;
-            addToCart(product, qty);
-          });
         } catch (err) {
           container.innerHTML = '<p class="empty-state">Could not load product. <a href="/shop">Back to shop</a></p>';
         }

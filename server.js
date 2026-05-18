@@ -210,7 +210,7 @@ app.get('/shop/cart', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'cart.html'));
 });
 
-app.get('/shop/checkout', requireLogin, (req, res) => {
+app.get('/shop/checkout', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'checkout.html'));
 });
 

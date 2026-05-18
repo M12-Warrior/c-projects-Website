@@ -717,7 +717,7 @@ pages.shop = () => {
 <div class="page page-enter">
   <div class="page-header">
     <h1 class="page-title">Merch Shop</h1>
-    <p class="page-subtitle">Gear that fuels the warrior in you.</p>
+    <p class="page-subtitle">Gear that fuels the warrior in you. Purchases in the app will open soon.</p>
   </div>
   <div class="product-grid-m" id="productGrid"></div>
   <p style="font-size:0.68rem;color:var(--text-3);text-align:center;margin-top:20px;line-height:1.5">All sales in USD. Subject to <a style="color:var(--text-3);cursor:pointer" onclick="app.navigate('terms')">Terms of Service</a>. Returns within 30 days. Sales tax collected per California law.</p>
@@ -736,17 +736,11 @@ pages.shop = () => {
           <div class="product-info-m">
             <div class="product-name-m">${escapeHtml(p.name)}</div>
             <div class="product-price-m">$${Number(p.price).toFixed(2)}</div>
-            <button class="btn-m add-cart-btn" style="width:100%;margin-top:8px;font-size:0.75rem;padding:8px">Add to Cart</button>
+            <div class="btn-m" style="width:100%;margin-top:8px;font-size:0.75rem;padding:8px;opacity:0.65;text-align:center;pointer-events:none">Purchases opening soon</div>
           </div>
         </div>`).join('');
 
       grid.querySelectorAll('.product-card-m').forEach(el => {
-        el.querySelector('.add-cart-btn')?.addEventListener('click', (e) => {
-          e.stopPropagation();
-          cart.add({ id: Number(el.dataset.id), name: el.dataset.name, price: Number(el.dataset.price), slug: el.dataset.slug });
-          app.toast('Added to cart!');
-          if (typeof app.updateCartBadge === 'function') app.updateCartBadge();
-        });
         el.addEventListener('click', () => app.navigate('shop-product', el.dataset.slug));
       });
     } catch (_) {
@@ -779,20 +773,7 @@ pages.shopProduct = (slug) => {
         <h1 class="page-title">${escapeHtml(p.name)}</h1>
         <p style="font-family:var(--mono);font-size:1.2rem;font-weight:600;color:var(--green);margin:8px 0 14px">$${Number(p.price).toFixed(2)}</p>
         <p style="font-size:0.88rem;color:var(--text-2);line-height:1.65;margin-bottom:20px">${escapeHtml(p.description || '')}</p>
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-          <label class="form-label-m" style="margin:0">Qty:</label>
-          <input type="number" class="form-input-m" id="pdQty" value="1" min="1" max="99" style="width:70px;text-align:center">
-        </div>
-        <button class="btn-m" id="pdAddCart" style="width:100%">Add to Cart</button>`;
-
-      document.getElementById('pdAddCart')?.addEventListener('click', () => {
-        const qty = parseInt(document.getElementById('pdQty')?.value, 10) || 1;
-        for (let i = 0; i < qty; i++) {
-          cart.add({ id: p.id, name: p.name, price: p.price, slug: p.slug });
-        }
-        app.toast(`Added ${qty} to cart!`);
-        if (typeof app.updateCartBadge === 'function') app.updateCartBadge();
-      });
+        <p style="font-size:0.85rem;color:var(--text-3);margin-bottom:16px">Purchases in the app will open soon. Use the website Contact page if you need to reach us.</p>`;
     } catch (_) {
       container.innerHTML = '<p class="empty-state-m">Could not load product.</p>';
     }
@@ -834,7 +815,7 @@ pages.cart = () => {
   <div class="cart-total-m">Total: $${cart.total().toFixed(2)}</div>
   <div style="display:flex;gap:10px;margin-top:14px">
     <button class="btn-m btn-outline-m" id="continueShopping" style="flex:1">Continue Shopping</button>
-    <button class="btn-m" id="checkoutBtn" style="flex:1">Checkout</button>
+    <button class="btn-m btn-outline-m" id="checkoutBtn" style="flex:1">Checkout status</button>
   </div>
 </div>`;
   };
@@ -844,7 +825,6 @@ pages.cart = () => {
   const init = () => {
     document.getElementById('continueShopping')?.addEventListener('click', () => app.navigate('shop'));
     document.getElementById('checkoutBtn')?.addEventListener('click', () => {
-      if (!app.user) { app.toast('Please sign in to checkout.'); app.navigate('login'); return; }
       app.navigate('checkout');
     });
 
@@ -875,56 +855,16 @@ pages.cart = () => {
 // 15. CHECKOUT
 // ---------------------------------------------------------------------------
 pages.checkout = () => {
-  const items = cart.getAll();
-  const total = cart.total();
-
   const html = `
 <div class="page page-enter">
   <button class="back-btn" data-back="cart">&#8592; Cart</button>
   <div class="page-header"><h1 class="page-title">Checkout</h1></div>
-
-  <h3 class="section-title-m">Order Summary</h3>
-  ${items.map(i => `<div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:6px 0;border-bottom:1px solid var(--border)"><span>${escapeHtml(i.name)} &times; ${i.quantity}</span><span style="font-family:var(--mono);color:var(--green)">$${(i.price * i.quantity).toFixed(2)}</span></div>`).join('')}
-  <div style="text-align:right;font-family:var(--mono);font-weight:600;font-size:1.1rem;padding:12px 0">$${total.toFixed(2)}</div>
-
-  <div class="divider"></div>
-  <h3 class="section-title-m">Shipping Information</h3>
-  <div class="form-group-m"><label class="form-label-m">Full Name</label><input class="form-input-m" id="coName" placeholder="Full name"></div>
-  <div class="form-group-m"><label class="form-label-m">Address</label><input class="form-input-m" id="coAddress" placeholder="Street address"></div>
-  <div style="display:flex;gap:10px">
-    <div class="form-group-m" style="flex:2"><label class="form-label-m">City</label><input class="form-input-m" id="coCity" placeholder="City"></div>
-    <div class="form-group-m" style="flex:1"><label class="form-label-m">State</label><input class="form-input-m" id="coState" placeholder="CA"></div>
-    <div class="form-group-m" style="flex:1"><label class="form-label-m">Zip</label><input class="form-input-m" id="coZip" placeholder="95816"></div>
-  </div>
-  <button class="btn-m" id="placeOrderBtn" style="width:100%;margin-top:10px">Place Order</button>
-  <p class="form-error-m" id="coError"></p>
+  <p style="font-size:0.9rem;color:var(--text-2);line-height:1.6;margin-bottom:16px">Online checkout is not active right now. You will be able to purchase products and subscriptions here soon.</p>
+  <p style="font-size:0.82rem;color:var(--text-3);line-height:1.5">This app provides educational information, not legal or medical advice. Verify regulations at fmcsa.dot.gov or dot.ca.gov.</p>
 </div>`;
 
   const init = () => {
     document.querySelector('.back-btn')?.addEventListener('click', () => app.navigate('cart'));
-
-    if (!app.user) { app.toast('Please sign in to checkout.'); app.navigate('login'); return; }
-
-    document.getElementById('placeOrderBtn')?.addEventListener('click', async () => {
-      const name = document.getElementById('coName')?.value.trim();
-      const address = document.getElementById('coAddress')?.value.trim();
-      const city = document.getElementById('coCity')?.value.trim();
-      const state = document.getElementById('coState')?.value.trim();
-      const zip = document.getElementById('coZip')?.value.trim();
-      const err = document.getElementById('coError');
-      if (!name || !address || !city || !state || !zip) { err.textContent = 'All shipping fields are required.'; return; }
-
-      try {
-        err.textContent = '';
-        const orderItems = cart.getAll().map(i => ({ product_id: i.product_id, quantity: i.quantity }));
-        await api.placeOrder(orderItems, { name, address, city, state, zip });
-        cart.clear();
-        if (typeof app.updateCartBadge === 'function') app.updateCartBadge();
-        const appEl = document.getElementById('app');
-        appEl.innerHTML = '<div class="page page-enter"><div class="empty-state-m" style="padding-top:80px"><p style="font-size:1.5rem;margin-bottom:10px">&#10004;</p><h3 style="margin-bottom:6px">Order Placed!</h3><p>Thank you for your purchase.</p></div></div>';
-        setTimeout(() => app.navigate('profile'), 2000);
-      } catch (e) { err.textContent = e.message || 'Failed to place order.'; }
-    });
   };
 
   return { html, init };
