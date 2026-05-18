@@ -2431,6 +2431,7 @@ Packets.downloadDirect = function (type, trackFn) {
   URL.revokeObjectURL(a.href);
 };
 
+// Tier 1 (new-driver) print/download is always client-side — never use course-access or packet-access.
 Packets.print = function (type) {
   if (type === 'new-driver') {
     Packets.printDirect(type);

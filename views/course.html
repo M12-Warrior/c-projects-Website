@@ -916,6 +916,8 @@ function renderModule1Locked(main) {
   html += '<div class="purchase-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>';
   html += '<h2>Module 1 preview</h2>';
   html += '<p>Module 1 preview is available to authorized test accounts only. Sign in with an approved account, or purchase the full course when enrollment opens.</p>';
+  html += '<p style="margin-top:12px;font-size:.9rem;color:var(--text-2)">The <strong>Tier 1 New Driver Packet</strong> is always free — use the checklist or print the full packet anytime.</p>';
+  html += '<p style="margin-top:12px"><a href="/packets/new-driver" class="btn btn-glass">View free packet checklist</a> <a href="/#packets" class="btn btn-glass" style="margin-left:8px">Print free packet</a></p>';
   html += '<p style="margin-top:16px"><a href="/login" class="btn btn-primary">Sign in</a> <a href="/shop" class="btn btn-glass" style="margin-left:8px">Shop</a></p>';
   html += '<p style="font-size:.82rem;color:var(--text-3);margin-top:16px"><a href="/contact">Contact us</a> about course access.</p>';
   html += '</div>';
@@ -1118,37 +1120,22 @@ function saveStudentName(name) {
 }
 
 function downloadPacket() {
-  var type = 'new-driver';
-  fetch('/api/shop/packet-access?type=' + encodeURIComponent(type), { credentials: 'include' })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (!data.allowed) {
-        alert('You don\'t have access or your download limit has been reached. This license is for your use only. Purchase again if you need more downloads.');
-        return;
-      }
-      if (typeof Packets !== 'undefined' && typeof Packets.download === 'function') {
-        Packets.download(type);
-      } else if (typeof Packets !== 'undefined' && typeof Packets.newDriver === 'function') {
-        var html = Packets.newDriver();
-        var blob = new Blob([html], { type: 'text/html' });
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'Mile12-New-Driver-Packet.html';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(a.href);
-      }
-      fetch('/api/shop/packet-download-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: type }),
-        credentials: 'include'
-      }).catch(function() {});
-    })
-    .catch(function() {
-      alert('Unable to verify access. Please log in and try again.');
-    });
+  // Tier 1 new-driver packet is free for everyone — not gated by course Module 1 or shop grants.
+  if (typeof Packets !== 'undefined' && typeof Packets.download === 'function') {
+    Packets.download('new-driver');
+    return;
+  }
+  if (typeof Packets !== 'undefined' && typeof Packets.newDriver === 'function') {
+    var html = Packets.newDriver();
+    var blob = new Blob([html], { type: 'text/html' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'Mile12-New-Driver-Packet.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  }
 }
 
 function downloadCertificate() {

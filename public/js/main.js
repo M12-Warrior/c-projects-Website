@@ -498,16 +498,17 @@ document.addEventListener('DOMContentLoaded', () => {
   window.downloadPacketGated = function (type) {
     var valid = ['new-driver', 'seasoned-driver', 'fleet-new-hire', 'fleet-refresher'].indexOf(type) !== -1;
     if (!valid) return;
+    // Tier 1 new-driver is always free (guests included) — not tied to course or shop grants.
+    if (type === 'new-driver') {
+      if (typeof Packets !== 'undefined' && typeof Packets.download === 'function') {
+        Packets.download(type);
+      }
+      return;
+    }
     fetch('/api/shop/packet-access?type=' + encodeURIComponent(type), { credentials: 'include' })
       .then(function (r) { return r.json(); })
       .then(function (data) {
         if (!data.allowed) {
-          if (type === 'new-driver') {
-            if (typeof Packets !== 'undefined' && typeof Packets.download === 'function') {
-              Packets.download(type);
-            }
-            return;
-          }
           alert('You don\'t have access or your download limit has been reached. This license is for your use only. Purchase again or renew your fleet license if needed.');
           return;
         }

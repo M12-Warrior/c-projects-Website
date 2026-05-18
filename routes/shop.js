@@ -390,8 +390,14 @@ router.get('/packet-access', (req, res) => {
   if (!productSlug) {
     return res.status(400).json({ error: 'Invalid type', allowed: false });
   }
+  const tier1Free = type === 'new-driver';
   if (!req.session || !req.session.user) {
-    return res.json({ allowed: false, downloadsRemaining: null, expiresAt: null });
+    return res.json({
+      allowed: false,
+      tier1Free,
+      downloadsRemaining: null,
+      expiresAt: null
+    });
   }
   const uid = req.session.user.id;
   const now = new Date().toISOString();
@@ -433,11 +439,17 @@ router.get('/packet-access', (req, res) => {
     if (g.max_downloads != null && remaining <= 0) continue;
     return res.json({
       allowed: true,
+      tier1Free,
       downloadsRemaining: g.max_downloads == null ? null : remaining,
       expiresAt: g.expires_at || null
     });
   }
-  return res.json({ allowed: false, downloadsRemaining: null, expiresAt: null });
+  return res.json({
+    allowed: false,
+    tier1Free,
+    downloadsRemaining: null,
+    expiresAt: null
+  });
 });
 
 // 4d. POST /api/shop/packet-download-log — Record one packet download (consumes one of max_downloads)
