@@ -1095,7 +1095,7 @@ pages.contact = () => {
     <h3>Get in Touch</h3>
     <p style="margin-top:8px"><strong>Email:</strong> joyce@mile12warrior.com</p>
     <p style="margin-top:4px"><strong>Phone:</strong> (916) 292-7411</p>
-    <p style="margin-top:4px"><strong>Address:</strong> 2108 N, ST STE N, SACRAMENTO CA 95816</p>
+    <p style="margin-top:4px"><strong>Address:</strong> 2108 N ST., STE N, SACRAMENTO CA 95816</p>
     <p style="margin-top:8px;font-size:0.78rem;color:var(--text-3)">Facebook &bull; X (Twitter) &bull; Instagram &bull; TikTok</p>
   </div>
 
@@ -1378,7 +1378,7 @@ pages.terms = () => {
     <p>We may update these Terms at any time. Continued use after changes constitutes acceptance. If any provision is found unenforceable, the remaining provisions continue in effect.</p>
 
     <h3 style="color:var(--text);font-size:0.95rem;margin-top:20px;margin-bottom:8px">13. Contact</h3>
-    <p>Mile 12 Warrior LLC<br>2108 N, ST STE N, SACRAMENTO CA 95816<br>joyce@mile12warrior.com<br>(916) 292-7411</p>
+    <p>Mile 12 Warrior LLC<br>2108 N ST., STE N, SACRAMENTO CA 95816<br>joyce@mile12warrior.com<br>(916) 292-7411</p>
   </div>
   ${LEGAL_FOOTER}
 </div>`;
@@ -1431,7 +1431,7 @@ pages.privacy = () => {
 
     <h3 style="color:var(--text);font-size:0.95rem;margin-top:20px;margin-bottom:8px">9. Changes &amp; Contact</h3>
     <p>We may update this policy. Material changes will be posted with an updated date and communicated via email when possible.</p>
-    <p>Mile 12 Warrior LLC<br>2108 N, ST STE N, SACRAMENTO CA 95816<br>joyce@mile12warrior.com | (916) 292-7411</p>
+    <p>Mile 12 Warrior LLC<br>2108 N ST., STE N, SACRAMENTO CA 95816<br>joyce@mile12warrior.com | (916) 292-7411</p>
   </div>
   ${LEGAL_FOOTER}
 </div>`;
@@ -1481,7 +1481,7 @@ pages['disclaimer-page'] = () => {
     <p>We collect only limited personal information. You may subscribe to our newsletter, blog, and forum and <strong>unsubscribe at any time</strong>. See our Privacy Policy and Terms of Service for full details.</p>
 
     <h3 style="color:var(--text);font-size:0.95rem;margin-top:20px;margin-bottom:8px">Contact</h3>
-    <p>Mile 12 Warrior LLC<br>2108 N, ST STE N, SACRAMENTO CA 95816<br>joyce@mile12warrior.com | (916) 292-7411</p>
+    <p>Mile 12 Warrior LLC<br>2108 N ST., STE N, SACRAMENTO CA 95816<br>joyce@mile12warrior.com | (916) 292-7411</p>
   </div>
   ${LEGAL_FOOTER}
 </div>`;
@@ -1519,7 +1519,7 @@ pages['accessibility-page'] = () => {
 
     <h3 style="color:var(--text);font-size:0.95rem;margin-top:20px;margin-bottom:8px">Feedback &amp; Assistance</h3>
     <p>If you experience any accessibility barriers or need assistance, please contact us. We aim to respond within 2 business days.</p>
-    <p>joyce@mile12warrior.com | (916) 292-7411<br>2108 N, ST STE N, SACRAMENTO CA 95816</p>
+    <p>joyce@mile12warrior.com | (916) 292-7411<br>2108 N ST., STE N, SACRAMENTO CA 95816</p>
 
     <h3 style="color:var(--text);font-size:0.95rem;margin-top:20px;margin-bottom:8px">Enforcement</h3>
     <p>You may file ADA complaints with the U.S. Department of Justice or the California Department of Rehabilitation.</p>
