@@ -2498,7 +2498,30 @@ Packets._filenameForType = function (type) {
   }
 };
 
-// Open generated HTML in a new tab (blob URL — reliable for print/PDF vs document.write).
+// Open generated HTML in a new tab. Blank window + document.write keeps the user
+// gesture for window.open and avoids blob: navigation failures (blank/error tabs).
+Packets._schedulePrint = function (win) {
+  var printed = false;
+  function doPrint() {
+    if (printed || !win || win.closed) return;
+    printed = true;
+    try {
+      win.focus();
+      setTimeout(function () { win.print(); }, 400);
+    } catch (_) {}
+  }
+  try {
+    if (win.document && win.document.readyState === 'complete') {
+      doPrint();
+    } else {
+      win.addEventListener('load', doPrint, { once: true });
+      setTimeout(doPrint, 900);
+    }
+  } catch (_) {
+    setTimeout(doPrint, 500);
+  }
+};
+
 Packets._openHtmlWindow = function (html, options) {
   options = options || {};
   if (!html) {
@@ -2507,24 +2530,37 @@ Packets._openHtmlWindow = function (html, options) {
     }
     return null;
   }
-  var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  var url = URL.createObjectURL(blob);
-  var win = window.open(url, '_blank');
+  var win = window.open('', '_blank');
   if (!win) {
-    URL.revokeObjectURL(url);
     if (typeof options.onError === 'function') {
       options.onError('Pop-up blocked. Allow pop-ups for this site, or use Download instead.');
     }
     return null;
   }
-  setTimeout(function () { URL.revokeObjectURL(url); }, 120000);
+  try {
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  } catch (e) {
+    try {
+      win.location.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
+    } catch (e2) {
+      try {
+        var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        win.location.href = url;
+        setTimeout(function () { URL.revokeObjectURL(url); }, 120000);
+      } catch (e3) {
+        if (typeof options.onError === 'function') {
+          options.onError('Could not open preview window.');
+        }
+        return null;
+      }
+    }
+  }
+  win.focus();
   if (options.print) {
-    win.addEventListener('load', function () {
-      win.focus();
-      setTimeout(function () { win.print(); }, 350);
-    });
-  } else {
-    win.focus();
+    Packets._schedulePrint(win);
   }
   return win;
 };

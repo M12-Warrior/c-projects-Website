@@ -1,4 +1,5 @@
-﻿// Smoke checks: packet HTML generation and slug aliases (run: node scripts/test-packet-render.js)
+'use strict';
+
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -6,53 +7,81 @@ const vm = require('vm');
 const root = path.join(__dirname, '..');
 const packetsJs = fs.readFileSync(path.join(root, 'public/js/packets.js'), 'utf8');
 
-let failed = 0;
-function ok(label) { console.log('ok', label); }
-function fail(label, detail) { console.error('FAIL', label, detail || ''); failed++; }
+function ok(msg) { console.log('OK:', msg); }
+function fail(msg) { console.error('FAIL:', msg); process.exitCode = 1; }
 
 const ctx = {};
 vm.createContext(ctx);
 try {
   vm.runInContext(packetsJs, ctx);
 } catch (e) {
-  fail('packets.js load', e.message);
+  fail('packets.js failed to load: ' + e.message);
   process.exit(1);
 }
 
 const Packets = ctx.Packets;
 if (!Packets || typeof Packets.seasonedDriver !== 'function') {
-  fail('seasonedDriver fn');
+  fail('Packets.seasonedDriver missing');
   process.exit(1);
 }
 
-[
+const types = [
   ['new-driver', 'newDriver', 50000],
   ['seasoned-driver', 'seasonedDriver', 30000],
   ['fleet-new-hire', 'fleetNewHire', 40000],
   ['fleet-refresher', 'fleetRefresher', 30000]
-].forEach(function (pair) {
+];
+
+types.forEach(function (pair) {
   const type = pair[0];
   const fn = pair[1];
   const minLen = pair[2];
   const html = Packets[fn]();
-  if (!html || html.length < minLen) fail(type + ' length', String(html && html.length));
-  else if (html.indexOf('<body>') === -1) fail(type + ' body tag');
-  else if (html.replace(/<[^>]+>/g, '').trim().length < 5000) fail(type + ' sparse text');
-  else ok(type + ' renders');
+  if (!html || html.length < minLen) {
+    fail(type + ' HTML too short (' + (html ? html.length : 0) + ')');
+    return;
+  }
+  if (html.indexOf('<body>') === -1 || html.indexOf('</html>') === -1) {
+    fail(type + ' missing body/html wrapper');
+    return;
+  }
+  if (html.replace(/<[^>]+>/g, '').trim().length < 5000) {
+    fail(type + ' body text too sparse');
+    return;
+  }
+  ok(type + ' renders ' + html.length + ' chars');
 });
 
-if (Packets._normalizeType('seasoned-packet') !== 'seasoned-driver') fail('slug alias');
-else ok('seasoned-packet alias');
+if (Packets._normalizeType('seasoned-packet') !== 'seasoned-driver') {
+  fail('seasoned-packet slug alias');
+} else {
+  ok('seasoned-packet slug maps to seasoned-driver');
+}
 
-const built = Packets._buildHtml('seasoned-packet');
-if (!built || built.length < 30000) fail('_buildHtml slug');
-else ok('_buildHtml slug');
+if (Packets._buildHtml('seasoned-packet') && Packets._buildHtml('seasoned-packet').length > 30000) {
+  ok('_buildHtml accepts product slug');
+} else {
+  fail('_buildHtml product slug');
+}
 
-if (typeof Packets.printGated !== 'function') fail('printGated');
-else ok('printGated');
+if (typeof Packets.printGated === 'function' && typeof Packets.previewAdmin === 'function') {
+  ok('gated print and admin preview helpers present');
+} else {
+  fail('missing printGated or previewAdmin');
+}
 
-if (typeof Packets.previewAdmin !== 'function') fail('previewAdmin');
-else ok('previewAdmin');
+if (typeof Packets._openHtmlWindow === 'function' &&
+    /document\.write/.test(String(Packets._openHtmlWindow))) {
+  ok('_openHtmlWindow uses document.write (avoids blob tab failures)');
+} else {
+  fail('_openHtmlWindow should write HTML into blank window');
+}
 
-if (failed) process.exit(1);
+if (typeof Packets._schedulePrint === 'function') {
+  ok('_schedulePrint helper present');
+} else {
+  fail('_schedulePrint helper missing');
+}
+
+if (process.exitCode) process.exit(process.exitCode);
 console.log('All packet render checks passed.');

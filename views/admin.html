@@ -2177,20 +2177,32 @@
           grid.querySelectorAll('.pkt-preview-open').forEach(function(btn) {
             btn.addEventListener('click', function() {
               var t = btn.getAttribute('data-type');
-              if (typeof Packets !== 'undefined' && Packets.previewAdmin) {
-                Packets.previewAdmin(t, { print: false });
-              } else {
+              if (typeof Packets === 'undefined' || !Packets.previewAdmin) {
                 showToast('Packet engine not loaded.', false);
+                return;
+              }
+              try {
+                if (!Packets.previewAdmin(t, { print: false })) {
+                  showToast('Could not open preview. Allow pop-ups for this site.', false);
+                }
+              } catch (err) {
+                showToast('Preview failed: ' + (err && err.message ? err.message : 'unknown error'), false);
               }
             });
           });
           grid.querySelectorAll('.pkt-preview-print').forEach(function(btn) {
             btn.addEventListener('click', function() {
               var t = btn.getAttribute('data-type');
-              if (typeof Packets !== 'undefined' && Packets.previewAdmin) {
-                Packets.previewAdmin(t, { print: true });
-              } else {
+              if (typeof Packets === 'undefined' || !Packets.previewAdmin) {
                 showToast('Packet engine not loaded.', false);
+                return;
+              }
+              try {
+                if (!Packets.previewAdmin(t, { print: true })) {
+                  showToast('Could not open print view. Allow pop-ups for this site.', false);
+                }
+              } catch (err) {
+                showToast('Print failed: ' + (err && err.message ? err.message : 'unknown error'), false);
               }
             });
           });
