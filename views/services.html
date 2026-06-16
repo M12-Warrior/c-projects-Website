@@ -242,6 +242,7 @@
             </ul>
             <div class="pc-actions">
               <span class="btn btn-primary" style="width:100%;opacity:0.65;cursor:default;text-align:center;display:inline-block" role="status">Purchases opening soon</span>
+              <div class="fleet-licensed hidden" data-fleet-type="fleet-new-hire" style="margin-top:10px"></div>
             </div>
           </div>
 
@@ -261,6 +262,7 @@
             </ul>
             <div class="pc-actions">
               <span class="btn btn-primary" style="width:100%;opacity:0.65;cursor:default;text-align:center;display:inline-block" role="status">Purchases opening soon</span>
+              <div class="fleet-licensed hidden" data-fleet-type="fleet-refresher" style="margin-top:10px"></div>
             </div>
           </div>
         </div>
@@ -366,7 +368,7 @@
         <p class="footer-contact">joyce@mile12warrior.com | (916) 292-7411</p>
       </div>
       <div class="footer-bottom">
-        <p>Mile 12 Warrior LLC | 2108 N ST., STE N, SACRAMENTO CA 95816</p>
+        <p>Mile 12 Warrior LLC | 2108 N, ST STE N, SACRAMENTO CA 95816</p>
         <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
         <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
           <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
@@ -386,6 +388,47 @@
   <div id="toast" class="toast" aria-live="polite"></div>
   <script src="/js/packets.js"></script>
   <script src="/js/tier1-checklist.js"></script>
+  <script>
+    // Reveal gated fleet packet downloads for customers who already hold a valid,
+    // in-date per-yard license. Buying stays "opening soon"; this only adds download
+    // access for existing entitlements, and downloads are stamped with the yard.
+    (function() {
+      function fmtDate(iso) {
+        if (!iso) return '';
+        try { var d = new Date(iso); return isNaN(d.getTime()) ? '' : d.toLocaleDateString(); } catch (_) { return ''; }
+      }
+      function esc(s) { var d = document.createElement('div'); d.textContent = (s == null ? '' : s); return d.innerHTML; }
+      var typeToAccess = { 'fleet-new-hire': 'fleet-new-hire', 'fleet-refresher': 'fleet-refresher' };
+      document.querySelectorAll('.fleet-licensed').forEach(function(box) {
+        var type = box.getAttribute('data-fleet-type');
+        var accessType = typeToAccess[type];
+        if (!accessType) return;
+        fetch('/api/shop/packet-access?type=' + encodeURIComponent(accessType), { credentials: 'include' })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data || !data.allowed) return;
+            var yard = data.yardIdentifier ? (esc(data.yardIdentifier) + (data.yardLabel ? ' (' + esc(data.yardLabel) + ')' : '')) : 'your yard';
+            var exp = data.expiresAt ? fmtDate(data.expiresAt) : '';
+            box.innerHTML =
+              '<div style="border:1px solid var(--green);border-radius:8px;padding:10px 12px;background:rgba(34,197,94,0.08)">' +
+              '<p style="margin:0 0 8px 0;font-size:0.8rem;color:var(--text-2);line-height:1.45">Your license &mdash; yard <strong>' + yard + '</strong>' +
+              (exp ? (' &middot; valid through ' + esc(exp)) : '') + '. Downloads are stamped for this yard only.</p>' +
+              '<button type="button" class="btn btn-primary fl-dl" style="width:100%;margin-bottom:6px">Download packet (this yard)</button>' +
+              '<button type="button" class="btn btn-secondary fl-pr" style="width:100%">Print packet</button>' +
+              '<p class="fl-msg" style="margin:8px 0 0 0;font-size:0.78rem;color:var(--red);display:none"></p>' +
+              '</div>';
+            box.classList.remove('hidden');
+            var msg = box.querySelector('.fl-msg');
+            function handle(res) {
+              if (res && !res.allowed && msg) { msg.textContent = res.message || 'Access denied.'; msg.style.display = 'block'; }
+            }
+            box.querySelector('.fl-dl').addEventListener('click', function() { Packets.downloadFleet(type, handle); });
+            box.querySelector('.fl-pr').addEventListener('click', function() { Packets.printFleet(type, handle); });
+          })
+          .catch(function() {});
+      });
+    })();
+  </script>
   <script>
     (function() {
       var CART_KEY = 'driver_shield_cart';

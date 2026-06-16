@@ -77,8 +77,62 @@ const DIGITAL_GRANT_MAP = {
   ]
 };
 
+// Fleet-packet slugs that are licensed per-yard (1 packet = 1 yard, 12-month term).
+const FLEET_PACKET_SLUGS = ['fleet-new-hire-packet', 'fleet-refresher-packet'];
+
+/**
+ * Find or create a fleets row for an order's captured fleet info.
+ * Returns the fleet id, or null when the order has no company name on it.
+ */
+function upsertFleetForOrder(order) {
+  const company = order.fleet_company ? String(order.fleet_company).trim() : '';
+  if (!company) return null;
+  // Reuse an existing fleet for this account + company name so renewals/extra yards
+  // group under one fleet rather than creating duplicates.
+  let existing = null;
+  if (order.user_id) {
+    existing = db.prepare(
+      'SELECT id FROM fleets WHERE user_id = ? AND LOWER(company_name) = LOWER(?) ORDER BY id ASC LIMIT 1'
+    ).get(order.user_id, company);
+  }
+  if (existing) {
+    db.prepare(`
+      UPDATE fleets
+      SET contact_name = COALESCE(NULLIF(?, ''), contact_name),
+          contact_email = COALESCE(NULLIF(?, ''), contact_email),
+          contact_phone = COALESCE(NULLIF(?, ''), contact_phone),
+          num_yards = COALESCE(?, num_yards),
+          updated_at = datetime('now')
+      WHERE id = ?
+    `).run(
+      order.fleet_contact_name || '',
+      order.fleet_contact_email || '',
+      order.fleet_contact_phone || '',
+      order.fleet_num_yards != null ? order.fleet_num_yards : null,
+      existing.id
+    );
+    return existing.id;
+  }
+  const inserted = db.prepare(`
+    INSERT INTO fleets (user_id, company_name, contact_name, contact_email, contact_phone, num_yards)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(
+    order.user_id || null,
+    company,
+    order.fleet_contact_name || null,
+    order.fleet_contact_email || null,
+    order.fleet_contact_phone || null,
+    order.fleet_num_yards != null ? order.fleet_num_yards : null
+  );
+  return inserted.lastInsertRowid;
+}
+
 function createProductAccessGrantsForOrder(orderId) {
-  const order = db.prepare('SELECT id, user_id FROM orders WHERE id = ?').get(orderId);
+  const order = db.prepare(`
+    SELECT id, user_id, fleet_company, fleet_contact_name, fleet_contact_email,
+           fleet_contact_phone, fleet_num_yards, yard_identifier, yard_label
+    FROM orders WHERE id = ?
+  `).get(orderId);
   if (!order) return;
   const existing = db.prepare('SELECT id FROM product_access_grants WHERE order_id = ? LIMIT 1').get(orderId);
   if (existing) return;
@@ -91,9 +145,20 @@ function createProductAccessGrantsForOrder(orderId) {
   `).all(orderId);
 
   const insertGrant = db.prepare(`
-    INSERT INTO product_access_grants (user_id, order_id, product_slug, expires_at, max_downloads)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO product_access_grants
+      (user_id, order_id, product_slug, expires_at, max_downloads, fleet_id, yard_identifier, yard_label, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
   `);
+
+  // Only create/link a fleet when this order actually contains a fleet packet.
+  const hasFleetPacket = items.some((it) => {
+    if (it.category !== 'digital') return false;
+    const grants = DIGITAL_GRANT_MAP[it.product_slug];
+    return grants && grants.some((g) => FLEET_PACKET_SLUGS.indexOf(g.product_slug) !== -1);
+  });
+  const fleetId = hasFleetPacket ? upsertFleetForOrder(order) : null;
+  const yardIdentifier = order.yard_identifier ? String(order.yard_identifier).trim() : null;
+  const yardLabel = order.yard_label ? String(order.yard_label).trim() : null;
 
   const now = new Date();
   for (const item of items) {
@@ -109,7 +174,17 @@ function createProductAccessGrantsForOrder(orderId) {
         expiresAt = d.toISOString();
       }
       const maxDown = g.max_downloads == null ? null : g.max_downloads * qty;
-      insertGrant.run(order.user_id, orderId, g.product_slug, expiresAt, maxDown);
+      const isFleetPacket = FLEET_PACKET_SLUGS.indexOf(g.product_slug) !== -1;
+      insertGrant.run(
+        order.user_id,
+        orderId,
+        g.product_slug,
+        expiresAt,
+        maxDown,
+        isFleetPacket ? fleetId : null,
+        isFleetPacket ? yardIdentifier : null,
+        isFleetPacket ? yardLabel : null
+      );
     }
   }
 }
@@ -447,11 +522,14 @@ router.get('/packet-access', (req, res) => {
   }
 
   const grants = db.prepare(`
-    SELECT id, download_count, max_downloads, expires_at
-    FROM product_access_grants
-    WHERE user_id = ? AND product_slug = ?
-      AND (expires_at IS NULL OR expires_at > ?)
-    ORDER BY expires_at IS NULL DESC, expires_at DESC
+    SELECT pag.id, pag.download_count, pag.max_downloads, pag.expires_at,
+           pag.yard_identifier, pag.yard_label, pag.fleet_id, f.company_name AS fleet_company
+    FROM product_access_grants pag
+    LEFT JOIN fleets f ON f.id = pag.fleet_id
+    WHERE pag.user_id = ? AND pag.product_slug = ?
+      AND (pag.expires_at IS NULL OR pag.expires_at > ?)
+      AND COALESCE(pag.status, 'active') != 'revoked'
+    ORDER BY pag.expires_at IS NULL DESC, pag.expires_at DESC
   `).all(uid, productSlug, now);
 
   for (const g of grants) {
@@ -461,7 +539,10 @@ router.get('/packet-access', (req, res) => {
       allowed: true,
       tier1Free,
       downloadsRemaining: g.max_downloads == null ? null : remaining,
-      expiresAt: g.expires_at || null
+      expiresAt: g.expires_at || null,
+      fleetCompany: g.fleet_company || null,
+      yardIdentifier: g.yard_identifier || null,
+      yardLabel: g.yard_label || null
     });
   }
   return res.json({
@@ -487,6 +568,7 @@ router.post('/packet-download-log', requireSession, (req, res) => {
     FROM product_access_grants
     WHERE user_id = ? AND product_slug = ?
       AND (expires_at IS NULL OR expires_at > ?)
+      AND COALESCE(status, 'active') != 'revoked'
     ORDER BY expires_at IS NULL DESC, expires_at DESC
   `).all(uid, productSlug, now).find(g => g.max_downloads == null || g.download_count < g.max_downloads);
 

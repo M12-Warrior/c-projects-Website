@@ -294,6 +294,70 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_product_access_grants_slug ON product_access_grants(product_slug);
 `);
 
+// Fleets: company-level info captured when a fleet packet is purchased. One row per
+// company/account; individual yard licenses live on product_access_grants (extended below).
+db.exec(`
+  CREATE TABLE IF NOT EXISTS fleets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES users(id),
+    company_name TEXT NOT NULL,
+    contact_name TEXT,
+    contact_email TEXT,
+    contact_phone TEXT,
+    num_yards INTEGER,
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE INDEX IF NOT EXISTS idx_fleets_user ON fleets(user_id);
+  CREATE INDEX IF NOT EXISTS idx_fleets_company ON fleets(company_name);
+`);
+
+// Per-yard licensing: each fleet-packet grant is bound to ONE yard (terminal # or address).
+// Idempotent ALTERs so existing databases pick up the new columns on next boot.
+try {
+  db.exec('ALTER TABLE product_access_grants ADD COLUMN fleet_id INTEGER REFERENCES fleets(id)');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE product_access_grants ADD COLUMN yard_identifier TEXT');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE product_access_grants ADD COLUMN yard_label TEXT');
+} catch (_) {}
+try {
+  db.exec("ALTER TABLE product_access_grants ADD COLUMN status TEXT DEFAULT 'active'");
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE product_access_grants ADD COLUMN revoked_at DATETIME');
+} catch (_) {}
+try {
+  db.exec('CREATE INDEX IF NOT EXISTS idx_product_access_grants_fleet ON product_access_grants(fleet_id)');
+} catch (_) {}
+
+// Orders: capture the fleet/yard questionnaire entered at checkout so it can be copied
+// onto the grant (and a fleets row) when access is granted. Idempotent ALTERs.
+try {
+  db.exec('ALTER TABLE orders ADD COLUMN fleet_company TEXT');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE orders ADD COLUMN fleet_contact_name TEXT');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE orders ADD COLUMN fleet_contact_email TEXT');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE orders ADD COLUMN fleet_contact_phone TEXT');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE orders ADD COLUMN fleet_num_yards INTEGER');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE orders ADD COLUMN yard_identifier TEXT');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE orders ADD COLUMN yard_label TEXT');
+} catch (_) {}
+
 // Traffic visits: one row per page view for admin analytics (daily/weekly/monthly/yearly, return users, YoY)
 db.exec(`
   CREATE TABLE IF NOT EXISTS traffic_visits (

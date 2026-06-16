@@ -2391,6 +2391,171 @@ Packets.getNewDriverChecklist = function () {
 };
 
 /* ============================================================
+   Per-yard license stamping (anti-abuse)
+   Stamps the company + yard identifier + expiry onto fleet packets
+   so a printed sheet is visibly tied to ONE yard.
+   ============================================================ */
+Packets._formatDate = function (iso) {
+  if (!iso) return '';
+  try {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  } catch (_) { return ''; }
+};
+
+Packets._escapeHtml = function (str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+};
+
+// license: { fleetCompany, yardIdentifier, yardLabel, expiresAt }
+Packets._applyLicenseStamp = function (html, license) {
+  if (!license || (!license.fleetCompany && !license.yardIdentifier)) return html;
+  var esc = Packets._escapeHtml;
+  var company = esc(license.fleetCompany || 'Licensed fleet');
+  var yard = esc(license.yardIdentifier || '');
+  var label = license.yardLabel ? (' (' + esc(license.yardLabel) + ')') : '';
+  var validThrough = license.expiresAt ? Packets._formatDate(license.expiresAt) : '';
+  var stampCss =
+    '<style>' +
+    '.license-stamp{border:2px solid #b45309;background:#fffbeb;color:#7c2d12;' +
+    'padding:10px 14px;margin:0 0 18px 0;border-radius:6px;font-size:9.5pt;line-height:1.5;}' +
+    '.license-stamp strong{color:#7c2d12;}' +
+    '.license-foot{margin-top:18px;border-top:1px solid #b45309;padding-top:8px;' +
+    'font-size:8pt;color:#7c2d12;text-align:center;}' +
+    '@media print{.license-stamp{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}' +
+    '</style>';
+  var banner =
+    '<div class="license-stamp">' +
+    '<strong>Licensed copy &mdash; single-yard use only.</strong><br>' +
+    'Licensed to: <strong>' + company + '</strong><br>' +
+    'Authorized yard / terminal: <strong>' + yard + label + '</strong><br>' +
+    (validThrough ? ('Valid through: <strong>' + validThrough + '</strong><br>') : '') +
+    'This packet is licensed for the single yard named above. Printing or distributing it for any ' +
+    'other yard or terminal is not covered by this license.' +
+    '</div>';
+  var foot =
+    '<div class="license-foot">Licensed to ' + company + ' &mdash; yard ' + yard + label +
+    (validThrough ? (' &mdash; valid through ' + validThrough) : '') + '. Single-yard license.</div>';
+  var out = html;
+  if (out.indexOf('</head>') !== -1) {
+    out = out.replace('</head>', stampCss + '</head>');
+  } else {
+    out = stampCss + out;
+  }
+  if (out.indexOf('<body>') !== -1) {
+    out = out.replace('<body>', '<body>' + banner);
+  } else {
+    out = banner + out;
+  }
+  if (out.indexOf('</body>') !== -1) {
+    out = out.replace('</body>', foot + '</body>');
+  } else {
+    out = out + foot;
+  }
+  return out;
+};
+
+// Fleet packet types -> packet-access query type
+Packets._FLEET_ACCESS_TYPE = {
+  'fleet-new-hire': 'fleet-new-hire',
+  'fleet-refresher': 'fleet-refresher'
+};
+
+// Check entitlement for a fleet packet. Returns a promise of { allowed, license, message }.
+Packets._checkFleetAccess = function (type) {
+  var accessType = Packets._FLEET_ACCESS_TYPE[type];
+  if (!accessType) return Promise.resolve({ allowed: false, message: 'Unknown packet.' });
+  return fetch('/api/shop/packet-access?type=' + encodeURIComponent(accessType), { credentials: 'include' })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data && data.allowed) {
+        return {
+          allowed: true,
+          license: {
+            fleetCompany: data.fleetCompany || null,
+            yardIdentifier: data.yardIdentifier || null,
+            yardLabel: data.yardLabel || null,
+            expiresAt: data.expiresAt || null
+          }
+        };
+      }
+      return {
+        allowed: false,
+        message: 'This fleet packet requires an active, in-date license for your yard. ' +
+          'If your license has expired, please renew it, or contact us for help.'
+      };
+    })
+    .catch(function () { return { allowed: false, message: 'Could not verify your packet license. Please try again.' }; });
+};
+
+Packets._buildFleetHtml = function (type) {
+  switch (type) {
+    case 'fleet-new-hire': return Packets.fleetNewHire();
+    case 'fleet-refresher': return Packets.fleetRefresher();
+    default: return null;
+  }
+};
+
+// Gated fleet download: only works with a valid per-yard license; stamps the output.
+Packets.downloadFleet = function (type, onResult) {
+  return Packets._checkFleetAccess(type).then(function (res) {
+    if (!res.allowed) { if (onResult) onResult(res); return res; }
+    var html = Packets._buildFleetHtml(type);
+    if (!html) { var r = { allowed: false, message: 'Unknown packet.' }; if (onResult) onResult(r); return r; }
+    html = Packets._applyLicenseStamp(html, res.license);
+    var filename = (type === 'fleet-new-hire')
+      ? 'Mile12Warrior-Fleet-NewHire-Packet.html'
+      : 'Mile12Warrior-Fleet-Refresher-Packet.html';
+    var blob = new Blob([html], { type: 'text/html' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+    try {
+      fetch('/api/shop/packet-download-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ type: Packets._FLEET_ACCESS_TYPE[type] })
+      }).catch(function () {});
+    } catch (_) {}
+    if (onResult) onResult(res);
+    return res;
+  });
+};
+
+// Gated fleet print: same entitlement check + stamping.
+Packets.printFleet = function (type, onResult) {
+  return Packets._checkFleetAccess(type).then(function (res) {
+    if (!res.allowed) { if (onResult) onResult(res); return res; }
+    var html = Packets._buildFleetHtml(type);
+    if (!html) { var r = { allowed: false, message: 'Unknown packet.' }; if (onResult) onResult(r); return r; }
+    html = Packets._applyLicenseStamp(html, res.license);
+    try {
+      fetch('/api/shop/packet-download-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ type: Packets._FLEET_ACCESS_TYPE[type] })
+      }).catch(function () {});
+    } catch (_) {}
+    var win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(function () { win.print(); }, 500);
+    if (onResult) onResult(res);
+    return res;
+  });
+};
+
+/* ============================================================
    Download & Print Helpers
    ============================================================ */
 Packets.download = function (type) {

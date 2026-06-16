@@ -86,6 +86,42 @@
           </div>
 
           <div id="checkoutSignedIn" class="hidden" style="margin-top:20px;">
+
+            <div id="fleetInfoSection" class="hidden" style="margin:0 0 20px 0;padding:18px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);">
+              <h3 style="font-size:1rem;margin:0 0 6px 0;">Fleet packet — yard information</h3>
+              <p style="margin:0 0 14px 0;font-size:0.82rem;color:var(--text-3);line-height:1.5">
+                Each fleet packet is licensed for <strong>one yard / terminal</strong> for 1 year. Tell us which yard this covers so your downloads are tied to it. Have more yards? Buy one packet per yard.
+              </p>
+              <label style="display:block;margin-bottom:10px;font-size:0.85rem;color:var(--text-2)">
+                Company / fleet name <span style="color:var(--red)">*</span>
+                <input type="text" id="fleetCompany" maxlength="200" style="width:100%;margin-top:4px;padding:9px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text)">
+              </label>
+              <div style="margin-bottom:10px">
+                <span style="display:block;font-size:0.85rem;color:var(--text-2);margin-bottom:4px">This yard is identified by <span style="color:var(--red)">*</span></span>
+                <label style="font-size:0.82rem;color:var(--text-2);margin-right:16px"><input type="radio" name="yardIdType" value="terminal" checked> Terminal number</label>
+                <label style="font-size:0.82rem;color:var(--text-2)"><input type="radio" name="yardIdType" value="address"> Physical address</label>
+                <input type="text" id="fleetYardIdentifier" maxlength="300" placeholder="e.g. Terminal 14, or 2108 N St, Sacramento CA" style="width:100%;margin-top:6px;padding:9px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text)">
+              </div>
+              <label style="display:block;margin-bottom:10px;font-size:0.85rem;color:var(--text-2)">
+                Yard nickname (optional)
+                <input type="text" id="fleetYardLabel" maxlength="200" placeholder="e.g. West Sac Yard" style="width:100%;margin-top:4px;padding:9px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text)">
+              </label>
+              <label style="display:block;margin-bottom:10px;font-size:0.85rem;color:var(--text-2)">
+                Contact name <span style="color:var(--red)">*</span>
+                <input type="text" id="fleetContactName" maxlength="200" style="width:100%;margin-top:4px;padding:9px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text)">
+              </label>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <label style="display:block;margin-bottom:0;font-size:0.85rem;color:var(--text-2);flex:1 1 200px">
+                  Contact email
+                  <input type="email" id="fleetContactEmail" maxlength="200" style="width:100%;margin-top:4px;padding:9px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text)">
+                </label>
+                <label style="display:block;margin-bottom:0;font-size:0.85rem;color:var(--text-2);flex:0 1 160px">
+                  How many yards? (optional)
+                  <input type="number" id="fleetNumYards" min="0" max="100000" style="width:100%;margin-top:4px;padding:9px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text)">
+                </label>
+              </div>
+            </div>
+
             <p style="margin:0 0 12px 0;font-size:0.85rem;color:var(--text-3);line-height:1.5">You'll be redirected to our secure payment partner, Stripe, to enter your card. We never see or store your full card number. Physical items will ask for a shipping address on the next screen.</p>
             <button type="button" id="payBtn" class="btn btn-primary">Pay securely with card</button>
             <a href="/shop/cart" class="btn btn-glass" style="margin-left:8px;">Edit cart</a>
@@ -137,6 +173,25 @@
       function show(id) { var el = document.getElementById(id); if (el) el.classList.remove('hidden'); }
       function hide(id) { var el = document.getElementById(id); if (el) el.classList.add('hidden'); }
 
+      // Products that include a per-yard fleet license (must match routes/stripe.js).
+      var FLEET_LICENSE_SLUGS = ['fleet-new-hire-packet', 'fleet-refresher-packet', 'fleet-bundle', 'complete-bundle'];
+      function cartHasFleetPacket(cart) {
+        return cart.some(function(i) { return FLEET_LICENSE_SLUGS.indexOf(i.slug) !== -1; });
+      }
+      function collectFleetInfo() {
+        var typeEl = document.querySelector('input[name="yardIdType"]:checked');
+        return {
+          company: (document.getElementById('fleetCompany').value || '').trim(),
+          yardIdentifier: (document.getElementById('fleetYardIdentifier').value || '').trim(),
+          yardLabel: (document.getElementById('fleetYardLabel').value || '').trim(),
+          yardIdType: typeEl ? typeEl.value : 'terminal',
+          contactName: (document.getElementById('fleetContactName').value || '').trim(),
+          contactEmail: (document.getElementById('fleetContactEmail').value || '').trim(),
+          contactPhone: '',
+          numYards: (document.getElementById('fleetNumYards').value || '').trim()
+        };
+      }
+
       function renderSummary(cart) {
         var total = 0;
         document.getElementById('checkoutItems').innerHTML = cart.map(function(item) {
@@ -180,19 +235,49 @@
         }
 
         show('checkoutSignedIn');
+        var needFleetInfo = cartHasFleetPacket(cart);
+        if (needFleetInfo) {
+          show('fleetInfoSection');
+          // Pre-fill the contact email with the signed-in account email.
+          if (user && user.email) {
+            var emailEl = document.getElementById('fleetContactEmail');
+            if (emailEl && !emailEl.value) emailEl.value = user.email;
+          }
+        }
         var payBtn = document.getElementById('payBtn');
         var errEl = document.getElementById('checkoutError');
         payBtn.addEventListener('click', async function() {
+          var fleetInfo = null;
+          if (needFleetInfo) {
+            fleetInfo = collectFleetInfo();
+            if (!fleetInfo.company) {
+              errEl.textContent = 'Please enter your company / fleet name.';
+              errEl.classList.remove('hidden');
+              return;
+            }
+            if (!fleetInfo.yardIdentifier) {
+              errEl.textContent = 'Please enter this yard\u2019s terminal number or physical address.';
+              errEl.classList.remove('hidden');
+              return;
+            }
+            if (!fleetInfo.contactName) {
+              errEl.textContent = 'Please enter a contact name.';
+              errEl.classList.remove('hidden');
+              return;
+            }
+          }
           payBtn.disabled = true;
           payBtn.textContent = 'Redirecting…';
           errEl.classList.add('hidden');
           try {
             var items = getCart().map(function(i) { return { slug: i.slug, quantity: i.quantity || 1 }; });
+            var body = { items: items };
+            if (fleetInfo) body.fleetInfo = fleetInfo;
             var res = await fetch('/api/stripe/create-checkout-session', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               credentials: 'include',
-              body: JSON.stringify({ items: items })
+              body: JSON.stringify(body)
             });
             var data = await res.json();
             if (res.ok && data.url) {

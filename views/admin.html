@@ -94,6 +94,7 @@
         <button type="button" class="admin-tab" data-tab="revenue">Revenue &amp; Tax</button>
         <button type="button" class="admin-tab" data-tab="downloads">Downloads</button>
         <button type="button" class="admin-tab" data-tab="renewals">Packets &amp; Renewals</button>
+        <button type="button" class="admin-tab" data-tab="fleets">Fleets &amp; Yards</button>
         <button type="button" class="admin-tab" data-tab="addressBook">Address Book</button>
         <button type="button" class="admin-tab" data-tab="compliance">Tax &amp; Compliance</button>
         <button type="button" class="admin-tab" data-tab="messages">Messages</button>
@@ -444,6 +445,17 @@
             <thead><tr><th>User</th><th>Email</th><th>Product</th><th>Purchase</th><th>Expires</th><th>Action</th></tr></thead>
             <tbody id="renewalsTable"></tbody>
           </table>
+        </div>
+      </div>
+
+      <div id="tabFleets" class="admin-tab-content hidden">
+        <div class="admin-section">
+          <h3>Fleets &amp; yard licenses</h3>
+          <p style="color:var(--text-2);margin-bottom:14px;font-size:0.9rem">
+            Each fleet packet is licensed for <strong>one yard / terminal</strong> for 1 year. A fleet with multiple yards needs one packet per yard.
+            Use this panel to view licenses, fix a yard identifier, <strong>renew</strong> (+1 year), <strong>revoke</strong>, or manually <strong>add a yard</strong> license.
+          </p>
+          <div id="fleetsList"></div>
         </div>
       </div>
 
@@ -2094,6 +2106,155 @@
         }
       }
 
+      function fleetLicenseStatus(g) {
+        if (String(g.status || 'active').toLowerCase() === 'revoked') return { label: 'Revoked', color: 'var(--red)' };
+        if (g.expires_at) {
+          const exp = new Date(g.expires_at).getTime();
+          const now = Date.now();
+          if (exp <= now) return { label: 'Expired', color: 'var(--red)' };
+          const days = Math.ceil((exp - now) / (24 * 60 * 60 * 1000));
+          if (days <= 30) return { label: 'Active (' + days + 'd left)', color: 'var(--gold)' };
+          return { label: 'Active (' + days + 'd left)', color: 'var(--green)' };
+        }
+        return { label: 'Active (no expiry)', color: 'var(--green)' };
+      }
+
+      function renderLicenseRow(g) {
+        const st = fleetLicenseStatus(g);
+        const yard = (g.yard_identifier ? escapeHtml(g.yard_identifier) : '<em>no yard set</em>') +
+          (g.yard_label ? ' (' + escapeHtml(g.yard_label) + ')' : '');
+        return '<tr data-license-id="' + g.id + '">' +
+          '<td>' + escapeHtml(g.product_slug || '') + '</td>' +
+          '<td class="lic-yard">' + yard + '</td>' +
+          '<td>' + formatDate(g.granted_at) + '</td>' +
+          '<td class="lic-exp">' + (g.expires_at ? formatDate(g.expires_at) : 'No expiry') + '</td>' +
+          '<td style="color:' + st.color + ';font-weight:600">' + st.label + '</td>' +
+          '<td style="white-space:nowrap">' +
+            '<button type="button" class="admin-btn admin-btn-primary lic-renew">Renew +1yr</button> ' +
+            '<button type="button" class="admin-btn lic-edit">Edit</button> ' +
+            '<button type="button" class="admin-btn admin-btn-danger lic-revoke">' +
+              (String(g.status || 'active').toLowerCase() === 'revoked' ? 'Reactivate' : 'Revoke') + '</button>' +
+          '</td>' +
+        '</tr>';
+      }
+
+      function wireLicenseButtons(scope) {
+        scope.querySelectorAll('.lic-renew').forEach(function(btn) {
+          btn.addEventListener('click', async function() {
+            const tr = btn.closest('tr');
+            const id = tr.getAttribute('data-license-id');
+            if (!confirmAction('Renew this yard license for another 12 months?')) return;
+            const r = await fetch('/api/admin/fleet-license/' + id + '/renew', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+              body: JSON.stringify({ months: 12, from_existing: true })
+            });
+            if (r.ok) { showToast('Renewed for 12 months.', true); loadFleets(); }
+            else showToast('Renew failed.', false);
+          });
+        });
+        scope.querySelectorAll('.lic-revoke').forEach(function(btn) {
+          btn.addEventListener('click', async function() {
+            const tr = btn.closest('tr');
+            const id = tr.getAttribute('data-license-id');
+            const reactivate = btn.textContent.indexOf('Reactivate') !== -1;
+            if (!confirmAction((reactivate ? 'Reactivate' : 'Revoke') + ' this yard license?')) return;
+            const r = await fetch('/api/admin/fleet-license/' + id, {
+              method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+              body: JSON.stringify({ status: reactivate ? 'active' : 'revoked' })
+            });
+            if (r.ok) { showToast(reactivate ? 'Reactivated.' : 'Revoked.', true); loadFleets(); }
+            else showToast('Update failed.', false);
+          });
+        });
+        scope.querySelectorAll('.lic-edit').forEach(function(btn) {
+          btn.addEventListener('click', async function() {
+            const tr = btn.closest('tr');
+            const id = tr.getAttribute('data-license-id');
+            const newYard = prompt('Yard identifier (terminal # or physical address):');
+            if (newYard === null) return;
+            const newLabel = prompt('Yard nickname (optional, leave blank for none):');
+            const newExp = prompt('Expiry date (YYYY-MM-DD). Leave blank to keep current.');
+            const body = { yard_identifier: newYard };
+            if (newLabel !== null) body.yard_label = newLabel;
+            if (newExp) body.expires_at = newExp;
+            const r = await fetch('/api/admin/fleet-license/' + id, {
+              method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+              body: JSON.stringify(body)
+            });
+            if (r.ok) { showToast('License updated.', true); loadFleets(); }
+            else { const d = await r.json().catch(function(){return{};}); showToast(d.error || 'Update failed.', false); }
+          });
+        });
+      }
+
+      async function loadFleets() {
+        const el = document.getElementById('fleetsList');
+        if (!el) return;
+        try {
+          const res = await fetch('/api/admin/fleets', { credentials: 'include' });
+          const data = await res.json();
+          const fleets = data.fleets || [];
+          const unassigned = data.unassigned || [];
+          let html = '';
+          if (!fleets.length && !unassigned.length) {
+            el.innerHTML = '<p class="text-muted">No fleets yet. Fleets appear here after a fleet packet is purchased (with the yard info captured at checkout).</p>';
+            return;
+          }
+          fleets.forEach(function(f) {
+            const licRows = (f.licenses || []).map(renderLicenseRow).join('') ||
+              '<tr><td colspan="6" class="text-muted">No yard licenses yet.</td></tr>';
+            html += '<div class="admin-card" data-fleet-id="' + f.id + '" style="border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:18px">' +
+              '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:baseline">' +
+                '<h4 style="margin:0">' + escapeHtml(f.company_name || 'Unnamed fleet') + '</h4>' +
+                '<span class="text-muted" style="font-size:0.82rem">Account: ' + escapeHtml(f.email || f.username || '—') + '</span>' +
+              '</div>' +
+              '<p class="text-muted" style="margin:4px 0 12px 0;font-size:0.85rem">' +
+                'Contact: ' + escapeHtml(f.contact_name || '—') + (f.contact_email ? ' · ' + escapeHtml(f.contact_email) : '') +
+                (f.contact_phone ? ' · ' + escapeHtml(f.contact_phone) : '') +
+                (f.num_yards != null ? ' · Yards in fleet: ' + escapeHtml(String(f.num_yards)) : '') +
+                ' · Licensed yards: ' + (f.licenses ? f.licenses.length : 0) +
+              '</p>' +
+              '<table class="admin-table"><thead><tr><th>Packet</th><th>Yard</th><th>Purchased</th><th>Expires</th><th>Status</th><th>Action</th></tr></thead>' +
+              '<tbody>' + licRows + '</tbody></table>' +
+              '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">' +
+                '<button type="button" class="admin-btn admin-btn-primary fleet-add-yard">Add yard license</button>' +
+              '</div>' +
+            '</div>';
+          });
+          if (unassigned.length) {
+            const uRows = unassigned.map(renderLicenseRow).join('');
+            html += '<div class="admin-card" style="border:1px dashed var(--border);border-radius:10px;padding:16px;margin-bottom:18px">' +
+              '<h4 style="margin:0 0 8px 0">Unassigned yard licenses</h4>' +
+              '<p class="text-muted" style="font-size:0.82rem;margin:0 0 10px 0">Fleet packets bought before yard info was captured. Edit each to set the yard identifier.</p>' +
+              '<table class="admin-table"><thead><tr><th>Packet</th><th>Yard</th><th>Purchased</th><th>Expires</th><th>Status</th><th>Action</th></tr></thead>' +
+              '<tbody>' + uRows + '</tbody></table>' +
+            '</div>';
+          }
+          el.innerHTML = html;
+          wireLicenseButtons(el);
+          el.querySelectorAll('.fleet-add-yard').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              const card = btn.closest('.admin-card');
+              const fleetId = card.getAttribute('data-fleet-id');
+              const slug = prompt('Which packet? Type "new-hire" or "refresher".', 'new-hire');
+              if (!slug) return;
+              const productSlug = slug.toLowerCase().indexOf('refresh') !== -1 ? 'fleet-refresher-packet' : 'fleet-new-hire-packet';
+              const yard = prompt('Yard identifier (terminal # or physical address):');
+              if (!yard) return;
+              const label = prompt('Yard nickname (optional):') || '';
+              const r = await fetch('/api/admin/fleets/' + fleetId + '/yard', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                body: JSON.stringify({ product_slug: productSlug, yard_identifier: yard, yard_label: label, months: 12 })
+              });
+              if (r.ok) { showToast('Yard license added (12 months).', true); loadFleets(); }
+              else { const d = await r.json().catch(function(){return{};}); showToast(d.error || 'Add failed.', false); }
+            });
+          });
+        } catch (_) {
+          el.innerHTML = '<p class="text-muted">Could not load fleets.</p>';
+        }
+      }
+
       async function loadAddressBook() {
         const el = document.getElementById('addressBookTable');
         if (!el) return;
@@ -2197,6 +2358,7 @@
       window.loadRevenue = loadRevenue;
       window.loadDownloads = loadDownloads;
       window.loadRenewals = loadRenewals;
+      window.loadFleets = loadFleets;
       window.loadAddressBook = loadAddressBook;
 
       // ===== Two-Factor Authentication (Security tab) =====

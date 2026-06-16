@@ -337,6 +337,191 @@ router.get('/packets-renewals', (req, res) => {
   res.json({ withinDays, grants, completions });
 });
 
+// ===== Fleets & per-yard licenses =====
+const FLEET_PACKET_SLUGS = ['fleet-new-hire-packet', 'fleet-refresher-packet'];
+
+// GET /api/admin/fleets — fleets with their per-yard licenses, plus any legacy
+// fleet-packet licenses not yet linked to a fleet (shown under "unassigned").
+router.get('/fleets', (req, res) => {
+  const fleets = db.prepare(`
+    SELECT f.id, f.company_name, f.contact_name, f.contact_email, f.contact_phone,
+           f.num_yards, f.notes, f.user_id, f.created_at, f.updated_at,
+           u.username, u.email
+    FROM fleets f
+    LEFT JOIN users u ON u.id = f.user_id
+    ORDER BY f.company_name ASC
+  `).all();
+
+  const licStmt = db.prepare(`
+    SELECT pag.id, pag.product_slug, pag.yard_identifier, pag.yard_label,
+           pag.granted_at, pag.expires_at, pag.status, pag.download_count, pag.max_downloads,
+           pag.order_id, pag.user_id,
+           u.username, u.email
+    FROM product_access_grants pag
+    LEFT JOIN users u ON u.id = pag.user_id
+    WHERE pag.fleet_id = ?
+      AND pag.product_slug IN ('fleet-new-hire-packet','fleet-refresher-packet')
+    ORDER BY pag.granted_at DESC
+  `);
+  const result = fleets.map((f) => ({ ...f, licenses: licStmt.all(f.id) }));
+
+  const unassigned = db.prepare(`
+    SELECT pag.id, pag.product_slug, pag.yard_identifier, pag.yard_label,
+           pag.granted_at, pag.expires_at, pag.status, pag.download_count, pag.max_downloads,
+           pag.order_id, pag.user_id,
+           u.username, u.email
+    FROM product_access_grants pag
+    LEFT JOIN users u ON u.id = pag.user_id
+    WHERE pag.fleet_id IS NULL
+      AND pag.product_slug IN ('fleet-new-hire-packet','fleet-refresher-packet')
+    ORDER BY pag.granted_at DESC
+  `).all();
+
+  res.json({ fleets: result, unassigned });
+});
+
+// PUT /api/admin/fleet-license/:id — edit a yard license (identifier, label, expiry, status)
+router.put('/fleet-license/:id', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) return res.status(400).json({ error: 'Invalid license id' });
+  const existing = db.prepare('SELECT id FROM product_access_grants WHERE id = ?').get(id);
+  if (!existing) return res.status(404).json({ error: 'License not found' });
+
+  const { yard_identifier, yard_label, expires_at, status } = req.body || {};
+  const updates = [];
+  const params = [];
+  if (yard_identifier !== undefined) {
+    updates.push('yard_identifier = ?');
+    params.push(yard_identifier ? String(yard_identifier).trim().slice(0, 300) : null);
+  }
+  if (yard_label !== undefined) {
+    updates.push('yard_label = ?');
+    params.push(yard_label ? String(yard_label).trim().slice(0, 200) : null);
+  }
+  if (expires_at !== undefined) {
+    let iso = null;
+    if (expires_at) {
+      const d = new Date(expires_at);
+      if (isNaN(d.getTime())) return res.status(400).json({ error: 'Invalid expiry date' });
+      iso = d.toISOString();
+    }
+    updates.push('expires_at = ?');
+    params.push(iso);
+  }
+  if (status !== undefined) {
+    const s = String(status).trim().toLowerCase();
+    if (s !== 'active' && s !== 'revoked') return res.status(400).json({ error: 'Status must be active or revoked' });
+    updates.push('status = ?');
+    params.push(s);
+    updates.push('revoked_at = ?');
+    params.push(s === 'revoked' ? new Date().toISOString() : null);
+  }
+  if (!updates.length) return res.status(400).json({ error: 'Nothing to update' });
+  params.push(id);
+  db.prepare(`UPDATE product_access_grants SET ${updates.join(', ')} WHERE id = ?`).run(...params);
+  res.json({ success: true });
+});
+
+// POST /api/admin/fleet-license/:id/renew — extend expiry by N months (default 12)
+router.post('/fleet-license/:id/renew', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) return res.status(400).json({ error: 'Invalid license id' });
+  const row = db.prepare('SELECT id, expires_at FROM product_access_grants WHERE id = ?').get(id);
+  if (!row) return res.status(404).json({ error: 'License not found' });
+  let months = parseInt(req.body && req.body.months, 10);
+  if (isNaN(months) || months < 1 || months > 60) months = 12;
+  // Renew from the later of "today" or the current expiry, so an early renewal
+  // adds to the remaining term rather than throwing it away.
+  const fromExisting = req.body && req.body.from_existing === true;
+  let base = new Date();
+  if (fromExisting && row.expires_at) {
+    const cur = new Date(row.expires_at);
+    if (!isNaN(cur.getTime()) && cur.getTime() > base.getTime()) base = cur;
+  }
+  base.setMonth(base.getMonth() + months);
+  db.prepare("UPDATE product_access_grants SET expires_at = ?, status = 'active', revoked_at = NULL WHERE id = ?")
+    .run(base.toISOString(), id);
+  res.json({ success: true, expires_at: base.toISOString() });
+});
+
+// POST /api/admin/fleets/:id/yard — manually add a yard license to a fleet.
+// Backed by a $0 admin-created "order" so the grant keeps referential integrity.
+router.post('/fleets/:id/yard', (req, res) => {
+  const fleetId = parseInt(req.params.id, 10);
+  if (isNaN(fleetId)) return res.status(400).json({ error: 'Invalid fleet id' });
+  const fleet = db.prepare('SELECT id, user_id, company_name FROM fleets WHERE id = ?').get(fleetId);
+  if (!fleet) return res.status(404).json({ error: 'Fleet not found' });
+  if (!fleet.user_id) {
+    return res.status(400).json({ error: 'This fleet has no linked account, so a license cannot be granted. Link an account first.' });
+  }
+  const body = req.body || {};
+  const slug = String(body.product_slug || '').trim();
+  if (FLEET_PACKET_SLUGS.indexOf(slug) === -1) {
+    return res.status(400).json({ error: 'product_slug must be fleet-new-hire-packet or fleet-refresher-packet' });
+  }
+  const yardIdentifier = body.yard_identifier ? String(body.yard_identifier).trim().slice(0, 300) : '';
+  if (!yardIdentifier) return res.status(400).json({ error: 'Yard identifier (terminal # or address) is required' });
+  const yardLabel = body.yard_label ? String(body.yard_label).trim().slice(0, 200) : null;
+
+  let months = parseInt(body.months, 10);
+  if (isNaN(months) || months < 1 || months > 60) months = 12;
+  const expiry = new Date();
+  expiry.setMonth(expiry.getMonth() + months);
+
+  const product = db.prepare('SELECT id, price FROM products WHERE slug = ?').get(slug);
+
+  const tx = db.transaction(() => {
+    const order = db.prepare(`
+      INSERT INTO orders (user_id, total, status, payment_status, paid_at, payment_method, fleet_company, yard_identifier, yard_label)
+      VALUES (?, 0, 'completed', 'paid', datetime('now'), 'admin-grant', ?, ?, ?)
+    `).run(fleet.user_id, fleet.company_name, yardIdentifier, yardLabel);
+    const orderId = order.lastInsertRowid;
+    if (product) {
+      db.prepare('INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, 1, 0)')
+        .run(orderId, product.id);
+    }
+    const grant = db.prepare(`
+      INSERT INTO product_access_grants
+        (user_id, order_id, product_slug, expires_at, fleet_id, yard_identifier, yard_label, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'active')
+    `).run(fleet.user_id, orderId, slug, expiry.toISOString(), fleetId, yardIdentifier, yardLabel);
+    return grant.lastInsertRowid;
+  });
+  const grantId = tx();
+  res.json({ success: true, license_id: grantId, expires_at: expiry.toISOString() });
+});
+
+// PUT /api/admin/fleets/:id — edit fleet company/contact details
+router.put('/fleets/:id', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) return res.status(400).json({ error: 'Invalid fleet id' });
+  const existing = db.prepare('SELECT id FROM fleets WHERE id = ?').get(id);
+  if (!existing) return res.status(404).json({ error: 'Fleet not found' });
+  const { company_name, contact_name, contact_email, contact_phone, num_yards, notes } = req.body || {};
+  const updates = [];
+  const params = [];
+  const setStr = (col, v, max) => { updates.push(col + ' = ?'); params.push(v ? String(v).trim().slice(0, max) : null); };
+  if (company_name !== undefined) {
+    if (!company_name || !String(company_name).trim()) return res.status(400).json({ error: 'Company name cannot be empty' });
+    setStr('company_name', company_name, 200);
+  }
+  if (contact_name !== undefined) setStr('contact_name', contact_name, 200);
+  if (contact_email !== undefined) setStr('contact_email', contact_email, 200);
+  if (contact_phone !== undefined) setStr('contact_phone', contact_phone, 60);
+  if (notes !== undefined) setStr('notes', notes, 2000);
+  if (num_yards !== undefined) {
+    let n = parseInt(num_yards, 10);
+    if (isNaN(n) || n < 0) n = null;
+    updates.push('num_yards = ?');
+    params.push(n);
+  }
+  if (!updates.length) return res.status(400).json({ error: 'Nothing to update' });
+  updates.push("updated_at = datetime('now')");
+  params.push(id);
+  db.prepare(`UPDATE fleets SET ${updates.join(', ')} WHERE id = ?`).run(...params);
+  res.json({ success: true });
+});
+
 // GET /api/admin/address-book — merged contacts (users + guest address_book)
 router.get('/address-book', (req, res) => {
   const rows = db.prepare(`
