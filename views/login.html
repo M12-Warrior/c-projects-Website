@@ -70,7 +70,27 @@
         <div id="loginError" class="form-error hidden"></div>
         <button type="submit" class="form-btn">Sign In</button>
       </form>
-      <p class="form-link">
+
+      <form id="twoFactorForm" class="hidden" novalidate>
+        <p style="color:var(--text-2);font-size:0.95rem;margin-bottom:6px;">
+          <strong>One more step.</strong> Open your authenticator app (Google Authenticator, Authy, etc.) and enter the current 6-digit code for Mile 12 Warrior.
+        </p>
+        <div class="form-group">
+          <label class="form-label" for="totpCode" id="totpCodeLabel">6-digit code</label>
+          <input type="text" id="totpCode" name="totpCode" class="form-input" inputmode="numeric" autocomplete="one-time-code" maxlength="14" placeholder="123456" aria-describedby="totpHelp">
+          <p id="totpHelp" style="font-size:0.85rem;color:var(--text-3);margin-top:6px;">The code changes every 30 seconds.</p>
+        </div>
+        <div id="twoFactorError" class="form-error hidden"></div>
+        <button type="submit" class="form-btn">Verify &amp; sign in</button>
+        <p class="form-link" style="margin-top:14px;">
+          <a href="#" id="useBackupCodeLink">Lost your phone? Use a backup code instead</a>
+        </p>
+        <p class="form-link" style="margin-top:4px;">
+          <a href="#" id="backToPasswordLink">Start over</a>
+        </p>
+      </form>
+
+      <p class="form-link" id="forgotPasswordLink">
         <a href="/forgot-password">Forgot password?</a>
       </p>
       <p class="form-link">
@@ -166,6 +186,70 @@
         });
       }
 
+      var twoFactorForm = document.getElementById('twoFactorForm');
+      var twoFactorError = document.getElementById('twoFactorError');
+      var totpCodeInput = document.getElementById('totpCode');
+      var totpCodeLabel = document.getElementById('totpCodeLabel');
+      var totpHelp = document.getElementById('totpHelp');
+      var useBackupCodeLink = document.getElementById('useBackupCodeLink');
+      var backToPasswordLink = document.getElementById('backToPasswordLink');
+      var forgotPasswordLink = document.getElementById('forgotPasswordLink');
+      var backupMode = false;
+
+      function showTwoFactorError(msg) {
+        twoFactorError.textContent = msg;
+        twoFactorError.classList.remove('hidden');
+      }
+      function hideTwoFactorError() {
+        twoFactorError.textContent = '';
+        twoFactorError.classList.add('hidden');
+      }
+
+      function showTwoFactorStep() {
+        loginForm.classList.add('hidden');
+        if (forgotPasswordLink) forgotPasswordLink.classList.add('hidden');
+        twoFactorForm.classList.remove('hidden');
+        hideTwoFactorError();
+        totpCodeInput.value = '';
+        setTimeout(function() { totpCodeInput.focus(); }, 50);
+      }
+
+      function showPasswordStep() {
+        twoFactorForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+        if (forgotPasswordLink) forgotPasswordLink.classList.remove('hidden');
+        hideError();
+      }
+
+      if (useBackupCodeLink) {
+        useBackupCodeLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          backupMode = !backupMode;
+          if (backupMode) {
+            totpCodeLabel.textContent = 'Backup code';
+            totpCodeInput.placeholder = 'xxxx-xxxx';
+            totpCodeInput.setAttribute('inputmode', 'text');
+            totpHelp.textContent = 'Enter one of the one-time backup codes you saved. Each code works only once.';
+            useBackupCodeLink.textContent = 'Use a code from your app instead';
+          } else {
+            totpCodeLabel.textContent = '6-digit code';
+            totpCodeInput.placeholder = '123456';
+            totpCodeInput.setAttribute('inputmode', 'numeric');
+            totpHelp.textContent = 'The code changes every 30 seconds.';
+            useBackupCodeLink.textContent = 'Lost your phone? Use a backup code instead';
+          }
+          totpCodeInput.value = '';
+          totpCodeInput.focus();
+        });
+      }
+
+      if (backToPasswordLink) {
+        backToPasswordLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          showPasswordStep();
+        });
+      }
+
       checkAuth().then(function(alreadyLoggedIn) {
         if (alreadyLoggedIn) return;
 
@@ -183,9 +267,14 @@
               body: JSON.stringify({ username, password })
             });
 
-            const data = res.ok ? await res.json().catch(() => ({})) : await res.json().catch(() => ({}));
+            const data = await res.json().catch(() => ({}));
 
-            if (res.ok) {
+            if (res.ok && data.twoFactorRequired) {
+              showTwoFactorStep();
+              return;
+            }
+
+            if (res.ok && data.success) {
               const role = data.role || (data.user && data.user.role);
               window.location.replace(afterLoginPath(role));
               return;
@@ -194,6 +283,33 @@
             showError(data.message || data.error || 'Invalid username or password.');
           } catch (err) {
             showError('Network error. Please try again.');
+          }
+        });
+
+        twoFactorForm.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          hideTwoFactorError();
+          const code = totpCodeInput.value.trim();
+          if (!code) {
+            showTwoFactorError('Enter your code to continue.');
+            return;
+          }
+          try {
+            const res = await fetch('/api/auth/login/2fa', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ code })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.success) {
+              const role = data.user && data.user.role;
+              window.location.replace(afterLoginPath(role));
+              return;
+            }
+            showTwoFactorError(data.error || data.message || 'That code is not valid. Please try again.');
+          } catch (err) {
+            showTwoFactorError('Network error. Please try again.');
           }
         });
       });

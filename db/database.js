@@ -190,6 +190,17 @@ try {
 try {
   db.exec('ALTER TABLE users ADD COLUMN mic_color TEXT DEFAULT NULL');
 } catch (_) {}
+// Two-factor authentication (TOTP) columns. Opt-in: totp_enabled stays 0 until the
+// user finishes enrollment, so deploying this can never turn 2FA on for anyone.
+try {
+  db.exec('ALTER TABLE users ADD COLUMN totp_secret TEXT');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE users ADD COLUMN totp_enabled INTEGER DEFAULT 0');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE users ADD COLUMN totp_backup_codes TEXT');
+} catch (_) {}
 try {
   db.exec('CREATE INDEX IF NOT EXISTS idx_users_customer_category ON users(customer_category)');
 } catch (_) {}
@@ -567,5 +578,22 @@ try {
     'E-product subscription: get the Trucker Wellness Journal as a downloadable and printable PDF-style log (sleep, meals, exercise, mood, mileage, notes) plus full platform perks: CB mic badge on the forum (tiers grow with tenure), Forum and Blog access, private My Journal online, incognito option, 30-day tier restore, and subscriber-priority messaging.'
   );
 } catch (_) {}
+
+// EMERGENCY 2FA ESCAPE HATCH (no-lockout safety net for the solo admin).
+// If DISABLE_2FA is set truthy in the environment, turn off two-factor auth for
+// every admin on boot so they can sign in with just their password and re-enroll.
+// Intended for recovery only — set it in Railway Variables, redeploy/restart, sign
+// in, then REMOVE the variable. See scripts/disable-2fa.js for a one-off CLI version.
+try {
+  const flag = String(process.env.DISABLE_2FA || '').trim().toLowerCase();
+  if (flag === 'true' || flag === '1' || flag === 'yes') {
+    const result = db.prepare(
+      "UPDATE users SET totp_enabled = 0, totp_secret = NULL, totp_backup_codes = NULL WHERE role = 'admin' AND totp_enabled = 1"
+    ).run();
+    console.warn('[security] DISABLE_2FA is set: two-factor auth cleared for ' + result.changes + ' admin account(s). Remove the DISABLE_2FA variable once you have signed in and re-enrolled.');
+  }
+} catch (err) {
+  console.error('[security] DISABLE_2FA escape hatch failed (continuing):', err && err.message ? err.message : err);
+}
 
 module.exports = db;

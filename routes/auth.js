@@ -3,6 +3,7 @@ const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const db = require('../db/database');
+const totp = require('../lib/totp');
 
 const router = express.Router();
 const isProduction = process.env.NODE_ENV === 'production';
@@ -14,6 +15,17 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Too many login attempts. Try again later.' }
 });
+
+// Tighter limit on the second factor step to stop brute-forcing a 6-digit code.
+const twoFactorLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many codes entered. Wait a few minutes and try again.' }
+});
+
+const PENDING_2FA_TTL_MS = 10 * 60 * 1000; // a pending login expires after 10 min
 
 const RESET_TOKEN_EXPIRY_HOURS = 1;
 
@@ -149,8 +161,8 @@ router.post('/login', loginLimiter, (req, res) => {
   const input = username.trim();
   const isEmail = input.includes('@');
   const user = isEmail
-    ? db.prepare('SELECT id, username, email, password, role, avatar, bio, home_base, customer_category, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE email = ?').get(input)
-    : db.prepare('SELECT id, username, email, password, role, avatar, bio, home_base, customer_category, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum FROM users WHERE username = ?').get(input);
+    ? db.prepare('SELECT id, username, email, password, role, avatar, bio, home_base, customer_category, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum, totp_enabled FROM users WHERE email = ?').get(input)
+    : db.prepare('SELECT id, username, email, password, role, avatar, bio, home_base, customer_category, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum, totp_enabled FROM users WHERE username = ?').get(input);
   if (!user) {
     return res.status(401).json({ error: 'Invalid username or password' });
   }
@@ -160,6 +172,15 @@ router.post('/login', loginLimiter, (req, res) => {
     return res.status(401).json({ error: 'Invalid username or password' });
   }
 
+  // If this account has 2FA on, the password is only step one. Do NOT establish a
+  // logged-in session yet — stash a short-lived pending marker and ask for a code.
+  if (user.totp_enabled) {
+    // Clear any stale logged-in session so a half-finished login can't leak through.
+    req.session.user = undefined;
+    req.session.pending2fa = { userId: user.id, at: Date.now() };
+    return res.json({ success: false, twoFactorRequired: true });
+  }
+
   const sessionUser = toSessionUser(user);
   req.session.user = sessionUser;
 
@@ -167,6 +188,49 @@ router.post('/login', loginLimiter, (req, res) => {
     success: true,
     user: sessionUser
   });
+});
+
+// POST /api/auth/login/2fa — second step of login for 2FA-enabled accounts.
+// Accepts a 6-digit TOTP code OR a single-use backup code. On success establishes
+// the real session. Uses the generic invalid-code messaging and is rate limited.
+router.post('/login/2fa', twoFactorLimiter, (req, res) => {
+  const pending = req.session && req.session.pending2fa;
+  if (!pending || !pending.userId) {
+    return res.status(400).json({ error: 'Your sign-in session expired. Please enter your password again.' });
+  }
+  if (Date.now() - (pending.at || 0) > PENDING_2FA_TTL_MS) {
+    delete req.session.pending2fa;
+    return res.status(400).json({ error: 'Your sign-in session expired. Please enter your password again.' });
+  }
+
+  const code = (req.body && req.body.code) ? String(req.body.code).trim() : '';
+  if (!code) {
+    return res.status(400).json({ error: 'Enter the 6-digit code from your authenticator app, or a backup code.' });
+  }
+
+  const user = db.prepare('SELECT id, username, email, role, avatar, bio, home_base, customer_category, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum, totp_secret, totp_enabled, totp_backup_codes FROM users WHERE id = ?').get(pending.userId);
+  if (!user || !user.totp_enabled) {
+    // 2FA was turned off (or user removed) in the meantime; force a clean restart.
+    delete req.session.pending2fa;
+    return res.status(400).json({ error: 'Your sign-in session expired. Please enter your password again.' });
+  }
+
+  let verified = totp.verifyToken(code, user.totp_secret);
+  if (!verified) {
+    const result = totp.verifyAndConsumeBackupCode(user.totp_backup_codes, code);
+    if (result.ok) {
+      verified = true;
+      db.prepare('UPDATE users SET totp_backup_codes = ? WHERE id = ?').run(result.updated, user.id);
+    }
+  }
+  if (!verified) {
+    return res.status(401).json({ error: 'That code is not valid. Enter a current 6-digit code from your app, or a backup code.' });
+  }
+
+  delete req.session.pending2fa;
+  const sessionUser = toSessionUser(user);
+  req.session.user = sessionUser;
+  res.json({ success: true, user: sessionUser });
 });
 
 // POST /api/auth/logout

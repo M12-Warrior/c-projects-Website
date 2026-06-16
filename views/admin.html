@@ -97,6 +97,7 @@
         <button type="button" class="admin-tab" data-tab="addressBook">Address Book</button>
         <button type="button" class="admin-tab" data-tab="compliance">Tax &amp; Compliance</button>
         <button type="button" class="admin-tab" data-tab="messages">Messages</button>
+        <button type="button" class="admin-tab" data-tab="security">Security</button>
       </div>
 
       <div id="tabDashboard" class="admin-tab-content">
@@ -492,6 +493,89 @@
       </div>
       <div id="tabMessages" class="admin-tab-content hidden">
         <div id="messagesList"></div>
+      </div>
+
+      <div id="tabSecurity" class="admin-tab-content hidden">
+        <div class="admin-section">
+          <h3>Two-Factor Authentication (2FA)</h3>
+          <p style="color:var(--text-2);font-size:0.92rem;max-width:680px;">
+            Two-factor authentication adds a second lock to your admin sign-in. After your password, you also enter a 6-digit code from an app on your phone — so even if someone learns your password, they still can't get in.
+          </p>
+
+          <div id="securityLoading" style="color:var(--text-3);font-size:0.9rem;margin-top:12px;">Loading…</div>
+
+          <!-- STATUS: OFF -->
+          <div id="security2faOff" class="hidden" style="margin-top:16px;">
+            <p style="font-size:0.95rem;"><strong>Status:</strong> <span style="color:#c0392b;">OFF</span></p>
+            <button type="button" class="btn btn-primary" id="start2faBtn">Set up 2FA</button>
+          </div>
+
+          <!-- STATUS: ON -->
+          <div id="security2faOn" class="hidden" style="margin-top:16px;">
+            <p style="font-size:0.95rem;"><strong>Status:</strong> <span style="color:#1e8449;">ON ✓</span></p>
+            <p style="font-size:0.9rem;color:var(--text-2);">Unused backup codes left: <strong id="backupCodesRemaining">–</strong>. If this gets low, regenerate a new set.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;">
+              <button type="button" class="btn btn-glass" id="regenBackupBtn">Regenerate backup codes</button>
+              <button type="button" class="btn btn-glass" id="disable2faBtn" style="border-color:#c0392b;color:#c0392b;">Turn off 2FA</button>
+            </div>
+          </div>
+
+          <!-- ENROLLMENT WIZARD -->
+          <div id="security2faSetup" class="hidden" style="margin-top:20px;border:1px solid var(--border, rgba(255,255,255,0.12));border-radius:12px;padding:18px;">
+            <h4 style="margin-top:0;">Set up 2FA — 3 quick steps</h4>
+            <ol style="color:var(--text-2);font-size:0.92rem;line-height:1.7;padding-left:20px;">
+              <li><strong>Install an authenticator app</strong> on your phone if you don't have one — Google Authenticator or Authy (free, from your app store).</li>
+              <li><strong>Scan this QR code</strong> with that app (or type in the manual key below).</li>
+              <li><strong>Enter the 6-digit code</strong> the app shows, then press Confirm.</li>
+            </ol>
+            <div style="text-align:center;margin:14px 0;">
+              <img id="qrImage" alt="2FA QR code" style="width:220px;height:220px;background:#fff;border-radius:8px;padding:6px;" />
+            </div>
+            <p style="font-size:0.85rem;color:var(--text-2);text-align:center;">
+              Can't scan? Type this key into your app manually:<br>
+              <code id="manualSecret" style="font-size:0.95rem;letter-spacing:1px;word-break:break-all;"></code>
+            </p>
+            <div class="form-group" style="max-width:260px;margin:14px auto 0;">
+              <label class="form-label" for="confirm2faCode">6-digit code from your app</label>
+              <input type="text" id="confirm2faCode" class="form-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456">
+            </div>
+            <div style="display:flex;gap:10px;justify-content:center;margin-top:12px;">
+              <button type="button" class="btn btn-primary" id="confirm2faBtn">Confirm &amp; turn on</button>
+              <button type="button" class="btn btn-glass" id="cancel2faBtn">Cancel</button>
+            </div>
+          </div>
+
+          <!-- BACKUP CODES DISPLAY (shown once) -->
+          <div id="security2faBackup" class="hidden" style="margin-top:20px;border:2px solid #e67e22;border-radius:12px;padding:18px;">
+            <h4 style="margin-top:0;color:#e67e22;">⚠ Save your backup codes now</h4>
+            <p style="font-size:0.92rem;color:var(--text-2);">
+              These one-time codes are the ONLY way to sign in if you ever lose your phone. <strong>Save them somewhere safe right now</strong> (print them or store them in a password manager). Each code works once. We will not show them again.
+            </p>
+            <pre id="backupCodesList" style="background:rgba(0,0,0,0.25);padding:14px;border-radius:8px;font-size:1.05rem;letter-spacing:1px;line-height:1.9;text-align:center;"></pre>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
+              <button type="button" class="btn btn-glass" id="copyBackupBtn">Copy codes</button>
+              <button type="button" class="btn btn-glass" id="downloadBackupBtn">Download .txt</button>
+              <button type="button" class="btn btn-primary" id="doneBackupBtn">I've saved them — Done</button>
+            </div>
+          </div>
+
+          <!-- CODE PROMPT (for disable / regenerate) -->
+          <div id="security2faPrompt" class="hidden" style="margin-top:18px;border:1px solid var(--border, rgba(255,255,255,0.12));border-radius:12px;padding:18px;max-width:320px;">
+            <p id="promptTitle" style="font-weight:600;margin-top:0;"></p>
+            <div class="form-group">
+              <label class="form-label" for="promptCode">Current 6-digit code or a backup code</label>
+              <input type="text" id="promptCode" class="form-input" inputmode="text" autocomplete="one-time-code" maxlength="14" placeholder="123456 or xxxx-xxxx">
+            </div>
+            <div style="display:flex;gap:10px;">
+              <button type="button" class="btn btn-primary" id="promptConfirmBtn">Confirm</button>
+              <button type="button" class="btn btn-glass" id="promptCancelBtn">Cancel</button>
+            </div>
+          </div>
+
+          <p style="font-size:0.82rem;color:var(--text-3);margin-top:22px;max-width:680px;">
+            Locked out and out of backup codes? You won't be stuck: the site owner can clear 2FA via the <code>DISABLE_2FA</code> recovery setting on the host (Railway), then you can sign in with just your password and set it up again.
+          </p>
+        </div>
       </div>
     </div>
   </main>
@@ -1360,22 +1444,15 @@
               showToast('Uploading image…', true);
               try {
                 var r = await fetch('/api/upload', { method: 'POST', credentials: 'include', body: fd });
-                var data = null;
-                try { data = await r.json(); } catch (e) { data = null; }
-                if (r.ok && data && data.success && data.url) {
+                var data = await r.json();
+                if (data.success && data.url) {
                   quill.insertEmbed(range.index, 'image', data.url, 'user');
                   quill.setSelection(range.index + 1, 0, 'user');
                   showToast('Image inserted into your post.', true);
-                } else if (r.status === 401 || r.status === 403) {
-                  showToast('Your admin session has expired. Please log in again, then re-insert the image.', false);
-                } else if (data && data.error) {
-                  showToast(data.error, false);
                 } else {
-                  showToast('Upload failed (' + r.status + '). Please try again.', false);
+                  showToast(data.error || 'Upload failed.', false);
                 }
-              } catch (_) {
-                showToast('Upload failed — network error. Check your connection and try again.', false);
-              }
+              } catch (_) { showToast('Upload failed.', false); }
               input.remove();
             });
             input.click();
@@ -2121,6 +2198,176 @@
       window.loadDownloads = loadDownloads;
       window.loadRenewals = loadRenewals;
       window.loadAddressBook = loadAddressBook;
+
+      // ===== Two-Factor Authentication (Security tab) =====
+      var sec = {
+        loading: 'securityLoading', off: 'security2faOff', on: 'security2faOn',
+        setup: 'security2faSetup', backup: 'security2faBackup', prompt: 'security2faPrompt'
+      };
+      var lastBackupCodes = [];
+      var pendingPromptAction = null; // 'disable' | 'regenerate'
+
+      function secShow(id) { var el = document.getElementById(id); if (el) el.classList.remove('hidden'); }
+      function secHide(id) { var el = document.getElementById(id); if (el) el.classList.add('hidden'); }
+      function secHideAllPanels() {
+        secHide(sec.off); secHide(sec.on); secHide(sec.setup); secHide(sec.backup); secHide(sec.prompt);
+      }
+
+      async function loadSecurity() {
+        secHideAllPanels();
+        secShow(sec.loading);
+        try {
+          var res = await fetch('/api/auth/2fa/status', { credentials: 'include' });
+          var data = await res.json().catch(function() { return {}; });
+          secHide(sec.loading);
+          if (!res.ok) { showToast(data.error || 'Could not load security settings.', false); return; }
+          if (data.enabled) {
+            document.getElementById('backupCodesRemaining').textContent = (data.backupCodesRemaining != null ? data.backupCodesRemaining : '–');
+            secShow(sec.on);
+          } else {
+            secShow(sec.off);
+          }
+        } catch (e) {
+          secHide(sec.loading);
+          showToast('Network error loading security settings.', false);
+        }
+      }
+      window.loadSecurity = loadSecurity;
+
+      function renderBackupCodes(codes) {
+        lastBackupCodes = codes || [];
+        document.getElementById('backupCodesList').textContent = lastBackupCodes.join('\n');
+      }
+
+      var start2faBtn = document.getElementById('start2faBtn');
+      if (start2faBtn) {
+        start2faBtn.addEventListener('click', async function() {
+          start2faBtn.disabled = true;
+          try {
+            var res = await fetch('/api/auth/2fa/setup', { method: 'POST', credentials: 'include' });
+            var data = await res.json().catch(function() { return {}; });
+            if (!res.ok) { showToast(data.error || 'Could not start setup.', false); return; }
+            document.getElementById('qrImage').src = data.qrDataUrl;
+            document.getElementById('manualSecret').textContent = data.secret;
+            document.getElementById('confirm2faCode').value = '';
+            secHideAllPanels();
+            secShow(sec.setup);
+          } catch (e) {
+            showToast('Network error starting setup.', false);
+          } finally {
+            start2faBtn.disabled = false;
+          }
+        });
+      }
+
+      var cancel2faBtn = document.getElementById('cancel2faBtn');
+      if (cancel2faBtn) cancel2faBtn.addEventListener('click', function() { loadSecurity(); });
+
+      var confirm2faBtn = document.getElementById('confirm2faBtn');
+      if (confirm2faBtn) {
+        confirm2faBtn.addEventListener('click', async function() {
+          var code = document.getElementById('confirm2faCode').value.trim();
+          if (!code) { showToast('Enter the 6-digit code from your app.', false); return; }
+          confirm2faBtn.disabled = true;
+          try {
+            var res = await fetch('/api/auth/2fa/enable', {
+              method: 'POST', credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code: code })
+            });
+            var data = await res.json().catch(function() { return {}; });
+            if (!res.ok) { showToast(data.error || 'That code was not valid.', false); return; }
+            renderBackupCodes(data.backupCodes);
+            secHideAllPanels();
+            secShow(sec.backup);
+            showToast('2FA is now ON.', true);
+          } catch (e) {
+            showToast('Network error confirming code.', false);
+          } finally {
+            confirm2faBtn.disabled = false;
+          }
+        });
+      }
+
+      var doneBackupBtn = document.getElementById('doneBackupBtn');
+      if (doneBackupBtn) doneBackupBtn.addEventListener('click', function() { loadSecurity(); });
+
+      var copyBackupBtn = document.getElementById('copyBackupBtn');
+      if (copyBackupBtn) {
+        copyBackupBtn.addEventListener('click', function() {
+          var text = lastBackupCodes.join('\n');
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function() { showToast('Backup codes copied.', true); }, function() { showToast('Copy failed — select and copy manually.', false); });
+          } else {
+            showToast('Copy not supported — select and copy manually.', false);
+          }
+        });
+      }
+
+      var downloadBackupBtn = document.getElementById('downloadBackupBtn');
+      if (downloadBackupBtn) {
+        downloadBackupBtn.addEventListener('click', function() {
+          var header = 'Mile 12 Warrior — admin 2FA backup codes\nKeep these private. Each code works only once.\n\n';
+          var blob = new Blob([header + lastBackupCodes.join('\n') + '\n'], { type: 'text/plain;charset=utf-8' });
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'mile12-2fa-backup-codes.txt';
+          a.click();
+          URL.revokeObjectURL(a.href);
+        });
+      }
+
+      function openPrompt(action, title) {
+        pendingPromptAction = action;
+        document.getElementById('promptTitle').textContent = title;
+        document.getElementById('promptCode').value = '';
+        secHideAllPanels();
+        secShow(sec.on);
+        secShow(sec.prompt);
+        setTimeout(function() { document.getElementById('promptCode').focus(); }, 50);
+      }
+
+      var disable2faBtn = document.getElementById('disable2faBtn');
+      if (disable2faBtn) disable2faBtn.addEventListener('click', function() { openPrompt('disable', 'Turn off 2FA — enter a current code to confirm'); });
+
+      var regenBackupBtn = document.getElementById('regenBackupBtn');
+      if (regenBackupBtn) regenBackupBtn.addEventListener('click', function() { openPrompt('regenerate', 'Regenerate backup codes — enter a current code to confirm'); });
+
+      var promptCancelBtn = document.getElementById('promptCancelBtn');
+      if (promptCancelBtn) promptCancelBtn.addEventListener('click', function() { pendingPromptAction = null; loadSecurity(); });
+
+      var promptConfirmBtn = document.getElementById('promptConfirmBtn');
+      if (promptConfirmBtn) {
+        promptConfirmBtn.addEventListener('click', async function() {
+          var code = document.getElementById('promptCode').value.trim();
+          if (!code) { showToast('Enter a code to confirm.', false); return; }
+          var url = pendingPromptAction === 'disable' ? '/api/auth/2fa/disable' : '/api/auth/2fa/backup-codes/regenerate';
+          promptConfirmBtn.disabled = true;
+          try {
+            var res = await fetch(url, {
+              method: 'POST', credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code: code })
+            });
+            var data = await res.json().catch(function() { return {}; });
+            if (!res.ok) { showToast(data.error || 'That code was not valid.', false); return; }
+            if (pendingPromptAction === 'regenerate') {
+              renderBackupCodes(data.backupCodes);
+              secHideAllPanels();
+              secShow(sec.backup);
+              showToast('New backup codes generated.', true);
+            } else {
+              showToast('2FA is now OFF.', true);
+              loadSecurity();
+            }
+            pendingPromptAction = null;
+          } catch (e) {
+            showToast('Network error. Please try again.', false);
+          } finally {
+            promptConfirmBtn.disabled = false;
+          }
+        });
+      }
 
       (async function init() {
         const user = await checkAuth();
