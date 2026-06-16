@@ -1317,8 +1317,21 @@ body.forum-coffee-shop .forum-category-header .page-title {
 }
 .admin-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   margin-bottom: 24px;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-hover) transparent;
+}
+.admin-tabs::-webkit-scrollbar {
+  height: 6px;
+}
+.admin-tabs::-webkit-scrollbar-thumb {
+  background: var(--border-hover);
+  border-radius: 3px;
 }
 .admin-tab {
   padding: 8px 18px;
@@ -1329,6 +1342,7 @@ body.forum-coffee-shop .forum-category-header .page-title {
   font-weight: 500;
   color: var(--text-3);
   cursor: pointer;
+  flex-shrink: 0;
   transition: background 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease);
 }
 .admin-tab.active,
