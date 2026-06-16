@@ -166,8 +166,12 @@
         <div id="blogNewFormWrap" class="hidden" style="margin-bottom: 24px;">
           <div class="profile-section">
             <form id="blogNewForm">
-              <div class="form-group"><label class="form-label">Title</label><input type="text" name="title" id="blogNewTitle" class="form-input" required>
+              <div class="form-group"><label class="form-label">Title</label><input type="text" name="title" id="blogNewTitle" class="form-input" aria-describedby="blogNewTitlePreview" required>
                 <p id="blogNewSlugPreview" class="hidden" style="font-size:0.8rem;color:var(--text-3);margin-top:6px;">Web address: <code id="blogNewSlugPreviewVal"></code></p>
+                <div class="title-preview">
+                  <span class="title-preview-label">Preview</span>
+                  <div class="title-preview-headline is-placeholder" id="blogNewTitlePreview" aria-live="polite">Your headline will appear here</div>
+                </div>
               </div>
               <div class="form-group"><label class="form-label">Excerpt</label><input type="text" name="excerpt" id="blogNewExcerpt" class="form-input">
                 <button type="button" class="btn btn-glass mt-8" id="blogNewExcerptHelperBtn" style="font-size:0.8rem;">Suggest from content</button>
@@ -213,7 +217,12 @@
             <h4 style="margin-top:0;">Edit post</h4>
             <form id="blogEditForm">
               <input type="hidden" id="blogEditId" name="id">
-              <div class="form-group"><label class="form-label">Title</label><input type="text" id="blogEditTitle" name="title" class="form-input" required></div>
+              <div class="form-group"><label class="form-label">Title</label><input type="text" id="blogEditTitle" name="title" class="form-input" aria-describedby="blogEditTitlePreview" required>
+                <div class="title-preview">
+                  <span class="title-preview-label">Preview</span>
+                  <div class="title-preview-headline is-placeholder" id="blogEditTitlePreview" aria-live="polite">Your headline will appear here</div>
+                </div>
+              </div>
               <div class="form-group"><label class="form-label">Excerpt</label><input type="text" id="blogEditExcerpt" name="excerpt" class="form-input"></div>
               <div class="form-group">
                 <label class="form-label">Featured image</label>
@@ -1006,7 +1015,9 @@
           const data = await res.json();
           const p = data.post || data;
           document.getElementById('blogEditId').value = p.id;
-          document.getElementById('blogEditTitle').value = p.title || '';
+          var editTitleEl = document.getElementById('blogEditTitle');
+          editTitleEl.value = p.title || '';
+          editTitleEl.dispatchEvent(new Event('input'));
           document.getElementById('blogEditExcerpt').value = p.excerpt || '';
           var editImgEl = document.getElementById('blogEditImageUrl');
           editImgEl.value = p.image || '';
@@ -1038,7 +1049,7 @@
         var schedEl = document.getElementById('blogEditScheduledAt');
         try {
           if (idEl) idEl.value = '';
-          if (titleEl) titleEl.value = '';
+          if (titleEl) { titleEl.value = ''; titleEl.dispatchEvent(new Event('input')); }
           if (excerptEl) excerptEl.value = '';
           if (imageEl) imageEl.value = '';
           if (window.blogQuill && window.blogQuill.setEditHtml) window.blogQuill.setEditHtml('');
@@ -1427,6 +1438,26 @@
         }
         bindPreview(document.getElementById('blogImageUrl'), document.getElementById('blogImagePreview'));
         bindPreview(document.getElementById('blogEditImageUrl'), document.getElementById('blogEditImagePreview'));
+
+        function bindTitlePreview(inputEl, previewEl) {
+          if (!inputEl || !previewEl) return;
+          var placeholder = 'Your headline will appear here';
+          function update() {
+            var v = (inputEl.value || '').trim();
+            if (v) {
+              previewEl.textContent = v;
+              previewEl.classList.remove('is-placeholder');
+            } else {
+              previewEl.textContent = placeholder;
+              previewEl.classList.add('is-placeholder');
+            }
+          }
+          inputEl.addEventListener('input', update);
+          inputEl._updateTitlePreview = update;
+          update();
+        }
+        bindTitlePreview(document.getElementById('blogNewTitle'), document.getElementById('blogNewTitlePreview'));
+        bindTitlePreview(document.getElementById('blogEditTitle'), document.getElementById('blogEditTitlePreview'));
 
         var titleEl = document.getElementById('blogNewTitle');
         var slugWrap = document.getElementById('blogNewSlugPreview');
