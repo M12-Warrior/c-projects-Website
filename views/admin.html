@@ -9,6 +9,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Quill rich-text editor (WYSIWYG) for the blog post body -->
+  <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
 </head>
 <body>
 
@@ -181,30 +184,11 @@
                 <img id="blogImagePreview" alt="Featured image preview" class="hidden" style="margin-top:10px;max-width:220px;max-height:140px;border-radius:8px;border:1px solid var(--border,rgba(255,255,255,0.15));object-fit:cover;">
               </div>
               <div class="form-group">
-                <label class="form-label">Content</label>
-                <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:6px;font-weight:500;">Formatting (like Word) — select text then click a tool, or click to insert:</p>
-                <div class="blog-toolbar" data-target="blogNewContent">
-                  <button type="button" class="blog-tb-btn" data-wrap="strong" title="Bold"><strong>B</strong></button>
-                  <button type="button" class="blog-tb-btn" data-wrap="em" title="Italic"><em>I</em></button>
-                  <button type="button" class="blog-tb-btn" data-wrap="u" title="Underline">U</button>
-                  <button type="button" class="blog-tb-btn" data-wrap="s" title="Strikethrough">S</button>
-                  <span class="blog-tb-sep"></span>
-                  <button type="button" class="blog-tb-btn blog-tb-link" title="Insert link">Link</button>
-                  <span class="blog-tb-sep"></span>
-                  <button type="button" class="blog-tb-btn" data-wrap="ul" title="Bullet list">• List</button>
-                  <button type="button" class="blog-tb-btn" data-wrap="ol" title="Numbered list">1. List</button>
-                  <span class="blog-tb-sep"></span>
-                  <button type="button" class="blog-tb-btn" data-wrap="h2" title="Heading 2">H2</button>
-                  <button type="button" class="blog-tb-btn" data-wrap="h3" title="Heading 3">H3</button>
-                  <button type="button" class="blog-tb-btn" data-wrap="h4" title="Heading 4">H4</button>
-                  <button type="button" class="blog-tb-btn" data-wrap="p" title="Paragraph">P</button>
-                  <button type="button" class="blog-tb-btn" data-wrap="blockquote" title="Blockquote">Quote</button>
-                  <button type="button" class="blog-tb-btn blog-tb-hr" title="Horizontal line">—</button>
-                  <span class="blog-tb-sep"></span>
-                  <button type="button" class="blog-tb-btn blog-tb-image" title="Insert an image into the post at your cursor">🖼 Image</button>
-                  <input type="file" class="blog-tb-image-file" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
+                <label class="form-label" id="blogNewContentLabel">Content</label>
+                <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:6px;font-weight:500;">Highlight text, then click a button in the toolbar to format it (bold, italic, link, headings, lists, image). The toolbar stays at the top while you scroll.</p>
+                <div class="quill-wrap quill-wrap-page">
+                  <div id="blogNewEditor" class="quill-editor" aria-labelledby="blogNewContentLabel"></div>
                 </div>
-                <textarea name="content" id="blogNewContent" class="form-input blog-content-textarea content-editor" rows="28" required spellcheck="true" lang="en" placeholder="Write your full post here. Use the formatting bar above for bold, italic, links, lists, headings, and more."></textarea>
                 <button type="button" class="btn btn-glass mt-8" id="blogNewProofreadBtn">Proofread</button>
               </div>
               <div class="form-group">
@@ -242,30 +226,11 @@
                 <img id="blogEditImagePreview" alt="Featured image preview" class="hidden" style="margin-top:10px;max-width:220px;max-height:140px;border-radius:8px;border:1px solid var(--border,rgba(255,255,255,0.15));object-fit:cover;">
               </div>
               <div class="form-group">
-                <label class="form-label">Content</label>
-                <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:6px;font-weight:500;">Formatting (like Word) — select text then click a tool:</p>
-                <div class="blog-toolbar" data-target="blogEditContent">
-                  <button type="button" class="blog-tb-btn" data-wrap="strong" title="Bold"><strong>B</strong></button>
-                  <button type="button" class="blog-tb-btn" data-wrap="em" title="Italic"><em>I</em></button>
-                  <button type="button" class="blog-tb-btn" data-wrap="u" title="Underline">U</button>
-                  <button type="button" class="blog-tb-btn" data-wrap="s" title="Strikethrough">S</button>
-                  <span class="blog-tb-sep"></span>
-                  <button type="button" class="blog-tb-btn blog-tb-link" title="Insert link">Link</button>
-                  <span class="blog-tb-sep"></span>
-                  <button type="button" class="blog-tb-btn" data-wrap="ul" title="Bullet list">• List</button>
-                  <button type="button" class="blog-tb-btn" data-wrap="ol" title="Numbered list">1. List</button>
-                  <span class="blog-tb-sep"></span>
-                  <button type="button" class="blog-tb-btn" data-wrap="h2" title="Heading 2">H2</button>
-                  <button type="button" class="blog-tb-btn" data-wrap="h3" title="Heading 3">H3</button>
-                  <button type="button" class="blog-tb-btn" data-wrap="h4" title="Heading 4">H4</button>
-                  <button type="button" class="blog-tb-btn" data-wrap="p" title="Paragraph">P</button>
-                  <button type="button" class="blog-tb-btn" data-wrap="blockquote" title="Blockquote">Quote</button>
-                  <button type="button" class="blog-tb-btn blog-tb-hr" title="Horizontal line">—</button>
-                  <span class="blog-tb-sep"></span>
-                  <button type="button" class="blog-tb-btn blog-tb-image" title="Insert an image into the post at your cursor">🖼 Image</button>
-                  <input type="file" class="blog-tb-image-file" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
+                <label class="form-label" id="blogEditContentLabel">Content</label>
+                <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:6px;font-weight:500;">Highlight text, then click a toolbar button to format it. The toolbar stays visible while you scroll.</p>
+                <div class="quill-wrap quill-wrap-modal">
+                  <div id="blogEditEditor" class="quill-editor" aria-labelledby="blogEditContentLabel"></div>
                 </div>
-                <textarea id="blogEditContent" name="content" class="form-input blog-content-textarea content-editor" rows="28" required spellcheck="true" lang="en" placeholder="Full post content. Use the formatting bar above."></textarea>
                 <button type="button" class="btn btn-glass mt-8" id="blogEditProofreadBtn">Proofread</button>
               </div>
               <div class="form-group">
@@ -1046,7 +1011,7 @@
           var editImgEl = document.getElementById('blogEditImageUrl');
           editImgEl.value = p.image || '';
           editImgEl.dispatchEvent(new Event('input'));
-          document.getElementById('blogEditContent').value = p.content || '';
+          if (window.blogQuill && window.blogQuill.setEditHtml) window.blogQuill.setEditHtml(p.content || '');
           var schedEl = document.getElementById('blogEditScheduledAt');
           if (schedEl && p.scheduled_at) {
             try {
@@ -1070,14 +1035,13 @@
         var titleEl = document.getElementById('blogEditTitle');
         var excerptEl = document.getElementById('blogEditExcerpt');
         var imageEl = document.getElementById('blogEditImageUrl');
-        var contentEl = document.getElementById('blogEditContent');
         var schedEl = document.getElementById('blogEditScheduledAt');
         try {
           if (idEl) idEl.value = '';
           if (titleEl) titleEl.value = '';
           if (excerptEl) excerptEl.value = '';
           if (imageEl) imageEl.value = '';
-          if (contentEl) contentEl.value = '';
+          if (window.blogQuill && window.blogQuill.setEditHtml) window.blogQuill.setEditHtml('');
           if (schedEl) schedEl.value = '';
         } catch (_) {}
       }
@@ -1106,7 +1070,7 @@
           title: document.getElementById('blogEditTitle').value,
           excerpt: document.getElementById('blogEditExcerpt').value,
           image: (document.getElementById('blogEditImageUrl').value || '').trim() || null,
-          content: document.getElementById('blogEditContent').value,
+          content: (window.blogQuill ? window.blogQuill.getEditHtml() : ''),
           scheduled_at: (document.getElementById('blogEditScheduledAt').value || '').trim() || null
         };
       }
@@ -1190,17 +1154,18 @@
       });
       async function submitNewPost(publish) {
         const titleEl = document.querySelector('#blogNewForm input[name="title"]');
-        const contentEl = document.getElementById('blogNewContent');
         const excerptEl = document.querySelector('#blogNewForm input[name="excerpt"]');
         const imageEl = document.getElementById('blogImageUrl');
         const schedEl = document.getElementById('blogNewScheduledAt');
         const title = (titleEl && titleEl.value) ? titleEl.value.trim() : '';
         if (!title) { showToast('Enter a title to save.', false); return; }
+        const contentHtml = window.blogQuill ? window.blogQuill.getNewHtml() : '';
+        if (!contentHtml) { showToast('Write some content before saving.', false); return; }
         const payload = {
           title: title,
           excerpt: (excerptEl && excerptEl.value) ? excerptEl.value.trim() : null,
           image: (imageEl && imageEl.value) ? imageEl.value.trim() : null,
-          content: contentEl ? contentEl.value : '',
+          content: contentHtml,
           published: !!publish,
           scheduled_at: (schedEl && schedEl.value) ? schedEl.value.trim() : null
         };
@@ -1217,6 +1182,7 @@
               showToast('Post published.', true);
               document.getElementById('blogNewFormWrap').classList.add('hidden');
               document.getElementById('blogNewForm').reset();
+              if (window.blogQuill) window.blogQuill.clearNew();
               document.getElementById('blogImageUrl').dispatchEvent(new Event('input'));
               document.getElementById('blogNewTitle').dispatchEvent(new Event('input'));
               loadBlog();
@@ -1224,6 +1190,7 @@
               showToast('Draft saved. You can close and click Edit later to continue.', true);
               document.getElementById('blogNewFormWrap').classList.add('hidden');
               document.getElementById('blogNewForm').reset();
+              if (window.blogQuill) window.blogQuill.clearNew();
               document.getElementById('blogImageUrl').dispatchEvent(new Event('input'));
               document.getElementById('blogNewTitle').dispatchEvent(new Event('input'));
               loadBlog();
@@ -1240,9 +1207,15 @@
         var commonWordsStr = 'a an the and or but is are was were be been being have has had do does did will would could should may might must shall can need used to of in for on with at by from as into through during before after above below between under again further then once here there when where why how all each every both few more most other some such no nor not only own same so than too very just also now well back even way any many after first last long great little old right high different small large next early young important public bad able about above accept according across ahead almost alone along already although always among amount another anyone anything anywhere appear approach area around ask away bear beat become because begin behavior behind believe belong beside best better beyond big bit break bring broad build burn buy call care carry case catch cause center change charge check choose claim clear close cold come common concern contain continue control cost country course cover create cross current cut deal death decide deep describe design desire despite destroy develop die differ difficult direct discuss doctor dog door down draw dream drive drop earth east easy eat economy edge effect effort eight either eleven else end enough enter entire environment especially etc ever everyone everything everywhere example except exist expect experience explain express eye face fact fail fall family far fast father feel fight figure fill find fine finish fire five fix follow food foot force form forward four free friend front full fund gain game garden general get give go good government green ground group grow growth half hand happen hard head health hear heart heat heavy help her herself high him himself his hold home hope hospital hot hour house however hundred if image imagine impact improve include increase indeed indicate industry information inside instead interest invest involve its itself job keep key kind know knowledge land language lead learn leave left leg less let level life light like likely line list live look lose lot love low main make man matter mean measure media meet member mention method middle mind miss moment money month mother move movement much my myself name nation natural near network never new news night none north note nothing notice number occur off offer office often oh oil ok onto open order others out outside over page pain part participant particular particularly pass past pay people per perform perhaps person personal plan play point police policy political position possible power practice prepare present president pressure pretty prevent price probably problem process produce product provide pull put quality question quick quite rather reach read real really reason receive recent recognize record red reduce reflect regard region relate remain remember remove report represent require research resource respond result return reveal right rise risk road role room rule run safe say scene school second section see seek seem sell send sense series serious serve set seven several share she short show side sign similar since single situation six size skill social someone something sometimes son soon sort sound source south space speak special specific spend sport stage stand start state statement stay step still stock stop store story strategy street strong structure student study stuff style subject success suggest support sure take talk task teach team technology tell ten term thank that their them these they thing think third this those though thought thousand three throughout throw thus time today together top toward town trade traditional training travel treat tree trial trip trouble true try turn tv twelve twenty two type under understand unit until up upon us using usually value various view visit voice wait walk want war watch water we week west what whether which while white who whole whose wide wife win wish within without woman wonder word work worker world worry write writer writing wrong year yes yet young your';
         var COMMON_WORDS = new Set(commonWordsStr.split(' '));
         function getActiveBlogContentEl() {
+          // Returns a value-accessor backed by the active Quill editor so the
+          // proofreader can read and rewrite the post HTML transparently.
           var editModal = document.getElementById('blogEditModal');
-          if (editModal && !editModal.classList.contains('hidden')) return document.getElementById('blogEditContent');
-          return document.getElementById('blogNewContent');
+          var isEdit = editModal && !editModal.classList.contains('hidden');
+          if (!window.blogQuill) return null;
+          return {
+            get value() { return isEdit ? window.blogQuill.getEditHtml() : window.blogQuill.getNewHtml(); },
+            set value(v) { if (isEdit) window.blogQuill.setEditHtml(v || ''); else window.blogQuill.setNewHtml(v || ''); }
+          };
         }
         function extractWords(html) {
           var text = (html || '').replace(/<[^>]+>/g, ' ').replace(/&[#\w]+;/g, ' ');
@@ -1321,117 +1294,119 @@
         document.getElementById('blogProofreadClose').addEventListener('click', closeProofreadModal);
       })();
 
-      (function blogToolbar() {
-        function getTargetTextarea(btn) {
-          var toolbar = btn.closest('.blog-toolbar');
-          var id = toolbar && toolbar.getAttribute('data-target');
-          return id ? document.getElementById(id) : null;
+      // Rich-text (WYSIWYG) blog editors powered by Quill. Replaces the old
+      // raw-HTML textarea toolbar with a proper select-and-click editor whose
+      // toolbar stays visible (sticky) while scrolling a long post.
+      (function blogRichEditors() {
+        if (typeof Quill === 'undefined') {
+          console.error('Quill failed to load — blog editor will not work.');
+          return;
         }
-        function wrapSelection(ta, openTag, closeTag) {
-          var start = ta.selectionStart, end = ta.selectionEnd, val = ta.value;
-          var sel = val.slice(start, end);
-          var before = val.slice(0, start), after = val.slice(end);
-          ta.value = before + openTag + sel + closeTag + after;
-          ta.focus();
-          ta.setSelectionRange(start + openTag.length, end + openTag.length);
-        }
-        function insertAtCursor(ta, text) {
-          var start = ta.selectionStart, end = ta.selectionEnd, val = ta.value;
-          ta.value = val.slice(0, start) + text + val.slice(end);
-          ta.focus();
-          ta.setSelectionRange(start + text.length, start + text.length);
-        }
-        function wrapList(ta, tag) {
-          var start = ta.selectionStart, end = ta.selectionEnd, val = ta.value;
-          var sel = val.slice(start, end);
-          if (sel.length > 0) {
-            var lines = sel.split(/\r?\n/);
-            var wrapped = lines.map(function(line) { return '<li>' + line.trim() + '</li>'; }).join('\n');
-            ta.value = val.slice(0, start) + '<' + tag + '>\n' + wrapped + '\n</' + tag + '>\n' + val.slice(end);
-          } else {
-            insertAtCursor(ta, '<' + tag + '>\n<li> </li>\n</' + tag + '>\n');
-          }
-          ta.focus();
-        }
-        document.querySelectorAll('.blog-toolbar').forEach(function(toolbar) {
-          toolbar.querySelectorAll('.blog-tb-btn[data-wrap]').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-              var ta = getTargetTextarea(btn);
-              if (!ta) return;
-              ta.focus();
-              var tag = btn.getAttribute('data-wrap');
-              if (tag === 'ul' || tag === 'ol') {
-                wrapList(ta, tag);
-                return;
-              }
-              var openTag = '<' + tag + '>', closeTag = '</' + tag + '>';
-              var start = ta.selectionStart, end = ta.selectionEnd;
-              if (start === end) insertAtCursor(ta, openTag + ' ' + closeTag);
-              else wrapSelection(ta, openTag, closeTag);
-            });
+        var toolbarLayout = [
+          ['bold', 'italic', 'underline'],
+          [{ header: 2 }, { header: 3 }],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          ['blockquote'],
+          ['link', 'image'],
+          ['clean']
+        ];
+        var TOOLTIPS = {
+          '.ql-bold': 'Bold (Ctrl+B)',
+          '.ql-italic': 'Italic (Ctrl+I)',
+          '.ql-underline': 'Underline (Ctrl+U)',
+          '.ql-blockquote': 'Quote',
+          '.ql-link': 'Insert link',
+          '.ql-image': 'Insert image at cursor',
+          '.ql-list[value="ordered"]': 'Numbered list',
+          '.ql-list[value="bullet"]': 'Bullet list',
+          '.ql-header[value="2"]': 'Large heading (H2)',
+          '.ql-header[value="3"]': 'Small heading (H3)',
+          '.ql-clean': 'Clear formatting'
+        };
+        function labelToolbar(tbEl) {
+          if (!tbEl) return;
+          Object.keys(TOOLTIPS).forEach(function(sel) {
+            var el = tbEl.querySelector(sel);
+            if (el) { el.setAttribute('title', TOOLTIPS[sel]); el.setAttribute('aria-label', TOOLTIPS[sel]); }
           });
-          toolbar.querySelectorAll('.blog-tb-link').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-              var ta = getTargetTextarea(btn);
-              if (!ta) return;
-              ta.focus();
-              var start = ta.selectionStart, end = ta.selectionEnd, val = ta.value;
-              var sel = (val.slice(start, end) || '').trim();
-              var linkText = prompt('Link text (what readers see, e.g. "FMCSA Hours of Service"):', sel || 'Learn more');
-              if (linkText === null) return;
-              linkText = (linkText || '').trim() || 'Learn more';
-              var url = prompt('URL (e.g. https://www.fmcsa.dot.gov/regulations/hours-of-service):', 'https://');
-              if (url === null) return;
-              url = (url || '').trim();
-              if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
-              if (!url) return;
-              var before = val.slice(0, start), after = val.slice(end);
-              ta.value = before + '<a href="' + url + '">' + linkText + '</a>' + after;
-              ta.focus();
-              ta.setSelectionRange(start + url.length + 9, start + url.length + 9 + linkText.length);
-            });
-          });
-          toolbar.querySelectorAll('.blog-tb-hr').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-              var ta = getTargetTextarea(btn);
-              if (!ta) return;
-              ta.focus();
-              insertAtCursor(ta, '\n<hr>\n');
-            });
-          });
-          var imageBtn = toolbar.querySelector('.blog-tb-image');
-          var imageFile = toolbar.querySelector('.blog-tb-image-file');
-          if (imageBtn && imageFile) {
-            imageBtn.addEventListener('click', function() {
-              var ta = getTargetTextarea(imageBtn);
-              if (ta) { ta.focus(); imageFile._lastStart = ta.selectionStart; imageFile._lastEnd = ta.selectionEnd; }
-              imageFile.click();
-            });
-            imageFile.addEventListener('change', async function() {
-              if (!this.files || !this.files[0]) return;
-              var ta = getTargetTextarea(imageBtn);
-              if (!ta) { this.value = ''; return; }
-              var alt = (prompt('Describe this image for accessibility (alt text):', '') || '').trim();
-              imageBtn.disabled = true;
-              var prevLabel = imageBtn.textContent;
-              imageBtn.textContent = 'Uploading…';
+        }
+        // Upload a file via the existing /api/upload endpoint and insert the
+        // returned URL as an image embed at the current cursor position.
+        function makeImageHandler(getQuill) {
+          return function() {
+            var quill = getQuill();
+            if (!quill) return;
+            var input = document.createElement('input');
+            input.setAttribute('type', 'file');
+            input.setAttribute('accept', 'image/jpeg,image/png,image/gif,image/webp');
+            input.style.display = 'none';
+            document.body.appendChild(input);
+            input.addEventListener('change', async function() {
+              if (!input.files || !input.files[0]) { input.remove(); return; }
+              var range = quill.getSelection(true) || { index: quill.getLength(), length: 0 };
               var fd = new FormData();
-              fd.append('image', this.files[0]);
+              fd.append('image', input.files[0]);
+              showToast('Uploading image…', true);
               try {
                 var r = await fetch('/api/upload', { method: 'POST', credentials: 'include', body: fd });
                 var data = await r.json();
                 if (data.success && data.url) {
-                  if (typeof imageFile._lastStart === 'number') ta.setSelectionRange(imageFile._lastStart, imageFile._lastEnd);
-                  insertAtCursor(ta, '\n<img src="' + data.url + '" alt="' + alt.replace(/"/g, '&quot;') + '" style="max-width:100%;height:auto;">\n');
+                  quill.insertEmbed(range.index, 'image', data.url, 'user');
+                  quill.setSelection(range.index + 1, 0, 'user');
                   showToast('Image inserted into your post.', true);
-                } else showToast(data.error || 'Upload failed.', false);
+                } else {
+                  showToast(data.error || 'Upload failed.', false);
+                }
               } catch (_) { showToast('Upload failed.', false); }
-              imageBtn.disabled = false;
-              imageBtn.textContent = prevLabel;
-              this.value = '';
+              input.remove();
             });
+            input.click();
+          };
+        }
+        function buildEditor(elId, placeholder, getSelf) {
+          var el = document.getElementById(elId);
+          if (!el) return null;
+          var quill = new Quill(el, {
+            theme: 'snow',
+            placeholder: placeholder,
+            modules: {
+              toolbar: {
+                container: toolbarLayout,
+                handlers: { image: makeImageHandler(getSelf) }
+              }
+            }
+          });
+          var tbEl = el.parentNode ? el.parentNode.querySelector('.ql-toolbar') : null;
+          labelToolbar(tbEl);
+          return quill;
+        }
+
+        var quillNew = buildEditor('blogNewEditor', 'Write your full post here. Highlight text and use the toolbar above to format it.', function() { return quillNew; });
+        var quillEdit = buildEditor('blogEditEditor', 'Edit your post content here.', function() { return quillEdit; });
+
+        function htmlOf(q) {
+          if (!q) return '';
+          var html = q.root.innerHTML;
+          if (html === '<p><br></p>' || html === '<p></p>') return '';
+          return html;
+        }
+        function setHtml(q, html) {
+          if (!q) return;
+          var clean = (html == null ? '' : String(html));
+          q.setContents([], 'silent');
+          if (clean.trim()) {
+            q.clipboard.dangerouslyPasteHTML(clean, 'silent');
           }
-        });
+        }
+
+        window.blogQuill = {
+          getNewHtml: function() { return htmlOf(quillNew); },
+          getEditHtml: function() { return htmlOf(quillEdit); },
+          getNewText: function() { return quillNew ? quillNew.getText() : ''; },
+          setNewHtml: function(h) { setHtml(quillNew, h); },
+          setEditHtml: function(h) { setHtml(quillEdit, h); },
+          clearNew: function() { if (quillNew) quillNew.setContents([], 'silent'); }
+        };
       })();
 
       (function blogAuthoringHelpers() {
@@ -1467,10 +1442,10 @@
         var excerptHelperBtn = document.getElementById('blogNewExcerptHelperBtn');
         if (excerptHelperBtn) {
           excerptHelperBtn.addEventListener('click', function() {
-            var contentEl = document.getElementById('blogNewContent');
             var excerptEl = document.getElementById('blogNewExcerpt');
-            if (!contentEl || !excerptEl) return;
-            var text = (contentEl.value || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+            if (!excerptEl) return;
+            var raw = window.blogQuill ? window.blogQuill.getNewText() : '';
+            var text = (raw || '').replace(/\s+/g, ' ').trim();
             if (!text) { showToast('Write some content first, then suggest an excerpt.', false); return; }
             excerptEl.value = text.length > 160 ? text.slice(0, 157).trim() + '…' : text;
             showToast('Excerpt suggested from your content. Edit as needed.', true);

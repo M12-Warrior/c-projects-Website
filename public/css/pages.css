@@ -291,52 +291,89 @@ textarea.form-input {
   outline: none;
 }
 
-.blog-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 12px;
+/* ---------- QUILL RICH-TEXT BLOG EDITOR (WYSIWYG) ---------- */
+.quill-wrap {
+  position: relative;
+}
+/* Sticky toolbar so it stays visible no matter how long the post is.
+   z-index sits above the site-wide checkout banner (10040) and below the
+   navbar (10050) so the controls are always visible and clickable. */
+.quill-wrap .ql-toolbar.ql-snow {
+  position: sticky;
+  z-index: 10045;
   background: var(--surface-2);
   border: 1px solid var(--border);
-  border-bottom: none;
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   border-left: 3px solid var(--gold);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  padding: 8px 10px;
 }
-.blog-tb-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 32px;
-  padding: 6px 10px;
-  font-size: 0.85rem;
-  font-weight: 600;
+/* In-page (new post) form scrolls with the window, so clear the fixed navbar. */
+.quill-wrap-page .ql-toolbar.ql-snow { top: 64px; }
+/* The edit modal is its own scroll container. */
+.quill-wrap-modal .ql-toolbar.ql-snow { top: 0; }
+
+/* The editor body scrolls internally so the toolbar always stays directly
+   above the editing area — no matter how long the post or how far you scroll. */
+.quill-wrap .ql-container.ql-snow {
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background: var(--bg);
   color: var(--text-2);
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+/* Scroll the editable area itself (not the container) so the toolbar stays
+   directly above the editing area and Quill's link tooltip is never clipped. */
+.quill-wrap .ql-editor {
+  min-height: 360px;
+  max-height: 55vh;
+  overflow-y: auto;
+  line-height: 1.7;
+}
+.quill-wrap .ql-editor.ql-blank::before {
+  color: var(--text-3);
+  font-style: normal;
+  left: 16px;
+  right: 16px;
+}
+/* Make Quill's icons/text legible on the dark asphalt theme. */
+.quill-wrap .ql-snow .ql-stroke { stroke: var(--text-2); }
+.quill-wrap .ql-snow .ql-fill { fill: var(--text-2); }
+.quill-wrap .ql-snow .ql-picker { color: var(--text-2); }
+.quill-wrap .ql-snow.ql-toolbar button:hover .ql-stroke,
+.quill-wrap .ql-snow.ql-toolbar button:focus .ql-stroke,
+.quill-wrap .ql-snow.ql-toolbar button.ql-active .ql-stroke { stroke: var(--gold); }
+.quill-wrap .ql-snow.ql-toolbar button:hover .ql-fill,
+.quill-wrap .ql-snow.ql-toolbar button:focus .ql-fill,
+.quill-wrap .ql-snow.ql-toolbar button.ql-active .ql-fill { fill: var(--gold); }
+.quill-wrap .ql-snow.ql-toolbar button:hover,
+.quill-wrap .ql-snow.ql-toolbar button:focus { color: var(--gold); }
+.quill-wrap .ql-snow .ql-picker-label:hover,
+.quill-wrap .ql-snow .ql-picker-label.ql-active { color: var(--gold); }
+.quill-wrap .ql-snow .ql-picker-options {
+  background: var(--surface);
+  border-color: var(--border);
+}
+.quill-wrap .ql-editor a { color: var(--gold); }
+.quill-wrap .ql-editor img { max-width: 100%; height: auto; border-radius: 8px; }
+/* Quill's link tooltip on the dark theme. */
+.quill-wrap .ql-snow .ql-tooltip {
   background: var(--surface);
   border: 1px solid var(--border);
+  color: var(--text-2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: color 0.2s var(--ease), border-color 0.2s var(--ease), background 0.2s var(--ease);
+  z-index: 60;
 }
-.blog-tb-btn:hover {
-  color: var(--gold);
-  border-color: var(--gold);
+.quill-wrap .ql-snow .ql-tooltip input[type="text"] {
   background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-1);
+  border-radius: var(--radius-sm);
 }
-.blog-tb-sep {
-  width: 1px;
-  height: 20px;
-  background: var(--border);
-  margin: 0 4px;
-}
-.blog-content-textarea {
-  min-height: 480px;
-  resize: vertical;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-}
+.quill-wrap .ql-snow .ql-tooltip a.ql-action,
+.quill-wrap .ql-snow .ql-tooltip a.ql-remove { color: var(--gold); }
 .form-btn {
   width: 100%;
   padding: 13px;
@@ -620,6 +657,37 @@ textarea.form-input {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
+/* Rich-text elements produced by the Quill editor. */
+.blog-post-full .post-content h2 {
+  font-size: 1.5rem;
+  line-height: 1.3;
+  color: var(--text-1);
+  margin: 28px 0 12px;
+}
+.blog-post-full .post-content h3 {
+  font-size: 1.25rem;
+  line-height: 1.3;
+  color: var(--text-1);
+  margin: 22px 0 10px;
+}
+.blog-post-full .post-content ul,
+.blog-post-full .post-content ol {
+  margin: 0 0 16px;
+  padding-left: 1.6em;
+}
+.blog-post-full .post-content ul { list-style: disc; }
+.blog-post-full .post-content ol { list-style: decimal; }
+.blog-post-full .post-content li { margin-bottom: 6px; }
+.blog-post-full .post-content u { text-decoration: underline; }
+.blog-post-full .post-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+.blog-post-full .post-content .ql-align-center { text-align: center; }
+.blog-post-full .post-content .ql-align-right { text-align: right; }
+.blog-post-full .post-content .ql-align-justify { text-align: justify; }
 .blog-share {
   display: flex;
   flex-wrap: wrap;
