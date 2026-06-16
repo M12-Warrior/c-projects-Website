@@ -250,10 +250,17 @@ router.get('/admin/product/:id', requireAdmin, (req, res) => {
 // returns a client). The frontend uses this to show real Buy/Checkout buttons or
 // keep the "opening soon" copy, so the site is safe to deploy before keys exist.
 router.get('/payment-config', (req, res) => {
+  const rawSecret = process.env.STRIPE_SECRET_KEY ? String(process.env.STRIPE_SECRET_KEY).trim() : '';
+  const rawPub = process.env.STRIPE_PUBLISHABLE_KEY ? String(process.env.STRIPE_PUBLISHABLE_KEY).trim() : '';
+  let mode = null;
+  if (/_live_/.test(rawSecret)) mode = 'live';
+  else if (/_test_/.test(rawSecret)) mode = 'test';
   res.json({
     enabled: !!stripe,
     provider: stripe ? 'stripe' : null,
-    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || null
+    mode,
+    // Only surface a properly-formatted publishable key; ignore placeholder values.
+    publishableKey: /^pk_(test|live)_/.test(rawPub) ? rawPub : null
   });
 });
 
