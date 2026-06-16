@@ -60,9 +60,11 @@ Packets._footer = function () {
 };
 
 Packets._wrap = function (title, body) {
+  var safeTitle = String(title || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
-    '<title>' + title + '</title>' +
+    '<title>' + safeTitle + '</title>' +
     '<style>' + Packets._styles() + '</style>' +
     '</head><body>' + body + '</body></html>';
 };
@@ -2462,6 +2464,84 @@ Packets._applyLicenseStamp = function (html, license) {
   return out;
 };
 
+// Product slugs and aliases -> internal packet type
+Packets._SLUG_TO_TYPE = {
+  'new-driver-packet': 'new-driver',
+  'seasoned-packet': 'seasoned-driver',
+  'fleet-new-hire-packet': 'fleet-new-hire',
+  'fleet-refresher-packet': 'fleet-refresher'
+};
+
+Packets._normalizeType = function (type) {
+  var t = String(type || '').trim();
+  return Packets._SLUG_TO_TYPE[t] || t;
+};
+
+Packets._buildHtml = function (type) {
+  var t = Packets._normalizeType(type);
+  switch (t) {
+    case 'new-driver': return Packets.newDriver();
+    case 'seasoned-driver': return Packets.seasonedDriver();
+    case 'fleet-new-hire': return Packets.fleetNewHire();
+    case 'fleet-refresher': return Packets.fleetRefresher();
+    default: return null;
+  }
+};
+
+Packets._filenameForType = function (type) {
+  switch (Packets._normalizeType(type)) {
+    case 'new-driver': return 'Mile12Warrior-New-Driver-Packet.html';
+    case 'seasoned-driver': return 'Mile12Warrior-Seasoned-Driver-Packet.html';
+    case 'fleet-new-hire': return 'Mile12Warrior-Fleet-NewHire-Packet.html';
+    case 'fleet-refresher': return 'Mile12Warrior-Fleet-Refresher-Packet.html';
+    default: return 'Mile12Warrior-Packet.html';
+  }
+};
+
+// Open generated HTML in a new tab (blob URL — reliable for print/PDF vs document.write).
+Packets._openHtmlWindow = function (html, options) {
+  options = options || {};
+  if (!html) {
+    if (typeof options.onError === 'function') {
+      options.onError('Could not generate packet content.');
+    }
+    return null;
+  }
+  var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var win = window.open(url, '_blank');
+  if (!win) {
+    URL.revokeObjectURL(url);
+    if (typeof options.onError === 'function') {
+      options.onError('Pop-up blocked. Allow pop-ups for this site, or use Download instead.');
+    }
+    return null;
+  }
+  setTimeout(function () { URL.revokeObjectURL(url); }, 120000);
+  if (options.print) {
+    win.addEventListener('load', function () {
+      win.focus();
+      setTimeout(function () { win.print(); }, 350);
+    });
+  } else {
+    win.focus();
+  }
+  return win;
+};
+
+Packets._downloadHtmlBlob = function (html, filename) {
+  if (!html) return false;
+  var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename || 'Mile12Warrior-Packet.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  return true;
+};
+
 // Fleet packet types -> packet-access query type
 Packets._FLEET_ACCESS_TYPE = {
   'fleet-new-hire': 'fleet-new-hire',
@@ -2510,17 +2590,12 @@ Packets.downloadFleet = function (type, onResult) {
     var html = Packets._buildFleetHtml(type);
     if (!html) { var r = { allowed: false, message: 'Unknown packet.' }; if (onResult) onResult(r); return r; }
     html = Packets._applyLicenseStamp(html, res.license);
-    var filename = (type === 'fleet-new-hire')
-      ? 'Mile12Warrior-Fleet-NewHire-Packet.html'
-      : 'Mile12Warrior-Fleet-Refresher-Packet.html';
-    var blob = new Blob([html], { type: 'text/html' });
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(a.href);
+    var filename = Packets._filenameForType(type);
+    if (!Packets._downloadHtmlBlob(html, filename)) {
+      var r = { allowed: false, message: 'Could not generate packet.' };
+      if (onResult) onResult(r);
+      return r;
+    }
     try {
       fetch('/api/shop/packet-download-log', {
         method: 'POST',
@@ -2549,11 +2624,17 @@ Packets.printFleet = function (type, onResult) {
         body: JSON.stringify({ type: Packets._FLEET_ACCESS_TYPE[type] })
       }).catch(function () {});
     } catch (_) {}
-    var win = window.open('', '_blank');
-    win.document.write(html);
-    win.document.close();
-    win.focus();
-    setTimeout(function () { win.print(); }, 500);
+    var opened = Packets._openHtmlWindow(html, {
+      print: true,
+      onError: function (msg) {
+        if (onResult) onResult({ allowed: false, message: msg });
+      }
+    });
+    if (!opened) {
+      var blocked = { allowed: false, message: 'Pop-up blocked. Allow pop-ups or use Download.' };
+      if (onResult) onResult(blocked);
+      return blocked;
+    }
     if (onResult) onResult(res);
     return res;
   });
@@ -2562,73 +2643,145 @@ Packets.printFleet = function (type, onResult) {
 /* ============================================================
    Download & Print Helpers
    ============================================================ */
-Packets.download = function (type) {
-  function track(action, slug) {
-    try {
-      fetch('/api/track-download', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ content_type: slug, action: action, product_slug: slug })
-      }).catch(function () {});
-    } catch (_) {}
-  }
-  if (type === 'new-driver') {
-    Packets.downloadDirect(type, track);
-    return;
-  }
-  Packets.downloadDirect(type, track);
-};
-
-Packets.downloadDirect = function (type, trackFn) {
-  var html, filename;
-  switch (type) {
-    case 'new-driver': html = Packets.newDriver(); filename = 'Mile12Warrior-New-Driver-Packet.html'; break;
-    case 'seasoned-driver': html = Packets.seasonedDriver(); filename = 'Mile12Warrior-Seasoned-Driver-Packet.html'; break;
-    case 'fleet-new-hire': html = Packets.fleetNewHire(); filename = 'Mile12Warrior-Fleet-NewHire-Packet.html'; break;
-    case 'fleet-refresher': html = Packets.fleetRefresher(); filename = 'Mile12Warrior-Fleet-Refresher-Packet.html'; break;
-    default: return;
-  }
-  var blob = new Blob([html], { type: 'text/html' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  if (typeof trackFn === 'function') trackFn('download', filename.replace('.html', '').toLowerCase());
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(a.href);
-};
-
-// Tier 1 (new-driver) print/download is always client-side — never use course-access or packet-access.
-Packets.print = function (type) {
-  if (type === 'new-driver') {
-    Packets.printDirect(type);
-    return;
-  }
-  Packets.printDirect(type);
-};
-
-Packets.printDirect = function (type) {
+Packets._trackEvent = function (type, action) {
   try {
     fetch('/api/track-download', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ content_type: type, action: 'print', product_slug: type })
+      body: JSON.stringify({ content_type: type, action: action, product_slug: type })
     }).catch(function () {});
   } catch (_) {}
-  var html;
-  switch (type) {
-    case 'new-driver': html = Packets.newDriver(); break;
-    case 'seasoned-driver': html = Packets.seasonedDriver(); break;
-    case 'fleet-new-hire': html = Packets.fleetNewHire(); break;
-    case 'fleet-refresher': html = Packets.fleetRefresher(); break;
-    default: return;
+};
+
+Packets._checkIndividualAccess = function (type) {
+  var accessType = Packets._normalizeType(type);
+  if (accessType === 'new-driver') {
+    return Promise.resolve({ allowed: true, accessType: accessType });
   }
-  var win = window.open('', '_blank');
-  win.document.write(html);
-  win.document.close();
-  win.focus();
-  setTimeout(function () { win.print(); }, 500);
+  if (['seasoned-driver'].indexOf(accessType) === -1) {
+    return Promise.resolve({ allowed: false, message: 'Unknown packet.', accessType: accessType });
+  }
+  return fetch('/api/shop/packet-access?type=' + encodeURIComponent(accessType), { credentials: 'include' })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data && data.allowed) {
+        return { allowed: true, accessType: accessType, license: data };
+      }
+      return {
+        allowed: false,
+        accessType: accessType,
+        message: 'You don\u2019t have access or your download limit has been reached. Purchase again if needed.'
+      };
+    })
+    .catch(function () {
+      return { allowed: false, accessType: accessType, message: 'Could not verify your packet access. Please try again.' };
+    });
+};
+
+Packets._logIndividualDownload = function (accessType) {
+  try {
+    fetch('/api/shop/packet-download-log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ type: accessType })
+    }).catch(function () {});
+  } catch (_) {}
+};
+
+Packets.download = function (type) {
+  Packets.downloadDirect(type, function (action, slug) {
+    Packets._trackEvent(slug, action);
+  });
+};
+
+Packets.downloadDirect = function (type, trackFn) {
+  var accessType = Packets._normalizeType(type);
+  var html = Packets._buildHtml(accessType);
+  if (!html) return;
+  var filename = Packets._filenameForType(accessType);
+  if (!Packets._downloadHtmlBlob(html, filename)) return;
+  if (typeof trackFn === 'function') trackFn('download', accessType);
+};
+
+// Tier 1 (new-driver) print/download is always client-side — never use course-access or packet-access.
+Packets.print = function (type) {
+  Packets.printDirect(type);
+};
+
+Packets.printDirect = function (type) {
+  var accessType = Packets._normalizeType(type);
+  var html = Packets._buildHtml(accessType);
+  if (!html) return;
+  Packets._trackEvent(accessType, 'print');
+  Packets._openHtmlWindow(html, {
+    print: true,
+    onError: function (msg) { alert(msg); }
+  });
+};
+
+// Gated individual packet download (seasoned driver, etc.)
+Packets.downloadGated = function (type, onResult) {
+  return Packets._checkIndividualAccess(type).then(function (res) {
+    if (!res.allowed) {
+      if (onResult) onResult(res);
+      else if (res.message) alert(res.message);
+      return res;
+    }
+    Packets.downloadDirect(res.accessType);
+    Packets._logIndividualDownload(res.accessType);
+    if (onResult) onResult(res);
+    return res;
+  });
+};
+
+// Gated individual packet print / save as PDF
+Packets.printGated = function (type, onResult) {
+  return Packets._checkIndividualAccess(type).then(function (res) {
+    if (!res.allowed) {
+      if (onResult) onResult(res);
+      else if (res.message) alert(res.message);
+      return res;
+    }
+    var html = Packets._buildHtml(res.accessType);
+    if (!html) {
+      var bad = { allowed: false, message: 'Could not generate packet.' };
+      if (onResult) onResult(bad);
+      return bad;
+    }
+    Packets._trackEvent(res.accessType, 'print');
+    Packets._logIndividualDownload(res.accessType);
+    var opened = Packets._openHtmlWindow(html, {
+      print: true,
+      onError: function (msg) {
+        var blocked = { allowed: false, message: msg };
+        if (onResult) onResult(blocked);
+        else alert(msg);
+      }
+    });
+    if (!opened) return res;
+    if (onResult) onResult(res);
+    return res;
+  });
+};
+
+// Admin preview: fleet packets show sample yard stamp (same layout customers receive).
+Packets.previewAdmin = function (type, options) {
+  options = options || {};
+  var accessType = Packets._normalizeType(type);
+  var html = Packets._buildHtml(accessType);
+  if (!html) return false;
+  if (accessType === 'fleet-new-hire' || accessType === 'fleet-refresher') {
+    html = Packets._applyLicenseStamp(html, {
+      fleetCompany: 'Sample Fleet Co. (admin preview)',
+      yardIdentifier: 'YARD-001',
+      yardLabel: 'Preview terminal',
+      expiresAt: new Date(Date.now() + 365 * 86400000).toISOString()
+    });
+  }
+  return Packets._openHtmlWindow(html, {
+    print: !!options.print,
+    onError: function (msg) { alert(msg); }
+  });
 };

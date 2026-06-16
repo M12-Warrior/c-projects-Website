@@ -337,6 +337,38 @@ router.get('/packets-renewals', (req, res) => {
   res.json({ withinDays, grants, completions });
 });
 
+// GET /api/admin/packet-preview-access — Admin-only list of previewable customer packets
+const ADMIN_PACKET_CATALOG = [
+  {
+    type: 'new-driver',
+    product_slug: 'new-driver-packet',
+    label: 'New Driver Packet (Tier 1)',
+    note: 'Free for everyone; also included with course / complete bundle purchases.'
+  },
+  {
+    type: 'seasoned-driver',
+    product_slug: 'seasoned-packet',
+    label: 'Seasoned Driver Packet (Tier 2)',
+    note: 'Individual driver purchase ($29).'
+  },
+  {
+    type: 'fleet-new-hire',
+    product_slug: 'fleet-new-hire-packet',
+    label: 'Fleet New Hire Orientation Packet',
+    note: 'Per-yard fleet license; preview shows sample yard stamp on every page.'
+  },
+  {
+    type: 'fleet-refresher',
+    product_slug: 'fleet-refresher-packet',
+    label: 'Fleet Seasoned Driver Refresher Packet',
+    note: 'Per-yard fleet license; preview shows sample yard stamp on every page.'
+  }
+];
+
+router.get('/packet-preview-access', (req, res) => {
+  res.json({ allowed: true, packets: ADMIN_PACKET_CATALOG });
+});
+
 // ===== Fleets & per-yard licenses =====
 const FLEET_PACKET_SLUGS = ['fleet-new-hire-packet', 'fleet-refresher-packet'];
 

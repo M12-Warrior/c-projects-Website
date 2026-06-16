@@ -431,6 +431,16 @@
         document.getElementById('tabBtnOrders').addEventListener('click', function() { setTab('orders'); });
       }
 
+      function packetTypeForSlug(slug) {
+        var map = {
+          'new-driver-packet': 'new-driver',
+          'seasoned-packet': 'seasoned-driver',
+          'fleet-new-hire-packet': 'fleet-new-hire',
+          'fleet-refresher-packet': 'fleet-refresher'
+        };
+        return map[slug] || null;
+      }
+
       function renderAccess(summary) {
         var grid = document.getElementById('accessGrid');
         var empty = document.getElementById('accessEmpty');
@@ -442,12 +452,38 @@
         }
         empty.style.display = 'none';
         grid.innerHTML = items.map(function(a) {
+          var pkt = a.product_slug ? packetTypeForSlug(a.product_slug) : null;
+          var actions = '';
+          if (pkt) {
+            actions =
+              '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">' +
+              '<button type="button" class="btn btn-primary access-dl" data-packet-type="' + escapeHtml(pkt) + '">Download packet</button>' +
+              '<button type="button" class="btn btn-secondary access-pr" data-packet-type="' + escapeHtml(pkt) + '">Print / PDF</button>' +
+              '</div>';
+          } else if (a.href) {
+            actions = '<a class="btn btn-primary" href="' + escapeHtml(a.href) + '" style="margin-top:12px">' + escapeHtml(a.cta_label || 'Open') + '</a>';
+          }
           return '<article class="account-access-card reveal glass-card">' +
             '<h3>' + escapeHtml(a.title) + '</h3>' +
             '<p>' + escapeHtml(a.blurb || '') + '</p>' +
-            '<a class="btn btn-primary" href="' + escapeHtml(a.href) + '">' + escapeHtml(a.cta_label || 'Open') + '</a>' +
+            actions +
             '</article>';
         }).join('');
+
+        grid.querySelectorAll('.access-dl').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var t = btn.getAttribute('data-packet-type');
+            if (typeof downloadPacketGated === 'function') downloadPacketGated(t);
+            else if (typeof Packets !== 'undefined' && Packets.downloadGated) Packets.downloadGated(t);
+          });
+        });
+        grid.querySelectorAll('.access-pr').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var t = btn.getAttribute('data-packet-type');
+            if (typeof printPacketGated === 'function') printPacketGated(t);
+            else if (typeof Packets !== 'undefined' && Packets.printGated) Packets.printGated(t);
+          });
+        });
       }
 
       function renderMic(summary) {
@@ -618,7 +654,7 @@
   <footer class="footer" style="margin-top:60px">
     <div class="container">
       <div class="footer-bottom">
-        <p>Mile 12 Warrior LLC | 2108 N ST., STE N, SACRAMENTO CA 95816</p>
+        <p>Mile 12 Warrior LLC | 2108 N, ST STE N, SACRAMENTO CA 95816</p>
         <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
         <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
           <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
@@ -634,6 +670,7 @@
     </div>
   </footer>
 
+  <script src="/js/packets.js"></script>
   <script src="/js/main.js"></script>
 </body>
 </html>

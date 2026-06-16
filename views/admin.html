@@ -94,6 +94,7 @@
         <button type="button" class="admin-tab" data-tab="revenue">Revenue &amp; Tax</button>
         <button type="button" class="admin-tab" data-tab="downloads">Downloads</button>
         <button type="button" class="admin-tab" data-tab="renewals">Packets &amp; Renewals</button>
+        <button type="button" class="admin-tab" data-tab="packetPreviews">Packet previews</button>
         <button type="button" class="admin-tab" data-tab="fleets">Fleets &amp; Yards</button>
         <button type="button" class="admin-tab" data-tab="addressBook">Address Book</button>
         <button type="button" class="admin-tab" data-tab="compliance">Tax &amp; Compliance</button>
@@ -445,6 +446,16 @@
             <thead><tr><th>User</th><th>Email</th><th>Product</th><th>Purchase</th><th>Expires</th><th>Action</th></tr></thead>
             <tbody id="renewalsTable"></tbody>
           </table>
+        </div>
+      </div>
+
+      <div id="tabPacketPreviews" class="admin-tab-content hidden">
+        <div class="admin-section">
+          <h3>Customer packet previews</h3>
+          <p style="color:var(--text-2);margin-bottom:16px;font-size:0.9rem;max-width:720px;line-height:1.55">
+            Open, print, or save as PDF exactly what customers receive after purchase. Fleet previews include a sample yard stamp (same layout as licensed downloads). These controls are admin-only and do not grant customer access.
+          </p>
+          <div id="packetPreviewGrid" class="admin-grid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px"></div>
         </div>
       </div>
 
@@ -2106,6 +2117,53 @@
         }
       }
 
+      async function loadPacketPreviews() {
+        var grid = document.getElementById('packetPreviewGrid');
+        if (!grid) return;
+        grid.innerHTML = '<p class="text-muted">Loading packet catalog…</p>';
+        try {
+          var res = await fetch('/api/admin/packet-preview-access', { credentials: 'include' });
+          if (!res.ok) throw new Error('denied');
+          var data = await res.json();
+          var packets = data.packets || [];
+          if (!packets.length) {
+            grid.innerHTML = '<p class="text-muted">No packets configured.</p>';
+            return;
+          }
+          grid.innerHTML = packets.map(function(p) {
+            return '<div class="glass-card" style="padding:18px;border:1px solid var(--border)">' +
+              '<h4 style="margin:0 0 6px 0;font-size:1rem">' + escapeHtml(p.label || p.type) + '</h4>' +
+              '<p style="margin:0 0 14px 0;font-size:0.82rem;color:var(--text-2);line-height:1.45">' + escapeHtml(p.note || '') + '</p>' +
+              '<div style="display:flex;flex-wrap:wrap;gap:8px">' +
+              '<button type="button" class="btn btn-primary pkt-preview-open" data-type="' + escapeHtml(p.type) + '">Open preview</button>' +
+              '<button type="button" class="btn btn-secondary pkt-preview-print" data-type="' + escapeHtml(p.type) + '">Print / PDF</button>' +
+              '</div></div>';
+          }).join('');
+          grid.querySelectorAll('.pkt-preview-open').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              var t = btn.getAttribute('data-type');
+              if (typeof Packets !== 'undefined' && Packets.previewAdmin) {
+                Packets.previewAdmin(t, { print: false });
+              } else {
+                showToast('Packet engine not loaded.', false);
+              }
+            });
+          });
+          grid.querySelectorAll('.pkt-preview-print').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              var t = btn.getAttribute('data-type');
+              if (typeof Packets !== 'undefined' && Packets.previewAdmin) {
+                Packets.previewAdmin(t, { print: true });
+              } else {
+                showToast('Packet engine not loaded.', false);
+              }
+            });
+          });
+        } catch (_) {
+          grid.innerHTML = '<p class="text-muted">Could not load packet previews.</p>';
+        }
+      }
+
       function fleetLicenseStatus(g) {
         if (String(g.status || 'active').toLowerCase() === 'revoked') return { label: 'Revoked', color: 'var(--red)' };
         if (g.expires_at) {
@@ -2662,6 +2720,7 @@
     </div>
   </footer>
 
+  <script src="/js/packets.js"></script>
   <script src="/js/main.js"></script>
 </body>
 </html>

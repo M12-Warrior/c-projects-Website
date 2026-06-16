@@ -222,7 +222,8 @@
               <li>Career wellness &amp; mentorship plan</li>
             </ul>
             <div class="pc-actions">
-              <span class="btn btn-primary" style="width:100%;opacity:0.65;cursor:default;text-align:center;display:inline-block" role="status">Purchases opening soon</span>
+              <span class="btn btn-primary pc-buy-soon" style="width:100%;opacity:0.65;cursor:default;text-align:center;display:inline-block" role="status">Purchases opening soon</span>
+              <div class="individual-licensed hidden" data-packet-type="seasoned-driver" style="margin-top:10px"></div>
             </div>
           </div>
 
@@ -390,8 +391,7 @@
   <script src="/js/tier1-checklist.js"></script>
   <script>
     // Reveal gated fleet packet downloads for customers who already hold a valid,
-    // in-date per-yard license. Buying stays "opening soon"; this only adds download
-    // access for existing entitlements, and downloads are stamped with the yard.
+    // in-date per-yard license. Also reveal individual packet downloads (e.g. seasoned driver).
     (function() {
       function fmtDate(iso) {
         if (!iso) return '';
@@ -451,6 +451,44 @@
                   msg.innerHTML = 'Could not send. <a href="' + mailto + '" style="color:var(--gold)">Email us instead</a>.';
                   msg.style.display = 'block';
                 });
+            });
+          })
+          .catch(function() {});
+      });
+
+      document.querySelectorAll('.individual-licensed').forEach(function(box) {
+        var type = box.getAttribute('data-packet-type');
+        if (!type) return;
+        fetch('/api/shop/packet-access?type=' + encodeURIComponent(type), { credentials: 'include' })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data || !data.allowed) return;
+            var card = box.closest('.price-card');
+            var buySoon = card ? card.querySelector('.pc-buy-soon') : null;
+            if (buySoon) buySoon.style.display = 'none';
+            var remaining = data.downloadsRemaining;
+            var note = remaining != null
+              ? (remaining + ' download' + (remaining === 1 ? '' : 's') + ' remaining on your license.')
+              : 'Your purchase is active — download or print anytime.';
+            box.innerHTML =
+              '<div style="border:1px solid var(--green);border-radius:8px;padding:10px 12px;background:rgba(34,197,94,0.08)">' +
+              '<p style="margin:0 0 8px 0;font-size:0.8rem;color:var(--text-2);line-height:1.45">' + esc(note) + '</p>' +
+              '<button type="button" class="btn btn-primary ind-dl" style="width:100%;margin-bottom:6px">Download packet</button>' +
+              '<button type="button" class="btn btn-secondary ind-pr" style="width:100%">Print / save as PDF</button>' +
+              '<p class="ind-msg" style="margin:8px 0 0 0;font-size:0.78rem;color:var(--red);display:none"></p>' +
+              '</div>';
+            box.classList.remove('hidden');
+            var msg = box.querySelector('.ind-msg');
+            function handle(res) {
+              if (res && !res.allowed && msg) { msg.textContent = res.message || 'Access denied.'; msg.style.display = 'block'; }
+            }
+            box.querySelector('.ind-dl').addEventListener('click', function() {
+              if (typeof downloadPacketGated === 'function') downloadPacketGated(type);
+              else if (typeof Packets !== 'undefined') Packets.downloadGated(type, handle);
+            });
+            box.querySelector('.ind-pr').addEventListener('click', function() {
+              if (typeof printPacketGated === 'function') printPacketGated(type);
+              else if (typeof Packets !== 'undefined') Packets.printGated(type, handle);
             });
           })
           .catch(function() {});

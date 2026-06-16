@@ -505,16 +505,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Gated packet download (checks access & logs download for paid packets) ---
   window.downloadPacketGated = function (type) {
-    var valid = ['new-driver', 'seasoned-driver', 'fleet-new-hire', 'fleet-refresher'].indexOf(type) !== -1;
+    var normalized = type;
+    if (typeof Packets !== 'undefined' && typeof Packets._normalizeType === 'function') {
+      normalized = Packets._normalizeType(type);
+    }
+    var valid = ['new-driver', 'seasoned-driver', 'fleet-new-hire', 'fleet-refresher'].indexOf(normalized) !== -1;
     if (!valid) return;
-    // Tier 1 new-driver is always free (guests included) — not tied to course or shop grants.
-    if (type === 'new-driver') {
+    if (normalized === 'new-driver') {
       if (typeof Packets !== 'undefined' && typeof Packets.download === 'function') {
-        Packets.download(type);
+        Packets.download(normalized);
       }
       return;
     }
-    fetch('/api/shop/packet-access?type=' + encodeURIComponent(type), { credentials: 'include' })
+    if (normalized === 'fleet-new-hire' || normalized === 'fleet-refresher') {
+      if (typeof Packets !== 'undefined' && typeof Packets.downloadFleet === 'function') {
+        Packets.downloadFleet(normalized, function (res) {
+          if (res && !res.allowed && res.message) alert(res.message);
+        });
+      }
+      return;
+    }
+    if (typeof Packets !== 'undefined' && typeof Packets.downloadGated === 'function') {
+      Packets.downloadGated(normalized, function (res) {
+        if (res && !res.allowed && res.message) alert(res.message);
+      });
+      return;
+    }
+    fetch('/api/shop/packet-access?type=' + encodeURIComponent(normalized), { credentials: 'include' })
       .then(function (r) { return r.json(); })
       .then(function (data) {
         if (!data.allowed) {
@@ -522,18 +539,46 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
         if (typeof Packets !== 'undefined' && typeof Packets.download === 'function') {
-          Packets.download(type);
+          Packets.download(normalized);
         }
         fetch('/api/shop/packet-download-log', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: type }),
+          body: JSON.stringify({ type: normalized }),
           credentials: 'include'
         }).catch(function () {});
       })
       .catch(function () {
         alert('Unable to verify access. Please log in and try again.');
       });
+  };
+
+  window.printPacketGated = function (type) {
+    var normalized = type;
+    if (typeof Packets !== 'undefined' && typeof Packets._normalizeType === 'function') {
+      normalized = Packets._normalizeType(type);
+    }
+    var valid = ['new-driver', 'seasoned-driver', 'fleet-new-hire', 'fleet-refresher'].indexOf(normalized) !== -1;
+    if (!valid) return;
+    if (normalized === 'new-driver') {
+      if (typeof Packets !== 'undefined' && typeof Packets.print === 'function') {
+        Packets.print(normalized);
+      }
+      return;
+    }
+    if (normalized === 'fleet-new-hire' || normalized === 'fleet-refresher') {
+      if (typeof Packets !== 'undefined' && typeof Packets.printFleet === 'function') {
+        Packets.printFleet(normalized, function (res) {
+          if (res && !res.allowed && res.message) alert(res.message);
+        });
+      }
+      return;
+    }
+    if (typeof Packets !== 'undefined' && typeof Packets.printGated === 'function') {
+      Packets.printGated(normalized, function (res) {
+        if (res && !res.allowed && res.message) alert(res.message);
+      });
+    }
   };
 
   // --- Phase tab navigation (with channel-switch feedback + keyboard) ---
