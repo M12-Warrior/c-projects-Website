@@ -3,9 +3,10 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const BLOG_POSTS_SEED = require('./blog-posts-seed.js');
+const { DB_PATH } = require('../lib/paths');
 
 // On Railway (or any host), set DB_PATH to a persistent volume path, e.g. /data/drivershield.db
-const dbPath = process.env.DB_PATH || path.join(__dirname, 'drivershield.db');
+const dbPath = DB_PATH;
 const dbDir = path.dirname(dbPath);
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });

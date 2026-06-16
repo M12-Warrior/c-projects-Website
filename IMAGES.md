@@ -22,7 +22,13 @@ Yes — you add images **here** (in this project and through the Admin dashboard
 ## 3. Images throughout the site (decorative or section images)
 
 - **Option A — In the repo:** Put image files in **`public/images/`** (e.g. `public/images/about-hero.jpg`, `public/images/services-intro.png`). Then we (or you, if you edit HTML) reference them as `/images/about-hero.jpg` in the pages.
-- **Option B — Via Admin upload:** Use **Admin → Blog** (or a future “Media” area) and use **Upload image**. The file is saved under **`public/uploads/`** and you get a URL like `/uploads/filename.jpg`. You can use that URL anywhere we support “image URL” (e.g. blog featured image, or later product image / section image fields).
+- **Option B — Via Admin upload:** Use **Admin → Blog** (or a future “Media” area) and use **Upload image**. The file is saved under the uploads directory (`public/uploads/` locally, or your Railway volume) and you get a URL like `/uploads/filename.jpg`. You can use that URL anywhere we support “image URL” (e.g. blog featured image, or later product image / section image fields).
+
+> **Important (Railway):** Uploaded images only stay on the live site if a persistent
+> **Volume** is mounted and **`UPLOADS_DIR=/data/uploads`** is set. Without it, uploads are
+> wiped on every redeploy (this is why some uploaded images disappear while images
+> committed to `public/images/` stay forever). See **`RAILWAY.md` → section 3** for the
+> one-time setup.
 
 So: “images throughout the site” = add files to **`public/images/`** and/or upload in Admin and use the returned URLs where the app allows.
 

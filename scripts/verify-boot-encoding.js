@@ -10,6 +10,7 @@ const bootFiles = [
   'server.js',
   'db/database.js',
   'db/blog-posts-seed.js',
+  'lib/paths.js',
   'lib/module1PreviewAccess.js',
   'lib/laTime.js',
   'lib/micBadge.js',

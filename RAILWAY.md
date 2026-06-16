@@ -25,22 +25,43 @@ Commit and push so these files are in the repo when you deploy.
 
 ---
 
-## 3. Add a persistent volume for the database
+## 3. Add a persistent volume (REQUIRED — fixes disappearing posts and images)
 
-Your app uses SQLite; the database file **must** live on a persistent volume or it will be wiped on every deploy.
+Railway's filesystem is **ephemeral**: anything written while the site is running —
+the SQLite database **and** uploaded images in `public/uploads/` — is **erased on every
+redeploy or restart**. That is why new blog posts "won't stay published" (the post is
+created, then wiped on the next deploy, and only the original seeded posts come back) and
+why uploaded images disappear over time while images committed to the repo
+(`public/images/`) survive.
+
+The fix is to put **both** the database and uploads on a single persistent **Volume**.
+This is a **one-time setup you must do in the Railway dashboard** — it cannot be done from
+code.
+
+**Steps (do these once):**
 
 1. In your Railway project, open your **service** (the web app).
-2. Go to the **Variables** tab and note your **volume mount path** if you add one (e.g. `/data`).
-3. Go to the **Volumes** tab (or **Settings** → **Volumes**). Click **Add Volume**.
-4. Mount path: **`/data`** (or another path you prefer).
-5. In **Variables**, add:
-   - **`DB_PATH`** = **`/data/drivershield.db`**  
-   (Use the same path you chose; the app will create the file on first run.)
-6. Ensure **uploads** persist if you care about uploaded images. Either:
-   - Mount a second volume at **`/app/public/uploads`** (if Railway lets you mount over a subpath), or  
-   - Keep using the default `public/uploads` and accept that uploads may be lost on redeploy unless you use external storage later.
+2. Go to the **Volumes** tab (or **Settings** → **Volumes**) and click **Add Volume**.
+3. Set the **Mount path** to **`/data`** and create the volume.
+4. Go to the **Variables** tab and add these two variables:
+   - **`DB_PATH`** = **`/data/drivershield.db`**
+   - **`UPLOADS_DIR`** = **`/data/uploads`**
+5. Click **Deploy** (or trigger a redeploy). The app creates `/data/drivershield.db` and
+   `/data/uploads` automatically on first run, and serves uploaded images from there at
+   `/uploads/<file>`.
 
-Redeploy after adding the volume and `DB_PATH`.
+After this, new blog posts and uploaded images persist across every future deploy.
+
+> **⚠️ One-time data-loss caveat:** Because the old data lived on the ephemeral
+> filesystem, attaching a **fresh** volume starts with an **empty** database. On first
+> boot the app re-seeds the **original** blog posts only. Any posts created since the last
+> deploy — and any images uploaded since the last deploy — existed only in ephemeral
+> storage and **cannot be recovered**. This is a one-time reset; everything created
+> **after** the volume is attached is permanent. Plan to re-create recent posts and
+> re-upload recent images after the volume is live.
+
+Locally you don't need to set anything: `DB_PATH` and `UPLOADS_DIR` default to
+`db/drivershield.db` and `public/uploads/` in the repo.
 
 ---
 
@@ -61,6 +82,7 @@ Redeploy after adding the volume and `DB_PATH`.
 
 - **`PORT`** — Railway sets this automatically; the app uses `process.env.PORT || 3000`.
 - **`DB_PATH`** — Set to `/data/drivershield.db` (or your volume path) so the SQLite file persists.
+- **`UPLOADS_DIR`** — Set to `/data/uploads` (on the same volume) so uploaded images persist. Without it, uploads are wiped on every redeploy.
 - **`NODE_ENV`** — Set to **`production`** on Railway (required for secure session cookies and secret checks).
 - **`SESSION_SECRET`** — **Required in production.** A long random string (32+ chars) for signing session cookies. The app **will not start** if this is missing or still set to the dev default. Generate one locally, e.g. `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`, and paste into Railway Variables.
 - **`ADMIN_INITIAL_PASSWORD`** — **Required on first deploy** to an empty production database if you need the seeded `admin` user. Use a strong password; the app does **not** seed `admin123` in production. After first login, change the password under Account.
@@ -84,7 +106,7 @@ Redeploy after adding the volume and `DB_PATH`.
 |------|--------|
 | 1 | Add `public/images/logo.png` and `public/images/hero-bg.jpg` (your brand assets). |
 | 2 | Create a Railway project, connect GitHub, deploy. |
-| 3 | Add a **Volume** (e.g. `/data`) and set **`DB_PATH=/data/drivershield.db`**. |
+| 3 | Add a **Volume** at `/data` and set **`DB_PATH=/data/drivershield.db`** and **`UPLOADS_DIR=/data/uploads`** (keeps posts and images permanent). |
 | 4 | Add custom domain **mile12warrior.com** in Railway; point Hostinger DNS to Railway. |
 | 5 | Set **`SESSION_SECRET`** and **`ADMIN_INITIAL_PASSWORD`** (empty DB); redeploy; change admin password after first login. |
 

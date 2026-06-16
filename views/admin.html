@@ -163,8 +163,13 @@
         <div id="blogNewFormWrap" class="hidden" style="margin-bottom: 24px;">
           <div class="profile-section">
             <form id="blogNewForm">
-              <div class="form-group"><label class="form-label">Title</label><input type="text" name="title" class="form-input" required></div>
-              <div class="form-group"><label class="form-label">Excerpt</label><input type="text" name="excerpt" class="form-input"></div>
+              <div class="form-group"><label class="form-label">Title</label><input type="text" name="title" id="blogNewTitle" class="form-input" required>
+                <p id="blogNewSlugPreview" class="hidden" style="font-size:0.8rem;color:var(--text-3);margin-top:6px;">Web address: <code id="blogNewSlugPreviewVal"></code></p>
+              </div>
+              <div class="form-group"><label class="form-label">Excerpt</label><input type="text" name="excerpt" id="blogNewExcerpt" class="form-input">
+                <button type="button" class="btn btn-glass mt-8" id="blogNewExcerptHelperBtn" style="font-size:0.8rem;">Suggest from content</button>
+                <p style="font-size:0.78rem;color:var(--text-3);margin-top:4px;">Short summary shown on the blog list. Leave blank to auto-use the start of your post.</p>
+              </div>
               <div class="form-group">
                 <label class="form-label">Featured image</label>
                 <p style="font-size:0.8rem;color:var(--text-3);margin-bottom:8px">Upload from your computer (no URL needed), or paste a URL if the image is from another site.</p>
@@ -173,6 +178,7 @@
                   <input type="file" id="blogImageFile" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
                 </div>
                 <input type="text" name="image" id="blogImageUrl" class="form-input" placeholder="Or paste image URL (e.g. https://...). Filled automatically after upload." style="max-width:100%;">
+                <img id="blogImagePreview" alt="Featured image preview" class="hidden" style="margin-top:10px;max-width:220px;max-height:140px;border-radius:8px;border:1px solid var(--border,rgba(255,255,255,0.15));object-fit:cover;">
               </div>
               <div class="form-group">
                 <label class="form-label">Content</label>
@@ -194,6 +200,9 @@
                   <button type="button" class="blog-tb-btn" data-wrap="p" title="Paragraph">P</button>
                   <button type="button" class="blog-tb-btn" data-wrap="blockquote" title="Blockquote">Quote</button>
                   <button type="button" class="blog-tb-btn blog-tb-hr" title="Horizontal line">—</button>
+                  <span class="blog-tb-sep"></span>
+                  <button type="button" class="blog-tb-btn blog-tb-image" title="Insert an image into the post at your cursor">🖼 Image</button>
+                  <input type="file" class="blog-tb-image-file" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
                 </div>
                 <textarea name="content" id="blogNewContent" class="form-input blog-content-textarea content-editor" rows="28" required spellcheck="true" lang="en" placeholder="Write your full post here. Use the formatting bar above for bold, italic, links, lists, headings, and more."></textarea>
                 <button type="button" class="btn btn-glass mt-8" id="blogNewProofreadBtn">Proofread</button>
@@ -215,7 +224,7 @@
           <thead><tr><th>Image</th><th>Title</th><th>Author</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
           <tbody id="blogTable"></tbody>
         </table>
-        <div id="blogEditModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:100;overflow-y:auto;padding:24px;">
+        <div id="blogEditModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:100;overflow-y:auto;padding:24px;">
           <div class="profile-section" style="max-width:640px;width:100%;margin:auto;">
             <h4 style="margin-top:0;">Edit post</h4>
             <form id="blogEditForm">
@@ -230,6 +239,7 @@
                   <input type="file" id="blogEditImageFile" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
                 </div>
                 <input type="text" id="blogEditImageUrl" name="image" class="form-input" placeholder="Or paste image URL. Filled automatically after upload." style="max-width:100%;">
+                <img id="blogEditImagePreview" alt="Featured image preview" class="hidden" style="margin-top:10px;max-width:220px;max-height:140px;border-radius:8px;border:1px solid var(--border,rgba(255,255,255,0.15));object-fit:cover;">
               </div>
               <div class="form-group">
                 <label class="form-label">Content</label>
@@ -251,6 +261,9 @@
                   <button type="button" class="blog-tb-btn" data-wrap="p" title="Paragraph">P</button>
                   <button type="button" class="blog-tb-btn" data-wrap="blockquote" title="Blockquote">Quote</button>
                   <button type="button" class="blog-tb-btn blog-tb-hr" title="Horizontal line">—</button>
+                  <span class="blog-tb-sep"></span>
+                  <button type="button" class="blog-tb-btn blog-tb-image" title="Insert an image into the post at your cursor">🖼 Image</button>
+                  <input type="file" class="blog-tb-image-file" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
                 </div>
                 <textarea id="blogEditContent" name="content" class="form-input blog-content-textarea content-editor" rows="28" required spellcheck="true" lang="en" placeholder="Full post content. Use the formatting bar above."></textarea>
                 <button type="button" class="btn btn-glass mt-8" id="blogEditProofreadBtn">Proofread</button>
@@ -269,7 +282,7 @@
             </form>
           </div>
         </div>
-        <div id="blogProofreadModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:101;overflow-y:auto;padding:24px;">
+        <div id="blogProofreadModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:101;overflow-y:auto;padding:24px;">
           <div class="profile-section" style="max-width:520px;width:100%;">
             <h4 style="margin-top:0;">Proofread — possible misspellings</h4>
             <p style="font-size:0.9rem;color:var(--text-2);margin-bottom:16px">Accept to ignore, or correct and apply to replace in your content.</p>
@@ -966,7 +979,7 @@
             '<td>' + escapeHtml(p.author_username || p.author || '—') + '</td>' +
             '<td><span class="badge-status ' + (status === 'published' ? 'status-delivered' : 'status-pending') + '">' + escapeHtml(statusLabel) + '</span></td>' +
             '<td>' + formatDate(p.created_at || p.date) + '</td>' +
-            '<td><button type="button" class="admin-btn admin-btn-primary blog-edit" style="margin-right:8px;">Edit</button><button type="button" class="admin-btn admin-btn-primary blog-publish" style="margin-right:8px;">Publish</button><button type="button" class="admin-btn admin-btn-danger blog-delete">Delete</button></td>' +
+            '<td><a href="/blog/' + encodeURIComponent(p.slug || '') + '" target="_blank" rel="noopener" class="admin-btn admin-btn-primary blog-view" style="margin-right:8px;text-decoration:none;">View</a><button type="button" class="admin-btn admin-btn-primary blog-edit" style="margin-right:8px;">Edit</button><button type="button" class="admin-btn admin-btn-primary blog-publish" style="margin-right:8px;">Publish</button><button type="button" class="admin-btn admin-btn-danger blog-delete">Delete</button></td>' +
           '</tr>';
         }).join('') : '<tr><td colspan="6">No posts yet. Use <strong>New Post</strong> above to create one; then you can edit it here.</td></tr>';
         el.querySelectorAll('.blog-edit').forEach(function(btn) {
@@ -1030,7 +1043,9 @@
           document.getElementById('blogEditId').value = p.id;
           document.getElementById('blogEditTitle').value = p.title || '';
           document.getElementById('blogEditExcerpt').value = p.excerpt || '';
-          document.getElementById('blogEditImageUrl').value = p.image || '';
+          var editImgEl = document.getElementById('blogEditImageUrl');
+          editImgEl.value = p.image || '';
+          editImgEl.dispatchEvent(new Event('input'));
           document.getElementById('blogEditContent').value = p.content || '';
           var schedEl = document.getElementById('blogEditScheduledAt');
           if (schedEl && p.scheduled_at) {
@@ -1078,7 +1093,9 @@
           var r = await fetch('/api/upload', { method: 'POST', credentials: 'include', body: fd });
           var data = await r.json();
           if (data.success && data.url) {
-            document.getElementById('blogEditImageUrl').value = data.url;
+            var editUrlEl = document.getElementById('blogEditImageUrl');
+            editUrlEl.value = data.url;
+            editUrlEl.dispatchEvent(new Event('input'));
             showToast('Image uploaded. URL added.', true);
           } else showToast(data.error || 'Upload failed.', false);
         } catch (_) { showToast('Upload failed.', false); }
@@ -1152,6 +1169,7 @@
           const data = await r.json();
           if (data.success && data.url && blogImageUrl) {
             blogImageUrl.value = data.url;
+            blogImageUrl.dispatchEvent(new Event('input'));
             showToast('Image uploaded. URL added.', true);
           } else showToast(data.error || 'Upload failed.', false);
         } catch (_) { showToast('Upload failed.', false); }
@@ -1199,11 +1217,15 @@
               showToast('Post published.', true);
               document.getElementById('blogNewFormWrap').classList.add('hidden');
               document.getElementById('blogNewForm').reset();
+              document.getElementById('blogImageUrl').dispatchEvent(new Event('input'));
+              document.getElementById('blogNewTitle').dispatchEvent(new Event('input'));
               loadBlog();
             } else {
               showToast('Draft saved. You can close and click Edit later to continue.', true);
               document.getElementById('blogNewFormWrap').classList.add('hidden');
               document.getElementById('blogNewForm').reset();
+              document.getElementById('blogImageUrl').dispatchEvent(new Event('input'));
+              document.getElementById('blogNewTitle').dispatchEvent(new Event('input'));
               loadBlog();
             }
           } else {
@@ -1377,7 +1399,83 @@
               insertAtCursor(ta, '\n<hr>\n');
             });
           });
+          var imageBtn = toolbar.querySelector('.blog-tb-image');
+          var imageFile = toolbar.querySelector('.blog-tb-image-file');
+          if (imageBtn && imageFile) {
+            imageBtn.addEventListener('click', function() {
+              var ta = getTargetTextarea(imageBtn);
+              if (ta) { ta.focus(); imageFile._lastStart = ta.selectionStart; imageFile._lastEnd = ta.selectionEnd; }
+              imageFile.click();
+            });
+            imageFile.addEventListener('change', async function() {
+              if (!this.files || !this.files[0]) return;
+              var ta = getTargetTextarea(imageBtn);
+              if (!ta) { this.value = ''; return; }
+              var alt = (prompt('Describe this image for accessibility (alt text):', '') || '').trim();
+              imageBtn.disabled = true;
+              var prevLabel = imageBtn.textContent;
+              imageBtn.textContent = 'Uploading…';
+              var fd = new FormData();
+              fd.append('image', this.files[0]);
+              try {
+                var r = await fetch('/api/upload', { method: 'POST', credentials: 'include', body: fd });
+                var data = await r.json();
+                if (data.success && data.url) {
+                  if (typeof imageFile._lastStart === 'number') ta.setSelectionRange(imageFile._lastStart, imageFile._lastEnd);
+                  insertAtCursor(ta, '\n<img src="' + data.url + '" alt="' + alt.replace(/"/g, '&quot;') + '" style="max-width:100%;height:auto;">\n');
+                  showToast('Image inserted into your post.', true);
+                } else showToast(data.error || 'Upload failed.', false);
+              } catch (_) { showToast('Upload failed.', false); }
+              imageBtn.disabled = false;
+              imageBtn.textContent = prevLabel;
+              this.value = '';
+            });
+          }
         });
+      })();
+
+      (function blogAuthoringHelpers() {
+        function slugify(t) {
+          return (t || '').toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        }
+        function bindPreview(urlEl, imgEl) {
+          if (!urlEl || !imgEl) return;
+          function update() {
+            var v = (urlEl.value || '').trim();
+            if (v) { imgEl.src = v; imgEl.classList.remove('hidden'); }
+            else { imgEl.removeAttribute('src'); imgEl.classList.add('hidden'); }
+          }
+          urlEl.addEventListener('input', update);
+          urlEl.addEventListener('change', update);
+          imgEl.addEventListener('error', function() { imgEl.classList.add('hidden'); });
+          urlEl._updatePreview = update;
+        }
+        bindPreview(document.getElementById('blogImageUrl'), document.getElementById('blogImagePreview'));
+        bindPreview(document.getElementById('blogEditImageUrl'), document.getElementById('blogEditImagePreview'));
+
+        var titleEl = document.getElementById('blogNewTitle');
+        var slugWrap = document.getElementById('blogNewSlugPreview');
+        var slugVal = document.getElementById('blogNewSlugPreviewVal');
+        if (titleEl && slugWrap && slugVal) {
+          titleEl.addEventListener('input', function() {
+            var s = slugify(titleEl.value);
+            if (s) { slugVal.textContent = '/blog/' + s; slugWrap.classList.remove('hidden'); }
+            else slugWrap.classList.add('hidden');
+          });
+        }
+
+        var excerptHelperBtn = document.getElementById('blogNewExcerptHelperBtn');
+        if (excerptHelperBtn) {
+          excerptHelperBtn.addEventListener('click', function() {
+            var contentEl = document.getElementById('blogNewContent');
+            var excerptEl = document.getElementById('blogNewExcerpt');
+            if (!contentEl || !excerptEl) return;
+            var text = (contentEl.value || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+            if (!text) { showToast('Write some content first, then suggest an excerpt.', false); return; }
+            excerptEl.value = text.length > 160 ? text.slice(0, 157).trim() + '…' : text;
+            showToast('Excerpt suggested from your content. Edit as needed.', true);
+          });
+        }
       })();
 
       async function loadForum() {
@@ -2095,7 +2193,7 @@
   <footer class="footer" style="margin-top:60px">
     <div class="container">
       <div class="footer-bottom">
-        <p>Mile 12 Warrior LLC | 2108 N ST., STE N, SACRAMENTO CA 95816</p>
+        <p>Mile 12 Warrior LLC | 2108 N, ST STE N, SACRAMENTO CA 95816</p>
         <p>1 Social Butterfly — living your best life: blogs, community &amp; merchandise at <a href="https://1socialbutterfly.net">1socialbutterfly.net</a>.</p>
         <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
           <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
