@@ -409,23 +409,26 @@
       <div id="tabRevenue" class="admin-tab-content hidden">
         <div class="admin-section">
           <h3>Revenue &amp; tax planning</h3>
+          <p id="revenueFiscalNote" style="font-size:0.85rem;color:var(--text-2);margin:0 0 12px 0;"></p>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
             <label>Fiscal year</label>
-            <select id="revenueFiscalYear" class="form-input" style="width:auto;">
-              <option value="2026" selected>FY2026</option>
-              <option value="2027">FY2027</option>
-              <option value="2028">FY2028</option>
-            </select>
+            <select id="revenueFiscalYear" class="form-input" style="width:auto;min-width:220px;"></select>
             <label>Tax set-aside %</label>
             <input id="revenueTaxRate" class="form-input" type="number" min="0" max="100" step="0.5" value="30" style="width:100px;">
             <button type="button" class="btn btn-primary" id="revenueRefreshBtn">Refresh</button>
           </div>
           <div id="revenueStats" class="admin-grid"></div>
+          <h4 style="margin:18px 0 8px 0;font-size:0.95rem;">Monthly totals</h4>
           <table class="admin-table">
             <thead><tr><th>Month</th><th>Revenue</th></tr></thead>
             <tbody id="revenueTable"></tbody>
           </table>
-          <p style="font-size:0.82rem;color:var(--text-3);margin-top:10px;">Planning estimate only. Consult a tax professional for filing and compliance.</p>
+          <h4 style="margin:18px 0 8px 0;font-size:0.95rem;">Paid orders</h4>
+          <table class="admin-table">
+            <thead><tr><th>Date</th><th>Order</th><th>Customer</th><th>Products</th><th>Total</th><th>Payment</th><th>Status</th></tr></thead>
+            <tbody id="revenueOrdersTable"></tbody>
+          </table>
+          <p style="font-size:0.82rem;color:var(--text-3);margin-top:10px;">Paid orders only (Stripe and legacy checkout). Planning estimate only — consult a tax professional for filing and compliance.</p>
         </div>
       </div>
 
@@ -2045,25 +2048,57 @@
         }
       }
 
+      function initRevenueFiscalYear() {
+        var sel = document.getElementById('revenueFiscalYear');
+        if (!sel) return;
+        var now = new Date();
+        var currentFy = now.getUTCMonth() >= 4 ? now.getUTCFullYear() + 1 : now.getUTCFullYear();
+        sel.innerHTML = '';
+        for (var fy = currentFy - 1; fy <= currentFy + 2; fy++) {
+          var opt = document.createElement('option');
+          opt.value = String(fy);
+          opt.textContent = 'FY' + fy + ' (May ' + (fy - 1) + ' – Apr ' + fy + ')';
+          if (fy === currentFy) opt.selected = true;
+          sel.appendChild(opt);
+        }
+      }
+
       async function loadRevenue() {
-        const fy = (document.getElementById('revenueFiscalYear') && document.getElementById('revenueFiscalYear').value) || '2026';
+        const fy = (document.getElementById('revenueFiscalYear') && document.getElementById('revenueFiscalYear').value) || '';
         const taxRate = (document.getElementById('revenueTaxRate') && document.getElementById('revenueTaxRate').value) || '30';
         const statsEl = document.getElementById('revenueStats');
         const tableEl = document.getElementById('revenueTable');
+        const ordersEl = document.getElementById('revenueOrdersTable');
+        const noteEl = document.getElementById('revenueFiscalNote');
         if (!statsEl || !tableEl) return;
         try {
-          const res = await fetch('/api/admin/revenue-tax?fiscal_year=' + encodeURIComponent(fy) + '&tax_rate=' + encodeURIComponent(taxRate), { credentials: 'include' });
+          var url = '/api/admin/revenue-tax?tax_rate=' + encodeURIComponent(taxRate);
+          if (fy) url += '&fiscal_year=' + encodeURIComponent(fy);
+          const res = await fetch(url, { credentials: 'include' });
           const data = await res.json();
+          if (noteEl) {
+            var start = data.fiscalStart ? new Date(data.fiscalStart) : null;
+            var end = data.fiscalEnd ? new Date(data.fiscalEnd) : null;
+            var range = start && end ? (start.toLocaleDateString() + ' – ' + end.toLocaleDateString()) : '';
+            noteEl.textContent = 'Fiscal year FY' + (data.fiscalYear || fy) + (range ? ' (' + range + ')' : '') + '. Defaults to the current fiscal year.';
+          }
           statsEl.innerHTML =
             '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(data.totalRevenue || 0) + '</span><span class="admin-stat-label">Revenue</span></div>' +
             '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(data.taxSetAside || 0) + '</span><span class="admin-stat-label">Tax set-aside</span></div>' +
-            '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(data.netAfterSetAside || 0) + '</span><span class="admin-stat-label">Net after set-aside</span></div>';
+            '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(data.netAfterSetAside || 0) + '</span><span class="admin-stat-label">Net after set-aside</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + (data.orderCount || 0) + '</span><span class="admin-stat-label">Paid orders</span></div>';
           tableEl.innerHTML = (data.months || []).map(function(m) {
             return '<tr><td>' + escapeHtml(m.month_key) + '</td><td>' + formatPrice(m.revenue) + '</td></tr>';
           }).join('') || '<tr><td colspan="2">No fiscal revenue found.</td></tr>';
+          if (ordersEl) {
+            ordersEl.innerHTML = (data.orders || []).map(function(o) {
+              return '<tr><td>' + formatDate(o.revenue_date) + '</td><td>#' + o.id + '</td><td>' + escapeHtml(o.customer || '—') + '</td><td>' + escapeHtml(o.products || '—') + '</td><td>' + formatPrice(o.total) + '</td><td>' + escapeHtml((o.payment_method || '—') + ' / ' + (o.payment_status || 'paid')) + '</td><td>' + escapeHtml(o.status || '—') + '</td></tr>';
+            }).join('') || '<tr><td colspan="7">No paid orders in this fiscal year.</td></tr>';
+          }
         } catch (_) {
           statsEl.innerHTML = '<p class="text-muted">Could not load fiscal revenue.</p>';
           tableEl.innerHTML = '<tr><td colspan="2">Could not load.</td></tr>';
+          if (ordersEl) ordersEl.innerHTML = '<tr><td colspan="7">Could not load.</td></tr>';
         }
       }
 
@@ -2682,6 +2717,7 @@
         var revenueRefreshBtn = document.getElementById('revenueRefreshBtn');
         var revenueFiscalYear = document.getElementById('revenueFiscalYear');
         var revenueTaxRate = document.getElementById('revenueTaxRate');
+        initRevenueFiscalYear();
         if (revenueRefreshBtn) revenueRefreshBtn.addEventListener('click', loadRevenue);
         if (revenueFiscalYear) revenueFiscalYear.addEventListener('change', loadRevenue);
         if (revenueTaxRate) revenueTaxRate.addEventListener('change', loadRevenue);
@@ -2721,7 +2757,7 @@
     </div>
   </footer>
 
-  <script src="/js/packets.js"></script>
+  <script src="/js/packets.js?v=20260616b"></script>
   <script src="/js/main.js"></script>
 </body>
 </html>

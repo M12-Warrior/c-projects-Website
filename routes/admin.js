@@ -48,14 +48,49 @@ function normalizeTrafficSource(referrer, utmSource) {
   return 'other';
 }
 
+function getCurrentFiscalYear(at = new Date()) {
+  // Fiscal year runs May 1 – Apr 30. FY2027 = May 2026 through Apr 2027.
+  const month = at.getUTCMonth();
+  const year = at.getUTCFullYear();
+  return month >= 4 ? year + 1 : year;
+}
+
 function getFiscalWindow(fiscalYear) {
-  const fy = Number(fiscalYear) || 2026;
+  const fy = Number(fiscalYear) || getCurrentFiscalYear();
   return {
     start: new Date(Date.UTC(fy - 1, 4, 1, 0, 0, 0)), // May 1 prior year
     end: new Date(Date.UTC(fy, 3, 30, 23, 59, 59, 999)), // Apr 30
     year: fy,
   };
 }
+
+/** SQLite-friendly bounds for comparing DATETIME columns (YYYY-MM-DD HH:MM:SS). */
+function fiscalBoundsSql(window) {
+  const pad = (n) => String(n).padStart(2, '0');
+  const fmt = (d) => `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
+  return { startStr: fmt(window.start), endStr: fmt(window.end) };
+}
+
+/** Paid orders: Stripe/legacy checkout plus admin-marked paid; excludes abandoned carts. */
+const PAID_ORDER_SQL = `
+  LOWER(COALESCE(status, '')) != 'cancelled'
+  AND (
+    LOWER(COALESCE(payment_status, '')) = 'paid'
+    OR (
+      LOWER(COALESCE(payment_status, '')) IN ('', 'pending')
+      AND LOWER(COALESCE(status, '')) IN ('completed', 'processing', 'shipped', 'delivered')
+      AND COALESCE(total, 0) > 0
+    )
+  )
+`;
+
+const PAID_ORDER_SQL_O = PAID_ORDER_SQL
+  .replace(/\bstatus\b/g, 'o.status')
+  .replace(/\bpayment_status\b/g, 'o.payment_status')
+  .replace(/\btotal\b/g, 'o.total');
+
+const REVENUE_DATE_EXPR = "datetime(COALESCE(paid_at, created_at))";
+const REVENUE_DATE_EXPR_O = "datetime(COALESCE(o.paid_at, o.created_at))";
 
 // GET /api/admin/stats
 router.get('/stats', (req, res) => {
@@ -257,36 +292,82 @@ router.get('/export/newsletter', (req, res) => {
   res.send(lines.join('\n'));
 });
 
-// GET /api/admin/revenue-tax — Fiscal totals and monthly income chart
+// GET /api/admin/revenue-tax — Fiscal totals, monthly chart, and paid order detail
 router.get('/revenue-tax', (req, res) => {
-  const fiscalYear = Number(req.query.fiscal_year) || 2026;
+  const fiscalYear = Number(req.query.fiscal_year) || getCurrentFiscalYear();
   const taxRate = Math.max(0, Math.min(100, Number(req.query.tax_rate) || 30));
   const window = getFiscalWindow(fiscalYear);
-  const startStr = window.start.toISOString();
-  const endStr = window.end.toISOString();
+  const { startStr, endStr } = fiscalBoundsSql(window);
+
   const months = db.prepare(`
-    SELECT strftime('%Y-%m', created_at) AS month_key, COALESCE(SUM(total), 0) AS revenue
+    SELECT strftime('%Y-%m', ${REVENUE_DATE_EXPR}) AS month_key, COALESCE(SUM(total), 0) AS revenue
     FROM orders
-    WHERE status != 'cancelled' AND created_at >= ? AND created_at <= ?
-    GROUP BY strftime('%Y-%m', created_at)
+    WHERE ${PAID_ORDER_SQL}
+      AND ${REVENUE_DATE_EXPR} >= datetime(?)
+      AND ${REVENUE_DATE_EXPR} <= datetime(?)
+    GROUP BY strftime('%Y-%m', ${REVENUE_DATE_EXPR})
     ORDER BY month_key ASC
   `).all(startStr, endStr);
+
   const totalRevenueRow = db.prepare(`
     SELECT COALESCE(SUM(total), 0) AS total
     FROM orders
-    WHERE status != 'cancelled' AND created_at >= ? AND created_at <= ?
+    WHERE ${PAID_ORDER_SQL}
+      AND ${REVENUE_DATE_EXPR} >= datetime(?)
+      AND ${REVENUE_DATE_EXPR} <= datetime(?)
   `).get(startStr, endStr);
   const totalRevenue = Number(totalRevenueRow ? totalRevenueRow.total : 0);
   const taxSetAside = Math.round(totalRevenue * (taxRate / 100) * 100) / 100;
+
+  const orderRows = db.prepare(`
+    SELECT o.id, o.total, o.status, o.payment_status, o.payment_method,
+           COALESCE(o.paid_at, o.created_at) AS revenue_date,
+           u.username
+    FROM orders o
+    LEFT JOIN users u ON u.id = o.user_id
+    WHERE ${PAID_ORDER_SQL_O}
+      AND ${REVENUE_DATE_EXPR_O} >= datetime(?)
+      AND ${REVENUE_DATE_EXPR_O} <= datetime(?)
+    ORDER BY revenue_date DESC, o.id DESC
+  `).all(startStr, endStr);
+
+  const itemStmt = db.prepare(`
+    SELECT p.name, oi.quantity, oi.price
+    FROM order_items oi
+    JOIN products p ON p.id = oi.product_id
+    WHERE oi.order_id = ?
+    ORDER BY oi.id ASC
+  `);
+  const orders = orderRows.map((row) => {
+    const items = itemStmt.all(row.id);
+    const products = items.map((it) => {
+      const qty = it.quantity > 1 ? ` ×${it.quantity}` : '';
+      return `${it.name}${qty}`;
+    }).join(', ');
+    return {
+      id: row.id,
+      revenue_date: row.revenue_date,
+      total: row.total,
+      products: products || '—',
+      customer: row.username || `User #${row.id}`,
+      payment_status: row.payment_status || 'paid',
+      payment_method: row.payment_method || '—',
+      status: row.status,
+    };
+  });
+
   res.json({
     fiscalYear,
-    fiscalStart: startStr,
-    fiscalEnd: endStr,
+    fiscalStart: window.start.toISOString(),
+    fiscalEnd: window.end.toISOString(),
+    currentFiscalYear: getCurrentFiscalYear(),
     taxRate,
     totalRevenue,
     taxSetAside,
     netAfterSetAside: Math.round((totalRevenue - taxSetAside) * 100) / 100,
+    orderCount: orders.length,
     months,
+    orders,
     disclaimer: 'For planning only. Consult a qualified tax professional.',
   });
 });
