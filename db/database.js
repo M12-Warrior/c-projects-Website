@@ -416,61 +416,79 @@ function resolveInitialAdminPassword() {
   return 'admin123';
 }
 
-// Seed data (only if tables are empty)
+// Seed data — idempotent and crash-proof. Safe to run on every boot, even on a
+// fully populated DB: each entity is seeded only when its own table is empty, and
+// every insert uses INSERT OR IGNORE so a re-run can never throw a UNIQUE/constraint
+// error (previously a plain INSERT here crash-looped production when the users table
+// stayed empty because ADMIN_INITIAL_PASSWORD was unset).
 const seedIfEmpty = () => {
-  const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
-  if (userCount.count > 0) return;
-
   const adminPassword = resolveInitialAdminPassword();
   if (adminPassword) {
     const insertUser = db.prepare(`
-      INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)
+      INSERT OR IGNORE INTO users (username, email, password, role) VALUES (?, ?, ?, ?)
     `);
     insertUser.run('admin', 'joyce@mile12warrior.com', bcrypt.hashSync(adminPassword, 10), 'admin');
   } else if (isProduction) {
     console.warn('[database] Empty production DB: set ADMIN_INITIAL_PASSWORD in Railway to create the first admin, or register and promote manually.');
   }
 
-  const insertCategory = db.prepare(`
-    INSERT OR IGNORE INTO forum_categories (name, slug, description, sort_order) VALUES (?, ?, ?, ?)
-  `);
-  insertCategory.run(
-    'Coffee Shop — Main Lounge',
-    'general',
-    'Pull up a seat. Our main lounge for road stories, wins, and everyday convos — like your favorite truck stop coffee shop.',
-    0
-  );
-  insertCategory.run('Safety Tips', 'safety-tips', 'Share and discuss safety practices, near-misses, and lessons learned.', 1);
-  insertCategory.run('Health & Wellness', 'health-wellness', 'Physical fitness, mental health, nutrition, and self-care for drivers.', 2);
-  insertCategory.run('Equipment & Tech', 'equipment-tech', 'Trucks, trailers, ELDs, dashcams, and gear recommendations.', 3);
-  insertCategory.run('Mile 12 Moments', 'mile-12-moments', 'Share your Mile 12 turning points — the moments that tested you and made you stronger.', 4);
-  insertCategory.run('Miles Without Borders', 'miles-without-borders', 'Truckers from every country: share your experiences, cultural differences, and the struggles of the road. A place to compare how driver fatigue and hours-of-service are managed worldwide — and learn from each other.', 5);
+  const categoryCount = db.prepare('SELECT COUNT(*) as count FROM forum_categories').get();
+  if (categoryCount.count === 0) {
+    const insertCategory = db.prepare(`
+      INSERT OR IGNORE INTO forum_categories (name, slug, description, sort_order) VALUES (?, ?, ?, ?)
+    `);
+    insertCategory.run(
+      'Coffee Shop — Main Lounge',
+      'general',
+      'Pull up a seat. Our main lounge for road stories, wins, and everyday convos — like your favorite truck stop coffee shop.',
+      0
+    );
+    insertCategory.run('Safety Tips', 'safety-tips', 'Share and discuss safety practices, near-misses, and lessons learned.', 1);
+    insertCategory.run('Health & Wellness', 'health-wellness', 'Physical fitness, mental health, nutrition, and self-care for drivers.', 2);
+    insertCategory.run('Equipment & Tech', 'equipment-tech', 'Trucks, trailers, ELDs, dashcams, and gear recommendations.', 3);
+    insertCategory.run('Mile 12 Moments', 'mile-12-moments', 'Share your Mile 12 turning points — the moments that tested you and made you stronger.', 4);
+    insertCategory.run('Miles Without Borders', 'miles-without-borders', 'Truckers from every country: share your experiences, cultural differences, and the struggles of the road. A place to compare how driver fatigue and hours-of-service are managed worldwide — and learn from each other.', 5);
+  }
 
-  const insertProduct = db.prepare(`
-    INSERT INTO products (name, slug, description, price, category, stock, active) VALUES (?, ?, ?, ?, ?, ?, ?)
-  `);
-  insertProduct.run('Mile 12 Warrior T-Shirt', 'mile-12-warrior-t-shirt', 'Premium cotton tee with the Mile 12 Warrior logo. Comfortable for long hauls and days off.', 24.99, 'apparel', 50, 1);
-  insertProduct.run('Reflective Safety Vest', 'reflective-safety-vest', 'High-visibility ANSI Class 2 vest. Essential for roadside safety and pre-trip inspections.', 34.99, 'apparel', 100, 1);
-  insertProduct.run('Trucker Wellness Journal', 'trucker-wellness-journal', 'Daily wellness tracker designed for drivers. Log sleep, meals, exercise, mood, and mileage.', 14.99, 'accessories', 75, 1);
-  insertProduct.run('Mile 12 Warrior Kit', 'mile-12-warrior-kit', 'The complete fatigue-fighting toolkit. Includes the wellness journal, a resistance band set, essential oil roller, eye mask for sleeper berth rest, and the Mile 12 quick-reset card deck.', 49.99, 'kits', 30, 1);
+  const productCount = db.prepare('SELECT COUNT(*) as count FROM products').get();
+  if (productCount.count === 0) {
+    const insertProduct = db.prepare(`
+      INSERT OR IGNORE INTO products (name, slug, description, price, category, stock, active) VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+    insertProduct.run('Mile 12 Warrior T-Shirt', 'mile-12-warrior-t-shirt', 'Premium cotton tee with the Mile 12 Warrior logo. Comfortable for long hauls and days off.', 24.99, 'apparel', 50, 1);
+    insertProduct.run('Reflective Safety Vest', 'reflective-safety-vest', 'High-visibility ANSI Class 2 vest. Essential for roadside safety and pre-trip inspections.', 34.99, 'apparel', 100, 1);
+    insertProduct.run('Trucker Wellness Journal', 'trucker-wellness-journal', 'Daily wellness tracker designed for drivers. Log sleep, meals, exercise, mood, and mileage.', 14.99, 'accessories', 75, 1);
+    insertProduct.run('Mile 12 Warrior Kit', 'mile-12-warrior-kit', 'The complete fatigue-fighting toolkit. Includes the wellness journal, a resistance band set, essential oil roller, eye mask for sleeper berth rest, and the Mile 12 quick-reset card deck.', 49.99, 'kits', 30, 1);
 
-  insertProduct.run('90-Day Onboarding Course', 'course-90day', '10 self-paced modules, 47 lessons, knowledge checks, and a certificate of completion. Everything a new CDL driver needs for their first 90 days — HOS mastery, fatigue management, inspections, emergency preparedness, defensive driving, and daily routine systems. Includes the New Driver Packet free.', 149.00, 'digital', 9999, 1);
-  insertProduct.run('New Driver Packet', 'new-driver-packet', 'Foundational safety and wellness packet for new CDL drivers. 13 print-ready sections including HOS basics, fatigue management, DVIR checklists, emergency protocol, and daily routines.', 9.00, 'digital', 9999, 1);
-  insertProduct.run('Seasoned Driver Packet', 'seasoned-packet', 'Advanced safety and wellness packet for experienced drivers (2+ years). 11 sections covering HOS refresher, advanced fatigue science, long-term health, CSA self-audit, career wellness, and mentorship planning. Print-ready with real regulatory references.', 29.00, 'digital', 9999, 1);
-  insertProduct.run('Fleet New Hire Orientation Packet', 'fleet-new-hire-packet', 'Complete new-hire onboarding packet for fleet safety departments. 11 sections with FMCSA compliance, drug/alcohol testing requirements, accident procedures, company policy templates, and formal driver sign-off sheet per 49 CFR 391.51. Unlimited printing per company.', 79.00, 'digital', 9999, 1);
-  insertProduct.run('Fleet Seasoned Driver Refresher Packet', 'fleet-refresher-packet', 'Annual/semi-annual refresher for experienced drivers. 10 sections with fatigue self-assessment, 12-month seasonal hazard calendar, regulatory self-audit, mentorship guidance, and formal driver sign-off sheet per 49 CFR 391.51. Unlimited printing per company.', 79.00, 'digital', 9999, 1);
-  insertProduct.run('Fleet Bundle (New Hire + Refresher)', 'fleet-bundle', 'Both fleet safety packets — New Hire Orientation and Seasoned Driver Refresher — at a discounted price. Per company license with unlimited driver distribution and printing. Save $29 vs. buying separately.', 129.00, 'digital', 9999, 1);
-  insertProduct.run('Complete Bundle (Course + All Packets)', 'complete-bundle', 'Everything Mile 12 Warrior offers in one package: the 90-Day Onboarding Course (10 modules), all 4 safety packets (New Driver, Seasoned Driver, Fleet New Hire, Fleet Refresher), and certificate of completion. Save $87 vs. buying separately.', 249.00, 'digital', 9999, 1);
+    insertProduct.run('90-Day Onboarding Course', 'course-90day', '10 self-paced modules, 47 lessons, knowledge checks, and a certificate of completion. Everything a new CDL driver needs for their first 90 days — HOS mastery, fatigue management, inspections, emergency preparedness, defensive driving, and daily routine systems. Includes the New Driver Packet free.', 149.00, 'digital', 9999, 1);
+    insertProduct.run('New Driver Packet', 'new-driver-packet', 'Foundational safety and wellness packet for new CDL drivers. 13 print-ready sections including HOS basics, fatigue management, DVIR checklists, emergency protocol, and daily routines.', 9.00, 'digital', 9999, 1);
+    insertProduct.run('Seasoned Driver Packet', 'seasoned-packet', 'Advanced safety and wellness packet for experienced drivers (2+ years). 11 sections covering HOS refresher, advanced fatigue science, long-term health, CSA self-audit, career wellness, and mentorship planning. Print-ready with real regulatory references.', 29.00, 'digital', 9999, 1);
+    insertProduct.run('Fleet New Hire Orientation Packet', 'fleet-new-hire-packet', 'Complete new-hire onboarding packet for fleet safety departments. 11 sections with FMCSA compliance, drug/alcohol testing requirements, accident procedures, company policy templates, and formal driver sign-off sheet per 49 CFR 391.51. Unlimited printing per company.', 79.00, 'digital', 9999, 1);
+    insertProduct.run('Fleet Seasoned Driver Refresher Packet', 'fleet-refresher-packet', 'Annual/semi-annual refresher for experienced drivers. 10 sections with fatigue self-assessment, 12-month seasonal hazard calendar, regulatory self-audit, mentorship guidance, and formal driver sign-off sheet per 49 CFR 391.51. Unlimited printing per company.', 79.00, 'digital', 9999, 1);
+    insertProduct.run('Fleet Bundle (New Hire + Refresher)', 'fleet-bundle', 'Both fleet safety packets — New Hire Orientation and Seasoned Driver Refresher — at a discounted price. Per company license with unlimited driver distribution and printing. Save $29 vs. buying separately.', 129.00, 'digital', 9999, 1);
+    insertProduct.run('Complete Bundle (Course + All Packets)', 'complete-bundle', 'Everything Mile 12 Warrior offers in one package: the 90-Day Onboarding Course (10 modules), all 4 safety packets (New Driver, Seasoned Driver, Fleet New Hire, Fleet Refresher), and certificate of completion. Save $87 vs. buying separately.', 249.00, 'digital', 9999, 1);
+  }
 
-  const insertPost = db.prepare(`
-    INSERT INTO blog_posts (title, slug, content, excerpt, image, author_id, published) VALUES (?, ?, ?, ?, ?, ?, ?)
-  `);
-  for (const post of BLOG_POSTS_SEED) {
-    insertPost.run(post.title, post.slug, post.content, post.excerpt, post.image || null, 1, 1);
+  const postCount = db.prepare('SELECT COUNT(*) as count FROM blog_posts').get();
+  if (postCount.count === 0) {
+    // Attribute seed posts to the admin if one exists; otherwise leave author null
+    // so the foreign key constraint cannot fail (e.g. production with no admin yet).
+    const adminUser = db.prepare("SELECT id FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1").get();
+    const authorId = adminUser ? adminUser.id : null;
+    const insertPost = db.prepare(`
+      INSERT OR IGNORE INTO blog_posts (title, slug, content, excerpt, image, author_id, published) VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+    for (const post of BLOG_POSTS_SEED) {
+      insertPost.run(post.title, post.slug, post.content, post.excerpt, post.image || null, authorId, 1);
+    }
   }
 };
 
-seedIfEmpty();
+try {
+  seedIfEmpty();
+} catch (err) {
+  console.error('[database] Seeding encountered an error and was skipped (app will continue):', err && err.message ? err.message : err);
+}
 
 // Refresh blog post content so existing DBs get updated copy (tone, length, structure, CTA)
 try {
