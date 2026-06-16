@@ -1360,15 +1360,22 @@
               showToast('Uploading image…', true);
               try {
                 var r = await fetch('/api/upload', { method: 'POST', credentials: 'include', body: fd });
-                var data = await r.json();
-                if (data.success && data.url) {
+                var data = null;
+                try { data = await r.json(); } catch (e) { data = null; }
+                if (r.ok && data && data.success && data.url) {
                   quill.insertEmbed(range.index, 'image', data.url, 'user');
                   quill.setSelection(range.index + 1, 0, 'user');
                   showToast('Image inserted into your post.', true);
+                } else if (r.status === 401 || r.status === 403) {
+                  showToast('Your admin session has expired. Please log in again, then re-insert the image.', false);
+                } else if (data && data.error) {
+                  showToast(data.error, false);
                 } else {
-                  showToast(data.error || 'Upload failed.', false);
+                  showToast('Upload failed (' + r.status + '). Please try again.', false);
                 }
-              } catch (_) { showToast('Upload failed.', false); }
+              } catch (_) {
+                showToast('Upload failed — network error. Check your connection and try again.', false);
+              }
               input.remove();
             });
             input.click();

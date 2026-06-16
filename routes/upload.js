@@ -30,15 +30,24 @@ const storage = multer.diskStorage({
   }
 });
 
+const MAX_UPLOAD_MB = 15;
+
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: MAX_UPLOAD_MB * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
+    const mime = (file.mimetype || '').toLowerCase();
+    const name = (file.originalname || '').toLowerCase();
+    // HEIC/HEIF (default iPhone format) can't be displayed by browsers, so give a
+    // clear, friendly instruction instead of a confusing generic error.
+    if (/^image\/(heic|heif)$/.test(mime) || /\.(heic|heif)$/.test(name)) {
+      return cb(new Error('iPhone HEIC photos are not supported by web browsers. On your iPhone, open Settings → Camera → Formats and choose "Most Compatible", or change this photo to JPG/PNG and try again.'));
+    }
     const allowed = /^image\/(jpe?g|png|gif|webp)$/i;
-    if (allowed.test(file.mimetype)) {
+    if (allowed.test(mime)) {
       cb(null, true);
     } else {
-      cb(new Error('Only images (JPEG, PNG, GIF, WebP) are allowed'));
+      cb(new Error('That file type is not supported. Please use a JPG, PNG, GIF, or WebP image.'));
     }
   }
 });
@@ -48,7 +57,7 @@ router.post('/', requireAdmin, (req, res) => {
   upload.single('image')(req, res, (err) => {
     if (err) {
       if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ error: 'File too large. Max 5MB.' });
+        return res.status(400).json({ error: `That image is too large. Please use an image under ${MAX_UPLOAD_MB}MB (you can shrink a phone photo by emailing it to yourself at a smaller size, or screenshot it).` });
       }
       return res.status(400).json({ error: err.message || 'Upload failed' });
     }

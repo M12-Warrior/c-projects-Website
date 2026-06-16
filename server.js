@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const session = require('express-session');
+const SqliteStore = require('better-sqlite3-session-store')(session);
 const cors = require('cors');
 const db = require('./db/database');
 const { UPLOADS_DIR } = require('./lib/paths');
@@ -80,7 +81,18 @@ if (isProduction) {
   sessionCookie.httpOnly = true;
   sessionCookie.sameSite = 'lax';
 }
+// Persist sessions in the existing SQLite DB (on the Railway /data volume via DB_PATH)
+// so logins survive restarts and are shared across replicas. The default in-memory
+// MemoryStore dropped sessions on Railway, causing intermittent 401/403 for the admin.
+const sessionStore = new SqliteStore({
+  client: db,
+  expired: {
+    clear: true,
+    intervalMs: 24 * 60 * 60 * 1000
+  }
+});
 app.use(session({
+  store: sessionStore,
   secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
