@@ -359,6 +359,17 @@ router.get('/admin/product/:id', requireAdmin, (req, res) => {
   res.json({ product });
 });
 
+// Admin: all products (active and inactive) for dashboard list
+router.get('/admin/products', requireAdmin, (req, res) => {
+  const rows = db.prepare(`
+    SELECT id, name, slug, description, price, image, category, stock, active, created_at,
+           COALESCE(is_subscription, 0) AS is_subscription, subscription_plan
+    FROM products
+    ORDER BY active DESC, COALESCE(is_subscription, 0) DESC, name ASC
+  `).all();
+  res.json({ products: applyDefaultImage(rows) });
+});
+
 // 0. GET /api/shop/payment-config — Is online checkout (Stripe) live yet?
 // `enabled` is true only when STRIPE_SECRET_KEY is set on the server (lib/stripe
 // returns a client). The frontend uses this to show real Buy/Checkout buttons or
@@ -453,7 +464,8 @@ router.get('/orders/:id', requireSession, (req, res) => {
   if (!order) {
     return res.status(404).json({ error: 'Order not found' });
   }
-  if (order.user_id !== req.session.user.id) {
+  const isAdmin = req.session.user.role === 'admin';
+  if (!isAdmin && order.user_id !== req.session.user.id) {
     return res.status(403).json({ error: 'Access denied' });
   }
   const items = db.prepare(`

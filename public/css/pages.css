@@ -1049,6 +1049,9 @@ body.forum-coffee-shop .forum-category-header .page-title {
   overflow: hidden;
   transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
+.product-card[data-product-href] {
+  cursor: pointer;
+}
 .product-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);

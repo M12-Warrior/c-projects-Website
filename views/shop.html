@@ -129,6 +129,17 @@
         showToast('Added to cart!', true);
       }
 
+      function bindProductCardNavigation(container) {
+        if (!container) return;
+        container.querySelectorAll('.product-card[data-product-href]').forEach(function(card) {
+          card.addEventListener('click', function(e) {
+            if (e.target.closest('a, button, input, select, textarea, label')) return;
+            var href = card.getAttribute('data-product-href');
+            if (href) window.location.href = href;
+          });
+        });
+      }
+
       function bindCartButtons(container) {
         if (!container || !paymentsEnabled) return;
         container.querySelectorAll('.btn-add-cart[data-slug]').forEach(function(btn) {
@@ -202,7 +213,9 @@
             '<span style="font-family:var(--mono);font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;padding:4px 12px;border:1px solid rgba(99,102,241,0.3);border-radius:4px;color:var(--blue)">' + escapeHtml(p.badge) + '</span>' +
             '</div>';
           var onerr = "if(!this.dataset.triedJpg){ this.dataset.triedJpg='1'; this.src='" + imgPathJpg + "'; return; } if(!this.dataset.triedPng){ this.dataset.triedPng='1'; this.src='" + imgPathPng + "'; return; } var pl=this.nextElementSibling; if(pl){ pl.style.display='flex'; } this.style.display='none';";
-          return '<article class="product-card">' +
+          var cardHref = p.link ? p.link : '';
+          var cardAttrs = cardHref ? ' data-product-href="' + escapeHtml(cardHref) + '"' : '';
+          return '<article class="product-card"' + cardAttrs + '>' +
             '<div class="product-image product-image--digital" style="height:140px;display:flex;align-items:stretch;justify-content:center">' +
               '<img src="' + escapeHtml(imgPath) + '" alt="" style="width:100%;height:100%;object-fit:cover" onerror="' + onerr + '">' +
               placeholderHtml +
@@ -216,6 +229,7 @@
           '</article>';
         }).join('');
         bindCartButtons(dg);
+        bindProductCardNavigation(dg);
       }
 
       async function loadProducts() {
@@ -245,7 +259,7 @@
               var onerr = p.image
                 ? "this.style.display='none'; var ph=this.nextElementSibling; if(ph) ph.style.display='flex';"
                 : "if(!this.dataset.triedJpg){ this.dataset.triedJpg='1'; this.src='" + productImageBase + slug + ".jpg'; return; } if(!this.dataset.triedPng){ this.dataset.triedPng='1'; this.src='" + productImageBase + slug + ".png'; return; } this.style.display='none'; var ph=this.nextElementSibling; if(ph) ph.style.display='flex';";
-              return '<article class="product-card">' +
+              return '<article class="product-card" data-product-href="/shop/product/' + escapeHtml(slug) + '">' +
                 '<a href="/shop/product/' + escapeHtml(slug) + '">' +
                   '<div class="product-image">' +
                     '<img src="' + escapeHtml(imgSrc) + '" alt="" onerror="' + onerr + '">' + fallbackSpan +
@@ -265,6 +279,7 @@
               '</article>';
             }).join('');
             bindCartButtons(subGrid);
+            bindProductCardNavigation(subGrid);
           }
 
           if (products.length === 0 && subscriptionProducts.length === 0) {
@@ -284,7 +299,7 @@
               ? "this.style.display='none'; var ph=this.nextElementSibling; if(ph) ph.style.display='flex';"
               : "if(!this.dataset.triedJpg){ this.dataset.triedJpg='1'; this.src='" + productImageBase + slug + ".jpg'; return; } if(!this.dataset.triedPng){ this.dataset.triedPng='1'; this.src='" + productImageBase + slug + ".png'; return; } this.style.display='none'; var ph=this.nextElementSibling; if(ph) ph.style.display='flex';";
             var imgHtml = '<img src="' + escapeHtml(imgSrc) + '" alt="" onerror="' + onerr + '">' + fallbackSpan;
-            return '<article class="product-card">' +
+            return '<article class="product-card" data-product-href="/shop/product/' + escapeHtml(slug) + '">' +
               '<a href="/shop/product/' + escapeHtml(slug) + '">' +
                 '<div class="product-image">' + imgHtml + '</div>' +
               '</a>' +
@@ -301,6 +316,7 @@
             '</article>';
           }).join('');
           bindCartButtons(grid);
+          bindProductCardNavigation(grid);
 
         } catch (err) {
           grid.innerHTML = '<div class="empty-state"><p>Could not load products. Please try again later.</p></div>';
