@@ -11,8 +11,9 @@ const crypto = require('crypto');
 const session = require('express-session');
 const cors = require('cors');
 const db = require('./db/database');
+const { UPLOADS_DIR } = require('./lib/paths');
 
-const uploadsDir = path.join(__dirname, 'public', 'uploads');
+const uploadsDir = UPLOADS_DIR;
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
@@ -85,6 +86,9 @@ app.use(session({
   saveUninitialized: false,
   cookie: sessionCookie
 }));
+// Serve uploaded images from the configured uploads dir (works when it lives on a
+// persistent volume outside public/). Registered first so it wins for /uploads/*.
+app.use('/uploads', express.static(UPLOADS_DIR));
 app.use(express.static(path.join(__dirname, 'public'), {
   etag: false,
   lastModified: true,

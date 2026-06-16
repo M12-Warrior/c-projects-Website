@@ -9,6 +9,9 @@ mobile-app/node_modules/
 
 # Local SQLite DB (Railway will create its own on the volume)
 db/drivershield.db
+# Any local/test SQLite databases (never commit these)
+*.db
+_test_railway.db
 
 # OS and editor
 .DS_Store
