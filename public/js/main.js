@@ -184,12 +184,21 @@ function downloadChecklist(id) {
   URL.revokeObjectURL(a.href);
 }
 
-function initCheckoutBanner() {
+async function initCheckoutBanner() {
   try {
     if (sessionStorage.getItem('checkoutBannerDismissed') === '1') return;
   } catch (_) {}
   const navbar = document.getElementById('navbar');
   if (!navbar || document.getElementById('checkoutBanner')) return;
+
+  let paymentsEnabled = false;
+  try {
+    const res = await fetch('/api/shop/payment-config', { credentials: 'include' });
+    const data = await res.json();
+    paymentsEnabled = !!(data && data.enabled);
+  } catch (_) {}
+
+  if (paymentsEnabled) return;
 
   const banner = document.createElement('div');
   banner.id = 'checkoutBanner';
