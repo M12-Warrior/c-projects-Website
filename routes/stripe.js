@@ -54,6 +54,21 @@ function parseFleetInfo(body) {
   let numYards = parseInt(fi.numYards, 10);
   if (isNaN(numYards) || numYards < 0) numYards = null;
   if (numYards != null && numYards > 100000) numYards = 100000;
+  // Per-yard list: one entry per fleet-packet unit purchased.
+  // [{ slug, yardIdentifier, yardLabel }]
+  const yards = [];
+  if (Array.isArray(fi.yards)) {
+    for (const y of fi.yards) {
+      if (!y || typeof y !== 'object') continue;
+      const slug = str(y.slug, 80);
+      if (FLEET_LICENSE_PRODUCT_SLUGS.indexOf(slug) === -1) continue;
+      yards.push({
+        slug,
+        yardIdentifier: str(y.yardIdentifier, 300),
+        yardLabel: str(y.yardLabel, 200)
+      });
+    }
+  }
   return {
     company: str(fi.company, 200),
     contactName: str(fi.contactName, 200),
@@ -61,7 +76,8 @@ function parseFleetInfo(body) {
     contactPhone: str(fi.contactPhone, 60),
     numYards,
     yardIdentifier: str(fi.yardIdentifier, 300),
-    yardLabel: str(fi.yardLabel, 200)
+    yardLabel: str(fi.yardLabel, 200),
+    yards
   };
 }
 
@@ -187,6 +203,7 @@ router.post('/create-checkout-session', requireSession, async (req, res) => {
   let total = 0;
   let hasPhysical = false;
   let hasFleetPacket = false;
+  const fleetQtyBySlug = {};
 
   for (const slug of slugs) {
     const p = db.prepare(`
@@ -208,7 +225,10 @@ router.post('/create-checkout-session', requireSession, async (req, res) => {
 
     const cat = String(p.category || '').toLowerCase();
     if (cat !== 'digital' && cat !== 'subscription' && !p.is_subscription) hasPhysical = true;
-    if (FLEET_LICENSE_PRODUCT_SLUGS.indexOf(slug) !== -1) hasFleetPacket = true;
+    if (FLEET_LICENSE_PRODUCT_SLUGS.indexOf(slug) !== -1) {
+      hasFleetPacket = true;
+      fleetQtyBySlug[slug] = (fleetQtyBySlug[slug] || 0) + qty;
+    }
 
     lineItems.push({
       quantity: qty,
@@ -221,15 +241,44 @@ router.post('/create-checkout-session', requireSession, async (req, res) => {
     orderRows.push({ product_id: p.id, quantity: qty, price: Number(p.price) });
   }
 
-  // When the cart includes a per-yard fleet packet, require the minimal fleet/yard
-  // questionnaire so each license can be tied to one yard. Non-fleet carts are unaffected.
+  // When the cart includes per-yard fleet packets, require a yard identifier for EACH
+  // yard being purchased (one per fleet-packet unit) so every license ties to one yard.
+  // Non-fleet carts are unaffected.
   const fleetInfo = parseFleetInfo(req.body);
+  let finalYards = [];
   if (hasFleetPacket) {
     if (!fleetInfo.company) {
       return res.status(400).json({ error: 'Please enter your company / fleet name for the fleet packet.' });
     }
-    if (!fleetInfo.yardIdentifier) {
-      return res.status(400).json({ error: 'Please enter this yard\u2019s terminal number or physical address. Each fleet packet covers one yard.' });
+    // Group the provided yard identifiers by purchased slug.
+    const provided = {};
+    for (const y of fleetInfo.yards) {
+      if (!y.yardIdentifier) continue;
+      (provided[y.slug] = provided[y.slug] || []).push(y);
+    }
+    const totalUnits = Object.keys(fleetQtyBySlug).reduce((s, k) => s + fleetQtyBySlug[k], 0);
+    // Back-compat: a single-yard cart that only sent the legacy single identifier.
+    if (!fleetInfo.yards.length && totalUnits === 1 && fleetInfo.yardIdentifier) {
+      const onlySlug = Object.keys(fleetQtyBySlug)[0];
+      provided[onlySlug] = [{ yardIdentifier: fleetInfo.yardIdentifier, yardLabel: fleetInfo.yardLabel }];
+    }
+    for (const slug of Object.keys(fleetQtyBySlug)) {
+      const need = fleetQtyBySlug[slug];
+      const got = provided[slug] || [];
+      if (got.length < need) {
+        return res.status(400).json({
+          error: 'Please enter a yard identifier (terminal number or physical address) for each yard. ' +
+            'Each fleet packet covers one yard.'
+        });
+      }
+      for (let i = 0; i < need; i++) {
+        finalYards.push({ slug, yardIdentifier: got[i].yardIdentifier, yardLabel: got[i].yardLabel || '' });
+      }
+    }
+    // Mirror the first yard into the legacy single-yard columns for older views.
+    if (finalYards.length) {
+      fleetInfo.yardIdentifier = finalYards[0].yardIdentifier;
+      fleetInfo.yardLabel = finalYards[0].yardLabel;
     }
   }
 
@@ -240,8 +289,8 @@ router.post('/create-checkout-session', requireSession, async (req, res) => {
       INSERT INTO orders
         (user_id, total, status, payment_status,
          fleet_company, fleet_contact_name, fleet_contact_email, fleet_contact_phone,
-         fleet_num_yards, yard_identifier, yard_label)
-      VALUES (?, ?, 'pending', 'pending', ?, ?, ?, ?, ?, ?, ?)
+         fleet_num_yards, yard_identifier, yard_label, fleet_yards_json)
+      VALUES (?, ?, 'pending', 'pending', ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       userId,
       Number(total.toFixed(2)),
@@ -251,7 +300,8 @@ router.post('/create-checkout-session', requireSession, async (req, res) => {
       hasFleetPacket ? (fleetInfo.contactPhone || null) : null,
       hasFleetPacket ? fleetInfo.numYards : null,
       hasFleetPacket ? (fleetInfo.yardIdentifier || null) : null,
-      hasFleetPacket ? (fleetInfo.yardLabel || null) : null
+      hasFleetPacket ? (fleetInfo.yardLabel || null) : null,
+      hasFleetPacket && finalYards.length ? JSON.stringify(finalYards) : null
     );
     orderId = inserted.lastInsertRowid;
     const insItem = db.prepare('INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)');

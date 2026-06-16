@@ -79,19 +79,35 @@ Each fleet-packet grant **is** one yard license. New columns (idempotent `ALTER`
 New columns (idempotent `ALTER`) so the info entered at checkout is persisted and then
 copied onto the grant when access is granted: `fleet_company`, `fleet_contact_name`,
 `fleet_contact_email`, `fleet_contact_phone`, `fleet_num_yards`, `yard_identifier`,
-`yard_label`.
+`yard_label`, and **`fleet_yards_json`** (a list `[{ slug, yardIdentifier, yardLabel }]`,
+one entry per fleet-packet unit, used for multi-yard purchases).
 
-## The minimal signup questionnaire (kept short on purpose)
+### New table: `replacement_requests`
+
+A licensed fleet asking for a fresh copy of a yard they already hold (lost/damaged):
+`id`, `user_id`, `fleet_id`, `grant_id`, `product_slug`, `yard_identifier`, `yard_label`,
+`note`, `status` (`open`/`resolved`), `created_at`, `resolved_at`.
+
+## The signup questionnaire (kept short on purpose)
 
 Shown on the checkout page **only when the cart contains a fleet packet**:
 
 1. **Company / fleet name** (required)
-2. **This yard's identifier** (required) — a single field that accepts a **terminal
-   number or a physical address**, plus a radio to say which it is.
-3. **Contact name** (required) and **contact email** (defaults to the account email).
-4. **How many yards does your fleet have?** (optional — helps Joyce upsell multi-yard).
+2. **Contact name** (required) and **contact email** (defaults to the account email).
+3. **Yards in your whole fleet?** (optional — helps Joyce see multi-yard potential).
+4. **Per-yard identifier(s)** (required) — the checkout renders **one identifier field per
+   fleet packet being purchased** (driven by the cart quantity). Each accepts a **terminal
+   number or a physical address**, plus an optional yard nickname.
 
-That's it — four short fields, one optional. Nothing that discourages a buyer.
+### Multi-yard purchases (one packet = one yard)
+
+The number of fleet packets in the cart drives how many yard identifiers are required:
+buying 5 fleet packets in one order asks for 5 distinct yard identifiers, and the order
+creates **one yard-bound license/grant per yard**, each with its own +12-month term, all
+tied to the same fleet. Bundles bind both packets to the same yard. A single-yard purchase
+keeps the original minimal one-yard capture. Grant creation reads `fleet_yards_json`, mints
+one license per yard, and stays idempotent (re-running never duplicates). Account-level
+extras in `complete-bundle` (course, individual packets) are granted once, not per yard.
 
 ## How 1-year expiry is tracked and enforced
 
@@ -110,10 +126,12 @@ active, non-expired, non-revoked grant, and each grant is bound to exactly one y
 re-using the same login to print for several yards.
 
 **Option (b) — Per-yard stamping (watermark).** Because packets are generated as HTML in
-the browser, we stamp the company name + yard identifier + "valid through" date into a
-banner at the top and a footer on the generated/printed packet. *Pros:* every printed
-sheet is visibly tied to ONE yard, which is a strong, cheap deterrent; no PDF tooling
-needed. *Cons:* visual/contractual deterrent, not a hard cryptographic lock.
+the browser, we stamp the company name + yard identifier + "valid through" date onto the
+packet: a prominent banner on the first page **plus a compact running header and footer
+that repeat on EVERY page** of the printed/PDF output (via `position: fixed` elements,
+which browsers repeat per printed page). *Pros:* every printed sheet is visibly tied to
+ONE yard, which is a strong, cheap deterrent; no PDF tooling needed. *Cons:*
+visual/contractual deterrent, not a hard cryptographic lock.
 
 **Option (c) — Download-count limits.** Cap the number of downloads per license. *Pros:*
 limits volume. *Cons:* fights the legitimate "unlimited distribution **within one yard**"
@@ -128,36 +146,53 @@ low-risk and fully reversible. We did **not** impose a download cap on fleet pac
 would conflict with the per-yard unlimited-distribution promise) — `max_downloads` stays
 available if Joyce ever wants it.
 
+## Replacement packets (lost / damaged)
+
+A fleet that already holds an **active, in-date** license for a yard can request a fresh
+copy from the Services page ("Lost or damaged? Request a replacement"). This is for
+replacements only — not a new purchase. Implementation (chosen for "works today, no new
+infrastructure"):
+
+- `POST /api/shop/request-replacement` verifies the user holds an active, non-expired,
+  non-revoked license for that packet, then records a row in `replacement_requests` **and**
+  drops a note in the admin **Messages** inbox.
+- The request shows at the top of the admin **Fleets & Yards** panel with a "Mark handled"
+  button (`POST /api/admin/replacement-requests/:id/resolve`).
+- A **`mailto:` fallback** (prefilled with the fleet/yard info) is shown if the request
+  cannot be recorded, so the customer can always reach Joyce.
+
+No SMTP is required: requests reach Joyce inside the admin dashboard. (Customers can also
+simply re-download anytime — downloads are unlimited within a licensed yard.)
+
 ## What is implemented vs. deferred
 
-**Implemented now (safe foundation):**
-- Data model + idempotent migrations.
+**Implemented now:**
+- Data model + idempotent migrations (incl. `fleet_yards_json`, `replacement_requests`).
 - Fleet/yard capture at checkout, persisted on the order.
+- **Multi-yard purchases:** one identifier field per fleet packet bought, one yard-bound
+  license per yard (each +12 months), all tied to the fleet; idempotent.
 - Fleet record + per-yard binding created automatically when access is granted (both the
   Stripe finalize path and the admin "mark paid / fulfill" path).
-- 1-year expiry calculation + storage (existing) + `status` (active/revoked) enforcement.
-- Download gating + per-yard stamping in the packet generator.
+- 1-year expiry calculation + storage + `status` (active/revoked) enforcement.
+- Download gating + per-yard stamping **on every page** of the packet.
 - Admin "Fleets & Yard Licenses" management: list, edit yard/expiry, renew (+1yr), revoke,
-  and manually add a yard license.
+  add a yard license, and handle replacement requests.
+- Replacement-request flow (records + Messages inbox + mailto fallback).
 
 **Deferred / pending Joyce's confirmation:**
-- Exact wording of the checkout questions.
-- Whether a fleet buying for several yards in one transaction should be forced to enter
-  each yard up front (current approach: one yard per purchase; extra yards are added by
-  re-purchasing or by Joyce in admin).
-- Automated renewal reminder emails (currently the admin "Send reminder" records an audit
-  trail; real email needs SMTP wiring).
+- Automated renewal/replacement emails (currently surfaced in the admin dashboard; real
+  outbound email needs SMTP wiring — `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS` on Railway).
 - Hard cryptographic per-yard locking / PDF DRM (not recommended; high cost, low value vs.
   the stamping deterrent).
 
-## Decisions for Joyce to confirm
+## Decisions for Joyce (confirmed defaults)
 
-1. **Signup questions** — confirm the four fields above are right (add/remove any?).
-2. **How a yard is identified** — terminal number, physical address, or "either" (we built
-   "either"). Confirm.
-3. **Watermark/stamp** — OK to print company + yard + expiry on the packets? (Recommended.)
-4. **Renewal** — renew = +12 months from today (default) or from the old expiry? Should an
-   expired packet still be downloadable for a short grace period? (Currently: hard stop at
-   expiry; admin renews on request.)
-5. **Multi-yard purchases** — is "one packet = one yard, buy again for more yards" the
-   rule? (That is what protects packet pricing.)
+These were reviewed and **confirmed** — no change needed:
+1. Yard identified by **either** a terminal number or a physical address.
+2. **Stamp** company + yard + "valid through" on packets — yes (now on every page).
+3. Expiry = **hard stop** at 1 year; renew on request (admin renews, +12 months).
+4. **One master packet per yard**, unlimited driver sign-off sheets within that yard.
+5. **Multi-yard = one packet per yard**, captured per yard at checkout.
+
+Still optional (Joyce's call later): wire SMTP if she wants automatic renewal/replacement
+emails instead of handling requests in the admin dashboard.

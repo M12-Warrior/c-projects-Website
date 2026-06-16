@@ -89,37 +89,28 @@
 
             <div id="fleetInfoSection" class="hidden" style="margin:0 0 20px 0;padding:18px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);">
               <h3 style="font-size:1rem;margin:0 0 6px 0;">Fleet packet — yard information</h3>
-              <p style="margin:0 0 14px 0;font-size:0.82rem;color:var(--text-3);line-height:1.5">
-                Each fleet packet is licensed for <strong>one yard / terminal</strong> for 1 year. Tell us which yard this covers so your downloads are tied to it. Have more yards? Buy one packet per yard.
+              <p id="fleetIntro" style="margin:0 0 14px 0;font-size:0.82rem;color:var(--text-3);line-height:1.5">
+                Each fleet packet is licensed for <strong>one yard / terminal</strong> for 1 year. Tell us which yard each packet covers so your downloads are tied to it.
               </p>
               <label style="display:block;margin-bottom:10px;font-size:0.85rem;color:var(--text-2)">
                 Company / fleet name <span style="color:var(--red)">*</span>
                 <input type="text" id="fleetCompany" maxlength="200" style="width:100%;margin-top:4px;padding:9px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text)">
               </label>
-              <div style="margin-bottom:10px">
-                <span style="display:block;font-size:0.85rem;color:var(--text-2);margin-bottom:4px">This yard is identified by <span style="color:var(--red)">*</span></span>
-                <label style="font-size:0.82rem;color:var(--text-2);margin-right:16px"><input type="radio" name="yardIdType" value="terminal" checked> Terminal number</label>
-                <label style="font-size:0.82rem;color:var(--text-2)"><input type="radio" name="yardIdType" value="address"> Physical address</label>
-                <input type="text" id="fleetYardIdentifier" maxlength="300" placeholder="e.g. Terminal 14, or 2108 N St, Sacramento CA" style="width:100%;margin-top:6px;padding:9px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text)">
-              </div>
-              <label style="display:block;margin-bottom:10px;font-size:0.85rem;color:var(--text-2)">
-                Yard nickname (optional)
-                <input type="text" id="fleetYardLabel" maxlength="200" placeholder="e.g. West Sac Yard" style="width:100%;margin-top:4px;padding:9px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text)">
-              </label>
               <label style="display:block;margin-bottom:10px;font-size:0.85rem;color:var(--text-2)">
                 Contact name <span style="color:var(--red)">*</span>
                 <input type="text" id="fleetContactName" maxlength="200" style="width:100%;margin-top:4px;padding:9px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text)">
               </label>
-              <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
                 <label style="display:block;margin-bottom:0;font-size:0.85rem;color:var(--text-2);flex:1 1 200px">
                   Contact email
                   <input type="email" id="fleetContactEmail" maxlength="200" style="width:100%;margin-top:4px;padding:9px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text)">
                 </label>
-                <label style="display:block;margin-bottom:0;font-size:0.85rem;color:var(--text-2);flex:0 1 160px">
-                  How many yards? (optional)
+                <label style="display:block;margin-bottom:0;font-size:0.85rem;color:var(--text-2);flex:0 1 200px">
+                  Yards in your whole fleet? (optional)
                   <input type="number" id="fleetNumYards" min="0" max="100000" style="width:100%;margin-top:4px;padding:9px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text)">
                 </label>
               </div>
+              <div id="fleetYardsContainer"></div>
             </div>
 
             <p style="margin:0 0 12px 0;font-size:0.85rem;color:var(--text-3);line-height:1.5">You'll be redirected to our secure payment partner, Stripe, to enter your card. We never see or store your full card number. Physical items will ask for a shipping address on the next screen.</p>
@@ -178,17 +169,63 @@
       function cartHasFleetPacket(cart) {
         return cart.some(function(i) { return FLEET_LICENSE_SLUGS.indexOf(i.slug) !== -1; });
       }
+      // Expand fleet-license cart items into one yard "unit" per quantity purchased.
+      function cartFleetUnits(cart) {
+        var units = [];
+        cart.forEach(function(i) {
+          if (FLEET_LICENSE_SLUGS.indexOf(i.slug) === -1) return;
+          var qty = Math.max(1, parseInt(i.quantity, 10) || 1);
+          for (var n = 0; n < qty; n++) {
+            units.push({ slug: i.slug, name: i.name || i.slug });
+          }
+        });
+        return units;
+      }
+      // Build one yard-entry block per purchased fleet-packet unit.
+      function renderFleetYardFields(cart) {
+        var units = cartFleetUnits(cart);
+        var container = document.getElementById('fleetYardsContainer');
+        if (!container) return units;
+        var multi = units.length > 1;
+        var intro = document.getElementById('fleetIntro');
+        if (intro) {
+          intro.innerHTML = multi
+            ? 'You are buying <strong>' + units.length + ' yard licenses</strong>. Enter the terminal number or physical address for <strong>each yard</strong> below \u2014 one packet covers one yard for 1 year.'
+            : 'Each fleet packet is licensed for <strong>one yard / terminal</strong> for 1 year. Tell us which yard this packet covers so your downloads are tied to it.';
+        }
+        container.innerHTML = units.map(function(u, idx) {
+          var n = idx + 1;
+          var heading = multi ? ('Yard ' + n + ' \u2014 ' + escapeHtml(u.name)) : ('Yard \u2014 ' + escapeHtml(u.name));
+          return '<div class="fleet-yard-row" data-slug="' + escapeHtml(u.slug) + '" style="border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;background:var(--surface)">' +
+            '<p style="margin:0 0 8px 0;font-size:0.85rem;font-weight:600;color:var(--text)">' + heading + '</p>' +
+            '<label style="display:block;margin-bottom:8px;font-size:0.82rem;color:var(--text-2)">' +
+              'Yard terminal number or physical address <span style="color:var(--red)">*</span>' +
+              '<input type="text" class="fleet-yard-id" maxlength="300" placeholder="e.g. Terminal 14, or 2108 N St, Sacramento CA" style="width:100%;margin-top:4px;padding:9px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--text)">' +
+            '</label>' +
+            '<label style="display:block;margin-bottom:0;font-size:0.82rem;color:var(--text-2)">' +
+              'Yard nickname (optional)' +
+              '<input type="text" class="fleet-yard-label" maxlength="200" placeholder="e.g. West Sac Yard" style="width:100%;margin-top:4px;padding:9px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--text)">' +
+            '</label>' +
+          '</div>';
+        }).join('');
+        return units;
+      }
       function collectFleetInfo() {
-        var typeEl = document.querySelector('input[name="yardIdType"]:checked');
+        var yards = [];
+        document.querySelectorAll('#fleetYardsContainer .fleet-yard-row').forEach(function(row) {
+          yards.push({
+            slug: row.getAttribute('data-slug'),
+            yardIdentifier: (row.querySelector('.fleet-yard-id').value || '').trim(),
+            yardLabel: (row.querySelector('.fleet-yard-label').value || '').trim()
+          });
+        });
         return {
           company: (document.getElementById('fleetCompany').value || '').trim(),
-          yardIdentifier: (document.getElementById('fleetYardIdentifier').value || '').trim(),
-          yardLabel: (document.getElementById('fleetYardLabel').value || '').trim(),
-          yardIdType: typeEl ? typeEl.value : 'terminal',
           contactName: (document.getElementById('fleetContactName').value || '').trim(),
           contactEmail: (document.getElementById('fleetContactEmail').value || '').trim(),
           contactPhone: '',
-          numYards: (document.getElementById('fleetNumYards').value || '').trim()
+          numYards: (document.getElementById('fleetNumYards').value || '').trim(),
+          yards: yards
         };
       }
 
@@ -238,6 +275,7 @@
         var needFleetInfo = cartHasFleetPacket(cart);
         if (needFleetInfo) {
           show('fleetInfoSection');
+          renderFleetYardFields(cart);
           // Pre-fill the contact email with the signed-in account email.
           if (user && user.email) {
             var emailEl = document.getElementById('fleetContactEmail');
@@ -255,13 +293,14 @@
               errEl.classList.remove('hidden');
               return;
             }
-            if (!fleetInfo.yardIdentifier) {
-              errEl.textContent = 'Please enter this yard\u2019s terminal number or physical address.';
+            if (!fleetInfo.contactName) {
+              errEl.textContent = 'Please enter a contact name.';
               errEl.classList.remove('hidden');
               return;
             }
-            if (!fleetInfo.contactName) {
-              errEl.textContent = 'Please enter a contact name.';
+            var missingYard = !fleetInfo.yards.length || fleetInfo.yards.some(function(y) { return !y.yardIdentifier; });
+            if (missingYard) {
+              errEl.textContent = 'Please enter a terminal number or physical address for every yard.';
               errEl.classList.remove('hidden');
               return;
             }

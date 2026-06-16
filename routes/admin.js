@@ -377,7 +377,32 @@ router.get('/fleets', (req, res) => {
     ORDER BY pag.granted_at DESC
   `).all();
 
-  res.json({ fleets: result, unassigned });
+  let replacementRequests = [];
+  try {
+    replacementRequests = db.prepare(`
+      SELECT rr.id, rr.product_slug, rr.yard_identifier, rr.yard_label, rr.note,
+             rr.status, rr.created_at, rr.fleet_id,
+             f.company_name AS fleet_company,
+             u.username, u.email
+      FROM replacement_requests rr
+      LEFT JOIN fleets f ON f.id = rr.fleet_id
+      LEFT JOIN users u ON u.id = rr.user_id
+      WHERE rr.status = 'open'
+      ORDER BY rr.created_at DESC
+    `).all();
+  } catch (_) {}
+
+  res.json({ fleets: result, unassigned, replacementRequests });
+});
+
+// POST /api/admin/replacement-requests/:id/resolve — mark a replacement request handled
+router.post('/replacement-requests/:id/resolve', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) return res.status(400).json({ error: 'Invalid request id' });
+  const row = db.prepare('SELECT id FROM replacement_requests WHERE id = ?').get(id);
+  if (!row) return res.status(404).json({ error: 'Request not found' });
+  db.prepare("UPDATE replacement_requests SET status = 'resolved', resolved_at = datetime('now') WHERE id = ?").run(id);
+  res.json({ success: true });
 });
 
 // PUT /api/admin/fleet-license/:id — edit a yard license (identifier, label, expiry, status)

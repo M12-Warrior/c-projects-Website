@@ -2195,10 +2195,31 @@
           const data = await res.json();
           const fleets = data.fleets || [];
           const unassigned = data.unassigned || [];
+          const replacements = data.replacementRequests || [];
           let html = '';
-          if (!fleets.length && !unassigned.length) {
+          if (!fleets.length && !unassigned.length && !replacements.length) {
             el.innerHTML = '<p class="text-muted">No fleets yet. Fleets appear here after a fleet packet is purchased (with the yard info captured at checkout).</p>';
             return;
+          }
+          if (replacements.length) {
+            const rRows = replacements.map(function(r) {
+              const yard = (r.yard_identifier ? escapeHtml(r.yard_identifier) : '—') + (r.yard_label ? ' (' + escapeHtml(r.yard_label) + ')' : '');
+              return '<tr data-req-id="' + r.id + '">' +
+                '<td>' + escapeHtml(r.fleet_company || r.username || '—') + '</td>' +
+                '<td>' + escapeHtml(r.email || '—') + '</td>' +
+                '<td>' + escapeHtml(r.product_slug || '—') + '</td>' +
+                '<td>' + yard + '</td>' +
+                '<td>' + formatDate(r.created_at) + '</td>' +
+                '<td>' + (r.note ? escapeHtml(r.note) : '') + '</td>' +
+                '<td><button type="button" class="admin-btn admin-btn-primary req-resolve">Mark handled</button></td>' +
+                '</tr>';
+            }).join('');
+            html += '<div class="admin-card" style="border:2px solid var(--gold);border-radius:10px;padding:16px;margin-bottom:20px;background:rgba(212,175,55,0.06)">' +
+              '<h4 style="margin:0 0 8px 0">Replacement packet requests (' + replacements.length + ')</h4>' +
+              '<p class="text-muted" style="font-size:0.82rem;margin:0 0 10px 0">A licensed fleet asked for a fresh copy of a yard they already hold (lost/damaged). They can re-download anytime; mark handled once you have helped them.</p>' +
+              '<table class="admin-table"><thead><tr><th>Fleet</th><th>Email</th><th>Packet</th><th>Yard</th><th>Requested</th><th>Note</th><th>Action</th></tr></thead>' +
+              '<tbody>' + rRows + '</tbody></table>' +
+            '</div>';
           }
           fleets.forEach(function(f) {
             const licRows = (f.licenses || []).map(renderLicenseRow).join('') ||
@@ -2232,6 +2253,15 @@
           }
           el.innerHTML = html;
           wireLicenseButtons(el);
+          el.querySelectorAll('.req-resolve').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              const tr = btn.closest('tr');
+              const id = tr.getAttribute('data-req-id');
+              const r = await fetch('/api/admin/replacement-requests/' + id + '/resolve', { method: 'POST', credentials: 'include' });
+              if (r.ok) { showToast('Marked handled.', true); loadFleets(); }
+              else showToast('Failed.', false);
+            });
+          });
           el.querySelectorAll('.fleet-add-yard').forEach(function(btn) {
             btn.addEventListener('click', async function() {
               const card = btn.closest('.admin-card');

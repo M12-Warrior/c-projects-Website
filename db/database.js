@@ -357,6 +357,31 @@ try {
 try {
   db.exec('ALTER TABLE orders ADD COLUMN yard_label TEXT');
 } catch (_) {}
+// Multi-yard purchases: one yard per fleet-packet unit, stored as JSON
+// [{ slug, yardIdentifier, yardLabel }] so grant creation can mint one license per yard.
+try {
+  db.exec('ALTER TABLE orders ADD COLUMN fleet_yards_json TEXT');
+} catch (_) {}
+
+// Replacement packet requests: a licensed fleet asking for a fresh copy of a yard they
+// already hold (lost/damaged). Surfaced to the admin Fleets & Yards panel and Messages.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS replacement_requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES users(id),
+    fleet_id INTEGER REFERENCES fleets(id),
+    grant_id INTEGER REFERENCES product_access_grants(id),
+    product_slug TEXT,
+    yard_identifier TEXT,
+    yard_label TEXT,
+    note TEXT,
+    status TEXT DEFAULT 'open',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    resolved_at DATETIME
+  );
+  CREATE INDEX IF NOT EXISTS idx_replacement_requests_status ON replacement_requests(status);
+  CREATE INDEX IF NOT EXISTS idx_replacement_requests_fleet ON replacement_requests(fleet_id);
+`);
 
 // Traffic visits: one row per page view for admin analytics (daily/weekly/monthly/yearly, return users, YoY)
 db.exec(`

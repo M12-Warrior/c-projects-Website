@@ -2418,14 +2418,23 @@ Packets._applyLicenseStamp = function (html, license) {
   var yard = esc(license.yardIdentifier || '');
   var label = license.yardLabel ? (' (' + esc(license.yardLabel) + ')') : '';
   var validThrough = license.expiresAt ? Packets._formatDate(license.expiresAt) : '';
+  // Compact one-line stamp used for the running (every-page) header and footer.
+  var runningLine = 'Licensed to ' + company + ' &mdash; yard ' + yard + label +
+    (validThrough ? (' &mdash; valid through ' + validThrough) : '') + ' &mdash; single-yard license';
+  // position:fixed elements repeat on every printed page in Chrome/Edge/most browsers,
+  // so the company + yard + expiry stamp appears on EVERY page of the printed/PDF output.
   var stampCss =
     '<style>' +
     '.license-stamp{border:2px solid #b45309;background:#fffbeb;color:#7c2d12;' +
     'padding:10px 14px;margin:0 0 18px 0;border-radius:6px;font-size:9.5pt;line-height:1.5;}' +
     '.license-stamp strong{color:#7c2d12;}' +
-    '.license-foot{margin-top:18px;border-top:1px solid #b45309;padding-top:8px;' +
-    'font-size:8pt;color:#7c2d12;text-align:center;}' +
-    '@media print{.license-stamp{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}' +
+    '.license-run{position:fixed;left:0;right:0;font-size:7.5pt;color:#7c2d12;background:#fffbeb;' +
+    'border-bottom:1px solid #b45309;padding:3px 8px;text-align:center;z-index:9999;' +
+    '-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
+    '.license-run-top{top:0;}' +
+    '.license-run-bottom{bottom:0;border-bottom:none;border-top:1px solid #b45309;}' +
+    'body{padding-top:22px;padding-bottom:22px;}' +
+    '@media print{.license-stamp,.license-run{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}' +
     '</style>';
   var banner =
     '<div class="license-stamp">' +
@@ -2436,9 +2445,9 @@ Packets._applyLicenseStamp = function (html, license) {
     'This packet is licensed for the single yard named above. Printing or distributing it for any ' +
     'other yard or terminal is not covered by this license.' +
     '</div>';
-  var foot =
-    '<div class="license-foot">Licensed to ' + company + ' &mdash; yard ' + yard + label +
-    (validThrough ? (' &mdash; valid through ' + validThrough) : '') + '. Single-yard license.</div>';
+  // Running header + footer repeat on every page (screen and print/PDF).
+  var runTop = '<div class="license-run license-run-top">' + runningLine + '</div>';
+  var runBottom = '<div class="license-run license-run-bottom">' + runningLine + '</div>';
   var out = html;
   if (out.indexOf('</head>') !== -1) {
     out = out.replace('</head>', stampCss + '</head>');
@@ -2446,14 +2455,9 @@ Packets._applyLicenseStamp = function (html, license) {
     out = stampCss + out;
   }
   if (out.indexOf('<body>') !== -1) {
-    out = out.replace('<body>', '<body>' + banner);
+    out = out.replace('<body>', '<body>' + runTop + runBottom + banner);
   } else {
-    out = banner + out;
-  }
-  if (out.indexOf('</body>') !== -1) {
-    out = out.replace('</body>', foot + '</body>');
-  } else {
-    out = out + foot;
+    out = runTop + runBottom + banner + out;
   }
   return out;
 };

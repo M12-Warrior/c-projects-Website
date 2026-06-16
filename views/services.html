@@ -409,21 +409,49 @@
             if (!data || !data.allowed) return;
             var yard = data.yardIdentifier ? (esc(data.yardIdentifier) + (data.yardLabel ? ' (' + esc(data.yardLabel) + ')' : '')) : 'your yard';
             var exp = data.expiresAt ? fmtDate(data.expiresAt) : '';
+            var rawYardId = data.yardIdentifier || '';
+            var company = data.fleetCompany || '';
+            var mailSubject = encodeURIComponent('Replacement packet request - ' + accessType);
+            var mailBody = encodeURIComponent(
+              'Hi Joyce,\n\nWe need a replacement copy of our fleet packet (lost/damaged).\n' +
+              'Company: ' + company + '\nPacket: ' + accessType + '\nYard: ' + rawYardId + '\n\nThank you.');
+            var mailto = 'mailto:joyce@mile12warrior.com?subject=' + mailSubject + '&body=' + mailBody;
             box.innerHTML =
               '<div style="border:1px solid var(--green);border-radius:8px;padding:10px 12px;background:rgba(34,197,94,0.08)">' +
               '<p style="margin:0 0 8px 0;font-size:0.8rem;color:var(--text-2);line-height:1.45">Your license &mdash; yard <strong>' + yard + '</strong>' +
               (exp ? (' &middot; valid through ' + esc(exp)) : '') + '. Downloads are stamped for this yard only.</p>' +
               '<button type="button" class="btn btn-primary fl-dl" style="width:100%;margin-bottom:6px">Download packet (this yard)</button>' +
-              '<button type="button" class="btn btn-secondary fl-pr" style="width:100%">Print packet</button>' +
+              '<button type="button" class="btn btn-secondary fl-pr" style="width:100%;margin-bottom:6px">Print packet</button>' +
+              '<button type="button" class="btn btn-glass fl-replace" style="width:100%;font-size:0.82rem">Lost or damaged? Request a replacement</button>' +
               '<p class="fl-msg" style="margin:8px 0 0 0;font-size:0.78rem;color:var(--red);display:none"></p>' +
+              '<p class="fl-ok" style="margin:8px 0 0 0;font-size:0.78rem;color:var(--green);display:none"></p>' +
               '</div>';
             box.classList.remove('hidden');
             var msg = box.querySelector('.fl-msg');
+            var okMsg = box.querySelector('.fl-ok');
             function handle(res) {
               if (res && !res.allowed && msg) { msg.textContent = res.message || 'Access denied.'; msg.style.display = 'block'; }
             }
             box.querySelector('.fl-dl').addEventListener('click', function() { Packets.downloadFleet(type, handle); });
             box.querySelector('.fl-pr').addEventListener('click', function() { Packets.printFleet(type, handle); });
+            box.querySelector('.fl-replace').addEventListener('click', function() {
+              var btn = this;
+              btn.disabled = true;
+              fetch('/api/shop/request-replacement', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                body: JSON.stringify({ type: accessType, yard_identifier: rawYardId })
+              }).then(function(r) { return r.json().then(function(d){ return { ok: r.ok, d: d }; }); })
+                .then(function(o) {
+                  btn.disabled = false;
+                  if (o.ok) { okMsg.textContent = 'Request sent to Joyce. We will be in touch. You can also re-download above anytime.'; okMsg.style.display = 'block'; if (msg) msg.style.display = 'none'; }
+                  else { msg.textContent = (o.d && o.d.error) || 'Could not send. '; msg.innerHTML = (msg.textContent) + '<a href="' + mailto + '" style="color:var(--gold)">Email us instead</a>.'; msg.style.display = 'block'; }
+                })
+                .catch(function() {
+                  btn.disabled = false;
+                  msg.innerHTML = 'Could not send. <a href="' + mailto + '" style="color:var(--gold)">Email us instead</a>.';
+                  msg.style.display = 'block';
+                });
+            });
           })
           .catch(function() {});
       });

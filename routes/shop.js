@@ -130,7 +130,7 @@ function upsertFleetForOrder(order) {
 function createProductAccessGrantsForOrder(orderId) {
   const order = db.prepare(`
     SELECT id, user_id, fleet_company, fleet_contact_name, fleet_contact_email,
-           fleet_contact_phone, fleet_num_yards, yard_identifier, yard_label
+           fleet_contact_phone, fleet_num_yards, yard_identifier, yard_label, fleet_yards_json
     FROM orders WHERE id = ?
   `).get(orderId);
   if (!order) return;
@@ -157,34 +157,73 @@ function createProductAccessGrantsForOrder(orderId) {
     return grants && grants.some((g) => FLEET_PACKET_SLUGS.indexOf(g.product_slug) !== -1);
   });
   const fleetId = hasFleetPacket ? upsertFleetForOrder(order) : null;
-  const yardIdentifier = order.yard_identifier ? String(order.yard_identifier).trim() : null;
-  const yardLabel = order.yard_label ? String(order.yard_label).trim() : null;
+
+  // Per-yard capture: orders may carry a list of yards (one per fleet-packet unit) in
+  // fleet_yards_json: [{ slug, yardIdentifier, yardLabel }]. Group them by purchased slug
+  // so a multi-yard order produces one yard-bound license per yard. Fall back to the
+  // single-yard columns for older single-yard orders.
+  let yardEntries = [];
+  if (order.fleet_yards_json) {
+    try { yardEntries = JSON.parse(order.fleet_yards_json) || []; } catch (_) { yardEntries = []; }
+  }
+  const yardsBySlug = {};
+  for (const y of yardEntries) {
+    const slug = y && y.slug ? String(y.slug) : null;
+    if (!slug) continue;
+    (yardsBySlug[slug] = yardsBySlug[slug] || []).push({
+      identifier: y.yardIdentifier ? String(y.yardIdentifier).trim() : null,
+      label: y.yardLabel ? String(y.yardLabel).trim() : null
+    });
+  }
+  const fallbackYard = {
+    identifier: order.yard_identifier ? String(order.yard_identifier).trim() : null,
+    label: order.yard_label ? String(order.yard_label).trim() : null
+  };
 
   const now = new Date();
+  const makeExpiry = (months) => {
+    const d = new Date(now);
+    d.setMonth(d.getMonth() + months);
+    return d.toISOString();
+  };
+
   for (const item of items) {
     if (item.category !== 'digital') continue;
     const grants = DIGITAL_GRANT_MAP[item.product_slug];
     if (!grants) continue;
     const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
-    for (const g of grants) {
-      let expiresAt = null;
-      if (g.expiresInMonths != null) {
-        const d = new Date(now);
-        d.setMonth(d.getMonth() + g.expiresInMonths);
-        expiresAt = d.toISOString();
-      }
+
+    // Split into per-yard fleet-packet grants and account-level grants (course, individual
+    // packets) which are not yard-bound and are created once for the order line.
+    const fleetGrants = grants.filter((g) => FLEET_PACKET_SLUGS.indexOf(g.product_slug) !== -1);
+    const accountGrants = grants.filter((g) => FLEET_PACKET_SLUGS.indexOf(g.product_slug) === -1);
+
+    for (const g of accountGrants) {
+      const expiresAt = g.expiresInMonths != null ? makeExpiry(g.expiresInMonths) : null;
       const maxDown = g.max_downloads == null ? null : g.max_downloads * qty;
-      const isFleetPacket = FLEET_PACKET_SLUGS.indexOf(g.product_slug) !== -1;
-      insertGrant.run(
-        order.user_id,
-        orderId,
-        g.product_slug,
-        expiresAt,
-        maxDown,
-        isFleetPacket ? fleetId : null,
-        isFleetPacket ? yardIdentifier : null,
-        isFleetPacket ? yardLabel : null
-      );
+      insertGrant.run(order.user_id, orderId, g.product_slug, expiresAt, maxDown, null, null, null);
+    }
+
+    if (fleetGrants.length) {
+      // One yard per purchased unit; each yard gets its own +12-month license(s).
+      const yardQueue = (yardsBySlug[item.product_slug] || []).slice();
+      for (let unit = 0; unit < qty; unit++) {
+        let yard = yardQueue[unit];
+        if (!yard) yard = (unit === 0) ? fallbackYard : { identifier: null, label: null };
+        for (const g of fleetGrants) {
+          const months = g.expiresInMonths != null ? g.expiresInMonths : FLEET_LICENSE_MONTHS;
+          insertGrant.run(
+            order.user_id,
+            orderId,
+            g.product_slug,
+            makeExpiry(months),
+            g.max_downloads == null ? null : g.max_downloads,
+            fleetId,
+            yard.identifier,
+            yard.label
+          );
+        }
+      }
     }
   }
 }
@@ -585,6 +624,74 @@ router.post('/packet-download-log', requireSession, (req, res) => {
       INSERT INTO download_events (visited_at, visitor_key, user_id, content_type, action, product_slug, path)
       VALUES (datetime('now'), ?, ?, ?, 'download', ?, '/api/shop/packet-download-log')
     `).run(visitorKey || String(uid), uid, productSlug, productSlug);
+  } catch (_) {}
+  res.json({ success: true });
+});
+
+// 4e. POST /api/shop/request-replacement — a licensed fleet asks for a fresh copy of a
+// yard packet they ALREADY hold (lost/damaged). Records the request so it shows in the
+// admin Fleets & Yards panel and the Messages inbox — works today with no SMTP needed.
+router.post('/request-replacement', requireSession, (req, res) => {
+  const type = (req.body && req.body.type) ? String(req.body.type).trim() : '';
+  const productSlug = PACKET_TYPE_TO_SLUG[type];
+  if (!productSlug || ['fleet-new-hire-packet', 'fleet-refresher-packet'].indexOf(productSlug) === -1) {
+    return res.status(400).json({ error: 'Invalid packet type' });
+  }
+  const uid = req.session.user.id;
+  const now = new Date().toISOString();
+  const note = (req.body && req.body.note) ? String(req.body.note).trim().slice(0, 1000) : '';
+  const wantedYard = (req.body && req.body.yard_identifier) ? String(req.body.yard_identifier).trim() : '';
+
+  // Must hold an active, in-date, non-revoked license for this packet.
+  const grants = db.prepare(`
+    SELECT pag.id, pag.fleet_id, pag.yard_identifier, pag.yard_label, f.company_name AS fleet_company
+    FROM product_access_grants pag
+    LEFT JOIN fleets f ON f.id = pag.fleet_id
+    WHERE pag.user_id = ? AND pag.product_slug = ?
+      AND (pag.expires_at IS NULL OR pag.expires_at > ?)
+      AND COALESCE(pag.status, 'active') != 'revoked'
+    ORDER BY pag.expires_at DESC
+  `).all(uid, productSlug, now);
+  if (!grants.length) {
+    return res.status(403).json({ error: 'No active license found for this packet. Replacements are for yards you already hold a current license for.' });
+  }
+  // Prefer the yard the user named (multi-yard fleets); else the first active license.
+  let grant = grants[0];
+  if (wantedYard) {
+    const match = grants.find((g) => (g.yard_identifier || '') === wantedYard);
+    if (match) grant = match;
+  }
+
+  try {
+    db.prepare(`
+      INSERT INTO replacement_requests
+        (user_id, fleet_id, grant_id, product_slug, yard_identifier, yard_label, note, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'open')
+    `).run(uid, grant.fleet_id || null, grant.id, productSlug, grant.yard_identifier || null, grant.yard_label || null, note || null);
+  } catch (err) {
+    console.error('[shop] replacement request insert failed:', err && err.message);
+    return res.status(500).json({ error: 'Could not record your request. Please email us instead.' });
+  }
+  // Mirror into the Messages inbox so Joyce sees it without checking a separate place.
+  try {
+    const userRow = db.prepare('SELECT username, email FROM users WHERE id = ?').get(uid);
+    const yardText = (grant.yard_identifier || 'their yard') + (grant.yard_label ? ' (' + grant.yard_label + ')' : '');
+    const msg = 'Replacement packet request (lost/damaged).\n' +
+      'Fleet: ' + (grant.fleet_company || 'n/a') + '\n' +
+      'Packet: ' + productSlug + '\n' +
+      'Yard: ' + yardText + '\n' +
+      (note ? ('Note: ' + note + '\n') : '') +
+      'Account: ' + (userRow ? (userRow.username + ' / ' + userRow.email) : ('user #' + uid));
+    db.prepare(`
+      INSERT INTO contact_messages (name, email, subject, message, read)
+      VALUES (?, ?, ?, ?, 0)
+    `).run(
+      (grant.fleet_company || (userRow && userRow.username) || 'Fleet customer'),
+      (userRow && userRow.email) || '',
+      'Replacement packet request',
+      msg,
+      0
+    );
   } catch (_) {}
   res.json({ success: true });
 });
