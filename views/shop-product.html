@@ -72,11 +72,37 @@
         return m ? m[1] : '';
       }
 
+      var paymentsEnabled = false;
+
       function getCart() {
         try {
           const raw = localStorage.getItem(CART_KEY);
           return raw ? JSON.parse(raw) : [];
         } catch (_) { return []; }
+      }
+
+      function saveCart(cart) {
+        try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (_) {}
+        updateCartBadge();
+      }
+
+      function addToCart(product) {
+        var cart = getCart();
+        var isSub = !!(product.is_subscription || product.subscription_plan);
+        var existing = cart.find(function(i) { return i.slug === product.slug; });
+        if (existing && !isSub) {
+          existing.quantity = (existing.quantity || 1) + 1;
+        } else if (!existing) {
+          cart.push({
+            slug: product.slug,
+            name: product.name,
+            price: Number(product.price) || 0,
+            quantity: 1,
+            category: product.category || null,
+            is_subscription: isSub ? 1 : 0
+          });
+        }
+        saveCart(cart);
       }
 
       function updateCartBadge() {
@@ -148,8 +174,14 @@
             ? '<img src="' + escapeHtml(imgSrc) + '" alt="" class="product-detail-image"' + imgOnerr + '>'
             : '<div class="product-image" style="height: 320px;">' + placeholderIcon + '</div>';
           const subBadge = isSub ? '<span style="display:inline-block;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue);background:rgba(59,130,246,0.15);padding:4px 10px;border-radius:4px;margin-left:12px;font-weight:600;vertical-align:middle;">Monthly subscription</span>' : '';
-          const formHtml =
-            '<p style="font-size:0.9rem;color:var(--text-2);line-height:1.55;margin:0">Purchases opening soon. You will be able to subscribe or add this product to your cart here shortly. <a href="/contact" style="color:var(--gold)">Contact us</a> with questions.</p>';
+          const buyLabel = isSub ? 'Add subscription to cart' : 'Add to cart';
+          const formHtml = paymentsEnabled
+            ? '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">' +
+                '<button type="button" id="addToCartBtn" class="btn btn-primary">' + buyLabel + '</button>' +
+                '<a href="/shop/cart" class="btn btn-glass">View cart</a>' +
+                '<span id="addedMsg" class="hidden" style="color:var(--gold-light);font-size:0.9rem;">Added to cart.</span>' +
+              '</div>'
+            : '<p style="font-size:0.9rem;color:var(--text-2);line-height:1.55;margin:0">Purchases opening soon. You will be able to subscribe or add this product to your cart here shortly. <a href="/contact" style="color:var(--gold)">Contact us</a> with questions.</p>';
           container.innerHTML =
             '<div class="product-detail-wrap" style="max-width: 700px;">' +
               '<div style="margin-bottom: 24px;">' + imgHtml + '</div>' +
@@ -159,9 +191,28 @@
               benefitsBlock +
               formHtml +
             '</div>';
+
+          if (paymentsEnabled) {
+            var addBtn = document.getElementById('addToCartBtn');
+            if (addBtn) {
+              addBtn.addEventListener('click', function() {
+                addToCart(product);
+                var msg = document.getElementById('addedMsg');
+                if (msg) msg.classList.remove('hidden');
+              });
+            }
+          }
         } catch (err) {
           container.innerHTML = '<p class="empty-state">Could not load product. <a href="/shop">Back to shop</a></p>';
         }
+      }
+
+      async function loadPaymentConfig() {
+        try {
+          var res = await fetch('/api/shop/payment-config', { credentials: 'include' });
+          var data = await res.json();
+          paymentsEnabled = !!(data && data.enabled);
+        } catch (_) { paymentsEnabled = false; }
       }
 
       function onScroll() {
@@ -178,7 +229,7 @@
 
       updateCartBadge();
       updateAuthLink();
-      loadProduct();
+      loadPaymentConfig().then(loadProduct);
     })();
   </script>
 

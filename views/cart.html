@@ -46,12 +46,12 @@
   <main class="page-shell">
     <div class="page-container cart-page">
       <h1 class="page-title">Your Cart</h1>
-      <p style="font-size:0.85rem;color:var(--text-2);margin-top:-8px;margin-bottom:20px">Online checkout is opening soon. You can still browse products below. Questions? <a href="/contact" style="color:var(--gold)">Contact us</a>.</p>
+      <p id="cartNotice" style="font-size:0.85rem;color:var(--text-2);margin-top:-8px;margin-bottom:20px">Online checkout is opening soon. You can still browse products below. Questions? <a href="/contact" style="color:var(--gold)">Contact us</a>.</p>
       <div id="cartContent">
         <div id="cartItems"></div>
         <div id="cartActions" class="hidden" style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap;">
           <a href="/shop" class="btn btn-glass">Continue Shopping</a>
-          <a href="/shop/checkout" class="btn btn-primary">Checkout status</a>
+          <a id="cartCheckoutBtn" href="/shop/checkout" class="btn btn-primary">Checkout status</a>
         </div>
       </div>
       <div id="cartEmpty" class="empty-state hidden">
@@ -189,9 +189,23 @@
       window.addEventListener('scroll', onScroll, { passive: true });
       onScroll();
 
+      async function loadPaymentConfig() {
+        try {
+          var res = await fetch('/api/shop/payment-config', { credentials: 'include' });
+          var data = await res.json();
+          if (data && data.enabled) {
+            var notice = document.getElementById('cartNotice');
+            if (notice) notice.innerHTML = 'Review your items, then check out securely. Questions? <a href="/contact" style="color:var(--gold)">Contact us</a>.';
+            var btn = document.getElementById('cartCheckoutBtn');
+            if (btn) btn.textContent = 'Proceed to checkout';
+          }
+        } catch (_) {}
+      }
+
       updateCartBadge();
       updateAuthLink();
       renderCart();
+      loadPaymentConfig();
     })();
   </script>
 

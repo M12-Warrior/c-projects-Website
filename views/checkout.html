@@ -46,18 +46,54 @@
   <main class="page-shell">
     <div class="page-container page-section">
       <h1 class="page-title">Checkout</h1>
-      <div class="glass-card" style="padding:28px 32px;border-left:4px solid var(--gold);max-width:640px">
+
+      <!-- Shown while we check whether online checkout is live -->
+      <div id="checkoutLoading" class="glass-card" style="padding:24px 28px;max-width:640px">
+        <p class="text-muted" style="margin:0">Loading…</p>
+      </div>
+
+      <!-- Online checkout not enabled yet (no Stripe keys set) -->
+      <div id="checkoutComingSoon" class="glass-card hidden" style="padding:28px 32px;border-left:4px solid var(--gold);max-width:640px">
         <p style="margin:0;font-weight:600;color:var(--text);font-size:1.05rem">Purchases opening soon</p>
         <p style="margin:12px 0 0 0;font-size:0.95rem;color:var(--text-2);line-height:1.6">
           Online checkout is not active right now. You will be able to buy digital products, subscriptions, and merchandise here soon.
           Browse the <a href="/shop" style="color:var(--gold)">Shop</a> and <a href="/services" style="color:var(--gold)">Services</a> pages for what we offer, or <a href="/contact" style="color:var(--gold)">contact us</a> with questions.
         </p>
-        <p style="margin:16px 0 0 0;font-size:0.82rem;color:var(--text-3);line-height:1.5">
-          This site provides educational information, not legal or medical advice. For compliance questions, verify current regulations at fmcsa.dot.gov or dot.ca.gov and consult qualified professionals.
-        </p>
         <p style="margin:20px 0 0 0;display:flex;flex-wrap:wrap;gap:12px">
           <a href="/shop" class="btn btn-primary">Back to Shop</a>
           <a href="/shop/cart" class="btn btn-glass">View Cart</a>
+        </p>
+      </div>
+
+      <!-- Empty cart -->
+      <div id="checkoutEmpty" class="glass-card hidden" style="padding:28px 32px;max-width:640px">
+        <p style="margin:0;color:var(--text-2)">Your cart is empty.</p>
+        <p style="margin:20px 0 0 0"><a href="/shop" class="btn btn-primary">Browse Shop</a></p>
+      </div>
+
+      <!-- Live checkout -->
+      <div id="checkoutLive" class="hidden">
+        <div class="glass-card" style="padding:28px 32px;max-width:640px">
+          <h2 style="font-size:1.05rem;margin:0 0 16px 0;">Order summary</h2>
+          <div id="checkoutItems"></div>
+          <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
+            <span>Total</span><span id="checkoutTotal"></span>
+          </div>
+
+          <div id="checkoutSignedOut" class="hidden" style="margin-top:20px;padding:16px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);">
+            <p style="margin:0 0 12px 0;font-size:0.92rem;color:var(--text-2)">Please sign in to complete your purchase. Your cart is saved on this device.</p>
+            <a id="checkoutLoginLink" href="/login" class="btn btn-primary">Sign in to check out</a>
+          </div>
+
+          <div id="checkoutSignedIn" class="hidden" style="margin-top:20px;">
+            <p style="margin:0 0 12px 0;font-size:0.85rem;color:var(--text-3);line-height:1.5">You'll be redirected to our secure payment partner, Stripe, to enter your card. We never see or store your full card number. Physical items will ask for a shipping address on the next screen.</p>
+            <button type="button" id="payBtn" class="btn btn-primary">Pay securely with card</button>
+            <a href="/shop/cart" class="btn btn-glass" style="margin-left:8px;">Edit cart</a>
+            <p id="checkoutError" class="hidden" style="margin:14px 0 0 0;color:var(--red);font-size:0.9rem;"></p>
+          </div>
+        </div>
+        <p style="margin:16px 0 0 0;font-size:0.82rem;color:var(--text-3);line-height:1.5;max-width:640px">
+          This site provides educational information, not legal or medical advice. For compliance questions, verify current regulations at fmcsa.dot.gov or dot.ca.gov and consult qualified professionals.
         </p>
       </div>
     </div>
@@ -84,12 +120,95 @@
 
   <script>
     (function() {
+      var CART_KEY = 'driver_shield_cart';
+
       function escapeHtml(str) {
         if (!str) return '';
         var div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
       }
+      function formatPrice(n) { return '$' + (Number(n) || 0).toFixed(2); }
+      function getCart() {
+        try { var raw = localStorage.getItem(CART_KEY); return raw ? JSON.parse(raw) : []; }
+        catch (_) { return []; }
+      }
+
+      function show(id) { var el = document.getElementById(id); if (el) el.classList.remove('hidden'); }
+      function hide(id) { var el = document.getElementById(id); if (el) el.classList.add('hidden'); }
+
+      function renderSummary(cart) {
+        var total = 0;
+        document.getElementById('checkoutItems').innerHTML = cart.map(function(item) {
+          var qty = item.quantity || 1;
+          var price = parseFloat(item.price) || 0;
+          total += qty * price;
+          return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">' +
+            '<span>' + escapeHtml(item.name) + ' × ' + qty + '</span>' +
+            '<span>' + formatPrice(qty * price) + '</span></div>';
+        }).join('');
+        document.getElementById('checkoutTotal').textContent = formatPrice(total);
+      }
+
+      async function initCheckout() {
+        var cart = getCart();
+        var config = { enabled: false };
+        var user = null;
+        try {
+          var cfgRes = await fetch('/api/shop/payment-config', { credentials: 'include' });
+          config = await cfgRes.json();
+        } catch (_) {}
+        try {
+          var meRes = await fetch('/api/auth/me', { credentials: 'include' });
+          var meData = await meRes.json();
+          user = meData.user || null;
+        } catch (_) {}
+
+        hide('checkoutLoading');
+
+        if (!config.enabled) { show('checkoutComingSoon'); return; }
+        if (!cart.length) { show('checkoutEmpty'); return; }
+
+        renderSummary(cart);
+        show('checkoutLive');
+
+        if (!user) {
+          show('checkoutSignedOut');
+          var loginLink = document.getElementById('checkoutLoginLink');
+          if (loginLink) loginLink.href = '/login?redirect=' + encodeURIComponent('/shop/checkout');
+          return;
+        }
+
+        show('checkoutSignedIn');
+        var payBtn = document.getElementById('payBtn');
+        var errEl = document.getElementById('checkoutError');
+        payBtn.addEventListener('click', async function() {
+          payBtn.disabled = true;
+          payBtn.textContent = 'Redirecting…';
+          errEl.classList.add('hidden');
+          try {
+            var items = getCart().map(function(i) { return { slug: i.slug, quantity: i.quantity || 1 }; });
+            var res = await fetch('/api/stripe/create-checkout-session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ items: items })
+            });
+            var data = await res.json();
+            if (res.ok && data.url) {
+              window.location.href = data.url;
+              return;
+            }
+            throw new Error((data && data.error) || 'Could not start checkout.');
+          } catch (err) {
+            payBtn.disabled = false;
+            payBtn.textContent = 'Pay securely with card';
+            errEl.textContent = err.message || 'Something went wrong. Please try again.';
+            errEl.classList.remove('hidden');
+          }
+        });
+      }
+
       async function updateAuthLink() {
         var authLink = document.querySelector('.nav-auth-link');
         if (!authLink) return;
@@ -109,6 +228,7 @@
         } catch (_) {}
       }
       updateAuthLink();
+      initCheckout();
     })();
   </script>
   <script src="/js/main.js"></script>

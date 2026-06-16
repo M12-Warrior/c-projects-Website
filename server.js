@@ -73,6 +73,10 @@ app.use(cors({
   credentials: true
 }));
 
+// Stripe webhook needs the raw request body for signature verification, so it must
+// be registered BEFORE express.json() parses (and discards) the raw body.
+app.post('/api/stripe/webhook', express.raw({ type: '*/*' }), require('./routes/stripe').handleWebhook);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const sessionCookie = { maxAge: 24 * 60 * 60 * 1000 };
@@ -177,6 +181,7 @@ app.use('/api/account', require('./routes/account'));
 app.use('/api/blog', require('./routes/blog'));
 app.use('/api/forum', require('./routes/forum'));
 app.use('/api/shop', require('./routes/shop'));
+app.use('/api/stripe', require('./routes/stripe').router);
 app.use('/api/subscription', require('./routes/subscription'));
 app.use('/api/journal', require('./routes/journal'));
 app.use('/api/admin', require('./routes/admin'));

@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../db/database');
 const { hasModule1PreviewAccess } = require('../lib/module1PreviewAccess');
+const stripe = require('../lib/stripe');
 const router = express.Router();
 
 // Require session (401 if not logged in)
@@ -242,6 +243,18 @@ router.get('/admin/product/:id', requireAdmin, (req, res) => {
   `).get(id);
   if (!product) return res.status(404).json({ error: 'Product not found' });
   res.json({ product });
+});
+
+// 0. GET /api/shop/payment-config — Is online checkout (Stripe) live yet?
+// `enabled` is true only when STRIPE_SECRET_KEY is set on the server (lib/stripe
+// returns a client). The frontend uses this to show real Buy/Checkout buttons or
+// keep the "opening soon" copy, so the site is safe to deploy before keys exist.
+router.get('/payment-config', (req, res) => {
+  res.json({
+    enabled: !!stripe,
+    provider: stripe ? 'stripe' : null,
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || null
+  });
 });
 
 // 1. GET /api/shop/products — Return all active products
@@ -673,5 +686,9 @@ router.put('/orders/:id', requireAdmin, (req, res) => {
 
   res.json({ success: true });
 });
+
+// Exposed for the Stripe webhook / confirm flow (routes/stripe.js) so a paid
+// Checkout Session can create the same digital access grants the admin flow uses.
+router.createProductAccessGrantsForOrder = createProductAccessGrantsForOrder;
 
 module.exports = router;

@@ -149,6 +149,10 @@
 
   document.getElementById('receiptPrintBtn').addEventListener('click', function() { window.print(); });
 
+  var _params = new URLSearchParams(window.location.search);
+  var _sessionId = _params.get('session_id');
+
+  function loadOrder() {
   fetch('/api/shop/orders/' + orderId, { credentials: 'include' })
     .then(function(res) {
       if (res.status === 401) {
@@ -224,6 +228,24 @@
       errEl.classList.remove('hidden');
       errText.textContent = 'Network error. Try again.';
     });
+  }
+
+  // Returning from Stripe Checkout: confirm the payment server-side (works even
+  // before the webhook endpoint is configured), clear the cart, then show the receipt.
+  if (_sessionId) {
+    fetch('/api/stripe/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ session_id: _sessionId })
+    })
+      .then(function(r) { return r.json().catch(function() { return {}; }); })
+      .then(function(d) { if (d && d.paid) { try { localStorage.removeItem('driver_shield_cart'); } catch (_) {} } })
+      .catch(function() {})
+      .then(function() { loadOrder(); });
+  } else {
+    loadOrder();
+  }
 })();
   </script>
   <script src="/js/main.js"></script>
