@@ -382,7 +382,7 @@
         <div class="admin-section">
           <h3>Customer packet previews</h3>
           <p style="color:var(--text-2);margin-bottom:16px;font-size:0.9rem;max-width:720px;line-height:1.55">
-            Open, print, or save as PDF exactly what customers receive after purchase. Fleet previews include a sample yard stamp (same layout as licensed downloads). These controls are admin-only and do not grant customer access.
+            Open, print, or save as PDF exactly what customers receive after purchase. The full course opens as the interactive web experience at <code>/course</code>. Fleet previews include a sample yard stamp (same layout as licensed downloads). These controls are admin-only and do not grant customer access.
           </p>
           <div id="packetPreviewGrid" class="admin-grid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px"></div>
         </div>
@@ -2241,14 +2241,22 @@
             return;
           }
           grid.innerHTML = packets.map(function(p) {
+            var isCourse = p.kind === 'course';
+            var actions = isCourse
+              ? '<button type="button" class="btn btn-primary course-preview-open">Open preview</button>' +
+                '<span style="font-size:0.78rem;color:var(--text-3);align-self:center">Web course — browse all 10 modules</span>'
+              : '<button type="button" class="btn btn-primary pkt-preview-open" data-type="' + escapeHtml(p.type) + '">Open preview</button>' +
+                '<button type="button" class="btn btn-secondary pkt-preview-print" data-type="' + escapeHtml(p.type) + '">Print / PDF</button>';
             return '<div class="glass-card" style="padding:18px;border:1px solid var(--border)">' +
               '<h4 style="margin:0 0 6px 0;font-size:1rem">' + escapeHtml(p.label || p.type) + '</h4>' +
               '<p style="margin:0 0 14px 0;font-size:0.82rem;color:var(--text-2);line-height:1.45">' + escapeHtml(p.note || '') + '</p>' +
-              '<div style="display:flex;flex-wrap:wrap;gap:8px">' +
-              '<button type="button" class="btn btn-primary pkt-preview-open" data-type="' + escapeHtml(p.type) + '">Open preview</button>' +
-              '<button type="button" class="btn btn-secondary pkt-preview-print" data-type="' + escapeHtml(p.type) + '">Print / PDF</button>' +
-              '</div></div>';
+              '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">' + actions + '</div></div>';
           }).join('');
+          grid.querySelectorAll('.course-preview-open').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              window.open('/course', '_blank', 'noopener,noreferrer');
+            });
+          });
           grid.querySelectorAll('.pkt-preview-open').forEach(function(btn) {
             btn.addEventListener('click', function() {
               var t = btn.getAttribute('data-type');

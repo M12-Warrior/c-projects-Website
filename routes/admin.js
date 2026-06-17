@@ -421,6 +421,12 @@ router.get('/packets-renewals', (req, res) => {
 // GET /api/admin/packet-preview-access — Admin-only list of previewable customer packets
 const ADMIN_PACKET_CATALOG = [
   {
+    kind: 'course',
+    product_slug: 'course-90day',
+    label: '90-Day Onboarding Course',
+    note: '10 self-paced modules, 47 lessons, knowledge checks, and a certificate of completion. Everything a new CDL driver needs for their first 90 days — HOS mastery, fatigue management, inspections, emergency preparedness, defensive driving, and daily routine systems. Includes the New Driver Packet free.'
+  },
+  {
     type: 'new-driver',
     product_slug: 'new-driver-packet',
     label: 'New Driver Packet (Tier 1)',

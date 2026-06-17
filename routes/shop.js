@@ -512,6 +512,9 @@ router.get('/course-access', (req, res) => {
   if (!req.session || !req.session.user) {
     return res.json({ hasCourseAccess: false, hasModule1Preview: false });
   }
+  if (req.session.user.role === 'admin') {
+    return res.json({ hasCourseAccess: true, hasModule1Preview: true, adminPreview: true });
+  }
   const uid = req.session.user.id;
   const hasCourseAccess = userHasPaidCourseAccess(uid);
   if (hasCourseAccess) {

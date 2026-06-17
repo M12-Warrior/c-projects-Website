@@ -5,6 +5,7 @@ const path = require('path');
 
 const adminHtml = fs.readFileSync(path.join(__dirname, '..', 'views', 'admin.html'), 'utf8');
 const shopJs = fs.readFileSync(path.join(__dirname, '..', 'routes', 'shop.js'), 'utf8');
+const adminJs = fs.readFileSync(path.join(__dirname, '..', 'routes', 'admin.js'), 'utf8');
 
 function ok(msg) { console.log('OK:', msg); }
 function fail(msg) { console.error('FAIL:', msg); process.exitCode = 1; }
@@ -83,6 +84,19 @@ if (!/function bindBlogTabInteractions\(/.test(adminHtml) ||
   fail('Blog tab should use delegated click handlers for edit/publish/delete actions');
 } else {
   ok('blog tab uses delegated edit handlers');
+}
+
+
+if (!/course-preview-open/.test(adminHtml)) {
+  fail('loadPacketPreviews should support course-preview-open for full course');
+} else {
+  ok('packet previews tab supports full course preview');
+}
+
+if (!/kind:\s*'course'/.test(adminJs)) {
+  fail('ADMIN_PACKET_CATALOG should include full course entry');
+} else {
+  ok('admin packet catalog includes full course');
 }
 
 if (process.exitCode) process.exit(process.exitCode);
