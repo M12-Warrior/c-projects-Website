@@ -9,7 +9,6 @@ const shopJs = fs.readFileSync(path.join(__dirname, '..', 'routes', 'shop.js'), 
 function ok(msg) { console.log('OK:', msg); }
 function fail(msg) { console.error('FAIL:', msg); process.exitCode = 1; }
 
-// activateAdminTab calls window['load' + Capitalized(data-tab)] when a tab is opened.
 const tabIds = [];
 const tabRe = /data-tab="([^"]+)"/g;
 let tabMatch;
@@ -36,8 +35,7 @@ uniqueTabs.forEach(function (tab) {
   ok('tab "' + tab + '" exports ' + loaderName);
 });
 
-
-if (/#tabShop[\s\S]*?id="productEditModal"/.test(adminHtml)) {
+if (/<div id="tabShop"[\s\S]*?id="productEditModal"[\s\S]*?<div id="tabServices"/.test(adminHtml)) {
   fail('productEditModal should live outside #tabShop so a fixed overlay cannot block the tab');
 } else {
   ok('product edit modal moved outside tab panel');
@@ -67,5 +65,25 @@ if (!/router\.get\('\/admin\/products', requireAdmin/.test(shopJs)) {
 } else {
   ok('admin products API route present');
 }
+
+if (!/\/api\/blog\/admin\/posts/.test(adminHtml)) {
+  fail('loadBlog should fetch /api/blog/admin/posts');
+} else {
+  ok('loadBlog uses admin posts API');
+}
+
+if (/<div id="tabBlog"[\s\S]*?id="blogEditModal"[\s\S]*?<div id="tabForum"/.test(adminHtml)) {
+  fail('blogEditModal should live outside #tabBlog so a fixed overlay cannot block the tab');
+} else {
+  ok('blog edit modal moved outside tab panel');
+}
+
+if (!/function bindBlogTabInteractions\(/.test(adminHtml) ||
+    !/getElementById\('tabBlog'\)[\s\S]*addEventListener\('click'/.test(adminHtml)) {
+  fail('Blog tab should use delegated click handlers for edit/publish/delete actions');
+} else {
+  ok('blog tab uses delegated edit handlers');
+}
+
 if (process.exitCode) process.exit(process.exitCode);
 console.log('All admin tab loader checks passed.');

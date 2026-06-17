@@ -159,9 +159,10 @@
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
             <label for="blogListLimit" style="font-size:0.85rem;color:var(--text-2);">Show:</label>
             <select id="blogListLimit" class="form-input" style="width:auto;min-width:4rem;">
-              <option value="5" selected>5</option>
-              <option value="all">All</option>
+              <option value="5">5</option>
+              <option value="all" selected>All</option>
             </select>
+            <button type="button" class="btn btn-glass" id="blogRefreshListBtn">Refresh list</button>
             <button type="button" class="btn btn-primary" id="blogNewPostBtn">New Post (Proofread)</button>
           </div>
         </div>
@@ -215,61 +216,6 @@
           <thead><tr><th>Image</th><th>Title</th><th>Author</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
           <tbody id="blogTable"></tbody>
         </table>
-        <div id="blogEditModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:100;overflow-y:auto;padding:24px;">
-          <div class="profile-section" style="max-width:640px;width:100%;margin:auto;">
-            <h4 style="margin-top:0;">Edit post</h4>
-            <form id="blogEditForm">
-              <input type="hidden" id="blogEditId" name="id">
-              <div class="form-group"><label class="form-label">Title</label><input type="text" id="blogEditTitle" name="title" class="form-input" aria-describedby="blogEditTitlePreview" required>
-                <div class="title-preview">
-                  <span class="title-preview-label">Preview</span>
-                  <div class="title-preview-headline is-placeholder" id="blogEditTitlePreview" aria-live="polite">Your headline will appear here</div>
-                </div>
-              </div>
-              <div class="form-group"><label class="form-label">Excerpt</label><input type="text" id="blogEditExcerpt" name="excerpt" class="form-input"></div>
-              <div class="form-group">
-                <label class="form-label">Featured image</label>
-                <p style="font-size:0.8rem;color:var(--text-3);margin-bottom:8px">Upload from your computer (no URL needed), or paste a URL if the image is from another site.</p>
-                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
-                  <button type="button" class="btn btn-primary" id="blogEditImageUploadBtn">Upload from computer</button>
-                  <input type="file" id="blogEditImageFile" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
-                </div>
-                <input type="text" id="blogEditImageUrl" name="image" class="form-input" placeholder="Or paste image URL. Filled automatically after upload." style="max-width:100%;">
-                <img id="blogEditImagePreview" alt="Featured image preview" class="hidden" style="margin-top:10px;max-width:220px;max-height:140px;border-radius:8px;border:1px solid var(--border,rgba(255,255,255,0.15));object-fit:cover;">
-              </div>
-              <div class="form-group">
-                <label class="form-label" id="blogEditContentLabel">Content</label>
-                <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:6px;font-weight:500;">Highlight text, then click a toolbar button to format it. The toolbar stays visible while you scroll.</p>
-                <div class="quill-wrap quill-wrap-modal">
-                  <div id="blogEditEditor" class="quill-editor" aria-labelledby="blogEditContentLabel"></div>
-                </div>
-                <button type="button" class="btn btn-glass mt-8" id="blogEditProofreadBtn">Proofread</button>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Schedule publish (optional)</label>
-                <p style="font-size:0.8rem;color:var(--text-3);margin-bottom:6px;">Leave blank to publish now or save as draft. Set a date and time to publish automatically at that time.</p>
-                <input type="datetime-local" id="blogEditScheduledAt" class="form-input" style="max-width:280px;">
-              </div>
-              <p style="font-size:0.8rem;color:var(--text-3);margin-top:4px;">Save as draft to keep your work without going live. Use Publish to make the post live on the site (or at the scheduled time).</p>
-              <div class="flex-between mt-16" style="flex-wrap:wrap;gap:10px;">
-                <button type="button" class="btn btn-glass" id="blogEditCancel">Cancel</button>
-                <button type="button" class="btn btn-primary" id="blogEditSaveDraftBtn">Save as draft</button>
-                <button type="button" class="btn btn-primary" id="blogEditPublishBtn">Publish</button>
-              </div>
-            </form>
-          </div>
-        </div>
-        <div id="blogProofreadModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:101;overflow-y:auto;padding:24px;">
-          <div class="profile-section" style="max-width:520px;width:100%;">
-            <h4 style="margin-top:0;">Proofread — possible misspellings</h4>
-            <p style="font-size:0.9rem;color:var(--text-2);margin-bottom:16px">Accept to ignore, or correct and apply to replace in your content.</p>
-            <div id="blogProofreadList"></div>
-            <p id="blogProofreadNone" class="hidden" style="color:var(--text-3);font-size:0.9rem">No potential misspellings found.</p>
-            <div class="flex-between mt-16">
-              <button type="button" class="btn btn-glass" id="blogProofreadClose">Close</button>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div id="tabForum" class="admin-tab-content hidden">
@@ -588,6 +534,62 @@
 
   <div id="toast" class="toast" aria-live="polite"></div>
 
+  <div id="blogEditModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:10000;overflow-y:auto;padding:24px;display:none;" role="dialog" aria-modal="true" aria-label="Edit blog post">
+          <div class="blog-edit-modal-inner profile-section" style="max-width:640px;width:100%;margin:auto;position:relative;z-index:10001;max-height:90vh;overflow-y:auto;" onclick="event.stopPropagation()">
+            <h4 style="margin-top:0;">Edit post</h4>
+            <form id="blogEditForm">
+              <input type="hidden" id="blogEditId" name="id">
+              <div class="form-group"><label class="form-label">Title</label><input type="text" id="blogEditTitle" name="title" class="form-input" aria-describedby="blogEditTitlePreview" required>
+                <div class="title-preview">
+                  <span class="title-preview-label">Preview</span>
+                  <div class="title-preview-headline is-placeholder" id="blogEditTitlePreview" aria-live="polite">Your headline will appear here</div>
+                </div>
+              </div>
+              <div class="form-group"><label class="form-label">Excerpt</label><input type="text" id="blogEditExcerpt" name="excerpt" class="form-input"></div>
+              <div class="form-group">
+                <label class="form-label">Featured image</label>
+                <p style="font-size:0.8rem;color:var(--text-3);margin-bottom:8px">Upload from your computer (no URL needed), or paste a URL if the image is from another site.</p>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+                  <button type="button" class="btn btn-primary" id="blogEditImageUploadBtn">Upload from computer</button>
+                  <input type="file" id="blogEditImageFile" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
+                </div>
+                <input type="text" id="blogEditImageUrl" name="image" class="form-input" placeholder="Or paste image URL. Filled automatically after upload." style="max-width:100%;">
+                <img id="blogEditImagePreview" alt="Featured image preview" class="hidden" style="margin-top:10px;max-width:220px;max-height:140px;border-radius:8px;border:1px solid var(--border,rgba(255,255,255,0.15));object-fit:cover;">
+              </div>
+              <div class="form-group">
+                <label class="form-label" id="blogEditContentLabel">Content</label>
+                <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:6px;font-weight:500;">Highlight text, then click a toolbar button to format it. The toolbar stays visible while you scroll.</p>
+                <div class="quill-wrap quill-wrap-modal">
+                  <div id="blogEditEditor" class="quill-editor" aria-labelledby="blogEditContentLabel"></div>
+                </div>
+                <button type="button" class="btn btn-glass mt-8" id="blogEditProofreadBtn">Proofread</button>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Schedule publish (optional)</label>
+                <p style="font-size:0.8rem;color:var(--text-3);margin-bottom:6px;">Leave blank to publish now or save as draft. Set a date and time to publish automatically at that time.</p>
+                <input type="datetime-local" id="blogEditScheduledAt" class="form-input" style="max-width:280px;">
+              </div>
+              <p style="font-size:0.8rem;color:var(--text-3);margin-top:4px;">Save as draft to keep your work without going live. Use Publish to make the post live on the site (or at the scheduled time).</p>
+              <div class="flex-between mt-16" style="flex-wrap:wrap;gap:10px;">
+                <button type="button" class="btn btn-glass" id="blogEditCancel">Cancel</button>
+                <button type="button" class="btn btn-primary" id="blogEditSaveDraftBtn">Save as draft</button>
+                <button type="button" class="btn btn-primary" id="blogEditPublishBtn">Publish</button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div id="blogProofreadModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:10001;overflow-y:auto;padding:24px;display:none;" role="dialog" aria-modal="true" aria-label="Proofread blog post">
+          <div class="profile-section" style="max-width:520px;width:100%;position:relative;z-index:10002;" onclick="event.stopPropagation()">
+            <h4 style="margin-top:0;">Proofread — possible misspellings</h4>
+            <p style="font-size:0.9rem;color:var(--text-2);margin-bottom:16px">Accept to ignore, or correct and apply to replace in your content.</p>
+            <div id="blogProofreadList"></div>
+            <p id="blogProofreadNone" class="hidden" style="color:var(--text-3);font-size:0.9rem">No potential misspellings found.</p>
+            <div class="flex-between mt-16">
+              <button type="button" class="btn btn-glass" id="blogProofreadClose">Close</button>
+            </div>
+          </div>
+        </div>
+
   <div id="productEditModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:10000;overflow-y:auto;padding:20px;display:none;" role="dialog" aria-modal="true" aria-label="Edit product">
     <div class="product-edit-modal-inner" style="max-width:520px;width:100%;position:relative;z-index:10001;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;max-height:90vh;overflow-y:auto;" onclick="event.stopPropagation()">
       <h4 style="margin-top:0;">Edit product</h4>
@@ -705,18 +707,22 @@
         modal.style.display = 'none';
         modal.removeAttribute('data-edit-product-id');
       }
+      function closeBlogEditModal() {
+        var modal = document.getElementById('blogEditModal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
+      function closeBlogProofreadModal() {
+        var modal = document.getElementById('blogProofreadModal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
       function closeAdminModals() {
         closeProductEditModal();
-        var blogEdit = document.getElementById('blogEditModal');
-        if (blogEdit) {
-          blogEdit.classList.add('hidden');
-          blogEdit.style.display = 'none';
-        }
-        var blogProof = document.getElementById('blogProofreadModal');
-        if (blogProof) {
-          blogProof.classList.add('hidden');
-          blogProof.style.display = 'none';
-        }
+        closeBlogEditModal();
+        closeBlogProofreadModal();
       }
       function activateAdminTab(btn, opts) {
         opts = opts || {};
@@ -1088,36 +1094,74 @@
             '<td><a href="/blog/' + encodeURIComponent(p.slug || '') + '" target="_blank" rel="noopener" class="admin-btn admin-btn-primary blog-view" style="margin-right:8px;text-decoration:none;">View</a><button type="button" class="admin-btn admin-btn-primary blog-edit" style="margin-right:8px;">Edit</button><button type="button" class="admin-btn admin-btn-primary blog-publish" style="margin-right:8px;">Publish</button><button type="button" class="admin-btn admin-btn-danger blog-delete">Delete</button></td>' +
           '</tr>';
         }).join('') : '<tr><td colspan="6">No posts yet. Use <strong>New Post</strong> above to create one; then you can edit it here.</td></tr>';
-        el.querySelectorAll('.blog-edit').forEach(function(btn) {
-          btn.addEventListener('click', function() { var id = btn.closest('tr').getAttribute('data-id'); openBlogEdit(id); });
-        });
-        el.querySelectorAll('.blog-publish').forEach(function(btn) {
-          btn.addEventListener('click', async function() {
-            var id = btn.closest('tr').getAttribute('data-id');
-            await openBlogEdit(id);
-            var publishBtn = document.getElementById('blogEditPublishBtn');
-            if (publishBtn) publishBtn.focus();
+      }
+
+      function bindBlogTabInteractions() {
+        if (window._blogTabInteractionsBound) return;
+        window._blogTabInteractionsBound = true;
+        var tabBlog = document.getElementById('tabBlog');
+        if (tabBlog) {
+          tabBlog.addEventListener('click', function(e) {
+            var editBtn = e.target.closest('.blog-edit');
+            if (editBtn) {
+              e.preventDefault();
+              var row = editBtn.closest('tr');
+              if (row) openBlogEdit(row.getAttribute('data-id'));
+              return;
+            }
+            var publishBtn = e.target.closest('.blog-publish');
+            if (publishBtn) {
+              e.preventDefault();
+              var pubRow = publishBtn.closest('tr');
+              if (!pubRow) return;
+              openBlogEdit(pubRow.getAttribute('data-id')).then(function() {
+                var pubFocus = document.getElementById('blogEditPublishBtn');
+                if (pubFocus) pubFocus.focus();
+              });
+              return;
+            }
+            var deleteBtn = e.target.closest('.blog-delete');
+            if (deleteBtn) {
+              e.preventDefault();
+              if (!confirmAction('Delete this post?')) return;
+              var delRow = deleteBtn.closest('tr');
+              var delId = delRow && delRow.getAttribute('data-id');
+              if (!delId) return;
+              fetch('/api/blog/posts/' + delId, { method: 'DELETE', credentials: 'include' })
+                .then(function(r) {
+                  if (r.ok) { if (delRow) delRow.remove(); showToast('Post deleted.', true); }
+                  else showToast('Failed to delete.', false);
+                })
+                .catch(function() { showToast('Failed.', false); });
+            }
           });
-        });
-        el.querySelectorAll('.blog-delete').forEach(function(btn) {
-          btn.addEventListener('click', async function() {
-            if (!confirmAction('Delete this post?')) return;
-            var row = btn.closest('tr');
-            var id = row.getAttribute('data-id');
-            try {
-              var r = await fetch('/api/blog/posts/' + id, { method: 'DELETE', credentials: 'include' });
-              if (r.ok) { row.remove(); showToast('Post deleted.', true); }
-              else showToast('Failed to delete.', false);
-            } catch (_) { showToast('Failed.', false); }
+        }
+        var editModal = document.getElementById('blogEditModal');
+        if (editModal && !window._blogEditModalBound) {
+          window._blogEditModalBound = true;
+          editModal.addEventListener('click', function(e) {
+            if (e.target === editModal) closeBlogEdit();
           });
-        });
+        }
+        var proofModal = document.getElementById('blogProofreadModal');
+        if (proofModal && !window._blogProofreadModalBound) {
+          window._blogProofreadModalBound = true;
+          proofModal.addEventListener('click', function(e) {
+            if (e.target === proofModal) closeBlogProofreadModal();
+          });
+        }
+        var refreshBtn = document.getElementById('blogRefreshListBtn');
+        if (refreshBtn) refreshBtn.addEventListener('click', function() { loadBlog(); });
       }
 
       async function loadBlog() {
+        bindBlogTabInteractions();
         loadBlogCommentsPending();
         var el = document.getElementById('blogTable');
         if (!el) return;
+        el.innerHTML = '<tr><td colspan="6">Loading posts…</td></tr>';
         try {
+
           var res = await fetch('/api/blog/admin/posts', { credentials: 'include', cache: 'no-store' });
           var data = await res.json().catch(function() { return {}; });
           if (!res.ok) {
@@ -1170,9 +1214,7 @@
         }
       }
       function closeBlogEdit() {
-        var modal = document.getElementById('blogEditModal');
-        modal.classList.add('hidden');
-        modal.style.display = 'none';
+        closeBlogEditModal();
         // Clear fields so the next edit starts fresh.
         var idEl = document.getElementById('blogEditId');
         var titleEl = document.getElementById('blogEditTitle');
@@ -1429,8 +1471,7 @@
           modal.style.display = 'flex';
         }
         function closeProofreadModal() {
-          var modal = document.getElementById('blogProofreadModal');
-          if (modal) { modal.classList.add('hidden'); modal.style.display = 'none'; }
+          closeBlogProofreadModal();
         }
         document.getElementById('blogNewProofreadBtn').addEventListener('click', openProofreadModal);
         document.getElementById('blogEditProofreadBtn').addEventListener('click', openProofreadModal);
