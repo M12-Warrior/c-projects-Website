@@ -2096,6 +2096,17 @@ body.has-checkout-banner .page-shell {
   color: var(--text-2);
   margin-bottom: 14px;
 }
+.tier1-community-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.tier1-thank-note {
+  font-size: 0.8rem;
+  color: var(--text-3);
+  margin: 0 0 10px;
+}
 .coffee-amounts {
   display: flex;
   flex-wrap: wrap;

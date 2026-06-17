@@ -147,7 +147,10 @@
             return;
           }
           const isSub = product.is_subscription || product.subscription_plan;
-          const priceDisplay = formatPrice(product.price) + (isSub ? '<span style="font-size:0.9rem;color:var(--text-3);font-weight:400">/month</span>' : '');
+          const isFreeTier1 = slug === 'new-driver-packet';
+          const priceDisplay = isFreeTier1
+            ? '<span style="color:var(--green);font-weight:700">FREE</span>'
+            : formatPrice(product.price) + (isSub ? '<span style="font-size:0.9rem;color:var(--text-3);font-weight:400">/month</span>' : '');
           const cbMicSvg = '<svg class="cb-mic-logo" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="vertical-align:middle;margin-right:6px"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>';
           const benefitsBlock = isSub
             ? '<div class="glass-card" style="padding:24px 28px;margin-bottom:24px;border:1px solid var(--border);">' +
@@ -175,13 +178,21 @@
             : '<div class="product-image" style="height: 320px;">' + placeholderIcon + '</div>';
           const subBadge = isSub ? '<span style="display:inline-block;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue);background:rgba(59,130,246,0.15);padding:4px 10px;border-radius:4px;margin-left:12px;font-weight:600;vertical-align:middle;">Monthly subscription</span>' : '';
           const buyLabel = isSub ? 'Add subscription to cart' : 'Add to cart';
-          const formHtml = paymentsEnabled
+          const formHtml = isFreeTier1
+            ? '<div style="display:flex;flex-direction:column;gap:12px;">' +
+                '<p style="font-size:0.9rem;color:var(--text-2);line-height:1.55;margin:0">This packet is <strong>free</strong> — no payment or checkout. View online, print, or download anytime.</p>' +
+                '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">' +
+                  '<a href="/services" class="btn btn-primary" style="text-decoration:none">Get free access</a>' +
+                  '<a href="/forum/category/general" class="btn btn-secondary" style="text-decoration:none">Visit the Coffee Shop</a>' +
+                '</div>' +
+              '</div>'
+            : (paymentsEnabled
             ? '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">' +
                 '<button type="button" id="addToCartBtn" class="btn btn-primary">' + buyLabel + '</button>' +
                 '<a href="/shop/cart" class="btn btn-glass">View cart</a>' +
                 '<span id="addedMsg" class="hidden" style="color:var(--gold-light);font-size:0.9rem;">Added to cart.</span>' +
               '</div>'
-            : '<p style="font-size:0.9rem;color:var(--text-2);line-height:1.55;margin:0">Purchases opening soon. You will be able to subscribe or add this product to your cart here shortly. <a href="/contact" style="color:var(--gold)">Contact us</a> with questions.</p>';
+            : '<p style="font-size:0.9rem;color:var(--text-2);line-height:1.55;margin:0">Purchases opening soon. You will be able to subscribe or add this product to your cart here shortly. <a href="/contact" style="color:var(--gold)">Contact us</a> with questions.</p>');
           container.innerHTML =
             '<div class="product-detail-wrap" style="max-width: 700px;">' +
               '<div style="margin-bottom: 24px;">' + imgHtml + '</div>' +
@@ -192,7 +203,7 @@
               formHtml +
             '</div>';
 
-          if (paymentsEnabled) {
+          if (paymentsEnabled && !isFreeTier1) {
             var addBtn = document.getElementById('addToCartBtn');
             if (addBtn) {
               addBtn.addEventListener('click', function() {

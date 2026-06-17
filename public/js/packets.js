@@ -108,7 +108,8 @@ Packets.newDriver = function () {
     'Roadside Safety Protocol',
     'Basic Defensive Driving',
     'Your Daily Routine',
-    'Key Contacts & Resources'
+    'Key Contacts & Resources',
+    'A $0 Thank You &mdash; Join the Community'
   ];
   for (var i = 0; i < tocItems.length; i++) {
     body += '<li>Section ' + (i + 1) + ': ' + tocItems[i] + '</li>';
@@ -677,8 +678,23 @@ Packets.newDriver = function () {
   body += '<h3>Mile 12 Warrior</h3>';
   body += '<table><thead><tr><th>Resource</th><th>Contact</th></tr></thead><tbody>';
   body += '<tr><td>Website</td><td>mile12warrior.com</td></tr>';
+  body += '<tr><td>Driver Forum &amp; Coffee Shop</td><td>mile12warrior.com/forum</td></tr>';
   body += '<tr><td>Email</td><td>info@mile12warrior.com</td></tr>';
   body += '</tbody></table>';
+  body += Packets._footer() + '</div>';
+
+  /* ---- Section 14: $0 Thank You & Community ---- */
+  body += '<div class="page-break">' + Packets._header();
+  body += '<h2>Section 14: A $0 Thank You &mdash; Join the Community</h2>';
+  body += '<p>This New Driver Packet is <strong>free</strong> &mdash; no payment, no checkout, no donation required. Mile 12 Warrior built it because every new driver deserves a solid safety foundation on day one.</p>';
+  body += '<p>If this packet helped you, the best thank-you is not money. It is showing up for other drivers. Pull into our <strong>Truckers Lounge</strong> &mdash; the <strong>Coffee Shop</strong> on the Mile 12 Warrior forum &mdash; and share what you are learning on the road: your first-week wins, the checklist that saved you, the fatigue trick that worked, or the question you wish someone had answered before Mile 12.</p>';
+  body += '<div class="tip-box"><strong>Why post?</strong> New drivers often feel alone in the cab. When you share a tip or a story, you help the next driver who is exactly where you were last week. That is how this community stays strong &mdash; driver to driver, mile by mile.</div>';
+  body += '<h3>Where to Go</h3>';
+  body += '<ul>';
+  body += '<li><strong>Forum home:</strong> mile12warrior.com/forum &mdash; browse rooms for safety, wellness, gear, and Mile 12 moments.</li>';
+  body += '<li><strong>Coffee Shop (main lounge):</strong> mile12warrior.com/forum/category/general &mdash; road stories, wins, and everyday convos. Pull up a seat.</li>';
+  body += '</ul>';
+  body += '<p>You do not need to buy anything to participate. Create a free account, introduce yourself, and key up. We are glad you are here.</p>';
   body += Packets._footer() + '</div>';
 
   /* ---- Back Cover ---- */

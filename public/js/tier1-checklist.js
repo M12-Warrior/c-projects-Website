@@ -148,7 +148,7 @@ var Tier1Checklist = (function () {
     title.textContent = 'New Driver Packet';
     intro.appendChild(title);
     intro.appendChild(el('p', 'tier1-modal-sub',
-      'Check off items as you work through your first 90 days. Progress saves in this browser — no account needed.'));
+      'Check off items as you work through your first 90 days. Progress saves in this browser — no account needed. Free packet — no payment or checkout.'));
     header.appendChild(intro);
     var closeBtn = el('button', 'tier1-modal-close');
     closeBtn.type = 'button';

@@ -561,7 +561,7 @@ const seedIfEmpty = () => {
     insertProduct.run('Mile 12 Warrior Kit', 'mile-12-warrior-kit', 'The complete fatigue-fighting toolkit. Includes the wellness journal, a resistance band set, essential oil roller, eye mask for sleeper berth rest, and the Mile 12 quick-reset card deck.', 49.99, 'kits', 30, 1);
 
     insertProduct.run('90-Day Onboarding Course', 'course-90day', '10 self-paced modules, 47 lessons, knowledge checks, and a certificate of completion. Everything a new CDL driver needs for their first 90 days — HOS mastery, fatigue management, inspections, emergency preparedness, defensive driving, and daily routine systems. Includes the New Driver Packet free.', 149.00, 'digital', 9999, 1);
-    insertProduct.run('New Driver Packet', 'new-driver-packet', 'Foundational safety and wellness packet for new CDL drivers. 13 print-ready sections including HOS basics, fatigue management, DVIR checklists, emergency protocol, and daily routines.', 9.00, 'digital', 9999, 1);
+    insertProduct.run('New Driver Packet', 'new-driver-packet', 'Foundational safety and wellness packet for new CDL drivers. 13 print-ready sections including HOS basics, fatigue management, DVIR checklists, emergency protocol, and daily routines. Free for everyone — view, print, or download at /services with no checkout.', 0.00, 'digital', 9999, 1);
     insertProduct.run('Seasoned Driver Packet', 'seasoned-packet', 'Advanced safety and wellness packet for experienced drivers (2+ years). 11 sections covering HOS refresher, advanced fatigue science, long-term health, CSA self-audit, career wellness, and mentorship planning. Print-ready with real regulatory references.', 29.00, 'digital', 9999, 1);
     insertProduct.run('Fleet New Hire Orientation Packet', 'fleet-new-hire-packet', 'Complete new-hire onboarding packet for fleet safety departments. 11 sections with FMCSA compliance, drug/alcohol testing requirements, accident procedures, company policy templates, and formal driver sign-off sheet per 49 CFR 391.51. Unlimited printing per company.', 79.00, 'digital', 9999, 1);
     insertProduct.run('Fleet Seasoned Driver Refresher Packet', 'fleet-refresher-packet', 'Annual/semi-annual refresher for experienced drivers. 10 sections with fatigue self-assessment, 12-month seasonal hazard calendar, regulatory self-audit, mentorship guidance, and formal driver sign-off sheet per 49 CFR 391.51. Unlimited printing per company.', 79.00, 'digital', 9999, 1);
@@ -598,7 +598,7 @@ try {
   }
 } catch (_) {}
 
-// Ensure New Driver Packet exists and remains priced at $9
+// Ensure New Driver Packet exists and remains free ($0 — no checkout)
 try {
   const existing = db.prepare('SELECT id FROM products WHERE slug = ?').get('new-driver-packet');
   if (!existing) {
@@ -608,8 +608,8 @@ try {
     `).run(
       'New Driver Packet',
       'new-driver-packet',
-      'Foundational safety and wellness packet for new CDL drivers. 13 print-ready sections including HOS basics, fatigue management, DVIR checklists, emergency protocol, and daily routines.',
-      9.00,
+      'Foundational safety and wellness packet for new CDL drivers. 13 print-ready sections including HOS basics, fatigue management, DVIR checklists, emergency protocol, and daily routines. Free for everyone — view, print, or download at /services with no checkout.',
+      0.00,
       'digital',
       9999,
       1
@@ -617,9 +617,16 @@ try {
   } else {
     db.prepare(`
       UPDATE products
-      SET name = ?, price = ?, category = ?, active = 1
+      SET name = ?, price = ?, category = ?, active = 1,
+          description = ?
       WHERE slug = ?
-    `).run('New Driver Packet', 9.00, 'digital', 'new-driver-packet');
+    `).run(
+      'New Driver Packet',
+      0.00,
+      'digital',
+      'Foundational safety and wellness packet for new CDL drivers. 13 print-ready sections including HOS basics, fatigue management, DVIR checklists, emergency protocol, and daily routines. Free for everyone — view, print, or download at /services with no checkout.',
+      'new-driver-packet'
+    );
   }
 } catch (_) {}
 

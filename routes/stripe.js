@@ -213,6 +213,11 @@ router.post('/create-checkout-session', requireSession, async (req, res) => {
     if (!p) {
       return res.status(400).json({ error: 'A product in your cart is no longer available. Please review your cart.' });
     }
+    if (slug === 'new-driver-packet') {
+      return res.status(400).json({
+        error: 'The New Driver Packet (Tier 1) is free - no checkout needed. View or print it on the Services page.'
+      });
+    }
     let qty = wanted[slug];
     // Subscriptions are billed one month at a time — always quantity 1.
     if (p.is_subscription || p.subscription_plan) qty = 1;
