@@ -1275,6 +1275,16 @@ body.forum-coffee-shop .forum-category-header .page-title {
   display: block;
   margin-top: 4px;
 }
+.admin-stat-clickable {
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.admin-stat-clickable:hover,
+.admin-stat-clickable:focus-visible {
+  border-color: var(--accent, rgba(255, 200, 80, 0.55));
+  background: rgba(255, 255, 255, 0.03);
+  outline: none;
+}
 .admin-section {
   margin-bottom: 40px;
 }

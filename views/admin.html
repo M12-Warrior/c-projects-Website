@@ -255,8 +255,9 @@
         </div>
         <div class="admin-section mt-32">
           <h3>Orders</h3>
+          <p style="color:var(--text-2);font-size:0.9rem;margin-bottom:12px;">Click an order number or Receipt to open the full order details.</p>
           <table class="admin-table">
-            <thead><tr><th>Order #</th><th>User</th><th>Total</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Order #</th><th>Date</th><th>Customer</th><th>Products</th><th>Total</th><th>Payment</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="shopOrdersTable"></tbody>
           </table>
         </div>
@@ -344,14 +345,19 @@
             <button type="button" class="btn btn-primary" id="revenueRefreshBtn">Refresh</button>
           </div>
           <div id="revenueStats" class="admin-grid"></div>
-          <h4 style="margin:18px 0 8px 0;font-size:0.95rem;">Monthly totals</h4>
+          <h4 style="margin:18px 0 8px 0;font-size:0.95rem;">Monthly totals (all 12 months in fiscal year)</h4>
           <table class="admin-table">
-            <thead><tr><th>Month</th><th>Revenue</th></tr></thead>
+            <thead><tr><th>Month</th><th>Revenue</th><th>Orders</th><th>Running total</th></tr></thead>
             <tbody id="revenueTable"></tbody>
+          </table>
+          <h4 style="margin:18px 0 8px 0;font-size:0.95rem;">Product sales (this fiscal year)</h4>
+          <table class="admin-table">
+            <thead><tr><th>Product</th><th>Units sold</th><th>Revenue</th><th>Last sale</th></tr></thead>
+            <tbody id="revenueProductsTable"></tbody>
           </table>
           <h4 style="margin:18px 0 8px 0;font-size:0.95rem;">Paid orders</h4>
           <table class="admin-table">
-            <thead><tr><th>Date</th><th>Order</th><th>Customer</th><th>Products</th><th>Total</th><th>Payment</th><th>Status</th></tr></thead>
+            <thead><tr><th>Date</th><th>Order</th><th>Customer</th><th>Products</th><th>Total</th><th>Payment</th><th>Status</th><th>Receipt</th></tr></thead>
             <tbody id="revenueOrdersTable"></tbody>
           </table>
           <p style="font-size:0.82rem;color:var(--text-3);margin-top:10px;">Paid orders only (Stripe and legacy checkout). Planning estimate only — consult a tax professional for filing and compliance.</p>
@@ -630,6 +636,40 @@
         return '$' + (Number(n) || 0).toFixed(2);
       }
 
+      function formatMonthLabel(monthKey) {
+        if (!monthKey) return '—';
+        var parts = String(monthKey).split('-');
+        if (parts.length !== 2) return monthKey;
+        var d = new Date(Date.UTC(Number(parts[0]), Number(parts[1]) - 1, 1));
+        return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+      }
+
+      function orderPaymentLabel(method) {
+        var m = String(method || '').trim().toLowerCase();
+        if (m === 'stripe') return 'Stripe';
+        if (!m) return 'Manual / legacy';
+        return method;
+      }
+
+      function orderProductsSummary(items) {
+        if (!items || !items.length) return '—';
+        return items.map(function(it) {
+          var name = it.product_name || it.name || 'Item';
+          var qty = Number(it.quantity) || 1;
+          return qty > 1 ? (name + ' ×' + qty) : name;
+        }).join(', ');
+      }
+
+      function goToAdminTab(tabName) {
+        var tabs = document.querySelectorAll('.admin-tab');
+        for (var i = 0; i < tabs.length; i++) {
+          if (tabs[i].getAttribute('data-tab') === tabName) {
+            activateAdminTab(tabs[i]);
+            return;
+          }
+        }
+      }
+
       const CB_MIC_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" width="16" height="16"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>';
 
       function adminMicBadgeClasses(tier, micColor, micLit) {
@@ -895,6 +935,25 @@
         }
       })();
 
+      function bindDashboardStatClicks() {
+        function bindStat(id, tabName) {
+          var el = document.getElementById(id);
+          if (!el || el.getAttribute('data-bound') === '1') return;
+          el.setAttribute('data-bound', '1');
+          function openTab() { goToAdminTab(tabName); }
+          el.addEventListener('click', openTab);
+          el.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              openTab();
+            }
+          });
+        }
+        bindStat('dashboardStatRevenue', 'revenue');
+        bindStat('dashboardStatOrders', 'shop');
+        bindStat('dashboardStatUsers', 'users');
+      }
+
       async function loadDashboard() {
         const statsEl = document.getElementById('dashboardStats');
         const usersEl = document.getElementById('recentUsersTable');
@@ -907,15 +966,16 @@
           const data = await res.json();
           const s = data.stats || data;
           statsEl.innerHTML =
-            '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_users ?? s.totalUsers ?? 0) + '</span><span class="admin-stat-label">Users</span></div>' +
+            '<div class="admin-stat admin-stat-clickable" id="dashboardStatUsers" role="button" tabindex="0" title="Open Users tab"><span class="admin-stat-num">' + (s.total_users ?? s.totalUsers ?? 0) + '</span><span class="admin-stat-label">Users</span></div>' +
             '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_posts ?? s.totalPosts ?? 0) + '</span><span class="admin-stat-label">Posts</span></div>' +
             '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_threads ?? s.totalThreads ?? 0) + '</span><span class="admin-stat-label">Threads</span></div>' +
             '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_thank_you ?? 0) + '</span><span class="admin-stat-label">Thank-you sign-ups</span></div>' +
             '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_contact_messages ?? 0) + '</span><span class="admin-stat-label">Contact / newsletter</span></div>' +
             '<div class="admin-stat"><span class="admin-stat-num">' + (s.unread_contact_messages ?? 0) + '</span><span class="admin-stat-label">Unread messages</span></div>' +
-            '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_orders ?? s.totalOrders ?? 0) + '</span><span class="admin-stat-label">Orders</span></div>' +
-            '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(s.total_revenue ?? s.totalRevenue ?? 0) + '</span><span class="admin-stat-label">Revenue</span></div>' +
+            '<div class="admin-stat admin-stat-clickable" id="dashboardStatOrders" role="button" tabindex="0" title="Open Shop orders"><span class="admin-stat-num">' + (s.paid_orders ?? s.total_orders ?? s.totalOrders ?? 0) + '</span><span class="admin-stat-label">Paid orders</span></div>' +
+            '<div class="admin-stat admin-stat-clickable" id="dashboardStatRevenue" role="button" tabindex="0" title="Open Revenue &amp; Tax summary"><span class="admin-stat-num">' + formatPrice(s.total_revenue ?? s.totalRevenue ?? 0) + '</span><span class="admin-stat-label">Total revenue (paid)</span></div>' +
             '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_products ?? s.totalProducts ?? 0) + '</span><span class="admin-stat-label">Products</span></div>';
+          bindDashboardStatClicks();
           if (thankYouEl) {
             const rows = s.recent_thank_you || [];
             if (rows.length === 0) {
@@ -946,9 +1006,11 @@
           const d = await r.json();
           const orders = (d.orders || d || []).slice(0, 5);
           ordersEl.innerHTML = orders.map(function(o) {
+            const id = o.id || o.order_number;
             const status = (o.status || 'pending').toLowerCase();
             const statusClass = getStatusClass(o.status);
-            return '<tr><td>#' + escapeHtml(String(o.id || o.order_number)) + '</td><td>' + escapeHtml(o.user?.username || o.username || '—') + '</td><td>' + formatPrice(o.total || o.total_amount) + '</td><td><span class="badge-status ' + statusClass + '">' + status + '</span></td><td>' + formatDate(o.created_at || o.date) + '</td></tr>';
+            const customer = [o.user?.username || o.username, o.user?.email || o.email].filter(Boolean).join(' · ') || '—';
+            return '<tr><td><a href="/shop/order/' + escapeHtml(String(id)) + '" target="_blank" rel="noopener noreferrer">#' + escapeHtml(String(id)) + '</a></td><td>' + escapeHtml(customer) + '</td><td>' + formatPrice(o.total || o.total_amount) + '</td><td><span class="badge-status ' + statusClass + '">' + status + '</span></td><td>' + formatDate(o.created_at || o.date) + '</td></tr>';
           }).join('') || '<tr><td colspan="5">No orders</td></tr>';
         } catch (_) {
           ordersEl.innerHTML = '<tr><td colspan="5">Could not load</td></tr>';
@@ -1892,10 +1954,17 @@
           ordEl.innerHTML = orders.map(function(o) {
             const id = o.id || o.order_number;
             const status = (o.status || 'pending').toLowerCase();
+            const customer = [o.user?.username || o.username, o.user?.email || o.email].filter(Boolean).join(' · ') || '—';
+            const products = orderProductsSummary(o.items);
+            const payStatus = (o.payment_status || 'pending').toLowerCase();
+            const payLabel = orderPaymentLabel(o.payment_method);
             return '<tr data-id="' + id + '">' +
               '<td><a href="/shop/order/' + escapeHtml(String(id)) + '" target="_blank" rel="noopener noreferrer">#' + escapeHtml(String(id)) + '</a></td>' +
-              '<td>' + escapeHtml(o.user?.username || o.username || '—') + '</td>' +
+              '<td>' + formatDate(o.created_at || o.date) + '</td>' +
+              '<td>' + escapeHtml(customer) + '</td>' +
+              '<td>' + escapeHtml(products) + '</td>' +
               '<td>' + formatPrice(o.total || o.total_amount) + '</td>' +
+              '<td>' + escapeHtml(payLabel + ' · ' + payStatus) + '</td>' +
               '<td><select class="form-input order-status-select" style="max-width:140px; padding:6px;">' +
                 '<option value="pending"' + (status === 'pending' ? ' selected' : '') + '>pending</option>' +
                 '<option value="processing"' + (status === 'processing' ? ' selected' : '') + '>processing</option>' +
@@ -1904,15 +1973,14 @@
                 '<option value="completed"' + (status === 'completed' ? ' selected' : '') + '>completed</option>' +
                 '<option value="cancelled"' + (status === 'cancelled' ? ' selected' : '') + '>cancelled</option>' +
               '</select></td>' +
-              '<td>' + formatDate(o.created_at || o.date) + '</td>' +
               '<td style="white-space:nowrap">' +
                 '<a href="/shop/order/' + escapeHtml(String(id)) + '" target="_blank" rel="noopener noreferrer" class="admin-btn" style="margin-right:6px;">Receipt</a>' +
                 '<button type="button" class="admin-btn admin-btn-primary order-save-status">Save</button>' +
               '</td>' +
             '</tr>';
-          }).join('') || '<tr><td colspan="6">No orders</td></tr>';
+          }).join('') || '<tr><td colspan="8">No orders</td></tr>';
         } catch (_) {
-          ordEl.innerHTML = '<tr><td colspan="6">Could not load orders</td></tr>';
+          ordEl.innerHTML = '<tr><td colspan="8">Could not load orders</td></tr>';
         }
       }
 
@@ -2144,6 +2212,7 @@
         const statsEl = document.getElementById('revenueStats');
         const tableEl = document.getElementById('revenueTable');
         const ordersEl = document.getElementById('revenueOrdersTable');
+        const productsEl = document.getElementById('revenueProductsTable');
         const noteEl = document.getElementById('revenueFiscalNote');
         if (!statsEl || !tableEl) return;
         try {
@@ -2155,25 +2224,39 @@
             var start = data.fiscalStart ? new Date(data.fiscalStart) : null;
             var end = data.fiscalEnd ? new Date(data.fiscalEnd) : null;
             var range = start && end ? (start.toLocaleDateString() + ' – ' + end.toLocaleDateString()) : '';
-            noteEl.textContent = 'Fiscal year FY' + (data.fiscalYear || fy) + (range ? ' (' + range + ')' : '') + '. Defaults to the current fiscal year.';
+            noteEl.textContent = 'Fiscal year FY' + (data.fiscalYear || fy) + (range ? ' (' + range + ')' : '') + '. Summary cards below show paid orders only (Stripe and manual checkout). Use the fiscal year dropdown to see other years.';
           }
-          statsEl.innerHTML =
-            '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(data.totalRevenue || 0) + '</span><span class="admin-stat-label">Revenue</span></div>' +
+          var statsHtml =
+            '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(data.totalRevenue || 0) + '</span><span class="admin-stat-label">Fiscal year revenue</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + (data.orderCount || 0) + '</span><span class="admin-stat-label">Paid orders</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(data.averageOrderValue || 0) + '</span><span class="admin-stat-label">Average order</span></div>' +
             '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(data.taxSetAside || 0) + '</span><span class="admin-stat-label">Tax set-aside</span></div>' +
-            '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(data.netAfterSetAside || 0) + '</span><span class="admin-stat-label">Net after set-aside</span></div>' +
-            '<div class="admin-stat"><span class="admin-stat-num">' + (data.orderCount || 0) + '</span><span class="admin-stat-label">Paid orders</span></div>';
+            '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(data.netAfterSetAside || 0) + '</span><span class="admin-stat-label">Net after set-aside</span></div>';
+          if (data.calendarYtd) {
+            statsHtml +=
+              '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(data.calendarYtd.total || 0) + '</span><span class="admin-stat-label">Calendar ' + (data.calendarYear || '') + ' YTD</span></div>' +
+              '<div class="admin-stat"><span class="admin-stat-num">' + (data.calendarYtd.orderCount || 0) + '</span><span class="admin-stat-label">Calendar YTD orders</span></div>';
+          }
+          statsEl.innerHTML = statsHtml;
           tableEl.innerHTML = (data.months || []).map(function(m) {
-            return '<tr><td>' + escapeHtml(m.month_key) + '</td><td>' + formatPrice(m.revenue) + '</td></tr>';
-          }).join('') || '<tr><td colspan="2">No fiscal revenue found.</td></tr>';
+            return '<tr><td>' + escapeHtml(formatMonthLabel(m.month_key)) + '</td><td>' + formatPrice(m.revenue) + '</td><td>' + (m.order_count || 0) + '</td><td>' + formatPrice(m.running_total) + '</td></tr>';
+          }).join('') || '<tr><td colspan="4">No fiscal revenue found.</td></tr>';
+          if (productsEl) {
+            productsEl.innerHTML = (data.productAnalytics || []).map(function(p) {
+              return '<tr><td>' + escapeHtml(p.product_name || '—') + '</td><td>' + (p.units_sold || 0) + '</td><td>' + formatPrice(p.revenue) + '</td><td>' + formatDate(p.last_sale_date) + '</td></tr>';
+            }).join('') || '<tr><td colspan="4">No product sales in this fiscal year.</td></tr>';
+          }
           if (ordersEl) {
             ordersEl.innerHTML = (data.orders || []).map(function(o) {
-              return '<tr><td>' + formatDate(o.revenue_date) + '</td><td>#' + o.id + '</td><td>' + escapeHtml(o.customer || '—') + '</td><td>' + escapeHtml(o.products || '—') + '</td><td>' + formatPrice(o.total) + '</td><td>' + escapeHtml((o.payment_method || '—') + ' / ' + (o.payment_status || 'paid')) + '</td><td>' + escapeHtml(o.status || '—') + '</td></tr>';
-            }).join('') || '<tr><td colspan="7">No paid orders in this fiscal year.</td></tr>';
+              var pay = (o.payment_label || orderPaymentLabel(o.payment_method)) + ' · ' + (o.payment_status || 'paid');
+              return '<tr><td>' + formatDate(o.revenue_date) + '</td><td><a href="/shop/order/' + escapeHtml(String(o.id)) + '" target="_blank" rel="noopener noreferrer">#' + o.id + '</a></td><td>' + escapeHtml(o.customer || '—') + '</td><td>' + escapeHtml(o.products || '—') + '</td><td>' + formatPrice(o.total) + '</td><td>' + escapeHtml(pay) + '</td><td>' + escapeHtml(o.status || '—') + '</td><td><a href="/shop/order/' + escapeHtml(String(o.id)) + '" target="_blank" rel="noopener noreferrer" class="admin-btn">Receipt</a></td></tr>';
+            }).join('') || '<tr><td colspan="8">No paid orders in this fiscal year.</td></tr>';
           }
         } catch (_) {
           statsEl.innerHTML = '<p class="text-muted">Could not load fiscal revenue.</p>';
-          tableEl.innerHTML = '<tr><td colspan="2">Could not load.</td></tr>';
-          if (ordersEl) ordersEl.innerHTML = '<tr><td colspan="7">Could not load.</td></tr>';
+          tableEl.innerHTML = '<tr><td colspan="4">Could not load.</td></tr>';
+          if (productsEl) productsEl.innerHTML = '<tr><td colspan="4">Could not load.</td></tr>';
+          if (ordersEl) ordersEl.innerHTML = '<tr><td colspan="8">Could not load.</td></tr>';
         }
       }
 

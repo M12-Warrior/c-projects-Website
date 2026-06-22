@@ -830,7 +830,8 @@ router.delete('/products/:id', requireAdmin, (req, res) => {
 // 8. GET /api/shop/orders/all — Admin only, return ALL orders with user and items
 router.get('/orders/all', requireAdmin, (req, res) => {
   const orders = db.prepare(`
-    SELECT o.id, o.user_id, o.total, o.status, o.shipping_name, o.shipping_address, o.shipping_city, o.shipping_state, o.shipping_zip, o.created_at,
+    SELECT o.id, o.user_id, o.total, o.status, o.payment_status, o.payment_method, o.paid_at,
+           o.shipping_name, o.shipping_address, o.shipping_city, o.shipping_state, o.shipping_zip, o.created_at,
            u.username, u.email
     FROM orders o
     LEFT JOIN users u ON u.id = o.user_id

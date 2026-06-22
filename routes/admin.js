@@ -71,6 +71,10 @@ function fiscalBoundsSql(window) {
   return { startStr: fmt(window.start), endStr: fmt(window.end) };
 }
 
+function dateBoundsSql(start, end) {
+  return fiscalBoundsSql({ start, end });
+}
+
 /** Paid orders: Stripe/legacy checkout plus admin-marked paid; excludes abandoned carts. */
 const PAID_ORDER_SQL = `
   LOWER(COALESCE(status, '')) != 'cancelled'
@@ -92,14 +96,78 @@ const PAID_ORDER_SQL_O = PAID_ORDER_SQL
 const REVENUE_DATE_EXPR = "datetime(COALESCE(paid_at, created_at))";
 const REVENUE_DATE_EXPR_O = "datetime(COALESCE(o.paid_at, o.created_at))";
 
+function fiscalMonthKeys(fiscalYear) {
+  const keys = [];
+  let y = fiscalYear - 1;
+  let m = 4;
+  for (let i = 0; i < 12; i++) {
+    keys.push(`${y}-${String(m + 1).padStart(2, '0')}`);
+    m += 1;
+    if (m > 11) {
+      m = 0;
+      y += 1;
+    }
+  }
+  return keys;
+}
+
+function paidRevenueSummary(startStr, endStr) {
+  const row = db.prepare(`
+    SELECT COALESCE(SUM(total), 0) AS total, COUNT(*) AS orderCount
+    FROM orders
+    WHERE ${PAID_ORDER_SQL}
+      AND ${REVENUE_DATE_EXPR} >= datetime(?)
+      AND ${REVENUE_DATE_EXPR} <= datetime(?)
+  `).get(startStr, endStr);
+  const total = Number(row ? row.total : 0);
+  const orderCount = Number(row ? row.orderCount : 0);
+  return {
+    total,
+    orderCount,
+    averageOrderValue: orderCount > 0 ? Math.round((total / orderCount) * 100) / 100 : 0,
+  };
+}
+
+function buildFiscalMonths(fiscalYear, monthRows) {
+  const byKey = {};
+  (monthRows || []).forEach((row) => {
+    byKey[row.month_key] = {
+      revenue: Number(row.revenue || 0),
+      orderCount: Number(row.order_count || 0),
+    };
+  });
+  let runningTotal = 0;
+  let runningOrders = 0;
+  return fiscalMonthKeys(fiscalYear).map((monthKey) => {
+    const entry = byKey[monthKey] || { revenue: 0, orderCount: 0 };
+    runningTotal += entry.revenue;
+    runningOrders += entry.orderCount;
+    return {
+      month_key: monthKey,
+      revenue: entry.revenue,
+      order_count: entry.orderCount,
+      running_total: Math.round(runningTotal * 100) / 100,
+      running_orders: runningOrders,
+    };
+  });
+}
+
+function paymentLabel(method) {
+  const m = String(method || '').trim().toLowerCase();
+  if (m === 'stripe') return 'Stripe';
+  if (!m) return 'Manual / legacy';
+  return method;
+}
+
 // GET /api/admin/stats
 router.get('/stats', (req, res) => {
   const totalUsers = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
   const totalPosts = db.prepare('SELECT COUNT(*) as count FROM blog_posts').get().count;
   const totalThreads = db.prepare('SELECT COUNT(*) as count FROM forum_threads').get().count;
   const totalOrders = db.prepare('SELECT COUNT(*) as count FROM orders').get().count;
-  const revenueRow = db.prepare("SELECT COALESCE(SUM(total), 0) as total FROM orders WHERE status != 'cancelled'").get();
-  const totalRevenue = revenueRow.total;
+  const paidSummary = paidRevenueSummary('1970-01-01 00:00:00', '9999-12-31 23:59:59');
+  const totalRevenue = paidSummary.total;
+  const paidOrders = paidSummary.orderCount;
   const totalProducts = db.prepare('SELECT COUNT(*) as count FROM products').get().count;
   let totalThankYou = 0;
   let recentThankYou = [];
@@ -130,6 +198,7 @@ router.get('/stats', (req, res) => {
       total_posts: totalPosts,
       total_threads: totalThreads,
       total_orders: totalOrders,
+      paid_orders: paidOrders,
       total_revenue: totalRevenue,
       total_products: totalProducts,
       total_thank_you: totalThankYou,
@@ -299,8 +368,10 @@ router.get('/revenue-tax', (req, res) => {
   const window = getFiscalWindow(fiscalYear);
   const { startStr, endStr } = fiscalBoundsSql(window);
 
-  const months = db.prepare(`
-    SELECT strftime('%Y-%m', ${REVENUE_DATE_EXPR}) AS month_key, COALESCE(SUM(total), 0) AS revenue
+  const monthRows = db.prepare(`
+    SELECT strftime('%Y-%m', ${REVENUE_DATE_EXPR}) AS month_key,
+           COALESCE(SUM(total), 0) AS revenue,
+           COUNT(*) AS order_count
     FROM orders
     WHERE ${PAID_ORDER_SQL}
       AND ${REVENUE_DATE_EXPR} >= datetime(?)
@@ -308,27 +379,45 @@ router.get('/revenue-tax', (req, res) => {
     GROUP BY strftime('%Y-%m', ${REVENUE_DATE_EXPR})
     ORDER BY month_key ASC
   `).all(startStr, endStr);
+  const months = buildFiscalMonths(fiscalYear, monthRows);
 
-  const totalRevenueRow = db.prepare(`
-    SELECT COALESCE(SUM(total), 0) AS total
-    FROM orders
-    WHERE ${PAID_ORDER_SQL}
-      AND ${REVENUE_DATE_EXPR} >= datetime(?)
-      AND ${REVENUE_DATE_EXPR} <= datetime(?)
-  `).get(startStr, endStr);
-  const totalRevenue = Number(totalRevenueRow ? totalRevenueRow.total : 0);
+  const fiscalSummary = paidRevenueSummary(startStr, endStr);
+  const totalRevenue = fiscalSummary.total;
+  const orderCount = fiscalSummary.orderCount;
+  const averageOrderValue = fiscalSummary.averageOrderValue;
   const taxSetAside = Math.round(totalRevenue * (taxRate / 100) * 100) / 100;
+
+  const now = new Date();
+  const calendarStart = new Date(Date.UTC(now.getUTCFullYear(), 0, 1, 0, 0, 0));
+  const calendarBounds = dateBoundsSql(calendarStart, now);
+  const calendarYtd = paidRevenueSummary(calendarBounds.startStr, calendarBounds.endStr);
+  const showCalendarYtd = fiscalYear === getCurrentFiscalYear(now);
 
   const orderRows = db.prepare(`
     SELECT o.id, o.total, o.status, o.payment_status, o.payment_method,
            COALESCE(o.paid_at, o.created_at) AS revenue_date,
-           u.username
+           u.username, u.email
     FROM orders o
     LEFT JOIN users u ON u.id = o.user_id
     WHERE ${PAID_ORDER_SQL_O}
       AND ${REVENUE_DATE_EXPR_O} >= datetime(?)
       AND ${REVENUE_DATE_EXPR_O} <= datetime(?)
     ORDER BY revenue_date DESC, o.id DESC
+  `).all(startStr, endStr);
+
+  const productAnalytics = db.prepare(`
+    SELECT p.name AS product_name,
+           SUM(oi.quantity) AS units_sold,
+           SUM(oi.quantity * oi.price) AS revenue,
+           MAX(COALESCE(o.paid_at, o.created_at)) AS last_sale_date
+    FROM order_items oi
+    JOIN orders o ON o.id = oi.order_id
+    JOIN products p ON p.id = oi.product_id
+    WHERE ${PAID_ORDER_SQL_O}
+      AND ${REVENUE_DATE_EXPR_O} >= datetime(?)
+      AND ${REVENUE_DATE_EXPR_O} <= datetime(?)
+    GROUP BY p.id
+    ORDER BY revenue DESC, p.name ASC
   `).all(startStr, endStr);
 
   const itemStmt = db.prepare(`
@@ -344,14 +433,18 @@ router.get('/revenue-tax', (req, res) => {
       const qty = it.quantity > 1 ? ` ×${it.quantity}` : '';
       return `${it.name}${qty}`;
     }).join(', ');
+    const customerParts = [];
+    if (row.username) customerParts.push(row.username);
+    if (row.email) customerParts.push(row.email);
     return {
       id: row.id,
       revenue_date: row.revenue_date,
       total: row.total,
       products: products || '—',
-      customer: row.username || `User #${row.id}`,
+      customer: customerParts.length ? customerParts.join(' · ') : `Order #${row.id}`,
       payment_status: row.payment_status || 'paid',
-      payment_method: row.payment_method || '—',
+      payment_method: row.payment_method || '',
+      payment_label: paymentLabel(row.payment_method),
       status: row.status,
     };
   });
@@ -365,9 +458,13 @@ router.get('/revenue-tax', (req, res) => {
     totalRevenue,
     taxSetAside,
     netAfterSetAside: Math.round((totalRevenue - taxSetAside) * 100) / 100,
-    orderCount: orders.length,
+    orderCount,
+    averageOrderValue,
+    calendarYtd: showCalendarYtd ? calendarYtd : null,
+    calendarYear: showCalendarYtd ? now.getUTCFullYear() : null,
     months,
     orders,
+    productAnalytics,
     disclaimer: 'For planning only. Consult a qualified tax professional.',
   });
 });
