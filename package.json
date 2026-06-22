@@ -6,7 +6,7 @@
   "scripts": {
     "prestart": "node scripts/verify-boot-encoding.js",
     "start": "node server.js",
-    "test": "node scripts/verify-boot-encoding.js && node scripts/test-tier1-guest-access.js && node scripts/test-module1-preview-access.js && node scripts/test-packet-render.js && node scripts/test-admin-tab-loaders.js && node scripts/test-revenue-tax.js",
+    "test": "node scripts/verify-boot-encoding.js && node scripts/test-tier1-guest-access.js && node scripts/test-module1-preview-access.js && node scripts/test-packet-render.js && node scripts/test-admin-tab-loaders.js && node scripts/test-storage-health.js && node scripts/test-revenue-tax.js",
     "logo:transparent": "node scripts/logo-transparent-bg.js"
   },
   "keywords": [],

@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../db/database');
 const micBadge = require('../lib/micBadge');
+const { getStorageHealth } = require('../lib/storageHealth');
 const subscriptionRouter = require('./subscription');
 
 const router = express.Router();
@@ -158,6 +159,11 @@ function paymentLabel(method) {
   if (!m) return 'Manual / legacy';
   return method;
 }
+
+// GET /api/admin/storage-health — uploads volume + legacy broken image refs
+router.get('/storage-health', (req, res) => {
+  res.json(getStorageHealth(db));
+});
 
 // GET /api/admin/stats
 router.get('/stats', (req, res) => {

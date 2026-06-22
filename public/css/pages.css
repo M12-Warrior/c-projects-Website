@@ -1275,6 +1275,48 @@ body.forum-coffee-shop .forum-category-header .page-title {
   display: block;
   margin-top: 4px;
 }
+.admin-storage-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+.admin-storage-banner.hidden {
+  display: none;
+}
+.admin-storage-banner-text {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--text-1, #f5f5f5);
+}
+.admin-storage-banner-error {
+  border-color: rgba(231, 76, 60, 0.55);
+  background: rgba(231, 76, 60, 0.12);
+}
+.admin-storage-banner-warn {
+  border-color: rgba(230, 126, 34, 0.55);
+  background: rgba(230, 126, 34, 0.12);
+}
+.admin-storage-banner-info {
+  border-color: rgba(52, 152, 219, 0.45);
+  background: rgba(52, 152, 219, 0.1);
+}
+.admin-storage-banner-dismiss {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
 .admin-stat-clickable {
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;

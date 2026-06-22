@@ -103,6 +103,7 @@
       </div>
 
       <div id="tabDashboard" class="admin-tab-content">
+        <div id="adminStorageBanner" class="admin-storage-banner hidden" role="status" aria-live="polite"></div>
         <div class="admin-grid" id="dashboardStats"></div>
         <div class="admin-section">
           <h3>Recent Users</h3>
@@ -954,12 +955,57 @@
         bindStat('dashboardStatUsers', 'users');
       }
 
+      function renderAdminStorageBanner(data) {
+        var banner = document.getElementById('adminStorageBanner');
+        if (!banner || !data) return;
+        var severity = data.severity || 'ok';
+        if (severity === 'ok') {
+          banner.className = 'admin-storage-banner hidden';
+          banner.innerHTML = '';
+          return;
+        }
+        if (severity === 'info' && sessionStorage.getItem('adminStorageInfoDismissed') === '1') {
+          banner.className = 'admin-storage-banner hidden';
+          banner.innerHTML = '';
+          return;
+        }
+        var issues = data.issues || [];
+        var message = issues.length ? issues.map(function (issue) { return issue.message; }).join(' ') : 'Image storage needs attention.';
+        var className = 'admin-storage-banner admin-storage-banner-' + severity;
+        var dismissBtn = severity === 'info'
+          ? '<button type="button" class="admin-storage-banner-dismiss" aria-label="Dismiss image storage notice">&times;</button>'
+          : '';
+        banner.className = className;
+        banner.innerHTML =
+          '<p class="admin-storage-banner-text">' + escapeHtml(message) + '</p>' +
+          dismissBtn;
+        if (severity === 'info') {
+          var dismissEl = banner.querySelector('.admin-storage-banner-dismiss');
+          if (dismissEl) {
+            dismissEl.addEventListener('click', function () {
+              sessionStorage.setItem('adminStorageInfoDismissed', '1');
+              banner.className = 'admin-storage-banner hidden';
+              banner.innerHTML = '';
+            });
+          }
+        }
+      }
+
+      async function loadStorageHealthBanner() {
+        try {
+          var res = await fetch('/api/admin/storage-health', { credentials: 'include' });
+          if (!res.ok) return;
+          renderAdminStorageBanner(await res.json());
+        } catch (_) {}
+      }
+
       async function loadDashboard() {
         const statsEl = document.getElementById('dashboardStats');
         const usersEl = document.getElementById('recentUsersTable');
         const ordersEl = document.getElementById('recentOrdersTable');
         const thankYouEl = document.getElementById('recentThankYouTable');
         const thankYouNone = document.getElementById('recentThankYouNone');
+        loadStorageHealthBanner();
         try {
           const res = await fetch('/api/admin/stats', { credentials: 'include' });
           if (!res.ok) throw new Error('Failed');
