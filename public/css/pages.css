@@ -1375,6 +1375,7 @@ body.forum-coffee-shop .forum-category-header .page-title {
   flex-wrap: wrap;
   gap: 4px;
   margin-bottom: 24px;
+  padding-top: 12px;
   max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
