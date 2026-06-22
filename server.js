@@ -190,6 +190,7 @@ app.use('/api/thank-you', require('./routes/thank-you'));
 app.use('/api/course', require('./routes/course'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/cms', require('./routes/cms'));
+app.use('/api/qr', require('./routes/qr'));
 
 // Auth helpers
 const requireLogin = (req, res, next) => {

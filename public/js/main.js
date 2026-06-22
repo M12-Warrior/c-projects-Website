@@ -765,4 +765,37 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+  initFooterQr();
 });
+
+function initFooterQr() {
+  if (/^\/(admin|login|register|forgot-password|reset-password)(\/|$)/.test(window.location.pathname)) return;
+  var footer = document.querySelector('footer.footer');
+  if (!footer || footer.querySelector('.footer-qr-block')) return;
+
+  var block = document.createElement('div');
+  block.className = 'footer-qr-block';
+  block.innerHTML =
+    '<div class="footer-qr-card">' +
+      '<img class="footer-qr-image" src="/api/qr?preset=forum-lounge&amp;size=168" width="168" height="168" alt="QR code — scan to join the Mile 12 Warrior Truckers Lounge" loading="lazy">' +
+      '<div class="footer-qr-copy">' +
+        '<p class="footer-qr-title">Scan to join Mile 12 Warrior</p>' +
+        '<p class="footer-qr-text">Visit our Truckers Lounge — the Coffee Shop on the forum. Pull up a seat and connect with fellow drivers.</p>' +
+        '<a href="/forum/category/general" class="footer-qr-link">Open Coffee Shop &rarr;</a>' +
+      '</div>' +
+    '</div>';
+
+  var footerTop = footer.querySelector('.footer-top');
+  if (footerTop) {
+    footerTop.appendChild(block);
+    return;
+  }
+  var container = footer.querySelector('.container') || footer;
+  var footerBottom = footer.querySelector('.footer-bottom');
+  if (footerBottom) {
+    footerBottom.parentNode.insertBefore(block, footerBottom);
+  } else {
+    container.insertBefore(block, container.firstChild);
+  }
+}

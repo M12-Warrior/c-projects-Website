@@ -1205,6 +1205,63 @@ a:hover { color: var(--gold-light); }
 
 .footer-social a:hover { color: var(--blue); }
 
+.footer-qr-block {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.footer-qr-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.06), rgba(251, 191, 36, 0.05));
+  max-width: 520px;
+}
+
+.footer-qr-image {
+  flex: 0 0 auto;
+  width: 168px;
+  height: 168px;
+  border-radius: 12px;
+  background: #fff;
+  padding: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.footer-qr-copy {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.footer-qr-title {
+  margin: 0 0 8px;
+  font-family: var(--font);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.footer-qr-text {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--text-3);
+}
+
+.footer-qr-link {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gold);
+  transition: color 0.2s;
+}
+
+.footer-qr-link:hover { color: var(--blue); }
+
 .footer-bottom {
   padding-top: 24px;
   border-top: 1px solid var(--border);

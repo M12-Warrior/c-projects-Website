@@ -1338,6 +1338,58 @@ body.forum-coffee-shop .forum-category-header .page-title {
   padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
 }
+.admin-share-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+.admin-share-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.admin-share-qr {
+  flex: 0 0 auto;
+  width: 200px;
+  height: 200px;
+  border-radius: 10px;
+  background: #fff;
+  padding: 8px;
+}
+.admin-share-meta {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.admin-share-meta h4 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.admin-share-meta p {
+  margin: 0 0 10px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.admin-share-url {
+  word-break: break-all;
+  font-size: 0.82rem !important;
+}
+.admin-share-url a {
+  color: var(--gold);
+}
+.admin-share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
 .admin-table {
   width: 100%;
   border-collapse: collapse;
