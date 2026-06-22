@@ -693,13 +693,56 @@
         return '<span class="' + adminMicBadgeClasses(tier, color, lit) + '" title="Color: ' + escapeHtml(colorLabel) + ', ' + litLabel + '">' + CB_MIC_SVG + '</span>';
       }
 
-      function showToast(msg, success) {
-        const el = document.getElementById('toast');
+      var toastHideTimer = null;
+
+      function hideToast() {
+        var el = document.getElementById('toast');
         if (!el) return;
-        el.textContent = msg;
-        el.className = 'toast toast-' + (success ? 'success' : 'error');
+        el.classList.remove('show');
+        if (toastHideTimer) {
+          clearTimeout(toastHideTimer);
+          toastHideTimer = null;
+        }
+      }
+
+      function showToast(msg, success, opts) {
+        opts = opts || {};
+        var el = document.getElementById('toast');
+        if (!el) return;
+        if (opts.suppressIfStorageBanner) {
+          var storageBanner = document.getElementById('adminStorageBanner');
+          if (storageBanner && !storageBanner.classList.contains('hidden')) return;
+        }
+        if (toastHideTimer) {
+          clearTimeout(toastHideTimer);
+          toastHideTimer = null;
+        }
+        var isError = !success;
+        var text = String(msg || '');
+        var longMsg = text.length > 80;
+        var duration = opts.duration;
+        if (duration === undefined) {
+          if (opts.persistent || (isError && longMsg)) duration = 0;
+          else if (isError) duration = 20000;
+          else duration = 6000;
+        }
+        el.innerHTML = '';
+        var textEl = document.createElement('span');
+        textEl.className = 'toast-text';
+        textEl.textContent = text;
+        el.appendChild(textEl);
+        var dismissBtn = document.createElement('button');
+        dismissBtn.type = 'button';
+        dismissBtn.className = 'toast-dismiss';
+        dismissBtn.setAttribute('aria-label', 'Dismiss notification');
+        dismissBtn.innerHTML = '&times;';
+        dismissBtn.addEventListener('click', hideToast);
+        el.appendChild(dismissBtn);
+        el.className = 'toast toast-' + (success ? 'success' : 'error') + (longMsg ? ' toast-long' : '');
         el.classList.add('show');
-        setTimeout(function() { el.classList.remove('show'); }, 2500);
+        if (duration > 0) {
+          toastHideTimer = setTimeout(hideToast, duration);
+        }
       }
 
       function confirmAction(msg) {

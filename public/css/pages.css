@@ -1882,19 +1882,46 @@ body.forum-coffee-shop .forum-category-header .page-title {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  padding: 14px 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: min(420px, calc(100vw - 48px));
+  padding: 14px 16px;
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text);
   font-size: 0.88rem;
+  line-height: 1.45;
   z-index: 10001;
   transform: translateY(100px);
   opacity: 0;
   transition: all 0.3s var(--ease);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 .toast.show {
   transform: translateY(0);
+  opacity: 1;
+}
+.toast.toast-long {
+  max-width: min(520px, calc(100vw - 48px));
+}
+.toast-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.toast-dismiss {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+  opacity: 0.75;
+}
+.toast-dismiss:hover {
   opacity: 1;
 }
 .toast.toast-success {

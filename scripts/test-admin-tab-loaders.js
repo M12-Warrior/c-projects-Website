@@ -99,5 +99,23 @@ if (!/kind:\s*'course'/.test(adminJs)) {
   ok('admin packet catalog includes full course');
 }
 
+if (!/function hideToast\(/.test(adminHtml) || !/toast-dismiss/.test(adminHtml)) {
+  fail('admin showToast should include dismiss button and hideToast helper');
+} else {
+  ok('admin toast has dismiss control');
+}
+
+if (!/duration = 20000/.test(adminHtml) || !/duration = 6000/.test(adminHtml)) {
+  fail('admin error toasts should stay visible longer than success toasts');
+} else {
+  ok('admin toast durations favor readability');
+}
+
+if (/loadStorageHealthBanner[\s\S]{0,400}showToast/.test(adminHtml)) {
+  fail('storage health should use dashboard banner only, not a fleeting toast');
+} else {
+  ok('storage health uses banner not toast');
+}
+
 if (process.exitCode) process.exit(process.exitCode);
 console.log('All admin tab loader checks passed.');
