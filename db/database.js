@@ -441,6 +441,19 @@ try {
   `).run();
 } catch (_) {}
 
+// Legacy checkout: mark fulfilled orders as paid so revenue/tax and mic badge stay consistent.
+try {
+  db.prepare(`
+    UPDATE orders
+    SET payment_status = 'paid',
+        paid_at = COALESCE(paid_at, created_at)
+    WHERE LOWER(COALESCE(status, '')) IN ('completed', 'processing', 'shipped', 'delivered', 'paid')
+      AND COALESCE(payment_status, '') IN ('', 'pending')
+      AND COALESCE(total, 0) > 0
+      AND LOWER(COALESCE(status, '')) != 'cancelled'
+  `).run();
+} catch (_) {}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS download_events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -356,11 +356,19 @@
             <thead><tr><th>Product</th><th>Units sold</th><th>Revenue</th><th>Last sale</th></tr></thead>
             <tbody id="revenueProductsTable"></tbody>
           </table>
-          <h4 style="margin:18px 0 8px 0;font-size:0.95rem;">Paid orders</h4>
+          <h4 style="margin:18px 0 8px 0;font-size:0.95rem;">Paid orders (selected fiscal year)</h4>
           <table class="admin-table">
             <thead><tr><th>Date</th><th>Order</th><th>Customer</th><th>Products</th><th>Total</th><th>Payment</th><th>Status</th><th>Receipt</th></tr></thead>
             <tbody id="revenueOrdersTable"></tbody>
           </table>
+          <div id="revenueCalendarOrdersSection" class="hidden" style="margin-top:18px;">
+            <h4 style="margin:0 0 8px 0;font-size:0.95rem;">Calendar YTD orders (Jan–today)</h4>
+            <p id="revenueCalendarNote" style="font-size:0.82rem;color:var(--text-2);margin:0 0 8px 0;"></p>
+            <table class="admin-table">
+              <thead><tr><th>Date</th><th>Order</th><th>Customer</th><th>Products</th><th>Total</th><th>Payment</th><th>Status</th><th>Receipt</th></tr></thead>
+              <tbody id="revenueCalendarOrdersTable"></tbody>
+            </table>
+          </div>
           <p style="font-size:0.82rem;color:var(--text-3);margin-top:10px;">Paid orders only (Stripe and legacy checkout). Planning estimate only — consult a tax professional for filing and compliance.</p>
         </div>
       </div>
@@ -2303,6 +2311,9 @@
         const ordersEl = document.getElementById('revenueOrdersTable');
         const productsEl = document.getElementById('revenueProductsTable');
         const noteEl = document.getElementById('revenueFiscalNote');
+        const calendarSection = document.getElementById('revenueCalendarOrdersSection');
+        const calendarOrdersEl = document.getElementById('revenueCalendarOrdersTable');
+        const calendarNoteEl = document.getElementById('revenueCalendarNote');
         if (!statsEl || !tableEl) return;
         try {
           var url = '/api/admin/revenue-tax?tax_rate=' + encodeURIComponent(taxRate);
@@ -2313,7 +2324,13 @@
             var start = data.fiscalStart ? new Date(data.fiscalStart) : null;
             var end = data.fiscalEnd ? new Date(data.fiscalEnd) : null;
             var range = start && end ? (start.toLocaleDateString() + ' – ' + end.toLocaleDateString()) : '';
-            noteEl.textContent = 'Fiscal year FY' + (data.fiscalYear || fy) + (range ? ' (' + range + ')' : '') + '. Summary cards below show paid orders only (Stripe and manual checkout). Use the fiscal year dropdown to see other years.';
+            noteEl.textContent = 'Fiscal year FY' + (data.fiscalYear || fy) + (range ? ' (' + range + ')' : '') + '. Revenue, tax set-aside, monthly totals, and the fiscal-year order list below all use the same paid orders for the selected fiscal year. Calendar YTD (when shown) uses Jan 1–today and may include orders from a prior fiscal year — use the calendar order list or switch the fiscal year dropdown.';
+          }
+          function renderRevenueOrderRows(list) {
+            return (list || []).map(function(o) {
+              var pay = (o.payment_label || orderPaymentLabel(o.payment_method)) + ' · ' + (o.payment_status || 'paid');
+              return '<tr><td>' + formatDate(o.revenue_date) + '</td><td><a href="/shop/order/' + escapeHtml(String(o.id)) + '" target="_blank" rel="noopener noreferrer">#' + o.id + '</a></td><td>' + escapeHtml(o.customer || '—') + '</td><td>' + escapeHtml(o.products || '—') + '</td><td>' + formatPrice(o.total) + '</td><td>' + escapeHtml(pay) + '</td><td>' + escapeHtml(o.status || '—') + '</td><td><a href="/shop/order/' + escapeHtml(String(o.id)) + '" target="_blank" rel="noopener noreferrer" class="admin-btn">Receipt</a></td></tr>';
+            }).join('');
           }
           var statsHtml =
             '<div class="admin-stat"><span class="admin-stat-num">' + formatPrice(data.totalRevenue || 0) + '</span><span class="admin-stat-label">Fiscal year revenue</span></div>' +
@@ -2336,16 +2353,31 @@
             }).join('') || '<tr><td colspan="4">No product sales in this fiscal year.</td></tr>';
           }
           if (ordersEl) {
-            ordersEl.innerHTML = (data.orders || []).map(function(o) {
-              var pay = (o.payment_label || orderPaymentLabel(o.payment_method)) + ' · ' + (o.payment_status || 'paid');
-              return '<tr><td>' + formatDate(o.revenue_date) + '</td><td><a href="/shop/order/' + escapeHtml(String(o.id)) + '" target="_blank" rel="noopener noreferrer">#' + o.id + '</a></td><td>' + escapeHtml(o.customer || '—') + '</td><td>' + escapeHtml(o.products || '—') + '</td><td>' + formatPrice(o.total) + '</td><td>' + escapeHtml(pay) + '</td><td>' + escapeHtml(o.status || '—') + '</td><td><a href="/shop/order/' + escapeHtml(String(o.id)) + '" target="_blank" rel="noopener noreferrer" class="admin-btn">Receipt</a></td></tr>';
-            }).join('') || '<tr><td colspan="8">No paid orders in this fiscal year.</td></tr>';
+            ordersEl.innerHTML = renderRevenueOrderRows(data.orders) || '<tr><td colspan="8">No paid orders in this fiscal year.</td></tr>';
+          }
+          if (calendarSection && calendarOrdersEl) {
+            var showCalendarList = data.calendarYtd && Array.isArray(data.calendarYtdOrders);
+            if (showCalendarList) {
+              calendarSection.classList.remove('hidden');
+              calendarOrdersEl.innerHTML = renderRevenueOrderRows(data.calendarYtdOrders) || '<tr><td colspan="8">No calendar YTD orders.</td></tr>';
+              if (calendarNoteEl) {
+                var priorCount = (data.calendarYtd.orderCount || 0) - (data.orderCount || 0);
+                calendarNoteEl.textContent = 'Calendar ' + (data.calendarYear || '') + ' YTD total ' + formatPrice(data.calendarYtd.total || 0) + ' across ' + (data.calendarYtd.orderCount || 0) + ' order(s).'
+                  + (priorCount > 0 ? ' ' + priorCount + ' order(s) fall before May 1 and appear here but not in the fiscal-year list above — select the matching prior fiscal year to include them in tax totals.' : ' Totals match the listed calendar YTD orders.');
+              }
+            } else {
+              calendarSection.classList.add('hidden');
+              calendarOrdersEl.innerHTML = '';
+              if (calendarNoteEl) calendarNoteEl.textContent = '';
+            }
           }
         } catch (_) {
           statsEl.innerHTML = '<p class="text-muted">Could not load fiscal revenue.</p>';
           tableEl.innerHTML = '<tr><td colspan="4">Could not load.</td></tr>';
           if (productsEl) productsEl.innerHTML = '<tr><td colspan="4">Could not load.</td></tr>';
           if (ordersEl) ordersEl.innerHTML = '<tr><td colspan="8">Could not load.</td></tr>';
+          if (calendarSection) calendarSection.classList.add('hidden');
+          if (calendarOrdersEl) calendarOrdersEl.innerHTML = '<tr><td colspan="8">Could not load.</td></tr>';
         }
       }
 

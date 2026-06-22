@@ -76,6 +76,9 @@ function dateBoundsSql(start, end) {
   return fiscalBoundsSql({ start, end });
 }
 
+/** Fulfillment statuses that mean revenue was collected (legacy checkout before payment_status). */
+const PAID_FULFILLMENT_STATUSES = "'completed', 'processing', 'shipped', 'delivered', 'paid'";
+
 /** Paid orders: Stripe/legacy checkout plus admin-marked paid; excludes abandoned carts. */
 const PAID_ORDER_SQL = `
   LOWER(COALESCE(status, '')) != 'cancelled'
@@ -83,7 +86,7 @@ const PAID_ORDER_SQL = `
     LOWER(COALESCE(payment_status, '')) = 'paid'
     OR (
       LOWER(COALESCE(payment_status, '')) IN ('', 'pending')
-      AND LOWER(COALESCE(status, '')) IN ('completed', 'processing', 'shipped', 'delivered')
+      AND LOWER(COALESCE(status, '')) IN (${PAID_FULFILLMENT_STATUSES})
       AND COALESCE(total, 0) > 0
     )
   )
@@ -158,6 +161,56 @@ function paymentLabel(method) {
   if (m === 'stripe') return 'Stripe';
   if (!m) return 'Manual / legacy';
   return method;
+}
+
+const paidOrderItemStmt = db.prepare(`
+  SELECT p.name, oi.quantity, oi.price
+  FROM order_items oi
+  JOIN products p ON p.id = oi.product_id
+  WHERE oi.order_id = ?
+  ORDER BY oi.id ASC
+`);
+
+function fetchPaidOrderRows(startStr, endStr) {
+  return db.prepare(`
+    SELECT o.id, o.total, o.status, o.payment_status, o.payment_method,
+           COALESCE(o.paid_at, o.created_at) AS revenue_date,
+           u.username, u.email
+    FROM orders o
+    LEFT JOIN users u ON u.id = o.user_id
+    WHERE ${PAID_ORDER_SQL_O}
+      AND ${REVENUE_DATE_EXPR_O} >= datetime(?)
+      AND ${REVENUE_DATE_EXPR_O} <= datetime(?)
+    ORDER BY revenue_date DESC, o.id DESC
+  `).all(startStr, endStr);
+}
+
+function mapPaidOrderRows(orderRows) {
+  return (orderRows || []).map((row) => {
+    const items = paidOrderItemStmt.all(row.id);
+    const products = items.map((it) => {
+      const qty = it.quantity > 1 ? ` ×${it.quantity}` : '';
+      return `${it.name}${qty}`;
+    }).join(', ');
+    const customerParts = [];
+    if (row.username) customerParts.push(row.username);
+    if (row.email) customerParts.push(row.email);
+    return {
+      id: row.id,
+      revenue_date: row.revenue_date,
+      total: row.total,
+      products: products || '—',
+      customer: customerParts.length ? customerParts.join(' · ') : `Order #${row.id}`,
+      payment_status: row.payment_status || 'paid',
+      payment_method: row.payment_method || '',
+      payment_label: paymentLabel(row.payment_method),
+      status: row.status,
+    };
+  });
+}
+
+function sumOrderTotals(orders) {
+  return Math.round((orders || []).reduce((sum, row) => sum + Number(row.total || 0), 0) * 100) / 100;
 }
 
 // GET /api/admin/storage-health — uploads volume + legacy broken image refs
@@ -399,17 +452,12 @@ router.get('/revenue-tax', (req, res) => {
   const calendarYtd = paidRevenueSummary(calendarBounds.startStr, calendarBounds.endStr);
   const showCalendarYtd = fiscalYear === getCurrentFiscalYear(now);
 
-  const orderRows = db.prepare(`
-    SELECT o.id, o.total, o.status, o.payment_status, o.payment_method,
-           COALESCE(o.paid_at, o.created_at) AS revenue_date,
-           u.username, u.email
-    FROM orders o
-    LEFT JOIN users u ON u.id = o.user_id
-    WHERE ${PAID_ORDER_SQL_O}
-      AND ${REVENUE_DATE_EXPR_O} >= datetime(?)
-      AND ${REVENUE_DATE_EXPR_O} <= datetime(?)
-    ORDER BY revenue_date DESC, o.id DESC
-  `).all(startStr, endStr);
+  const orderRows = fetchPaidOrderRows(startStr, endStr);
+  const orders = mapPaidOrderRows(orderRows);
+  const calendarOrderRows = showCalendarYtd
+    ? fetchPaidOrderRows(calendarBounds.startStr, calendarBounds.endStr)
+    : [];
+  const calendarYtdOrders = showCalendarYtd ? mapPaidOrderRows(calendarOrderRows) : [];
 
   const productAnalytics = db.prepare(`
     SELECT p.name AS product_name,
@@ -426,35 +474,6 @@ router.get('/revenue-tax', (req, res) => {
     ORDER BY revenue DESC, p.name ASC
   `).all(startStr, endStr);
 
-  const itemStmt = db.prepare(`
-    SELECT p.name, oi.quantity, oi.price
-    FROM order_items oi
-    JOIN products p ON p.id = oi.product_id
-    WHERE oi.order_id = ?
-    ORDER BY oi.id ASC
-  `);
-  const orders = orderRows.map((row) => {
-    const items = itemStmt.all(row.id);
-    const products = items.map((it) => {
-      const qty = it.quantity > 1 ? ` ×${it.quantity}` : '';
-      return `${it.name}${qty}`;
-    }).join(', ');
-    const customerParts = [];
-    if (row.username) customerParts.push(row.username);
-    if (row.email) customerParts.push(row.email);
-    return {
-      id: row.id,
-      revenue_date: row.revenue_date,
-      total: row.total,
-      products: products || '—',
-      customer: customerParts.length ? customerParts.join(' · ') : `Order #${row.id}`,
-      payment_status: row.payment_status || 'paid',
-      payment_method: row.payment_method || '',
-      payment_label: paymentLabel(row.payment_method),
-      status: row.status,
-    };
-  });
-
   res.json({
     fiscalYear,
     fiscalStart: window.start.toISOString(),
@@ -468,6 +487,13 @@ router.get('/revenue-tax', (req, res) => {
     averageOrderValue,
     calendarYtd: showCalendarYtd ? calendarYtd : null,
     calendarYear: showCalendarYtd ? now.getUTCFullYear() : null,
+    calendarYtdOrders: showCalendarYtd ? calendarYtdOrders : null,
+    calendarYtdMatchesListedOrders: showCalendarYtd
+      ? Math.abs(sumOrderTotals(calendarYtdOrders) - calendarYtd.total) < 0.01
+        && calendarYtdOrders.length === calendarYtd.orderCount
+      : null,
+    fiscalTotalsMatchListedOrders: Math.abs(sumOrderTotals(orders) - totalRevenue) < 0.01
+      && orders.length === orderCount,
     months,
     orders,
     productAnalytics,
