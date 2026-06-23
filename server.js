@@ -191,6 +191,7 @@ app.use('/api/course', require('./routes/course'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/cms', require('./routes/cms'));
 app.use('/api/qr', require('./routes/qr'));
+app.use('/api/wellness', require('./routes/wellness'));
 
 // Auth helpers
 const requireLogin = (req, res, next) => {
@@ -219,6 +220,10 @@ app.get('/packets/new-driver', (req, res) => {
 
 app.get('/services', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'services.html'));
+});
+
+app.get('/wellness', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'wellness.html'));
 });
 
 app.get('/blog', (req, res) => {

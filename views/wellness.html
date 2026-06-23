@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wellness Partners - Mile 12 Warrior</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <style>
+    .wellness-hero{text-align:center;padding:12px 0 36px}
+    .wellness-partner-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:32px}
+    .wellness-partner-grid{display:grid;grid-template-columns:280px 1fr}
+    .wellness-partner-media{min-height:280px;background:linear-gradient(145deg,rgba(99,102,241,0.12),rgba(34,197,94,0.08));border-right:1px solid var(--border);display:flex;align-items:center;justify-content:center}
+    .wellness-partner-media img{width:100%;height:100%;object-fit:cover;display:block;min-height:280px}
+    .wellness-partner-placeholder{text-align:center;padding:24px;color:var(--text-3)}
+    .wellness-partner-body{padding:32px 36px}
+    .wellness-brand-title{font-family:var(--font);font-size:1.75rem;font-weight:700;letter-spacing:.06em;margin-bottom:4px}
+    .wellness-brand-subtitle{font-family:var(--font);font-size:1.15rem;font-weight:600;color:var(--blue);margin-bottom:6px}
+    .wellness-cert-note{font-size:.78rem;color:var(--text-3);margin-bottom:16px}
+    .wellness-intro{font-size:.92rem;color:var(--text-2);line-height:1.75;margin-bottom:20px;max-width:640px}
+    .wellness-services{list-style:none;padding:0;margin:0 0 24px;display:grid;grid-template-columns:1fr 1fr;gap:6px 20px}
+    .wellness-services li{font-size:.86rem;color:var(--text-2);padding:4px 0 4px 18px;position:relative}
+    .wellness-services li::before{content:'*';position:absolute;left:0;color:var(--green);font-weight:700}
+    .wellness-meta{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;margin-bottom:24px;font-size:.88rem;color:var(--text-2);line-height:1.6}
+    .wellness-meta strong{color:var(--text);display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+    .wellness-meta a{color:var(--gold);text-decoration:none}
+    .wellness-cta-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+    .wellness-walk-in{font-size:.82rem;color:var(--text-3);margin:0}
+    .wellness-disclaimer{margin-top:40px;padding:20px 24px;border:1px solid var(--border);border-radius:var(--radius);background:rgba(255,255,255,.02);font-size:.82rem;color:var(--text-3);line-height:1.65}
+    .wellness-empty{text-align:center;padding:48px 24px;color:var(--text-2)}
+    @media(max-width:768px){.wellness-partner-grid{grid-template-columns:1fr}.wellness-partner-media{min-height:200px;border-right:none;border-bottom:1px solid var(--border)}.wellness-partner-body{padding:24px 20px}.wellness-services,.wellness-meta{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo"><img src="/images/logo.png" alt="Mile 12 Warrior" class="nav-logo-img"></a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+  <main class="page-shell">
+    <div class="page-container">
+      <div class="wellness-hero">
+        <h1 class="page-title">Wellness Partners</h1>
+        <p class="page-subtitle">Trusted collaborators who support driver health - muscle recovery, circulation, fatigue relief, and the wear-and-tear that comes with life on the road. Mile 12 Warrior connects our community with independent wellness providers; we do not provide medical services.</p>
+      </div>
+      <div id="wellnessPartnersList" aria-live="polite"><p class="wellness-empty">Loading wellness partners...</p></div>
+      <div class="wellness-disclaimer"><strong>Wellness collaboration - not medical advice.</strong> Listings on this page are independent businesses. Mile 12 Warrior does not diagnose, treat, or guarantee outcomes. Always consult your healthcare provider for medical concerns.</div>
+    </div>
+  </main>
+  <footer class="footer"><div class="container"><div class="footer-top"><nav class="footer-nav"><a href="/about">About</a><a href="/services">Services</a><a href="/wellness">Wellness Partners</a><a href="/contact">Contact</a></nav></div></div></footer>
+  <script src="/js/wellness-page.js"></script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

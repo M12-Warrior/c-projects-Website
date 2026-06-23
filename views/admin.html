@@ -89,6 +89,7 @@
         <button type="button" class="admin-tab" data-tab="forum">Forum</button>
         <button type="button" class="admin-tab" data-tab="shop">Shop</button>
         <button type="button" class="admin-tab" data-tab="services">Services page</button>
+        <button type="button" class="admin-tab" data-tab="partners">Wellness Partners</button>
         <button type="button" class="admin-tab" data-tab="completions">Completions</button>
         <button type="button" class="admin-tab" data-tab="traffic">Traffic</button>
         <button type="button" class="admin-tab" data-tab="revenue">Revenue &amp; Tax</button>
@@ -309,6 +310,17 @@
             <div class="flex-between mt-16" style="flex-wrap:wrap;gap:10px;">
               <button type="button" class="btn btn-primary" id="cmsServicesSaveBtn">Save services page</button>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tabPartners" class="admin-tab-content hidden">
+        <div class="admin-section">
+          <h3>Wellness Partners</h3>
+          <p style="color:var(--text-2);font-size:0.9rem;margin-bottom:16px;">Edit collaborator listings shown on the public <a href="/wellness">/wellness</a> page. Update <strong>Website URL</strong> when the partner&apos;s new domain is ready. Upload a photo to <code>/uploads/</code> or paste a path.</p>
+          <p id="partnersUpdated" class="text-muted" style="font-size:0.85rem;margin-bottom:12px;"></p>
+          <div id="partnersEditor" class="profile-section" style="max-width:720px;">
+            <p class="text-muted">Loading partner...</p>
           </div>
         </div>
       </div>
@@ -2270,6 +2282,115 @@
         }
       }
 
+      var partnersEditorState = { id: null };
+
+      function renderPartnersEditor(partner) {
+        var el = document.getElementById('partnersEditor');
+        if (!el || !partner) return;
+        partnersEditorState.id = partner.id;
+        var servicesText = (partner.services || []).join('\n');
+        el.innerHTML =
+          '<h4 style="margin-top:0;">' + escapeHtml(partner.display_subtitle || partner.display_title || 'Partner') + '</h4>' +
+          '<div class="form-group"><label class="form-label">Large headline (display title)</label><input type="text" id="wpDisplayTitle" class="form-input" value="' + escapeHtml(partner.display_title || '') + '"></div>' +
+          '<div class="form-group"><label class="form-label">Subtitle / business name</label><input type="text" id="wpDisplaySubtitle" class="form-input" value="' + escapeHtml(partner.display_subtitle || '') + '"></div>' +
+          '<div class="form-group"><label class="form-label">URL slug (internal)</label><input type="text" id="wpSlug" class="form-input" value="' + escapeHtml(partner.slug || '') + '"></div>' +
+          '<div class="form-group"><label class="form-label">Certification line (optional, small print)</label><input type="text" id="wpCertNote" class="form-input" value="' + escapeHtml(partner.cert_note || '') + '" placeholder="Certified Massage Therapist"></div>' +
+          '<div class="form-group"><label class="form-label">Intro copy</label><textarea id="wpIntroCopy" class="form-input" rows="4">' + escapeHtml(partner.intro_copy || '') + '</textarea></div>' +
+          '<div class="form-group"><label class="form-label">Phone</label><input type="text" id="wpPhone" class="form-input" value="' + escapeHtml(partner.phone || '') + '"></div>' +
+          '<div class="form-group"><label class="form-label">Address</label><input type="text" id="wpAddress" class="form-input" value="' + escapeHtml(partner.address || '') + '"></div>' +
+          '<div class="form-group"><label class="form-label">Hours</label><input type="text" id="wpHours" class="form-input" value="' + escapeHtml(partner.hours || '') + '"></div>' +
+          '<div class="form-group"><label class="form-label">Website URL</label><input type="url" id="wpWebsiteUrl" class="form-input" value="' + escapeHtml(partner.website_url || '') + '" placeholder="https://example.com"></div>' +
+          '<div class="form-group"><label class="form-label">Google Maps URL</label><input type="url" id="wpMapsUrl" class="form-input" value="' + escapeHtml(partner.maps_url || '') + '"></div>' +
+          '<div class="form-group"><label class="form-label">Services (one per line)</label><textarea id="wpServices" class="form-input" rows="5">' + escapeHtml(servicesText) + '</textarea></div>' +
+          '<div class="form-group"><label class="form-label">Walk-in note</label><input type="text" id="wpWalkInNote" class="form-input" value="' + escapeHtml(partner.walk_in_note || '') + '"></div>' +
+          '<div class="form-group"><label class="form-label">Partner image (URL or /uploads/ path)</label><input type="text" id="wpImagePath" class="form-input" value="' + escapeHtml(partner.image_path || '') + '" placeholder="/uploads/partner-photo.jpg"></div>' +
+          '<div class="form-group"><input type="file" id="wpImageFile" accept="image/*" class="hidden"><button type="button" class="btn btn-glass" id="wpImageUploadBtn">Upload partner photo</button></div>' +
+          '<div class="form-group"><label class="form-label"><input type="checkbox" id="wpActive"' + (partner.active ? ' checked' : '') + '> Listing active (visible on /wellness)</label></div>' +
+          '<div class="flex-between mt-16" style="flex-wrap:wrap;gap:10px;">' +
+            '<button type="button" class="btn btn-primary" id="wpSaveBtn">Save partner</button>' +
+            '<a href="/wellness" class="btn btn-secondary" target="_blank" rel="noopener">Preview public page</a>' +
+          '</div>';
+      }
+
+      async function loadPartners() {
+        var note = document.getElementById('partnersUpdated');
+        var el = document.getElementById('partnersEditor');
+        if (!el) return;
+        try {
+          var r = await fetch('/api/admin/wellness/partners', { credentials: 'include' });
+          if (!r.ok) throw new Error('Failed');
+          var data = await r.json();
+          var partners = (data && data.partners) || [];
+          if (!partners.length) {
+            el.innerHTML = '<p class="text-muted">No wellness partners in the database yet.</p>';
+            if (note) note.textContent = '';
+            return;
+          }
+          var partner = partners[0];
+          if (note) note.textContent = partner.updated_at ? ('Last saved: ' + partner.updated_at) : '';
+          renderPartnersEditor(partner);
+        } catch (_) {
+          el.innerHTML = '<p class="text-muted">Could not load wellness partners.</p>';
+        }
+        if (!window._partnersTabBindOnce) {
+          window._partnersTabBindOnce = true;
+          document.getElementById('tabPartners').addEventListener('click', async function(ev) {
+            if (ev.target && ev.target.id === 'wpSaveBtn') {
+              if (!partnersEditorState.id) return;
+              var payload = {
+                display_title: (document.getElementById('wpDisplayTitle') || {}).value || '',
+                display_subtitle: (document.getElementById('wpDisplaySubtitle') || {}).value || '',
+                slug: (document.getElementById('wpSlug') || {}).value || '',
+                cert_note: (document.getElementById('wpCertNote') || {}).value || '',
+                intro_copy: (document.getElementById('wpIntroCopy') || {}).value || '',
+                phone: (document.getElementById('wpPhone') || {}).value || '',
+                address: (document.getElementById('wpAddress') || {}).value || '',
+                hours: (document.getElementById('wpHours') || {}).value || '',
+                website_url: (document.getElementById('wpWebsiteUrl') || {}).value || '',
+                maps_url: (document.getElementById('wpMapsUrl') || {}).value || '',
+                services: (document.getElementById('wpServices') || {}).value || '',
+                walk_in_note: (document.getElementById('wpWalkInNote') || {}).value || '',
+                image_path: (document.getElementById('wpImagePath') || {}).value || '',
+                active: (document.getElementById('wpActive') || {}).checked ? 1 : 0
+              };
+              try {
+                var sr = await fetch('/api/admin/wellness/partners/' + partnersEditorState.id, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify(payload)
+                });
+                var sd = await sr.json();
+                if (sr.ok) {
+                  showToast('Wellness partner saved.', true);
+                  loadPartners();
+                } else showToast((sd && sd.error) || 'Save failed.', false);
+              } catch (_) { showToast('Save failed.', false); }
+            }
+            if (ev.target && ev.target.id === 'wpImageUploadBtn') {
+              var fileInput = document.getElementById('wpImageFile');
+              if (fileInput) fileInput.click();
+            }
+          });
+          document.getElementById('tabPartners').addEventListener('change', async function(ev) {
+            if (ev.target && ev.target.id === 'wpImageFile' && ev.target.files && ev.target.files[0]) {
+              var fd = new FormData();
+              fd.append('image', ev.target.files[0]);
+              try {
+                var ur = await fetch('/api/upload', { method: 'POST', credentials: 'include', body: fd });
+                var ud = await ur.json();
+                if (ud.success && ud.url) {
+                  var inp = document.getElementById('wpImagePath');
+                  if (inp) inp.value = ud.url;
+                  showToast('Partner photo uploaded.', true);
+                } else showToast(ud.error || 'Upload failed.', false);
+              } catch (_) { showToast('Upload failed.', false); }
+              ev.target.value = '';
+            }
+          });
+        }
+      }
+
       document.getElementById('productNewBtn').addEventListener('click', function() {
         document.getElementById('productNewFormWrap').classList.toggle('hidden');
       });
@@ -2850,6 +2971,7 @@
       window.loadForum = loadForum;
       window.loadShop = loadShop;
       window.loadServices = loadServices;
+      window.loadPartners = loadPartners;
       window.loadTraffic = loadTraffic;
       window.loadCompletions = loadCompletions;
       window.loadMessages = loadMessages;

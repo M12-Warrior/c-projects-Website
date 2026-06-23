@@ -4,6 +4,7 @@ const micBadge = require('../lib/micBadge');
 const { getStorageHealth } = require('../lib/storageHealth');
 const { getShareLinks } = require('../lib/qrShare');
 const subscriptionRouter = require('./subscription');
+const { mapPartnerRow, parseServices } = require('../lib/wellnessPartners');
 
 const router = express.Router();
 
@@ -978,6 +979,103 @@ router.get('/export/preferences', (req, res) => {
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', 'attachment; filename=subscription-preferences.csv');
   res.send(lines.join('\n'));
+});
+
+function normalizeWellnessSlug(raw) {
+  return String(raw || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 80);
+}
+
+function normalizePartnerPayload(body) {
+  const incoming = body && typeof body === 'object' ? body : {};
+  const services = parseServices(incoming.services != null ? incoming.services : incoming.services_json);
+  return {
+    slug: normalizeWellnessSlug(incoming.slug),
+    display_title: String(incoming.display_title || '').trim(),
+    display_subtitle: String(incoming.display_subtitle || '').trim(),
+    phone: String(incoming.phone || '').trim(),
+    address: String(incoming.address || '').trim(),
+    hours: String(incoming.hours || '').trim(),
+    website_url: String(incoming.website_url || '').trim(),
+    maps_url: String(incoming.maps_url || '').trim(),
+    services_json: JSON.stringify(services),
+    intro_copy: String(incoming.intro_copy || '').trim(),
+    cert_note: String(incoming.cert_note || '').trim(),
+    walk_in_note: String(incoming.walk_in_note || '').trim(),
+    image_path: String(incoming.image_path || '').trim(),
+    sort_order: Number.isFinite(Number(incoming.sort_order)) ? Number(incoming.sort_order) : 0,
+    active: incoming.active === false || incoming.active === 0 || incoming.active === '0' ? 0 : 1,
+  };
+}
+
+// GET /api/admin/wellness/partners
+router.get('/wellness/partners', (req, res) => {
+  try {
+    const rows = db.prepare(`
+      SELECT *
+      FROM wellness_partners
+      ORDER BY sort_order ASC, id ASC
+    `).all();
+    return res.json({ partners: rows.map(mapPartnerRow) });
+  } catch (e) {
+    return res.status(500).json({ error: 'Could not load wellness partners' });
+  }
+});
+
+// PUT /api/admin/wellness/partners/:id
+router.put('/wellness/partners/:id', (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id < 1) return res.status(400).json({ error: 'Invalid partner id' });
+  const existing = db.prepare('SELECT id, slug FROM wellness_partners WHERE id = ?').get(id);
+  if (!existing) return res.status(404).json({ error: 'Partner not found' });
+
+  const payload = normalizePartnerPayload(req.body);
+  if (!payload.display_title) return res.status(400).json({ error: 'Display title is required' });
+  if (!payload.slug) payload.slug = existing.slug;
+  if (payload.slug !== existing.slug) {
+    const clash = db.prepare('SELECT id FROM wellness_partners WHERE slug = ? AND id != ?').get(payload.slug, id);
+    if (clash) return res.status(400).json({ error: 'Another partner already uses that slug' });
+  }
+
+  db.prepare(`
+    UPDATE wellness_partners SET
+      slug = ?,
+      display_title = ?,
+      display_subtitle = ?,
+      phone = ?,
+      address = ?,
+      hours = ?,
+      website_url = ?,
+      maps_url = ?,
+      services_json = ?,
+      intro_copy = ?,
+      cert_note = ?,
+      walk_in_note = ?,
+      image_path = ?,
+      sort_order = ?,
+      active = ?,
+      updated_at = datetime('now')
+    WHERE id = ?
+  `).run(
+    payload.slug,
+    payload.display_title,
+    payload.display_subtitle,
+    payload.phone,
+    payload.address,
+    payload.hours,
+    payload.website_url,
+    payload.maps_url,
+    payload.services_json,
+    payload.intro_copy,
+    payload.cert_note,
+    payload.walk_in_note,
+    payload.image_path,
+    payload.sort_order,
+    payload.active,
+    id
+  );
+
+  const row = db.prepare('SELECT * FROM wellness_partners WHERE id = ?').get(id);
+  return res.json({ success: true, partner: mapPartnerRow(row) });
 });
 
 function normalizeCmsKey(raw) {

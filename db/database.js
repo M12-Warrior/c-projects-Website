@@ -491,6 +491,72 @@ db.exec(`
   );
 `);
 
+// Wellness partner listings (admin-editable; soft-launch collaborators)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS wellness_partners (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug TEXT UNIQUE NOT NULL,
+    display_title TEXT NOT NULL,
+    display_subtitle TEXT,
+    phone TEXT,
+    address TEXT,
+    hours TEXT,
+    website_url TEXT,
+    maps_url TEXT,
+    services_json TEXT DEFAULT '[]',
+    intro_copy TEXT,
+    cert_note TEXT,
+    walk_in_note TEXT,
+    image_path TEXT,
+    sort_order INTEGER DEFAULT 0,
+    active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE INDEX IF NOT EXISTS idx_wellness_partners_active ON wellness_partners(active, sort_order);
+`);
+
+// Seed Bay Area Pain Care wellness partner (idempotent)
+try {
+  const BAY_AREA_SERVICES = JSON.stringify([
+    'Full body massage (30–120 minutes)',
+    'Pain relief therapy combo',
+    'Lymphatic drainage',
+    'Add-ons: cupping, body scrub',
+  ]);
+  const BAY_AREA_INTRO = [
+    'Long hours behind the wheel take a toll — tight shoulders, lower back knots, swollen feet, and fatigue that sleep alone does not fix.',
+    'Mile 12 Warrior collaborates with trusted wellness providers who understand what trucking life does to your body.',
+    'Bay Area Pain Care offers professional massage therapy to support recovery, circulation, and day-to-day comfort between runs.',
+  ].join(' ');
+  const existingPartner = db.prepare('SELECT id FROM wellness_partners WHERE slug = ?').get('bay-area-pain-care');
+  if (!existingPartner) {
+    db.prepare(`
+      INSERT INTO wellness_partners (
+        slug, display_title, display_subtitle, phone, address, hours,
+        website_url, maps_url, services_json, intro_copy, cert_note, walk_in_note,
+        image_path, sort_order, active
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      'bay-area-pain-care',
+      'MASSAGE THERAPY',
+      'Bay Area Pain Care',
+      '(951) 491-5431',
+      '3927 Van Buren Blvd., Riverside, CA 92503',
+      '10:00 AM – 8:30 PM PST',
+      'https://bayareamass-6qiq3c6z.manus.space/',
+      'https://maps.app.goo.gl/s1cutuDmRj7ASV2u7',
+      BAY_AREA_SERVICES,
+      BAY_AREA_INTRO,
+      'Certified Massage Therapist',
+      'Walk-ins welcome; appointment preferred',
+      '',
+      0,
+      1
+    );
+  }
+} catch (_) {}
+
 // Rebrand General Discussion → Coffee Shop lounge (existing databases)
 try {
   db.prepare(`
