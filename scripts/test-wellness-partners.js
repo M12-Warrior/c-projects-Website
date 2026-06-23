@@ -66,7 +66,7 @@ if (!/Upload sign photo \(JPG or PNG\)/.test(adminHtml) || !/Admin only — not 
   ok('wellness sign photo upload UX present');
 }
 
-if (!/Manage in Admin &rarr; Wellness Partners/.test(wellnessPageJs)) {
+if (!/Manage in Admin → Wellness Partners/.test(wellnessPageJs)) {
   fail('wellness-page.js missing admin-only manage link on placeholder');
 } else {
   ok('wellness placeholder admin manage link present');
