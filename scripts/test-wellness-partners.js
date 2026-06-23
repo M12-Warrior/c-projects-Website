@@ -60,6 +60,18 @@ if (!/data-tab="partners"/.test(adminHtml) || !/function loadPartners\(/.test(ad
   ok('admin partners tab and loader present');
 }
 
+if (!/Upload sign photo \(JPG or PNG\)/.test(adminHtml) || !/Admin only — not on the public page/.test(adminHtml)) {
+  fail('admin.html missing prominent wellness sign photo upload UX');
+} else {
+  ok('wellness sign photo upload UX present');
+}
+
+if (!/Manage in Admin &rarr; Wellness Partners/.test(wellnessPageJs)) {
+  fail('wellness-page.js missing admin-only manage link on placeholder');
+} else {
+  ok('wellness placeholder admin manage link present');
+}
+
 if (!/\/wellness/.test(servicesHtml) || !/Wellness Partners/.test(servicesHtml)) {
   fail('services.html missing wellness promo or footer link');
 } else {

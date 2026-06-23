@@ -318,7 +318,7 @@
       <div id="tabPartners" class="admin-tab-content hidden">
         <div class="admin-section">
           <h3>Wellness Partners</h3>
-          <p style="color:var(--text-2);font-size:0.9rem;margin-bottom:16px;">Edit collaborator listings shown on the public <a href="/wellness">/wellness</a> page. Update <strong>Website URL</strong> when the partner&apos;s new domain is ready. Upload a photo to <code>/uploads/</code> or paste a path.</p>
+          <p style="color:var(--text-2);font-size:0.9rem;margin-bottom:16px;">Edit collaborator listings shown on the public <a href="/wellness">/wellness</a> page. Use the <strong>Sign photo</strong> section at the top of the form to upload the storefront sign image, then click <strong>Save partner</strong>. Admin only — uploads are not visible on the public page until saved.</p>
           <p id="partnersUpdated" class="text-muted" style="font-size:0.85rem;margin-bottom:12px;"></p>
           <div id="partnersEditor" class="profile-section" style="max-width:720px;">
             <p class="text-muted">Loading partner...</p>
@@ -2285,13 +2285,42 @@
 
       var partnersEditorState = { id: null };
 
+      function updateWpImagePreview() {
+        var inp = document.getElementById('wpImagePath');
+        var preview = document.getElementById('wpImagePreview');
+        if (!preview) return;
+        var val = inp ? String(inp.value || '').trim() : '';
+        if (val) {
+          preview.src = val;
+          preview.classList.remove('hidden');
+          preview.style.display = 'block';
+        } else {
+          preview.removeAttribute('src');
+          preview.classList.add('hidden');
+          preview.style.display = '';
+        }
+      }
+
       function renderPartnersEditor(partner) {
         var el = document.getElementById('partnersEditor');
         if (!el || !partner) return;
         partnersEditorState.id = partner.id;
         var servicesText = (partner.services || []).join('\n');
+        var imagePreview = partner.image_path
+          ? '<img id="wpImagePreview" src="' + escapeHtml(partner.image_path) + '" alt="Sign photo preview" style="margin-top:10px;max-width:280px;max-height:180px;border-radius:8px;border:1px solid var(--border);object-fit:cover;display:block;">'
+          : '<img id="wpImagePreview" alt="Sign photo preview" class="hidden" style="margin-top:10px;max-width:280px;max-height:180px;border-radius:8px;border:1px solid var(--border);object-fit:cover;">';
         el.innerHTML =
           '<h4 style="margin-top:0;">' + escapeHtml(partner.display_subtitle || partner.display_title || 'Partner') + '</h4>' +
+          '<div class="form-group" style="padding:16px;border:1px solid var(--border);border-radius:var(--radius);background:rgba(99,102,241,0.06);margin-bottom:20px;">' +
+            '<label class="form-label">Sign photo</label>' +
+            '<p style="font-size:0.8rem;color:var(--text-3);margin:0 0 10px;">Admin only — not on the public page until you upload, click <strong>Save partner</strong>, then refresh <a href="/wellness" target="_blank" rel="noopener">/wellness</a>.</p>' +
+            '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">' +
+              '<button type="button" class="btn btn-primary" id="wpImageUploadBtn">Upload sign photo (JPG or PNG)</button>' +
+              '<input type="file" id="wpImageFile" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden">' +
+            '</div>' +
+            '<input type="text" id="wpImagePath" class="form-input" value="' + escapeHtml(partner.image_path || '') + '" placeholder="/uploads/partner-sign.jpg (filled automatically after upload)">' +
+            imagePreview +
+          '</div>' +
           '<div class="form-group"><label class="form-label">Large headline (display title)</label><input type="text" id="wpDisplayTitle" class="form-input" value="' + escapeHtml(partner.display_title || '') + '"></div>' +
           '<div class="form-group"><label class="form-label">Subtitle / business name</label><input type="text" id="wpDisplaySubtitle" class="form-input" value="' + escapeHtml(partner.display_subtitle || '') + '"></div>' +
           '<div class="form-group"><label class="form-label">URL slug (internal)</label><input type="text" id="wpSlug" class="form-input" value="' + escapeHtml(partner.slug || '') + '"></div>' +
@@ -2304,13 +2333,17 @@
           '<div class="form-group"><label class="form-label">Google Maps URL</label><input type="url" id="wpMapsUrl" class="form-input" value="' + escapeHtml(partner.maps_url || '') + '"></div>' +
           '<div class="form-group"><label class="form-label">Services (one per line)</label><textarea id="wpServices" class="form-input" rows="5">' + escapeHtml(servicesText) + '</textarea></div>' +
           '<div class="form-group"><label class="form-label">Walk-in note</label><input type="text" id="wpWalkInNote" class="form-input" value="' + escapeHtml(partner.walk_in_note || '') + '"></div>' +
-          '<div class="form-group"><label class="form-label">Partner image (URL or /uploads/ path)</label><input type="text" id="wpImagePath" class="form-input" value="' + escapeHtml(partner.image_path || '') + '" placeholder="/uploads/partner-photo.jpg"></div>' +
-          '<div class="form-group"><input type="file" id="wpImageFile" accept="image/*" class="hidden"><button type="button" class="btn btn-glass" id="wpImageUploadBtn">Upload partner photo</button></div>' +
           '<div class="form-group"><label class="form-label"><input type="checkbox" id="wpActive"' + (partner.active ? ' checked' : '') + '> Listing active (visible on /wellness)</label></div>' +
           '<div class="flex-between mt-16" style="flex-wrap:wrap;gap:10px;">' +
             '<button type="button" class="btn btn-primary" id="wpSaveBtn">Save partner</button>' +
             '<a href="/wellness" class="btn btn-secondary" target="_blank" rel="noopener">Preview public page</a>' +
           '</div>';
+        updateWpImagePreview();
+        var wpPathInput = document.getElementById('wpImagePath');
+        if (wpPathInput && !wpPathInput.getAttribute('data-preview-bound')) {
+          wpPathInput.setAttribute('data-preview-bound', '1');
+          wpPathInput.addEventListener('input', updateWpImagePreview);
+        }
       }
 
       async function loadPartners() {
@@ -2383,7 +2416,13 @@
                 if (ud.success && ud.url) {
                   var inp = document.getElementById('wpImagePath');
                   if (inp) inp.value = ud.url;
-                  showToast('Partner photo uploaded.', true);
+                  var prev = document.getElementById('wpImagePreview');
+                  if (prev) {
+                    prev.src = ud.url;
+                    prev.classList.remove('hidden');
+                    prev.style.display = 'block';
+                  }
+                  showToast('Sign photo uploaded. Click Save partner to publish on /wellness.', true);
                 } else showToast(ud.error || 'Upload failed.', false);
               } catch (_) { showToast('Upload failed.', false); }
               ev.target.value = '';
@@ -3159,11 +3198,13 @@
         loadDashboard();
 
         var urlParams = new URLSearchParams(window.location.search);
-        var urlTab = urlParams.get('tab');
+        var urlTab = urlParams.get('tab') || (window.location.hash ? window.location.hash.slice(1) : '');
         if (urlTab === 'blog') {
           var blogTabBtn = document.querySelector('.admin-tab[data-tab="blog"]');
           if (blogTabBtn) activateAdminTab(blogTabBtn, { focusTab: false, skipLoader: true });
           loadBlog();
+        } else if (urlTab === 'partners') {
+          goToAdminTab('partners');
         }
 
         document.getElementById('adminNavSignOut').addEventListener('click', function(e) {

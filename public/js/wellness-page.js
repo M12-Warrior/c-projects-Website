@@ -22,14 +22,17 @@ function imageAlt(partner) {
   return sub || title || 'Wellness partner';
 }
 
-function renderMedia(partner) {
+function renderMedia(partner, isAdmin) {
   if (partner.image_path) {
     return '<img src="' + esc(partner.image_path) + '" alt="' + esc(imageAlt(partner)) + '" loading="lazy" decoding="async">';
   }
-  return '<div class="wellness-partner-placeholder" aria-hidden="true"><p style="margin:0;font-size:0.82rem">Photo coming soon</p></div>';
+  var adminLink = isAdmin
+    ? '<p style="margin:8px 0 0;font-size:0.75rem"><a href="/admin?tab=partners" style="color:var(--gold);text-decoration:none">Manage in Admin → Wellness Partners</a></p>'
+    : '';
+  return '<div class="wellness-partner-placeholder" aria-hidden="true"><p style="margin:0;font-size:0.82rem">Photo coming soon</p>' + adminLink + '</div>';
 }
 
-function renderPartner(partner) {
+function renderPartner(partner, isAdmin) {
   const tel = phoneTel(partner.phone);
   const services = (partner.services || []).map((s) => '<li>' + esc(s) + '</li>').join('');
   const websiteBtn = partner.website_url
@@ -42,7 +45,7 @@ function renderPartner(partner) {
   const textBtn = tel ? '<a href="sms:' + esc(tel) + '" class="btn btn-secondary"><span>Text for appointment</span></a>' : '';
   return '<article class="wellness-partner-card" id="partner-' + esc(partner.slug) + '">' +
     '<div class="wellness-partner-grid">' +
-    '<div class="wellness-partner-media">' + renderMedia(partner) + '</div>' +
+    '<div class="wellness-partner-media">' + renderMedia(partner, isAdmin) + '</div>' +
     '<div class="wellness-partner-body">' +
     '<h2 class="wellness-brand-title">' + esc(partner.display_title) + '</h2>' +
     '<p class="wellness-brand-subtitle">' + esc(partner.display_subtitle) + '</p>' +
@@ -60,19 +63,20 @@ function renderPartner(partner) {
     '</div></div></article>';
 }
 
-fetch('/api/wellness/partners')
-  .then((r) => r.json())
-  .then((data) => {
-    const el = document.getElementById('wellnessPartnersList');
-    if (!el) return;
-    const partners = (data && data.partners) || [];
-    if (!partners.length) {
-      el.innerHTML = '<p class="wellness-empty">Wellness partner listings will appear here soon. Check back or <a href="/contact">contact us</a> for updates.</p>';
-      return;
-    }
-    el.innerHTML = partners.map(renderPartner).join('');
-  })
-  .catch(() => {
-    const el = document.getElementById('wellnessPartnersList');
-    if (el) el.innerHTML = '<p class="wellness-empty">Could not load partner listings. Please refresh or <a href="/contact">contact us</a>.</p>';
-  });
+Promise.all([
+  fetch('/api/wellness/partners').then((r) => r.json()),
+  fetch('/api/auth/me', { credentials: 'include' }).then((r) => r.json()).catch(() => ({ user: null }))
+]).then(([data, auth]) => {
+  const el = document.getElementById('wellnessPartnersList');
+  if (!el) return;
+  const isAdmin = !!(auth && auth.user && auth.user.role === 'admin');
+  const partners = (data && data.partners) || [];
+  if (!partners.length) {
+    el.innerHTML = '<p class="wellness-empty">Wellness partner listings will appear here soon. Check back or <a href="/contact">contact us</a> for updates.</p>';
+    return;
+  }
+  el.innerHTML = partners.map((p) => renderPartner(p, isAdmin)).join('');
+}).catch(() => {
+  const el = document.getElementById('wellnessPartnersList');
+  if (el) el.innerHTML = '<p class="wellness-empty">Could not load partner listings. Please refresh or <a href="/contact">contact us</a>.</p>';
+});
