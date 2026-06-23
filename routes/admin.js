@@ -4,7 +4,7 @@ const micBadge = require('../lib/micBadge');
 const { getStorageHealth } = require('../lib/storageHealth');
 const { getShareLinks } = require('../lib/qrShare');
 const subscriptionRouter = require('./subscription');
-const { mapPartnerRow, parseServices } = require('../lib/wellnessPartners');
+const { mapPartnerRow, parseServices, clampImagePosition } = require('../lib/wellnessPartners');
 
 const router = express.Router();
 
@@ -1002,6 +1002,8 @@ function normalizePartnerPayload(body) {
     cert_note: String(incoming.cert_note || '').trim(),
     walk_in_note: String(incoming.walk_in_note || '').trim(),
     image_path: String(incoming.image_path || '').trim(),
+    image_position_x: clampImagePosition(incoming.image_position_x),
+    image_position_y: clampImagePosition(incoming.image_position_y),
     sort_order: Number.isFinite(Number(incoming.sort_order)) ? Number(incoming.sort_order) : 0,
     active: incoming.active === false || incoming.active === 0 || incoming.active === '0' ? 0 : 1,
   };
@@ -1051,6 +1053,8 @@ router.put('/wellness/partners/:id', (req, res) => {
       cert_note = ?,
       walk_in_note = ?,
       image_path = ?,
+      image_position_x = ?,
+      image_position_y = ?,
       sort_order = ?,
       active = ?,
       updated_at = datetime('now')
@@ -1069,6 +1073,8 @@ router.put('/wellness/partners/:id', (req, res) => {
     payload.cert_note,
     payload.walk_in_note,
     payload.image_path,
+    payload.image_position_x,
+    payload.image_position_y,
     payload.sort_order,
     payload.active,
     id

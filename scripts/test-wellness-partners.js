@@ -91,6 +91,38 @@ if (!/function imageAlt\(/.test(wellnessPageJs) || !/Bay Area Pain Care sign, Ri
   ok('wellness partner image alt text present');
 }
 
+if (!/image_position_x REAL DEFAULT 50/.test(dbJs) || !/image_position_y REAL DEFAULT 50/.test(dbJs)) {
+  fail('database.js missing wellness_partners image position columns');
+} else {
+  ok('wellness_partners image position columns present');
+}
+
+const wellnessLib = fs.readFileSync(path.join(root, 'lib', 'wellnessPartners.js'), 'utf8');
+
+if (!/clampImagePosition/.test(wellnessLib) || !/image_position_x/.test(wellnessLib)) {
+  fail('wellnessPartners.js missing image position helper/fields');
+} else {
+  ok('wellness partner image position helper present');
+}
+
+if (!/wellness-partner-banner/.test(wellnessPageJs) || !/object-position/.test(wellnessPageJs)) {
+  fail('wellness-page.js missing banner layout with object-position');
+} else {
+  ok('wellness page banner layout present');
+}
+
+if (!/Adjust banner position/.test(adminHtml) || !/wpBannerPreview/.test(adminHtml) || !/image_position_x/.test(adminHtml)) {
+  fail('admin.html missing banner position adjust UI');
+} else {
+  ok('admin banner position adjust UI present');
+}
+
+if (!/image_position_x/.test(adminJs) || !/image_position_y/.test(adminJs)) {
+  fail('admin.js missing image position save fields');
+} else {
+  ok('admin wellness partners position save present');
+}
+
 if (!/BAY_AREA_SIGN_PATH/.test(dbJs) || !/bay-area-pain-care-sign\.jpg/.test(dbJs)) {
   fail('database.js missing committed partner sign image path');
 } else {
@@ -116,6 +148,8 @@ try {
       cert_note TEXT,
       walk_in_note TEXT,
       image_path TEXT,
+      image_position_x REAL DEFAULT 50,
+      image_position_y REAL DEFAULT 50,
       sort_order INTEGER DEFAULT 0,
       active INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -126,10 +160,12 @@ try {
     INSERT INTO wellness_partners (slug, display_title, display_subtitle, website_url, active)
     VALUES (?, ?, ?, ?, ?)
   `).run('bay-area-pain-care', 'MASSAGE THERAPY', 'Bay Area Pain Care', 'https://example.com', 1);
-  const row = db.prepare("SELECT slug, display_title FROM wellness_partners WHERE slug = 'bay-area-pain-care'").get();
+  const row = db.prepare("SELECT slug, display_title, image_position_x, image_position_y FROM wellness_partners WHERE slug = 'bay-area-pain-care'").get();
   db.close();
   if (!row || row.display_title !== 'MASSAGE THERAPY') {
     fail('seed partner row missing or incorrect');
+  } else if (row.image_position_x !== 50 || row.image_position_y !== 50) {
+    fail('default image position values incorrect');
   } else {
     ok('seed partner row shape verified');
   }

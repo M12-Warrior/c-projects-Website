@@ -2283,21 +2283,92 @@
         }
       }
 
-      var partnersEditorState = { id: null };
+      var partnersEditorState = { id: null, posX: 50, posY: 50 };
+
+      function wpApplyBannerPosition() {
+        var img = document.getElementById('wpBannerImg');
+        var posX = document.getElementById('wpPosX');
+        var posY = document.getElementById('wpPosY');
+        partnersEditorState.posX = Math.min(100, Math.max(0, Number(partnersEditorState.posX) || 50));
+        partnersEditorState.posY = Math.min(100, Math.max(0, Number(partnersEditorState.posY) || 50));
+        if (img) img.style.objectPosition = partnersEditorState.posX + '% ' + partnersEditorState.posY + '%';
+        if (posX) posX.value = Math.round(partnersEditorState.posX);
+        if (posY) posY.value = Math.round(partnersEditorState.posY);
+      }
+
+      function bindWpBannerPositionControls() {
+        var preview = document.getElementById('wpBannerPreview');
+        var posX = document.getElementById('wpPosX');
+        var posY = document.getElementById('wpPosY');
+        if (!preview || preview.getAttribute('data-pos-bound')) return;
+        preview.setAttribute('data-pos-bound', '1');
+        if (posX) posX.addEventListener('input', function() {
+          partnersEditorState.posX = Number(posX.value);
+          wpApplyBannerPosition();
+        });
+        if (posY) posY.addEventListener('input', function() {
+          partnersEditorState.posY = Number(posY.value);
+          wpApplyBannerPosition();
+        });
+        var dragging = false;
+        function onDragMove(clientX, clientY, movementX, movementY) {
+          if (!dragging) return;
+          var rect = preview.getBoundingClientRect();
+          if (!rect.width || !rect.height) return;
+          partnersEditorState.posX -= (movementX / rect.width) * 100;
+          partnersEditorState.posY -= (movementY / rect.height) * 100;
+          wpApplyBannerPosition();
+        }
+        preview.addEventListener('mousedown', function(e) {
+          if (!document.getElementById('wpBannerImg') || document.getElementById('wpBannerImg').classList.contains('hidden')) return;
+          dragging = true;
+          preview.classList.add('wp-banner-preview--dragging');
+          e.preventDefault();
+        });
+        window.addEventListener('mouseup', function() {
+          dragging = false;
+          if (preview) preview.classList.remove('wp-banner-preview--dragging');
+        });
+        preview.addEventListener('mousemove', function(e) {
+          onDragMove(e.clientX, e.clientY, e.movementX, e.movementY);
+        });
+        preview.addEventListener('touchstart', function(e) {
+          if (!document.getElementById('wpBannerImg') || document.getElementById('wpBannerImg').classList.contains('hidden')) return;
+          dragging = true;
+          preview.classList.add('wp-banner-preview--dragging');
+        }, { passive: true });
+        preview.addEventListener('touchend', function() {
+          dragging = false;
+          preview.classList.remove('wp-banner-preview--dragging');
+        });
+        preview.addEventListener('touchmove', function(e) {
+          if (!dragging || !e.touches || !e.touches[0]) return;
+          var t = e.touches[0];
+          var last = preview._wpLastTouch || { x: t.clientX, y: t.clientY };
+          onDragMove(t.clientX, t.clientY, t.clientX - last.x, t.clientY - last.y);
+          preview._wpLastTouch = { x: t.clientX, y: t.clientY };
+          e.preventDefault();
+        }, { passive: false });
+      }
 
       function updateWpImagePreview() {
         var inp = document.getElementById('wpImagePath');
-        var preview = document.getElementById('wpImagePreview');
-        if (!preview) return;
+        var img = document.getElementById('wpBannerImg');
+        var preview = document.getElementById('wpBannerPreview');
+        var posBlock = document.getElementById('wpBannerPositionBlock');
+        if (!img) return;
         var val = inp ? String(inp.value || '').trim() : '';
         if (val) {
-          preview.src = val;
-          preview.classList.remove('hidden');
-          preview.style.display = 'block';
+          img.src = val;
+          img.classList.remove('hidden');
+          if (preview) preview.classList.remove('wp-banner-preview--empty');
+          if (posBlock) posBlock.classList.remove('hidden');
+          wpApplyBannerPosition();
         } else {
-          preview.removeAttribute('src');
-          preview.classList.add('hidden');
-          preview.style.display = '';
+          img.removeAttribute('src');
+          img.classList.add('hidden');
+          if (preview) preview.classList.add('wp-banner-preview--empty');
+          if (posBlock) posBlock.classList.add('hidden');
         }
       }
 
@@ -2305,10 +2376,16 @@
         var el = document.getElementById('partnersEditor');
         if (!el || !partner) return;
         partnersEditorState.id = partner.id;
+        partnersEditorState.posX = partner.image_position_x != null ? Number(partner.image_position_x) : 50;
+        partnersEditorState.posY = partner.image_position_y != null ? Number(partner.image_position_y) : 50;
+        if (!Number.isFinite(partnersEditorState.posX)) partnersEditorState.posX = 50;
+        if (!Number.isFinite(partnersEditorState.posY)) partnersEditorState.posY = 50;
         var servicesText = (partner.services || []).join('\n');
-        var imagePreview = partner.image_path
-          ? '<img id="wpImagePreview" src="' + escapeHtml(partner.image_path) + '" alt="Sign photo preview" style="margin-top:10px;max-width:280px;max-height:180px;border-radius:8px;border:1px solid var(--border);object-fit:cover;display:block;">'
-          : '<img id="wpImagePreview" alt="Sign photo preview" class="hidden" style="margin-top:10px;max-width:280px;max-height:180px;border-radius:8px;border:1px solid var(--border);object-fit:cover;">';
+        var hasImage = !!(partner.image_path && String(partner.image_path).trim());
+        var bannerImg = hasImage
+          ? '<img id="wpBannerImg" src="' + escapeHtml(partner.image_path) + '" alt="Banner preview" style="width:100%;height:100%;object-fit:cover;display:block;object-position:' + Math.round(partnersEditorState.posX) + '% ' + Math.round(partnersEditorState.posY) + '%;">'
+          : '<img id="wpBannerImg" alt="Banner preview" class="hidden" style="width:100%;height:100%;object-fit:cover;display:block;">';
+        var posBlockClass = hasImage ? '' : ' hidden';
         el.innerHTML =
           '<h4 style="margin-top:0;">' + escapeHtml(partner.display_subtitle || partner.display_title || 'Partner') + '</h4>' +
           '<div class="form-group" style="padding:16px;border:1px solid var(--border);border-radius:var(--radius);background:rgba(99,102,241,0.06);margin-bottom:20px;">' +
@@ -2319,7 +2396,17 @@
               '<input type="file" id="wpImageFile" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden">' +
             '</div>' +
             '<input type="text" id="wpImagePath" class="form-input" value="' + escapeHtml(partner.image_path || '') + '" placeholder="/uploads/partner-sign.jpg (filled automatically after upload)">' +
-            imagePreview +
+            '<div id="wpBannerPositionBlock" class="' + posBlockClass.trim() + '" style="margin-top:14px;">' +
+              '<label class="form-label" style="margin-bottom:6px;">Adjust banner position</label>' +
+              '<p style="font-size:0.78rem;color:var(--text-3);margin:0 0 10px;">Drag on the preview or use sliders to frame the sign text (like a LinkedIn header). Position is saved when you click <strong>Save partner</strong>.</p>' +
+              '<div id="wpBannerPreview" class="wp-banner-preview' + (hasImage ? '' : ' wp-banner-preview--empty') + '" style="aspect-ratio:21/9;max-height:180px;width:100%;overflow:hidden;border-radius:8px;border:1px solid var(--border);cursor:grab;touch-action:none;background:linear-gradient(145deg,rgba(99,102,241,0.12),rgba(34,197,94,0.08));">' +
+                bannerImg +
+              '</div>' +
+              '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">' +
+                '<div><label class="form-label" style="font-size:0.75rem;">Horizontal</label><input type="range" id="wpPosX" min="0" max="100" step="1" value="' + Math.round(partnersEditorState.posX) + '" style="width:100%;"></div>' +
+                '<div><label class="form-label" style="font-size:0.75rem;">Vertical</label><input type="range" id="wpPosY" min="0" max="100" step="1" value="' + Math.round(partnersEditorState.posY) + '" style="width:100%;"></div>' +
+              '</div>' +
+            '</div>' +
           '</div>' +
           '<div class="form-group"><label class="form-label">Large headline (display title)</label><input type="text" id="wpDisplayTitle" class="form-input" value="' + escapeHtml(partner.display_title || '') + '"></div>' +
           '<div class="form-group"><label class="form-label">Subtitle / business name</label><input type="text" id="wpDisplaySubtitle" class="form-input" value="' + escapeHtml(partner.display_subtitle || '') + '"></div>' +
@@ -2339,6 +2426,7 @@
             '<a href="/wellness" class="btn btn-secondary" target="_blank" rel="noopener">Preview public page</a>' +
           '</div>';
         updateWpImagePreview();
+        bindWpBannerPositionControls();
         var wpPathInput = document.getElementById('wpImagePath');
         if (wpPathInput && !wpPathInput.getAttribute('data-preview-bound')) {
           wpPathInput.setAttribute('data-preview-bound', '1');
@@ -2385,6 +2473,8 @@
                 services: (document.getElementById('wpServices') || {}).value || '',
                 walk_in_note: (document.getElementById('wpWalkInNote') || {}).value || '',
                 image_path: (document.getElementById('wpImagePath') || {}).value || '',
+                image_position_x: partnersEditorState.posX,
+                image_position_y: partnersEditorState.posY,
                 active: (document.getElementById('wpActive') || {}).checked ? 1 : 0
               };
               try {
@@ -2416,13 +2506,8 @@
                 if (ud.success && ud.url) {
                   var inp = document.getElementById('wpImagePath');
                   if (inp) inp.value = ud.url;
-                  var prev = document.getElementById('wpImagePreview');
-                  if (prev) {
-                    prev.src = ud.url;
-                    prev.classList.remove('hidden');
-                    prev.style.display = 'block';
-                  }
-                  showToast('Sign photo uploaded. Click Save partner to publish on /wellness.', true);
+                  updateWpImagePreview();
+                  showToast('Sign photo uploaded. Adjust banner position if needed, then click Save partner.', true);
                 } else showToast(ud.error || 'Upload failed.', false);
               } catch (_) { showToast('Upload failed.', false); }
               ev.target.value = '';

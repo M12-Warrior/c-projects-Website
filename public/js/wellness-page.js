@@ -12,6 +12,18 @@ function phoneTel(phone) {
   return digits ? '+' + digits : '';
 }
 
+function clampPosition(raw) {
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return 50;
+  return Math.min(100, Math.max(0, n));
+}
+
+function objectPosition(partner) {
+  const x = clampPosition(partner.image_position_x);
+  const y = clampPosition(partner.image_position_y);
+  return x + '% ' + y + '%';
+}
+
 function imageAlt(partner) {
   if (partner.slug === 'bay-area-pain-care') {
     return 'Massage Therapy — Bay Area Pain Care sign, Riverside CA';
@@ -22,14 +34,18 @@ function imageAlt(partner) {
   return sub || title || 'Wellness partner';
 }
 
-function renderMedia(partner, isAdmin) {
+function renderBanner(partner, isAdmin) {
   if (partner.image_path) {
-    return '<img src="' + esc(partner.image_path) + '" alt="' + esc(imageAlt(partner)) + '" loading="lazy" decoding="async">';
+    return '<div class="wellness-partner-banner">' +
+      '<img src="' + esc(partner.image_path) + '" alt="' + esc(imageAlt(partner)) + '" loading="lazy" decoding="async" style="object-position:' + esc(objectPosition(partner)) + '">' +
+      '</div>';
   }
   var adminLink = isAdmin
     ? '<p style="margin:8px 0 0;font-size:0.75rem"><a href="/admin?tab=partners" style="color:var(--gold);text-decoration:none">Manage in Admin → Wellness Partners</a></p>'
     : '';
-  return '<div class="wellness-partner-placeholder" aria-hidden="true"><p style="margin:0;font-size:0.82rem">Photo coming soon</p>' + adminLink + '</div>';
+  return '<div class="wellness-partner-banner wellness-partner-banner--empty" aria-hidden="true">' +
+    '<div class="wellness-partner-placeholder"><p style="margin:0;font-size:0.82rem">Photo coming soon</p>' + adminLink + '</div>' +
+    '</div>';
 }
 
 function renderPartner(partner, isAdmin) {
@@ -44,8 +60,7 @@ function renderPartner(partner, isAdmin) {
   const callBtn = tel ? '<a href="tel:' + esc(tel) + '" class="btn btn-primary"><span>Call ' + esc(partner.phone) + '</span></a>' : '';
   const textBtn = tel ? '<a href="sms:' + esc(tel) + '" class="btn btn-secondary"><span>Text for appointment</span></a>' : '';
   return '<article class="wellness-partner-card" id="partner-' + esc(partner.slug) + '">' +
-    '<div class="wellness-partner-grid">' +
-    '<div class="wellness-partner-media">' + renderMedia(partner, isAdmin) + '</div>' +
+    renderBanner(partner, isAdmin) +
     '<div class="wellness-partner-body">' +
     '<h2 class="wellness-brand-title">' + esc(partner.display_title) + '</h2>' +
     '<p class="wellness-brand-subtitle">' + esc(partner.display_subtitle) + '</p>' +
@@ -60,7 +75,7 @@ function renderPartner(partner, isAdmin) {
     '</div>' +
     '<div class="wellness-cta-row">' + callBtn + textBtn + mapsBtn + websiteBtn + '</div>' +
     (partner.walk_in_note ? '<p class="wellness-walk-in">' + esc(partner.walk_in_note) + '</p>' : '') +
-    '</div></div></article>';
+    '</div></article>';
 }
 
 Promise.all([

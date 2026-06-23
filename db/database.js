@@ -516,6 +516,13 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_wellness_partners_active ON wellness_partners(active, sort_order);
 `);
 
+try {
+  db.exec('ALTER TABLE wellness_partners ADD COLUMN image_position_x REAL DEFAULT 50');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE wellness_partners ADD COLUMN image_position_y REAL DEFAULT 50');
+} catch (_) {}
+
 // Committed partner sign photo (persists on Railway; survives redeploys)
 const BAY_AREA_SIGN_PATH = '/images/wellness/bay-area-pain-care-sign.jpg';
 const BAY_AREA_SIGN_FILE = path.join(__dirname, '..', 'public', 'images', 'wellness', 'bay-area-pain-care-sign.jpg');
