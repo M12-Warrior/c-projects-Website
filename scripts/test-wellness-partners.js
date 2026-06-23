@@ -15,6 +15,7 @@ const wellnessJs = fs.readFileSync(path.join(root, 'routes', 'wellness.js'), 'ut
 const serverJs = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
 const adminHtml = fs.readFileSync(path.join(root, 'views', 'admin.html'), 'utf8');
 const servicesHtml = fs.readFileSync(path.join(root, 'views', 'services.html'), 'utf8');
+const indexHtml = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
 const wellnessPageJs = fs.readFileSync(path.join(root, 'public', 'js', 'wellness-page.js'), 'utf8');
 
 if (!/CREATE TABLE IF NOT EXISTS wellness_partners/.test(dbJs)) {
@@ -63,6 +64,13 @@ if (!/\/wellness/.test(servicesHtml) || !/Wellness Partners/.test(servicesHtml))
   fail('services.html missing wellness promo or footer link');
 } else {
   ok('services page links to wellness');
+}
+
+const indexNav = indexHtml.match(/<ul class="nav-links"[^>]*>[\s\S]*?<\/ul>/);
+if (!indexNav || !/href="\/wellness">Wellness Partners<\/a>/.test(indexNav[0])) {
+  fail('index.html top nav missing Wellness Partners link');
+} else {
+  ok('top nav includes Wellness Partners link');
 }
 
 if (!/function imageAlt\(/.test(wellnessPageJs) || !/Bay Area Pain Care sign, Riverside CA/.test(wellnessPageJs)) {
