@@ -15,6 +15,7 @@ const wellnessJs = fs.readFileSync(path.join(root, 'routes', 'wellness.js'), 'ut
 const serverJs = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
 const adminHtml = fs.readFileSync(path.join(root, 'views', 'admin.html'), 'utf8');
 const servicesHtml = fs.readFileSync(path.join(root, 'views', 'services.html'), 'utf8');
+const wellnessPageJs = fs.readFileSync(path.join(root, 'public', 'js', 'wellness-page.js'), 'utf8');
 
 if (!/CREATE TABLE IF NOT EXISTS wellness_partners/.test(dbJs)) {
   fail('database.js missing wellness_partners table');
@@ -62,6 +63,18 @@ if (!/\/wellness/.test(servicesHtml) || !/Wellness Partners/.test(servicesHtml))
   fail('services.html missing wellness promo or footer link');
 } else {
   ok('services page links to wellness');
+}
+
+if (!/function imageAlt\(/.test(wellnessPageJs) || !/Bay Area Pain Care sign, Riverside CA/.test(wellnessPageJs)) {
+  fail('wellness-page.js missing partner image alt text');
+} else {
+  ok('wellness partner image alt text present');
+}
+
+if (!/BAY_AREA_SIGN_PATH/.test(dbJs) || !/bay-area-pain-care-sign\.jpg/.test(dbJs)) {
+  fail('database.js missing committed partner sign image path');
+} else {
+  ok('committed partner sign image path configured');
 }
 
 const tmpDb = path.join(root, 'data', 'test-wellness-partners-' + Date.now() + '.db');

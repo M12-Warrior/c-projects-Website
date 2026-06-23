@@ -516,6 +516,10 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_wellness_partners_active ON wellness_partners(active, sort_order);
 `);
 
+// Committed partner sign photo (persists on Railway; survives redeploys)
+const BAY_AREA_SIGN_PATH = '/images/wellness/bay-area-pain-care-sign.jpg';
+const BAY_AREA_SIGN_FILE = path.join(__dirname, '..', 'public', 'images', 'wellness', 'bay-area-pain-care-sign.jpg');
+
 // Seed Bay Area Pain Care wellness partner (idempotent)
 try {
   const BAY_AREA_SERVICES = JSON.stringify([
@@ -550,10 +554,18 @@ try {
       BAY_AREA_INTRO,
       'Certified Massage Therapist',
       'Walk-ins welcome; appointment preferred',
-      '',
+      fs.existsSync(BAY_AREA_SIGN_FILE) ? BAY_AREA_SIGN_PATH : '',
       0,
       1
     );
+  }
+  if (fs.existsSync(BAY_AREA_SIGN_FILE)) {
+    db.prepare(`
+      UPDATE wellness_partners
+      SET image_path = ?
+      WHERE slug = 'bay-area-pain-care'
+        AND (image_path IS NULL OR TRIM(image_path) = '')
+    `).run(BAY_AREA_SIGN_PATH);
   }
 } catch (_) {}
 

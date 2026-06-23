@@ -12,9 +12,19 @@ function phoneTel(phone) {
   return digits ? '+' + digits : '';
 }
 
+function imageAlt(partner) {
+  if (partner.slug === 'bay-area-pain-care') {
+    return 'Massage Therapy — Bay Area Pain Care sign, Riverside CA';
+  }
+  var title = partner.display_title || '';
+  var sub = partner.display_subtitle || '';
+  if (title && sub) return title + ' — ' + sub;
+  return sub || title || 'Wellness partner';
+}
+
 function renderMedia(partner) {
   if (partner.image_path) {
-    return '<img src="' + esc(partner.image_path) + '" alt="' + esc(partner.display_subtitle || partner.display_title) + '">';
+    return '<img src="' + esc(partner.image_path) + '" alt="' + esc(imageAlt(partner)) + '" loading="lazy" decoding="async">';
   }
   return '<div class="wellness-partner-placeholder" aria-hidden="true"><p style="margin:0;font-size:0.82rem">Photo coming soon</p></div>';
 }
