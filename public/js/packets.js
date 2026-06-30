@@ -80,14 +80,6 @@ Packets._fleetCoverPage = function (packetTitle, packetSubtitle) {
     '</div>';
 };
 
-Packets._finalizeFleetPacketHtml = function (body) {
-  if (!body) return body;
-  body = body.replace(/<div class="header">\s*<h1>Mile 12 Warrior<\/h1>[\s\S]*?<\/div>\s*/g, '');
-  var fleetFoot = Packets._fleetFooter();
-  body = body.replace(/<div class="footer-legal">[\s\S]*?<\/div>/g, fleetFoot);
-  return body;
-};
-
 Packets._wrap = function (title, body) {
   var safeTitle = String(title || '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -1799,7 +1791,7 @@ Packets.fleetNewHire = function () {
   body += '</tbody></table>';
   body += Packets._fleetFooter() + '</div>';
 
-  return Packets._wrap('Mile 12 Warrior — Fleet New Hire Driver Orientation Packet', Packets._finalizeFleetPacketHtml(body));
+  return Packets._wrap('Mile 12 Warrior — Fleet New Hire Driver Orientation Packet', body);
 };
 
 /* ============================================================
@@ -2275,7 +2267,7 @@ Packets.fleetRefresher = function () {
   body += '</tbody></table>';
   body += Packets._fleetFooter() + '</div>';
 
-  return Packets._wrap('Mile 12 Warrior — Fleet Experienced Driver Refresher Packet', Packets._finalizeFleetPacketHtml(body));
+  return Packets._wrap('Mile 12 Warrior — Fleet Experienced Driver Refresher Packet', body);
 };
 
 /* ============================================================
