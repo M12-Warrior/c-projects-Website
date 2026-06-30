@@ -28,9 +28,36 @@ function normalizeEntryDate(raw) {
   return dateMatch ? dateMatch[0] : DateTime.now().setZone(LA_ZONE).toISODate();
 }
 
+function normalizeChecklistField(raw) {
+  if (typeof raw !== 'string') return '';
+  return raw.trim().slice(0, 2000);
+}
+
+function normalizeTriState(raw) {
+  if (raw === true || raw === 1 || raw === '1' || raw === 'yes' || raw === 'done') return 'yes';
+  if (raw === false || raw === 0 || raw === '0' || raw === 'no' || raw === '') return '';
+  if (typeof raw === 'string') {
+    const v = raw.trim().toLowerCase();
+    if (v === 'yes' || v === 'done' || v === 'complete' || v === 'completed') return 'yes';
+  }
+  return '';
+}
+
+function entryHasPayload(body) {
+  const content = typeof body.content === 'string' ? body.content.trim() : '';
+  const meals = normalizeChecklistField(body.meals);
+  const preTrip = normalizeTriState(body.pre_trip);
+  const postTrip = normalizeTriState(body.post_trip);
+  return !!(content || meals || preTrip || postTrip);
+}
+
+function selectEntryColumns() {
+  return 'id, entry_date, content, meals, pre_trip, post_trip, created_at, updated_at';
+}
+
 function getEntryForUserDate(userId, entryDate) {
   return db.prepare(`
-    SELECT id, entry_date, content, created_at, updated_at
+    SELECT ${selectEntryColumns()}
     FROM subscriber_journal_entries
     WHERE user_id = ? AND entry_date = ?
     ORDER BY updated_at DESC, id DESC
@@ -44,7 +71,7 @@ router.get('/entries', requireSession, requireWellnessSubscriber, (req, res) => 
   const from = req.query.from;
   const to = req.query.to;
   let sql = `
-    SELECT id, entry_date, content, created_at, updated_at
+    SELECT ${selectEntryColumns()}
     FROM subscriber_journal_entries
     WHERE user_id = ?
   `;
@@ -69,35 +96,38 @@ router.get('/entries', requireSession, requireWellnessSubscriber, (req, res) => 
   res.json({ entries });
 });
 
-// POST /api/journal/entries — upsert one entry per calendar day { entry_date?: YYYY-MM-DD, content: string }
+// POST /api/journal/entries — upsert one entry per calendar day
 router.post('/entries', requireSession, requireWellnessSubscriber, (req, res) => {
   const userId = req.session.user.id;
-  const content = typeof req.body.content === 'string' ? req.body.content.trim() : '';
-  if (!content) {
-    return res.status(400).json({ error: 'Content is required.' });
+  if (!entryHasPayload(req.body)) {
+    return res.status(400).json({ error: 'Add notes or checklist fields for this day.' });
   }
+  const content = typeof req.body.content === 'string' ? req.body.content.trim() : '';
+  const meals = normalizeChecklistField(req.body.meals);
+  const preTrip = normalizeTriState(req.body.pre_trip);
+  const postTrip = normalizeTriState(req.body.post_trip);
   const date = normalizeEntryDate(req.body.entry_date);
   const existing = getEntryForUserDate(userId, date);
 
   if (existing) {
     db.prepare(`
       UPDATE subscriber_journal_entries
-      SET content = ?, updated_at = CURRENT_TIMESTAMP
+      SET content = ?, meals = ?, pre_trip = ?, post_trip = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(content, existing.id);
-    const row = db.prepare('SELECT id, entry_date, content, created_at, updated_at FROM subscriber_journal_entries WHERE id = ?').get(existing.id);
+    `).run(content, meals, preTrip, postTrip, existing.id);
+    const row = db.prepare(`SELECT ${selectEntryColumns()} FROM subscriber_journal_entries WHERE id = ?`).get(existing.id);
     return res.json({ entry: row, updated: true });
   }
 
   const result = db.prepare(`
-    INSERT INTO subscriber_journal_entries (user_id, entry_date, content, updated_at)
-    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-  `).run(userId, date, content);
-  const row = db.prepare('SELECT id, entry_date, content, created_at, updated_at FROM subscriber_journal_entries WHERE id = ?').get(result.lastInsertRowid);
+    INSERT INTO subscriber_journal_entries (user_id, entry_date, content, meals, pre_trip, post_trip, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+  `).run(userId, date, content, meals, preTrip, postTrip);
+  const row = db.prepare(`SELECT ${selectEntryColumns()} FROM subscriber_journal_entries WHERE id = ?`).get(result.lastInsertRowid);
   res.status(201).json({ entry: row, updated: false });
 });
 
-// PUT /api/journal/entries/:id — update own entry { content?: string, entry_date?: YYYY-MM-DD }
+// PUT /api/journal/entries/:id — update own entry
 router.put('/entries/:id', requireSession, requireWellnessSubscriber, (req, res) => {
   const userId = req.session.user.id;
   const id = parseInt(req.params.id, 10);
@@ -110,9 +140,20 @@ router.put('/entries/:id', requireSession, requireWellnessSubscriber, (req, res)
   let targetDate = existing.entry_date;
 
   if (typeof req.body.content === 'string') {
-    const content = req.body.content.trim();
     updates.push('content = ?');
-    values.push(content);
+    values.push(req.body.content.trim());
+  }
+  if (typeof req.body.meals === 'string') {
+    updates.push('meals = ?');
+    values.push(normalizeChecklistField(req.body.meals));
+  }
+  if (req.body.pre_trip !== undefined) {
+    updates.push('pre_trip = ?');
+    values.push(normalizeTriState(req.body.pre_trip));
+  }
+  if (req.body.post_trip !== undefined) {
+    updates.push('post_trip = ?');
+    values.push(normalizeTriState(req.body.post_trip));
   }
   if (req.body.entry_date && /^\d{4}-\d{2}-\d{2}$/.test(req.body.entry_date)) {
     targetDate = req.body.entry_date;
@@ -124,13 +165,13 @@ router.put('/entries/:id', requireSession, requireWellnessSubscriber, (req, res)
     values.push(targetDate);
   }
   if (updates.length === 0) {
-    const row = db.prepare('SELECT id, entry_date, content, created_at, updated_at FROM subscriber_journal_entries WHERE id = ?').get(id);
+    const row = db.prepare(`SELECT ${selectEntryColumns()} FROM subscriber_journal_entries WHERE id = ?`).get(id);
     return res.json({ entry: row });
   }
   updates.push('updated_at = CURRENT_TIMESTAMP');
   values.push(id);
   db.prepare(`UPDATE subscriber_journal_entries SET ${updates.join(', ')} WHERE id = ?`).run(...values);
-  const row = db.prepare('SELECT id, entry_date, content, created_at, updated_at FROM subscriber_journal_entries WHERE id = ?').get(id);
+  const row = db.prepare(`SELECT ${selectEntryColumns()} FROM subscriber_journal_entries WHERE id = ?`).get(id);
   res.json({ entry: row });
 });
 

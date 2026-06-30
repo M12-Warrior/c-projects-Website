@@ -285,6 +285,15 @@ try {
 try {
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_journal_user_entry_date ON subscriber_journal_entries(user_id, entry_date)');
 } catch (_) {}
+try {
+  db.exec('ALTER TABLE subscriber_journal_entries ADD COLUMN meals TEXT DEFAULT ""');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE subscriber_journal_entries ADD COLUMN pre_trip TEXT DEFAULT ""');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE subscriber_journal_entries ADD COLUMN post_trip TEXT DEFAULT ""');
+} catch (_) {}
 
 // Course completions (numbered certificates, mailing, optional copy to insurance/safety)
 db.exec(`

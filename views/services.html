@@ -78,6 +78,15 @@
     .consulting-features li{font-size:0.82rem;color:var(--text-2);padding:6px 0 6px 20px;position:relative}
     .consulting-features li::before{content:'';position:absolute;left:0;top:12px;width:6px;height:6px;border-radius:50%;background:var(--blue)}
 
+    .wellness-checklist-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+    .wellness-checklist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px}
+    .wellness-checklist-card h4{font-family:var(--font);font-size:0.95rem;font-weight:700;margin-bottom:6px}
+    .wellness-checklist-card p{font-size:0.82rem;color:var(--text-2);line-height:1.55;margin-bottom:10px}
+    .wellness-checklist-card ul{list-style:none;padding:0;margin:0}
+    .wellness-checklist-card li{font-size:0.78rem;color:var(--text-2);padding:4px 0 4px 16px;position:relative;line-height:1.45}
+    .wellness-checklist-card li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700;font-size:0.72rem}
+    .wellness-checklist-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+
     @media(max-width:1024px){
       .pricing-grid{grid-template-columns:repeat(2,1fr)}
       .consulting-grid{grid-template-columns:1fr}
@@ -87,6 +96,7 @@
       .pricing-grid{grid-template-columns:1fr}
       .bundle-row{grid-template-columns:1fr}
       .course-includes ul{grid-template-columns:1fr}
+      .wellness-checklist-grid{grid-template-columns:1fr}
       .bundle-card{flex-direction:column;text-align:center}
       .bundle-price{text-align:center}
     }
@@ -210,6 +220,50 @@
               <a href="/shop/product/trucker-wellness-journal-monthly" class="btn btn-secondary" style="text-decoration:none">Shop listing</a>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- ===== DAILY WELLNESS CHECKLIST ===== -->
+      <div class="pricing-section" id="dailyWellnessChecklist">
+        <h2 class="pricing-section-title">Daily Wellness Checklist</h2>
+        <p class="pricing-section-desc">The same daily wellness list from the Tier 1 New Driver Packet — meals, pre-trip inspection, on-road habits, and post-trip wind-down. Use it every day in your cab; progress saves in your browser with no account needed.</p>
+        <div class="wellness-checklist-grid">
+          <div class="wellness-checklist-card">
+            <h4>Morning — meals &amp; pre-trip</h4>
+            <p>Hydrate, breakfast, full pre-trip DVIR, weather check.</p>
+            <ul>
+              <li>Drink 16 oz of water upon waking</li>
+              <li>Eat a protein-rich breakfast</li>
+              <li>Complete full pre-trip inspection (DVIR)</li>
+              <li>Check weather and road conditions</li>
+            </ul>
+          </div>
+          <div class="wellness-checklist-card">
+            <h4>On the road — meals &amp; wellness</h4>
+            <p>Following distance, breaks, balanced midday meal, fatigue check.</p>
+            <ul>
+              <li>Stop every 2–3 hours: stretch, hydrate, walk</li>
+              <li>Eat a balanced midday meal</li>
+              <li>Maintain 7-second following distance</li>
+              <li>Monitor fatigue — nap if drowsy</li>
+            </ul>
+          </div>
+          <div class="wellness-checklist-card">
+            <h4>Evening — post-trip wind-down</h4>
+            <p>Post-trip DVIR, walk, family check-in, sleep target.</p>
+            <ul>
+              <li>Complete post-trip DVIR and report defects</li>
+              <li>Walk 15–30 minutes after parking</li>
+              <li>Call or video chat with family</li>
+              <li>Target 7–8 hours of sleep</li>
+            </ul>
+          </div>
+        </div>
+        <div class="wellness-checklist-actions">
+          <button type="button" class="btn btn-primary" onclick="Tier1Checklist.open()"><span>Open interactive checklist</span></button>
+          <button type="button" class="btn btn-secondary" onclick="Packets.print('new-driver')"><span>Print full packet</span></button>
+          <a href="/packets/new-driver" class="btn btn-secondary" style="text-decoration:none">Full-page checklist</a>
+          <a href="/journal/print" class="btn btn-secondary" style="text-decoration:none">Print wellness journal</a>
         </div>
       </div>
 

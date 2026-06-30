@@ -19,9 +19,18 @@
     .journal-print-wrap h1 { font-size: 1.5rem; margin-bottom: 4px; color: #1a1a1a; }
     .journal-print-wrap .subtitle { font-size: 0.9rem; color: #555; margin-bottom: 24px; }
     .journal-day { border: 1px solid #ddd; border-radius: 6px; padding: 16px 16px 24px; margin-bottom: 20px; }
-    .journal-day-header { font-size: 1.05rem; margin: 0 0 20px 0; padding-bottom: 8px; border-bottom: 2px solid #333; color: #111; font-weight: 600; }
+    .journal-day-header { font-size: 1.05rem; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 2px solid #333; color: #111; font-weight: 600; }
+    .journal-checklist { margin-bottom: 14px; }
+    .journal-row { display: flex; gap: 16px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
+    .journal-row label { min-width: 130px; font-size: 0.85rem; color: #555; }
+    .journal-row .line { flex: 1; border-bottom: 1px solid #ccc; min-height: 1.4em; }
+    .journal-check-row .check-box { width: 18px; height: 18px; border: 1px solid #666; display: inline-block; }
+    .journal-notes-label { font-size: 0.85rem; color: #555; margin: 0 0 8px 0; font-weight: 600; }
     .journal-lines { display: flex; flex-direction: column; gap: 0; }
     .journal-line { border-bottom: 1px solid #bbb; min-height: 1.65em; }
+    .journal-month-picker { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .journal-month-picker label { font-size: 0.88rem; color: var(--text-2); }
+    .journal-month-picker input { padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text); }
   </style>
 </head>
 <body>
@@ -35,15 +44,22 @@
   <main class="page-shell" style="padding-bottom: 48px;">
     <div class="page-container">
       <div id="journalPrintApp">
-        <div class="no-print" style="margin-bottom:24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-          <button type="button" class="btn btn-primary" id="printBtn">Print or save as PDF</button>
-          <a href="/login?redirect=%2Fjournal" class="btn btn-glass">My Journal online</a>
-          <p style="font-size:0.85rem;color:var(--text-2);margin:0;max-width:520px;line-height:1.55"><strong>Free</strong> — no account needed to download or print. Optional free account saves notes online across devices.</p>
+        <div class="no-print" style="margin-bottom:24px;">
+          <div class="journal-month-picker">
+            <label for="printMonthPicker">Month (Pacific time)</label>
+            <input type="month" id="printMonthPicker" value="<!-- JOURNAL_MONTH_KEY -->">
+            <button type="button" class="btn btn-glass" id="printMonthApply">Load month</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary" id="printBtn">Print or save as PDF</button>
+            <a href="/login?redirect=%2Fjournal" class="btn btn-glass">My Journal online</a>
+            <p style="font-size:0.85rem;color:var(--text-2);margin:0;max-width:520px;line-height:1.55"><strong>Free</strong> — no account needed to download or print. Each page shows the correct calendar date for the month you pick (default: current month, America/Los_Angeles).</p>
+          </div>
         </div>
 
         <div class="journal-print-wrap" id="journalPrintContent">
           <h1>Trucker Wellness Journal</h1>
-          <p class="subtitle"><!-- JOURNAL_MONTH_LABEL --> &mdash; Mile 12 Warrior. One lined page per day for handwriting notes, sleep, meals, mood, and mileage.</p>
+          <p class="subtitle"><!-- JOURNAL_MONTH_LABEL --> &mdash; Mile 12 Warrior. One page per day with meals, pre-trip, post-trip checklist lines, and room for notes.</p>
 
           <p style="font-size:0.8rem;color:#666;margin-bottom:20px;"><strong>Disclaimer:</strong> This journal is for personal tracking only. It is not medical, legal, or regulatory advice.</p>
 
@@ -57,6 +73,17 @@
     (function() {
       var btn = document.getElementById('printBtn');
       if (btn) btn.addEventListener('click', function() { window.print(); });
+
+      var picker = document.getElementById('printMonthPicker');
+      var applyBtn = document.getElementById('printMonthApply');
+      function loadMonth() {
+        if (!picker || !picker.value) return;
+        var url = '/journal/print?month=' + encodeURIComponent(picker.value);
+        window.location.href = url;
+      }
+      if (applyBtn) applyBtn.addEventListener('click', loadMonth);
+      if (picker) picker.addEventListener('change', loadMonth);
+
       fetch('/api/journal/fulfillment-log', { method: 'POST', credentials: 'include' }).catch(function() {});
     })();
   </script>

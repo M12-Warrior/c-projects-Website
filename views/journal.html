@@ -64,8 +64,8 @@
 
       <div id="journalApp" style="display:none;">
         <h1 class="page-title">My Wellness Journal</h1>
-        <p class="page-subtitle" style="margin-bottom:8px">One note per day &mdash; edit anytime.</p>
-        <p class="page-subtitle" style="margin-bottom:24px;font-size:0.92rem;color:var(--text-2)">Pick a day below, write your note, and save. Each calendar day holds one entry.</p>
+        <p class="page-subtitle" style="margin-bottom:8px">One note per day &mdash; plus daily wellness checklist fields.</p>
+        <p class="page-subtitle" style="margin-bottom:24px;font-size:0.92rem;color:var(--text-2)">Pick a month and day below (Pacific time). Save meals, pre-trip, post-trip, and notes for that calendar day.</p>
 
         <p style="margin-bottom:24px;">
           <a href="/journal/print" class="btn btn-primary">Download or print the journal</a>
@@ -77,8 +77,15 @@
         </p>
 
         <div class="glass-card" style="padding:24px;margin-bottom:32px;">
+          <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:16px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="journalMonthPicker">Month (Pacific time)</label>
+              <input type="month" id="journalMonthPicker" class="form-input" style="max-width:180px">
+            </div>
+            <p style="font-size:0.85rem;color:var(--text-2);margin:0;">Dates follow America/Los_Angeles.</p>
+          </div>
           <h3 style="font-size:1rem;margin-bottom:8px" id="journalMonthLabel">This month</h3>
-          <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:16px">Select a day, then save your note for that date.</p>
+          <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:16px">Select a day, fill in the daily checklist and notes, then save.</p>
           <div id="dayPicker" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
           <form id="journalForm">
             <div class="form-group">
@@ -86,8 +93,22 @@
               <input type="date" id="entryDate" name="entry_date" class="form-input" style="max-width:180px" readonly>
             </div>
             <div class="form-group">
+              <label class="form-label" for="entryMeals">Meals today</label>
+              <input type="text" id="entryMeals" name="meals" class="form-input" placeholder="Breakfast, lunch, dinner — what worked on the road?">
+            </div>
+            <div class="form-group" style="display:flex;gap:20px;flex-wrap:wrap;">
+              <label class="check-item" style="display:flex;align-items:center;gap:8px;font-size:0.92rem;color:var(--text-2);">
+                <input type="checkbox" id="entryPreTrip" name="pre_trip">
+                <span>Pre-trip inspection complete</span>
+              </label>
+              <label class="check-item" style="display:flex;align-items:center;gap:8px;font-size:0.92rem;color:var(--text-2);">
+                <input type="checkbox" id="entryPostTrip" name="post_trip">
+                <span>Post-trip DVIR complete</span>
+              </label>
+            </div>
+            <div class="form-group">
               <label class="form-label" for="entryContent">Notes for this day</label>
-              <textarea id="entryContent" name="content" class="form-input" rows="6" placeholder="Sleep, meals, exercise, mood, mileage, goals…"></textarea>
+              <textarea id="entryContent" name="content" class="form-input" rows="6" placeholder="Sleep, exercise, mood, mileage, goals…"></textarea>
             </div>
             <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
               <button type="submit" class="btn btn-primary" id="saveEntryBtn">Save day</button>
@@ -114,12 +135,6 @@
         return div.innerHTML;
       }
 
-      function formatDate(iso) {
-        if (!iso) return '';
-        const d = new Date(iso);
-        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      }
-
       function showToast(msg, success) {
         const el = document.getElementById('toast');
         if (!el) return;
@@ -129,41 +144,74 @@
         setTimeout(function() { el.classList.remove('show'); }, 2500);
       }
 
-      let isSubscriber = false;
-      let entriesByDate = {};
-      let currentEntryId = null;
-      let monthDays = [];
+      function formatDate(iso) {
+        if (!iso) return '';
+        const key = String(iso).slice(0, 10);
+        return new Date(key + 'T12:00:00').toLocaleDateString('en-US', {
+          month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Los_Angeles'
+        });
+      }
 
       function laTodayIso() {
         return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
       }
 
-      function buildMonthDays() {
-        const iso = laTodayIso();
-        const parts = iso.split('-');
+      function laMonthKeyFromIso(iso) {
+        return String(iso || laTodayIso()).slice(0, 7);
+      }
+
+      function monthRange(monthKey) {
+        const parts = monthKey.split('-');
         const year = parseInt(parts[0], 10);
         const month = parseInt(parts[1], 10);
-        const daysInMonth = new Date(year, month, 0).getDate();
+        const from = monthKey + '-01';
+        const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+        const to = monthKey + '-' + String(daysInMonth).padStart(2, '0');
+        return { year, month, from, to, daysInMonth };
+      }
+
+      let isSubscriber = false;
+      let entriesByDate = {};
+      let currentEntryId = null;
+      let monthDays = [];
+      let activeMonthKey = laMonthKeyFromIso(laTodayIso());
+
+      function buildMonthDays(monthKey) {
+        activeMonthKey = monthKey || laMonthKeyFromIso(laTodayIso());
+        const range = monthRange(activeMonthKey);
         monthDays = [];
-        for (let d = 1; d <= daysInMonth; d += 1) {
-          const dayIso = year + '-' + String(month).padStart(2, '0') + '-' + String(d).padStart(2, '0');
-          monthDays.push(dayIso);
+        for (let d = 1; d <= range.daysInMonth; d += 1) {
+          monthDays.push(activeMonthKey + '-' + String(d).padStart(2, '0'));
         }
-        const labelDate = new Date(year, month - 1, 1);
         const monthLabel = document.getElementById('journalMonthLabel');
+        const monthPicker = document.getElementById('journalMonthPicker');
+        if (monthPicker) monthPicker.value = activeMonthKey;
         if (monthLabel) {
-          monthLabel.textContent = labelDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'America/Los_Angeles' });
+          monthLabel.textContent = new Date(activeMonthKey + '-01T12:00:00').toLocaleDateString('en-US', {
+            month: 'long', year: 'numeric', timeZone: 'America/Los_Angeles'
+          });
         }
+      }
+
+      function dayHasEntry(entry) {
+        if (!entry) return false;
+        return !!(
+          (entry.content && entry.content.trim()) ||
+          (entry.meals && entry.meals.trim()) ||
+          entry.pre_trip === 'yes' ||
+          entry.post_trip === 'yes'
+        );
       }
 
       function renderDayPicker() {
         const picker = document.getElementById('dayPicker');
         if (!picker) return;
-        const today = laTodayIso();
         picker.innerHTML = monthDays.map(function(iso) {
-          const d = new Date(iso + 'T12:00:00');
-          const label = d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', timeZone: 'America/Los_Angeles' });
-          const hasNote = !!entriesByDate[iso];
+          const label = new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {
+            weekday: 'short', day: 'numeric', timeZone: 'America/Los_Angeles'
+          });
+          const entry = entriesByDate[iso];
+          const hasNote = dayHasEntry(entry);
           const active = document.getElementById('entryDate') && document.getElementById('entryDate').value === iso;
           return '<button type="button" class="btn btn-glass btn-small journal-day-btn' +
             (active ? ' btn-primary' : '') +
@@ -182,19 +230,25 @@
       function selectDay(iso) {
         const dateInput = document.getElementById('entryDate');
         const contentInput = document.getElementById('entryContent');
+        const mealsInput = document.getElementById('entryMeals');
+        const preTripInput = document.getElementById('entryPreTrip');
+        const postTripInput = document.getElementById('entryPostTrip');
         const clearBtn = document.getElementById('clearDayBtn');
         const statusEl = document.getElementById('entryStatus');
         if (dateInput) dateInput.value = iso;
         const entry = entriesByDate[iso];
         currentEntryId = entry ? entry.id : null;
         if (contentInput) contentInput.value = entry ? (entry.content || '') : '';
+        if (mealsInput) mealsInput.value = entry ? (entry.meals || '') : '';
+        if (preTripInput) preTripInput.checked = !!(entry && entry.pre_trip === 'yes');
+        if (postTripInput) postTripInput.checked = !!(entry && entry.post_trip === 'yes');
         if (clearBtn) clearBtn.style.display = entry ? 'inline-flex' : 'none';
-        if (statusEl) statusEl.textContent = entry ? 'Saved note for this day.' : '';
+        if (statusEl) statusEl.textContent = entry ? 'Saved for this day.' : '';
         renderDayPicker();
       }
 
       function setDefaultDate() {
-        buildMonthDays();
+        buildMonthDays(laMonthKeyFromIso(laTodayIso()));
         selectDay(laTodayIso());
       }
 
@@ -239,8 +293,9 @@
 
       async function loadEntries() {
         const list = document.getElementById('entriesList');
+        const range = monthRange(activeMonthKey);
         try {
-          const r = await fetch('/api/journal/entries', { credentials: 'include' });
+          const r = await fetch('/api/journal/entries?from=' + encodeURIComponent(range.from) + '&to=' + encodeURIComponent(range.to), { credentials: 'include' });
           if (!r.ok) {
             list.innerHTML = '<p class="text-muted">Unable to load entries.</p>';
             return;
@@ -255,13 +310,25 @@
           renderDayPicker();
           const activeDate = document.getElementById('entryDate') && document.getElementById('entryDate').value;
           if (activeDate) selectDay(activeDate);
-          if (entries.length === 0) {
-            list.innerHTML = '<p class="text-muted">No notes yet this month. Pick a day above to start.</p>';
+          const monthEntries = entries.filter(function(e) {
+            const key = (e.entry_date || '').slice(0, 10);
+            return key >= range.from && key <= range.to && dayHasEntry(e);
+          });
+          if (monthEntries.length === 0) {
+            list.innerHTML = '<p class="text-muted">No saved days this month. Pick a day above to start.</p>';
             return;
           }
-          list.innerHTML = entries.map(function(e) {
+          list.innerHTML = monthEntries.map(function(e) {
             const contentEscaped = escapeHtml(e.content || '').replace(/\n/g, '<br>');
+            const mealsEscaped = escapeHtml(e.meals || '');
             const iso = (e.entry_date || '').slice(0, 10);
+            const checklistBits = [];
+            if (mealsEscaped) checklistBits.push('<strong>Meals:</strong> ' + mealsEscaped);
+            if (e.pre_trip === 'yes') checklistBits.push('<strong>Pre-trip:</strong> done');
+            if (e.post_trip === 'yes') checklistBits.push('<strong>Post-trip:</strong> done');
+            const checklistHtml = checklistBits.length
+              ? '<div style="margin-top:8px;font-size:0.88rem;color:var(--text-2);">' + checklistBits.join(' &middot; ') + '</div>'
+              : '';
             return '<article class="glass-card journal-entry" data-id="' + e.id + '" data-date="' + escapeHtml(iso) + '" style="padding:20px;margin-bottom:16px;">' +
               '<div class="journal-entry-view">' +
                 '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">' +
@@ -271,6 +338,7 @@
                     '<button type="button" class="btn btn-glass btn-small journal-delete" data-id="' + e.id + '">Delete</button>' +
                   '</div>' +
                 '</div>' +
+                checklistHtml +
                 '<div class="journal-entry-body" style="margin-top:12px;white-space:pre-wrap;">' + contentEscaped + '</div>' +
               '</div>' +
             '</article>';
@@ -308,9 +376,15 @@
         e.preventDefault();
         const dateInput = document.getElementById('entryDate');
         const contentInput = document.getElementById('entryContent');
+        const mealsInput = document.getElementById('entryMeals');
+        const preTripInput = document.getElementById('entryPreTrip');
+        const postTripInput = document.getElementById('entryPostTrip');
         const content = contentInput.value.trim();
-        if (!content) {
-          showToast('Please enter some notes.', false);
+        const meals = mealsInput.value.trim();
+        const preTrip = preTripInput.checked;
+        const postTrip = postTripInput.checked;
+        if (!content && !meals && !preTrip && !postTrip) {
+          showToast('Add notes or checklist fields for this day.', false);
           return;
         }
         try {
@@ -318,7 +392,13 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ entry_date: dateInput.value || laTodayIso(), content: content })
+            body: JSON.stringify({
+              entry_date: dateInput.value || laTodayIso(),
+              content: content,
+              meals: meals,
+              pre_trip: preTrip,
+              post_trip: postTrip
+            })
           });
           if (r.ok) {
             const saved = await r.json().catch(function() { return {}; });
@@ -343,6 +423,9 @@
             showToast('Day cleared.', true);
             currentEntryId = null;
             document.getElementById('entryContent').value = '';
+            document.getElementById('entryMeals').value = '';
+            document.getElementById('entryPreTrip').checked = false;
+            document.getElementById('entryPostTrip').checked = false;
             document.getElementById('clearDayBtn').style.display = 'none';
             loadEntries();
           } else {
@@ -363,6 +446,17 @@
       (async function init() {
         await checkAuth();
         await checkSubscription();
+
+        const monthPicker = document.getElementById('journalMonthPicker');
+        if (monthPicker) {
+          monthPicker.addEventListener('change', async function() {
+            if (!monthPicker.value) return;
+            buildMonthDays(monthPicker.value);
+            const firstDay = monthPicker.value + '-01';
+            selectDay(firstDay);
+            await loadEntries();
+          });
+        }
 
         function onScroll() {
           const navbar = document.getElementById('navbar');

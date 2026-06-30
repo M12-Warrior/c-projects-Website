@@ -322,8 +322,10 @@ app.get('/journal', requireLogin, (req, res) => {
 app.get('/journal/print', (req, res) => {
   const templatePath = path.join(__dirname, 'views', 'journal-print.html');
   let html = fs.readFileSync(templatePath, 'utf8');
-  const month = buildMonthPrintPages();
-  html = html.replace('<!-- JOURNAL_MONTH_LABEL -->', month.monthLabel);
+  const monthParam = typeof req.query.month === 'string' ? req.query.month : '';
+  const month = buildMonthPrintPages(monthParam);
+  html = html.replace(/<!-- JOURNAL_MONTH_LABEL -->/g, month.monthLabel);
+  html = html.replace('<!-- JOURNAL_MONTH_KEY -->', month.monthKey);
   html = html.replace('<!-- JOURNAL_DAY_PAGES -->', month.pagesHtml);
   res.type('html').send(html);
 });

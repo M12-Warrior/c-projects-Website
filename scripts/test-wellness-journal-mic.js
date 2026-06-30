@@ -1,4 +1,4 @@
-// Wellness journal free access + community mic lighting (run via npm test)
+﻿// Wellness journal free access + community mic lighting (run via npm test)
 const fs = require('fs');
 const path = require('path');
 const db = require('../db/database');
@@ -63,6 +63,12 @@ else fail('shop-product missing guest journal copy');
 
 if (servicesHtml.includes('account optional') || servicesHtml.includes('Optional free account')) ok('services welcoming journal copy');
 else fail('services missing welcoming journal copy');
+
+if (servicesHtml.includes('Daily Wellness Checklist') && servicesHtml.includes('Open interactive checklist')) {
+  ok('services daily wellness checklist section visible');
+} else {
+  fail('services missing daily wellness checklist embed');
+}
 
 if (forumJs.includes('profanityFilter')) ok('forum profanity filter wired');
 else fail('forum missing profanity filter');
