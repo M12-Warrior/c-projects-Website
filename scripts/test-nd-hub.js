@@ -25,7 +25,7 @@ else fail('hub prompt API');
 if (hubJs.includes('[data-nd-hub]')) ok('hub auto-mount data attribute');
 else fail('hub auto-mount');
 
-if (packetPage.includes('data-nd-hub')) ok('packet page hub tabs');
+if (packetPage.includes('data-nd-hub-embed')) ok('packet page hub tabs');
 else fail('packet page hub tabs');
 
 if (shopProduct.includes('shopNewDriverHub') && shopProduct.includes('NewDriverHub.mount')) ok('shop new-driver dual entry');
@@ -37,7 +37,7 @@ else fail('course hub script');
 if (courseHtml.includes('maybePromptFirstEngage') && courseHtml.includes('showFirstLessonBanner')) ok('course engagement hooks');
 else fail('course engagement hooks');
 
-if (courseHtml.includes("showAccountPrompt('course-complete')")) ok('course completion guest prompt');
+if (courseHtml.includes("maybePromptEngagement('course-complete')")) ok('course completion guest prompt');
 else fail('course completion prompt');
 
 if (failed) process.exit(1);

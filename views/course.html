@@ -1174,7 +1174,7 @@ function renderComplete(main) {
   html += '</div>';
   main.innerHTML = html;
   loadCompletionContent();
-  if (typeof NewDriverHub !== 'undefined') NewDriverHub.showAccountPrompt('course-complete');
+  if (typeof NewDriverHub !== 'undefined') NewDriverHub.maybePromptEngagement('course-complete');
 }
 
 function loadCompletionContent() {
