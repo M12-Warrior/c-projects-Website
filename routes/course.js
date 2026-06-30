@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../db/database');
+const { userHasCourseAccess } = require('../lib/courseAccess');
 
 const router = express.Router();
 
@@ -8,20 +9,6 @@ function requireSession(req, res, next) {
     return res.status(401).json({ error: 'Authentication required' });
   }
   next();
-}
-
-// Check if user has course access (purchased course-90day or complete-bundle)
-function hasCourseAccess(userId) {
-  const row = db.prepare(`
-    SELECT 1
-    FROM orders o
-    JOIN order_items oi ON oi.order_id = o.id
-    JOIN products p ON p.id = oi.product_id
-    WHERE o.user_id = ? AND o.status != 'cancelled'
-      AND p.slug IN ('course-90day', 'complete-bundle')
-    LIMIT 1
-  `).get(userId);
-  return !!row;
 }
 
 // Generate next certificate number: M12W-YYYY-NNNNN
@@ -47,7 +34,7 @@ function nextCertificateNumber() {
 // If the user already has a completion, returns existing cert number and does not create a duplicate.
 router.post('/complete', requireSession, (req, res) => {
   const userId = req.session.user.id;
-  if (!hasCourseAccess(userId)) {
+  if (!userHasCourseAccess(userId, req.session.user.role)) {
     return res.status(403).json({ error: 'Course access required. Purchase the course or complete bundle first.' });
   }
 

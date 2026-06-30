@@ -206,7 +206,7 @@ async function initCheckoutBanner() {
   banner.setAttribute('role', 'status');
   banner.innerHTML =
     '<p class="checkout-banner-text">' +
-    '<strong>Online checkout is coming back soon.</strong> You can still browse the shop and print free packets.' +
+    '<strong>All training is free</strong> — packets &amp; course on Services. Drivers gear checkout coming soon.' +
     '</p>' +
     '<button type="button" class="checkout-banner-dismiss" aria-label="Dismiss checkout notice">&times;</button>';
 

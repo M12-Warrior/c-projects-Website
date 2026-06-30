@@ -176,8 +176,8 @@
       <p class="course-subtitle">10 modules. 40+ lessons. Everything they didn't teach you in CDL school.</p>
       <div class="course-price-row">
         <div class="course-price-badge">
-          <span class="course-price">$149</span>
-          <span class="course-price-label">enrollment<br>opening soon</span>
+          <span class="course-price" style="color:var(--green)">FREE</span>
+          <span class="course-price-label">full course<br>access now</span>
         </div>
       </div>
       <div class="course-stats">
@@ -191,7 +191,7 @@
         <div class="course-progress-bar"><div class="course-progress-fill" id="progressFill"></div></div>
       </div>
       <div class="course-ctas">
-        <button type="button" class="btn btn-primary" id="enrollBtn" disabled style="opacity:0.65;cursor:default">Enrollment opening soon</button>
+        <button type="button" class="btn btn-primary" id="enrollBtn" onclick="selectModule(1)"><span>Start the Course</span></button>
         <button type="button" class="btn btn-glass" id="previewModule1Btn" style="display:none" onclick="selectModule(1)">Preview Module 1</button>
         <a href="/contact" class="btn btn-glass" style="text-decoration:none;margin-top:8px;display:inline-block">Contact us</a>
       </div>
@@ -677,16 +677,18 @@ function updateHeroProgress() {
   if (label) label.textContent = c + ' of 10 modules complete';
   if (fill) fill.style.width = (c / 10 * 100) + '%';
   if (btn) {
-    if (p.purchased) {
-      btn.textContent = 'Enrolled \u2714';
+    if (accessFlags.hasCourseAccess || p.purchased) {
+      btn.textContent = 'Continue Course \u2714';
       btn.disabled = false;
-      btn.style.opacity = '0.6';
-      btn.style.cursor = 'default';
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+      btn.onclick = function() { selectModule(1); };
     } else {
-      btn.textContent = 'Enrollment opening soon';
-      btn.disabled = true;
-      btn.style.opacity = '0.65';
-      btn.style.cursor = 'default';
+      btn.textContent = 'Start the Course';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+      btn.onclick = function() { selectModule(1); };
     }
   }
 }

@@ -47,12 +47,12 @@
   <main class="page-shell">
     <div class="page-container cart-page">
       <h1 class="page-title">Your Cart</h1>
-      <p id="cartNotice" style="font-size:0.85rem;color:var(--text-2);margin-top:-8px;margin-bottom:20px">Online checkout is opening soon. You can still browse products below. Questions? <a href="/contact" style="color:var(--gold)">Contact us</a>.</p>
+      <p id="cartNotice" style="font-size:0.85rem;color:var(--text-2);margin-top:-8px;margin-bottom:20px">Checkout is paused while we build the drivers gear shop. All packets and the course are <strong>free</strong> on <a href="/services" style="color:var(--gold)">Services</a>. Questions? <a href="mailto:joyce@mile12warrior.com" style="color:var(--gold)">Email Joyce</a>.</p>
       <div id="cartContent">
         <div id="cartItems"></div>
         <div id="cartActions" class="hidden" style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap;">
           <a href="/shop" class="btn btn-glass">Continue Shopping</a>
-          <a id="cartCheckoutBtn" href="/shop/checkout" class="btn btn-primary">Checkout status</a>
+          <a id="cartCheckoutBtn" href="/services" class="btn btn-primary">Free downloads on Services</a>
         </div>
       </div>
       <div id="cartEmpty" class="empty-state hidden">
@@ -119,13 +119,10 @@
         var total = 0;
         cartItems.innerHTML = cart.map(function(item, idx) {
           var qty = item.quantity || 1;
-          var price = parseFloat(item.price) || 0;
-          var subtotal = qty * price;
-          total += subtotal;
           return '<div class="cart-item" data-idx="' + idx + '">' +
             '<div class="cart-item-info">' +
               '<div class="cart-item-name">' + escapeHtml(item.name) + '</div>' +
-              '<div class="cart-item-price">' + formatPrice(item.price) + ' each</div>' +
+              '<div class="cart-item-price" style="color:var(--text-3);font-size:0.85rem">Saved while checkout is paused</div>' +
             '</div>' +
             '<div class="cart-item-qty">' +
               '<button type="button" class="qty-btn" data-action="minus" aria-label="Decrease">−</button>' +
@@ -135,7 +132,7 @@
             '<button type="button" class="qty-btn" data-action="remove" aria-label="Remove" style="color: var(--red);">Remove</button>' +
           '</div>';
         }).join('') +
-        '<div class="cart-total">Total: ' + formatPrice(total) + '</div>';
+        '<div class="cart-total" style="color:var(--text-2);font-size:0.95rem">Checkout paused — training content is free on <a href="/services" style="color:var(--gold)">Services</a>.</div>';
 
         cartItems.querySelectorAll('.qty-btn').forEach(function(btn) {
           btn.addEventListener('click', function() {
@@ -198,7 +195,7 @@
             var notice = document.getElementById('cartNotice');
             if (notice) notice.innerHTML = 'Review your items, then check out securely. Questions? <a href="/contact" style="color:var(--gold)">Contact us</a>.';
             var btn = document.getElementById('cartCheckoutBtn');
-            if (btn) btn.textContent = 'Proceed to checkout';
+            if (btn) { btn.textContent = 'Proceed to checkout'; btn.href = '/shop/checkout'; }
           }
         } catch (_) {}
       }

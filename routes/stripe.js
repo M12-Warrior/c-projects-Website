@@ -27,6 +27,7 @@
 const express = require('express');
 const db = require('../db/database');
 const stripe = require('../lib/stripe');
+const paymentConfig = require('../lib/paymentConfig');
 const shop = require('./shop');
 const subscription = require('./subscription');
 
@@ -176,10 +177,11 @@ function finalizePaidOrder(session) {
 
 // POST /api/stripe/create-checkout-session — create a pending order + Stripe session
 router.post('/create-checkout-session', requireSession, async (req, res) => {
-  if (!stripe) {
+  if (!paymentConfig.isCheckoutEnabled()) {
     return res.status(503).json({
       checkoutDisabled: true,
-      error: 'Online checkout is not available yet. Please check back soon, or use the Contact page with questions.'
+      paused: true,
+      error: 'Online checkout is paused while we prepare our drivers gear shop. All training packets and the course are free on the Services page. Questions? Email joyce@mile12warrior.com or use Contact.'
     });
   }
 

@@ -1,11 +1,27 @@
 # Stripe payments setup (Mile 12 Warrior)
 
-This is the site's payment system. The **code is finished and live in production**, but
-checkout stays **safely turned off** until the Stripe keys below are set in Railway.
-Until then the site shows "Purchases opening soon" everywhere and no one can be charged.
+This is the site's payment system. The **code is finished**, but checkout is **paused**
+(June 2026) while Mile 12 Warrior offers **all training free** and prepares a proper
+drivers gear shop. Stripe keys may stay on Railway — checkout stays off until you opt in.
 
 > Note: An older `docs/PAYMENTS-AUTHORIZE-NET-SETUP.md` exists from a previous plan.
 > It is **not used** — the site uses **Stripe**. You can ignore the Authorize.net doc.
+
+---
+
+## Current status (paused)
+
+| What | Status |
+|------|--------|
+| Stripe keys on Railway | May remain set — **not removed** |
+| Checkout (`enabled`) | **`false`** until `CHECKOUT_PAUSED=false` |
+| Packets & 90-Day Course | **Free** on `/services` and `/course` — no checkout |
+| Drivers gear / merch | Browse-only / coming soon — no cart checkout |
+| Historical orders & admin Revenue | Unchanged — past paid orders still visible |
+
+To **turn checkout back on** when the gear shop is ready: set Railway variable
+`CHECKOUT_PAUSED=false` (and ensure live Stripe keys + webhook are configured).
+Redeploy; Buy/Checkout buttons reappear automatically.
 
 ---
 
@@ -31,7 +47,8 @@ The site confirms payment in **two ways** so an order is never "lost":
 | Piece | Where |
 |-------|-------|
 | Stripe client | `lib/stripe.js` (returns nothing until `STRIPE_SECRET_KEY` is set) |
-| Is checkout live? | `GET /api/shop/payment-config` → `{ enabled: true/false }` |
+| Checkout gate | `lib/paymentConfig.js` — checkout paused unless `CHECKOUT_PAUSED=false` and keys exist |
+| Is checkout live? | `GET /api/shop/payment-config` → `{ enabled, paused, freeAccess }` |
 | Start checkout | `POST /api/stripe/create-checkout-session` (creates the order + Stripe session) |
 | Payment webhook | `POST /api/stripe/webhook` (raw body, signature-verified) |
 | Return-trip confirm | `POST /api/stripe/confirm` (fallback so orders finish even before the webhook is set up) |
@@ -48,9 +65,10 @@ Set these on the Railway service **Variables** tab (production). Never commit re
 
 | Variable | Value | Purpose |
 |----------|-------|---------|
-| `STRIPE_SECRET_KEY` | `sk_live_...` (or `sk_test_...` to test) | Server-only key. **Setting this turns checkout ON.** |
+| `STRIPE_SECRET_KEY` | `sk_live_...` (or `sk_test_...` to test) | Server-only key (may stay set while checkout is paused) |
 | `STRIPE_PUBLISHABLE_KEY` | `pk_live_...` (or `pk_test_...`) | Safe-for-browser key (optional for hosted checkout). |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_...` | From the webhook you create in the Stripe dashboard (see below). |
+| `CHECKOUT_PAUSED` | unset or `true` (default) | **`false` = checkout live** when Stripe keys exist |
 | `BASE_URL` | `https://mile12warrior.com` | So receipt/cancel links point to the live domain. |
 
 Local placeholders live in `.env.example`. Use Railway only for real values.
@@ -76,7 +94,7 @@ You can do all of this yourself in the Stripe and Railway websites — no coding
   - `STRIPE_SECRET_KEY` = your secret key
   - `STRIPE_PUBLISHABLE_KEY` = your publishable key
   - `BASE_URL` = `https://mile12warrior.com` (if it isn't already set)
-- Railway will redeploy. Once it's back up, checkout buttons appear automatically.
+- Railway will redeploy. Once it's back up **and** `CHECKOUT_PAUSED=false`, checkout buttons appear automatically.
 
 ### 4. Set up the payment webhook (so paid orders always complete)
 - In Stripe: **Developers → Webhooks → Add endpoint**.

@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../db/database');
 const { hasModule1PreviewAccess } = require('../lib/module1PreviewAccess');
 const stripe = require('../lib/stripe');
+const paymentConfig = require('../lib/paymentConfig');
 const router = express.Router();
 
 // Require session (401 if not logged in)
@@ -371,22 +372,9 @@ router.get('/admin/products', requireAdmin, (req, res) => {
 });
 
 // 0. GET /api/shop/payment-config — Is online checkout (Stripe) live yet?
-// `enabled` is true only when STRIPE_SECRET_KEY is set on the server (lib/stripe
-// returns a client). The frontend uses this to show real Buy/Checkout buttons or
-// keep the "opening soon" copy, so the site is safe to deploy before keys exist.
+// `enabled` is false while CHECKOUT_PAUSED (default) even if Stripe keys exist.
 router.get('/payment-config', (req, res) => {
-  const rawSecret = process.env.STRIPE_SECRET_KEY ? String(process.env.STRIPE_SECRET_KEY).trim() : '';
-  const rawPub = process.env.STRIPE_PUBLISHABLE_KEY ? String(process.env.STRIPE_PUBLISHABLE_KEY).trim() : '';
-  let mode = null;
-  if (/_live_/.test(rawSecret)) mode = 'live';
-  else if (/_test_/.test(rawSecret)) mode = 'test';
-  res.json({
-    enabled: !!stripe,
-    provider: stripe ? 'stripe' : null,
-    mode,
-    // Only surface a properly-formatted publishable key; ignore placeholder values.
-    publishableKey: /^pk_(test|live)_/.test(rawPub) ? rawPub : null
-  });
+  res.json(paymentConfig.paymentConfigPayload());
 });
 
 // 1. GET /api/shop/products — Return all active products
@@ -417,12 +405,14 @@ router.get('/products/:slug', (req, res) => {
   res.json({ product: withImage });
 });
 
-// 3. POST /api/shop/orders — checkout disabled until payment returns
+// 3. POST /api/shop/orders — checkout disabled while Stripe is paused
 router.post('/orders', requireSession, (req, res) => {
   return res.status(503).json({
-    error:
-      'Online checkout is not available right now. You will be able to purchase products and services here soon. Questions? Use the Contact page.',
+    error: paymentConfig.isCheckoutPaused()
+      ? 'Online checkout is paused while we prepare the drivers gear shop. Digital training and packets are free on the Services page. Questions? Use the Contact page.'
+      : 'Online checkout is not available right now. You will be able to purchase products and services here soon. Questions? Use the Contact page.',
     checkoutDisabled: true,
+    paused: paymentConfig.isCheckoutPaused()
   });
 });
 // 4. GET /api/shop/orders — Require session, return user's orders with items
@@ -509,6 +499,9 @@ function userHasPaidCourseAccess(userId) {
 // Course access does not expire; fleet packet access uses packet-access and expires at 12 months.
 // Module 1 preview is allowlisted test accounts only (see lib/module1PreviewAccess.js).
 router.get('/course-access', (req, res) => {
+  if (paymentConfig.isFreeAccessMode()) {
+    return res.json({ hasCourseAccess: true, hasModule1Preview: true, freeAccess: true });
+  }
   if (!req.session || !req.session.user) {
     return res.json({ hasCourseAccess: false, hasModule1Preview: false });
   }
@@ -540,6 +533,15 @@ router.get('/packet-access', (req, res) => {
     return res.status(400).json({ error: 'Invalid type', allowed: false });
   }
   const tier1Free = type === 'new-driver';
+  if (paymentConfig.isFreeAccessMode()) {
+    return res.json({
+      allowed: true,
+      tier1Free: true,
+      freeAccess: true,
+      downloadsRemaining: null,
+      expiresAt: null
+    });
+  }
   if (!req.session || !req.session.user) {
     return res.json({
       allowed: false,
@@ -608,11 +610,25 @@ router.get('/packet-access', (req, res) => {
 });
 
 // 4d. POST /api/shop/packet-download-log — Record one packet download (consumes one of max_downloads)
-router.post('/packet-download-log', requireSession, (req, res) => {
+router.post('/packet-download-log', (req, res) => {
   const type = (req.body && req.body.type) ? String(req.body.type).trim() : '';
   const productSlug = PACKET_TYPE_TO_SLUG[type];
   if (!productSlug) {
     return res.status(400).json({ error: 'Invalid type' });
+  }
+  if (paymentConfig.isFreeAccessMode()) {
+    try {
+      const visitorKey = (req.session && req.sessionID) ? String(req.sessionID) : null;
+      const uid = req.session && req.session.user ? req.session.user.id : null;
+      db.prepare(`
+        INSERT INTO download_events (visited_at, visitor_key, user_id, content_type, action, product_slug, path)
+        VALUES (datetime('now'), ?, ?, ?, 'download', ?, '/api/shop/packet-download-log')
+      `).run(visitorKey || 'guest', uid, productSlug, productSlug);
+    } catch (_) {}
+    return res.json({ success: true, freeAccess: true });
+  }
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({ error: 'Authentication required' });
   }
   const uid = req.session.user.id;
   const now = new Date().toISOString();
@@ -902,5 +918,6 @@ router.put('/orders/:id', requireAdmin, (req, res) => {
 // Exposed for the Stripe webhook / confirm flow (routes/stripe.js) so a paid
 // Checkout Session can create the same digital access grants the admin flow uses.
 router.createProductAccessGrantsForOrder = createProductAccessGrantsForOrder;
+router.paymentConfig = paymentConfig;
 
 module.exports = router;

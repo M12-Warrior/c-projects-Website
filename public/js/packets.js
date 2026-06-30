@@ -2594,7 +2594,22 @@ Packets._downloadHtmlBlob = function (html, filename) {
   return true;
 };
 
-// Fleet packet types -> packet-access query type
+Packets._freeDigitalAccess = false;
+
+Packets.loadAccessConfig = function () {
+  return fetch('/api/shop/payment-config', { credentials: 'include' })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      Packets._freeDigitalAccess = !!(data && (data.freeDigitalAccess || data.freeAccess));
+      return data;
+    })
+    .catch(function () { return null; });
+};
+
+Packets._isFreeDigitalAccess = function () {
+  return !!Packets._freeDigitalAccess;
+};
+
 Packets._FLEET_ACCESS_TYPE = {
   'fleet-new-hire': 'fleet-new-hire',
   'fleet-refresher': 'fleet-refresher'
@@ -2602,6 +2617,9 @@ Packets._FLEET_ACCESS_TYPE = {
 
 // Check entitlement for a fleet packet. Returns a promise of { allowed, license, message }.
 Packets._checkFleetAccess = function (type) {
+  if (Packets._isFreeDigitalAccess()) {
+    return Promise.resolve({ allowed: true, license: null, freeAccess: true });
+  }
   var accessType = Packets._FLEET_ACCESS_TYPE[type];
   if (!accessType) return Promise.resolve({ allowed: false, message: 'Unknown packet.' });
   return fetch('/api/shop/packet-access?type=' + encodeURIComponent(accessType), { credentials: 'include' })
@@ -2708,8 +2726,8 @@ Packets._trackEvent = function (type, action) {
 
 Packets._checkIndividualAccess = function (type) {
   var accessType = Packets._normalizeType(type);
-  if (accessType === 'new-driver') {
-    return Promise.resolve({ allowed: true, accessType: accessType });
+  if (accessType === 'new-driver' || Packets._isFreeDigitalAccess()) {
+    return Promise.resolve({ allowed: true, accessType: accessType, freeAccess: !!Packets._isFreeDigitalAccess() });
   }
   if (['seasoned-driver'].indexOf(accessType) === -1) {
     return Promise.resolve({ allowed: false, message: 'Unknown packet.', accessType: accessType });

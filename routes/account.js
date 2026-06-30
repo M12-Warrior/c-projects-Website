@@ -57,27 +57,7 @@ function subscriptionPayload(userId) {
   };
 }
 
-function hasCourseAccess(userId) {
-  const now = new Date().toISOString();
-  const grantRow = db.prepare(`
-    SELECT 1 FROM product_access_grants
-    WHERE user_id = ? AND product_slug = 'course-90day'
-      AND (expires_at IS NULL OR expires_at > ?)
-    LIMIT 1
-  `).get(userId, now);
-  if (grantRow) return true;
-  const orderRow = db.prepare(`
-    SELECT 1
-    FROM orders o
-    JOIN order_items oi ON oi.order_id = o.id
-    JOIN products p ON p.id = oi.product_id
-    WHERE o.user_id = ? AND o.status != 'cancelled'
-      AND p.slug IN ('course-90day', 'complete-bundle')
-    LIMIT 1
-  `).get(userId);
-  return !!orderRow;
-}
-
+const { userHasCourseAccess } = require('../lib/courseAccess');
 function tierLabel(t) {
   if (t === 1) return 'Bronze';
   if (t === 2) return 'Silver';
@@ -111,7 +91,7 @@ router.get('/summary', requireSession, (req, res) => {
   }
 
   const sub = subscriptionPayload(userId);
-  const courseAccess = hasCourseAccess(userId);
+  const courseAccess = userHasCourseAccess(userId, req.session.user.role);
 
   const grantRows = db.prepare(`
     SELECT g.product_slug, g.expires_at, g.download_count, g.max_downloads, p.name AS product_name
