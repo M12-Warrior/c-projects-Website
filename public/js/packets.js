@@ -59,6 +59,35 @@ Packets._footer = function () {
   return '<div class="footer-legal">&copy; 2026 Mile 12 Warrior LLC. All rights reserved. Educational content only &mdash; not medical, legal, or regulatory advice. Verify regulations at fmcsa.dot.gov and dot.ca.gov<br><strong>Multi-State Notice:</strong> Drivers from all 50 states may access these materials. Each state has its own transportation laws that may differ significantly. It is the driver&rsquo;s responsibility to comply with the laws of every state they travel through. California (Caltrans/CALDOT) references reflect our home state and should not be assumed to apply in other jurisdictions.</div>';
 };
 
+Packets._fleetHeader = function () {
+  return '';
+};
+
+Packets._fleetFooter = function () {
+  return '<div class="footer-legal fleet-page-footer">Safety resources provided by Mile 12 Warrior &middot; mile12warrior.com<br>For training and educational purposes only &mdash; not legal or medical advice.</div>';
+};
+
+Packets._fleetCoverPage = function (packetTitle, packetSubtitle) {
+  return '<div class="cover-page fleet-cover">' +
+    '<p style="font-size:12pt;color:#444;margin-bottom:8px;">Fleet Safety Department</p>' +
+    '<h1 style="font-size:24pt;border:none;margin-bottom:8px;">' + packetTitle + '</h1>' +
+    '<p class="subtitle">' + packetSubtitle + '</p>' +
+    '<div class="fleet-cover-org" style="margin-top:48px;">' +
+    '<p class="fleet-cover-company" style="font-size:26pt;font-weight:bold;margin:0 0 16px 0;line-height:1.25;">Company Name: ________________________________________</p>' +
+    '<p class="fleet-cover-date" style="font-size:18pt;margin:0;">Date: ____________________</p>' +
+    '</div>' +
+    '<p class="fleet-cover-credit" style="margin-top:auto;padding-top:64px;font-size:9pt;color:#777;">Safety resources provided by Mile 12 Warrior LLC<br>Driver Safety &amp; Wellness &middot; mile12warrior.com</p>' +
+    '</div>';
+};
+
+Packets._finalizeFleetPacketHtml = function (body) {
+  if (!body) return body;
+  body = body.replace(/<div class="header">\s*<h1>Mile 12 Warrior<\/h1>[\s\S]*?<\/div>\s*/g, '');
+  var fleetFoot = Packets._fleetFooter();
+  body = body.replace(/<div class="footer-legal">[\s\S]*?<\/div>/g, fleetFoot);
+  return body;
+};
+
 Packets._wrap = function (title, body) {
   var safeTitle = String(title || '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -1186,17 +1215,13 @@ Packets.fleetNewHire = function () {
   var body = '';
 
   /* ---- Cover Page ---- */
-  body += '<div class="cover-page">' +
-    '<h1>Fleet Safety Department</h1>' +
-    '<p class="subtitle" style="font-size:18pt;color:#222;margin-bottom:8px;">New Hire Driver Orientation Packet</p>' +
-    '<p class="subtitle">Comprehensive onboarding materials for new CDL drivers.<br>Designed for safety department distribution.</p>' +
-    '<p style="margin-top:24px;font-size:11pt;">Prepared by <strong>Mile 12 Warrior LLC</strong> &mdash; Driver Safety &amp; Wellness Consultants</p>' +
-    '<p style="margin-top:32px;font-size:10pt;">Company Name: ________________________________________</p>' +
-    '<p style="font-size:10pt;">Date: ____________________</p>' +
-    '</div>';
+  body += Packets._fleetCoverPage(
+    'New Hire Driver Orientation Packet',
+    'Comprehensive onboarding materials for new CDL drivers.<br>Designed for safety department distribution.'
+  );
 
   /* ---- Cover Letter ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Cover Letter</h2>';
   body += '<p><strong>Dear Safety Director,</strong></p>';
   body += '<p>This packet is designed to be distributed to all new hire CDL drivers during orientation. It covers essential safety topics mandated by FMCSA regulations, company best practices, and driver wellness fundamentals.</p>';
@@ -1204,10 +1229,10 @@ Packets.fleetNewHire = function () {
   body += '<p>Each section may be used as a standalone training module or as a complete orientation package. The sign-off sheet at the end of this packet provides documentation of receipt and acknowledgment for your driver qualification files as required by 49 CFR Part 391.51.</p>';
   body += '<p>We recommend reviewing this packet periodically and updating the company-specific sections as your policies evolve.</p>';
   body += '<p style="margin-top:24px;">Respectfully,<br><strong>Mile 12 Warrior LLC</strong><br>Driver Safety &amp; Wellness Consultants<br>mile12warrior.com</p>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Table of Contents ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Table of Contents</h2><ul class="toc">';
   var tocItems = [
     'Company Safety Expectations',
@@ -1226,10 +1251,10 @@ Packets.fleetNewHire = function () {
     body += '<li>Section ' + (i + 1) + ': ' + tocItems[i] + '</li>';
   }
   body += '<li><strong>Driver Acknowledgment &amp; Sign-Off Sheet</strong></li>';
-  body += '</ul>' + Packets._footer() + '</div>';
+  body += '</ul>' + Packets._fleetFooter() + '</div>';
 
   /* ---- Section 1: Company Safety Expectations ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 1: Company Safety Expectations</h2>';
   body += '<div class="info-box"><strong>Note to Safety Director:</strong> Customize this section with your company-specific policies before distribution.</div>';
 
@@ -1262,10 +1287,10 @@ Packets.fleetNewHire = function () {
     'Never use a handheld mobile device while driving',
     'Treat all road users, customers, and coworkers with professionalism and respect'
   ]);
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 2: Federal & State Compliance ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 2: Federal &amp; State Compliance Overview</h2>';
 
   body += '<h3>FMCSA Overview</h3>';
@@ -1315,10 +1340,10 @@ Packets.fleetNewHire = function () {
   body += '<li><strong>CHP Inspections:</strong> California Highway Patrol operates commercial vehicle inspection facilities (scales). Compliance with federal and California-specific equipment standards is verified.</li>';
   body += '<li><strong>BIT Inspections:</strong> California&rsquo;s Basic Inspection of Terminals (BIT) program requires carriers based in California to maintain vehicles to specific standards under CVC 34501.12.</li>';
   body += '</ul>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 3: HOS Complete Reference ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 3: Hours of Service &mdash; Complete Reference</h2>';
   body += '<p><em>49 CFR Part 395</em></p>';
 
@@ -1353,10 +1378,10 @@ Packets.fleetNewHire = function () {
 
   body += '<h3>Record-Keeping Requirements</h3>';
   body += '<p>Drivers must retain copies of their records of duty status (RODS) for the current day plus the previous 7 consecutive days. Carriers must retain RODS for 6 months. ELD records must be available for roadside inspection via display, printout, or electronic transfer.</p>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 4: Vehicle Inspection Requirements ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 4: Vehicle Inspection Requirements</h2>';
   body += '<p><em>49 CFR 396.11 &mdash; Driver Vehicle Inspection Reports (DVIR)</em></p>';
 
@@ -1428,10 +1453,10 @@ Packets.fleetNewHire = function () {
 
   body += '<h3>Company-Specific Reporting Procedures</h3>';
   body += '<div class="info-box"><strong>Note to Safety Director:</strong> Insert your company&rsquo;s specific DVIR reporting procedures, forms, and submission requirements here. Include how drivers should submit DVIRs (paper, app, ELD system), who reviews them, and the timeline for defect repair.</div>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 5: Accident & Incident Procedures ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 5: Accident &amp; Incident Procedures</h2>';
 
   body += '<h3>Step-by-Step Accident Protocol</h3>';
@@ -1482,10 +1507,10 @@ Packets.fleetNewHire = function () {
 
   body += '<h3>Workers&rsquo; Compensation</h3>';
   body += '<p>If you are injured on the job (including during an accident), report the injury to your supervisor and HR department immediately. You have the right to file a workers&rsquo; compensation claim. Timely reporting is critical &mdash; delays can jeopardize your claim.</p>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 6: Fatigue Management Program ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 6: Fatigue Management Program</h2>';
 
   body += '<h3>HOS as Minimum Standard</h3>';
@@ -1519,10 +1544,10 @@ Packets.fleetNewHire = function () {
   body += '<div class="numbered-item">Rest until you feel genuinely alert &mdash; not just until the minimum required time has passed.</div>';
   body += '<div class="numbered-item">Document the stop in your daily log annotations.</div>';
   body += '</div>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 7: Driver Wellness Program ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 7: Driver Wellness Program</h2>';
 
   body += '<h3>Physical Health Guidelines</h3>';
@@ -1550,10 +1575,10 @@ Packets.fleetNewHire = function () {
 
   body += '<h3>Sleep Apnea Screening</h3>';
   body += '<p>Obstructive sleep apnea (OSA) affects an estimated 28&ndash;35% of CDL holders. Risk factors include BMI over 35, neck circumference over 17 inches, male gender, age over 40, and family history. Your medical examiner may require screening during your DOT physical. If diagnosed, treatment with a CPAP machine is effective and will not disqualify you from driving &mdash; but non-compliance with treatment can result in loss of your medical certificate.</p>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 8: Emergency Equipment ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 8: Emergency Equipment Requirements</h2>';
 
   body += '<h3>FMCSA-Required Equipment</h3>';
@@ -1604,10 +1629,10 @@ Packets.fleetNewHire = function () {
     'Hands-free device (many states require hands-free operation)',
     'CB radio (recommended &mdash; Ch 19 truckers, Ch 9 emergencies)'
   ]);
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 9: Defensive Driving Standards ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 9: Defensive Driving Standards</h2>';
 
   body += '<h3>Following Distance Policy</h3>';
@@ -1637,10 +1662,10 @@ Packets.fleetNewHire = function () {
 
   body += '<h3>Adverse Conditions Protocol</h3>';
   body += '<p>FMCSA allows an additional 2 hours of driving time beyond the 11-hour limit if you encounter adverse driving conditions that were not known or could not have been anticipated before the trip began (49 CFR 395.1(b)). This exception does not extend the 14-hour window. However, the safest decision is often to stop and wait for conditions to improve.</p>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 10: Road Hazard Response ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 10: Road Hazard Response</h2>';
 
   body += '<h3>Weather Protocols</h3>';
@@ -1704,10 +1729,10 @@ Packets.fleetNewHire = function () {
 
   body += '<h3>Tire Blowout Response</h3>';
   body += '<div class="warning-box"><strong>Do NOT brake.</strong> Accelerate slightly to stabilize, grip the wheel, counteract the pull, then gradually slow by easing off the throttle. Signal and move to the shoulder when you have control.</div>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 11: Driver Resources ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 11: Driver Resources</h2>';
 
   body += '<h3>Federal &amp; State Agencies</h3>';
@@ -1732,10 +1757,10 @@ Packets.fleetNewHire = function () {
 
   body += '<h3>Company-Specific Resources</h3>';
   body += '<div class="info-box"><strong>Note to Safety Director:</strong> Add your company&rsquo;s specific resources: EAP provider, benefits hotline, maintenance department, training department contacts, etc.</div>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- SIGN-OFF SHEET ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h1 style="text-align:center;">Driver Acknowledgment &amp; Sign-Off Sheet</h1>';
   body += '<h3 style="text-align:center;">New Hire Safety Orientation Packet</h3>';
   body += '<p>I, the undersigned, acknowledge that I have received, read, and understand the contents of this New Hire Driver Safety &amp; Wellness Orientation Packet. I understand that the information contained herein is intended to supplement, not replace, applicable federal (FMCSA), state, and company-specific safety policies. I agree to comply with all safety procedures and policies outlined in this packet and in my company&rsquo;s safety manual.</p>';
@@ -1772,9 +1797,9 @@ Packets.fleetNewHire = function () {
     body += '<tr><td>' + (s + 1) + '</td><td>' + sectionTitles[s] + '</td><td><div class="check-box" style="margin:auto;"></div></td><td></td><td></td></tr>';
   }
   body += '</tbody></table>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
-  return Packets._wrap('Mile 12 Warrior — Fleet New Hire Driver Orientation Packet', body);
+  return Packets._wrap('Mile 12 Warrior — Fleet New Hire Driver Orientation Packet', Packets._finalizeFleetPacketHtml(body));
 };
 
 /* ============================================================
@@ -1784,27 +1809,23 @@ Packets.fleetRefresher = function () {
   var body = '';
 
   /* ---- Cover Page ---- */
-  body += '<div class="cover-page">' +
-    '<h1>Fleet Safety Department</h1>' +
-    '<p class="subtitle" style="font-size:18pt;color:#222;margin-bottom:8px;">Experienced Driver Refresher Packet</p>' +
-    '<p class="subtitle">Annual/semi-annual safety refresher for experienced CDL drivers.<br>Designed for safety department distribution.</p>' +
-    '<p style="margin-top:24px;font-size:11pt;">Prepared by <strong>Mile 12 Warrior LLC</strong> &mdash; Driver Safety &amp; Wellness Consultants</p>' +
-    '<p style="margin-top:32px;font-size:10pt;">Company Name: ________________________________________</p>' +
-    '<p style="font-size:10pt;">Date: ____________________</p>' +
-    '</div>';
+  body += Packets._fleetCoverPage(
+    'Experienced Driver Refresher Packet',
+    'Annual/semi-annual safety refresher for experienced CDL drivers.<br>Designed for safety department distribution.'
+  );
 
   /* ---- Cover Letter ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Cover Letter</h2>';
   body += '<p><strong>Dear Safety Director,</strong></p>';
   body += '<p>This refresher packet is designed for drivers with 1+ years of service. Annual or semi-annual safety refreshers are a best practice recommended by FMCSA and can positively impact your company&rsquo;s CSA scores, insurance premiums, and overall safety culture.</p>';
   body += '<p>Documented refresher training demonstrates due diligence to regulators and insurers. In the event of litigation following an accident, the ability to show that a driver received ongoing safety training beyond the initial orientation can significantly strengthen your company&rsquo;s legal position.</p>';
   body += '<p>This packet includes updated regulatory information, advanced hazard recognition, self-assessment tools, and a structured sign-off process for your driver qualification files.</p>';
   body += '<p style="margin-top:24px;">Respectfully,<br><strong>Mile 12 Warrior LLC</strong><br>Driver Safety &amp; Wellness Consultants<br>mile12warrior.com</p>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Table of Contents ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Table of Contents</h2><ul class="toc">';
   var tocItems = [
     'Why Refreshers Matter',
@@ -1822,10 +1843,10 @@ Packets.fleetRefresher = function () {
     body += '<li>Section ' + (i + 1) + ': ' + tocItems[i] + '</li>';
   }
   body += '<li><strong>Driver Acknowledgment &amp; Sign-Off Sheet</strong></li>';
-  body += '</ul>' + Packets._footer() + '</div>';
+  body += '</ul>' + Packets._fleetFooter() + '</div>';
 
   /* ---- Section 1: Why Refreshers Matter ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 1: Why Refreshers Matter</h2>';
 
   body += '<h3>The Complacency Problem</h3>';
@@ -1845,10 +1866,10 @@ Packets.fleetRefresher = function () {
 
   body += '<h3>CSA Score Improvement</h3>';
   body += '<p>Your company&rsquo;s CSA scores directly impact your ability to operate, your insurance costs, and your competitiveness. Refresher training that specifically targets your company&rsquo;s highest-scoring BASICs categories (Unsafe Driving, HOS Compliance, Vehicle Maintenance, Driver Fitness, Controlled Substances) creates measurable improvement over 12&ndash;24 months.</p>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 2: HOS Updates & Common Pitfalls ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 2: HOS Updates &amp; Common Pitfalls</h2>';
 
   body += '<h3>Recent Rule Changes &amp; Clarifications</h3>';
@@ -1874,10 +1895,10 @@ Packets.fleetRefresher = function () {
 
   body += '<h3>Adverse Driving Exception Details</h3>';
   body += '<p>Under 49 CFR 395.1(b), if you encounter adverse conditions (rain, snow, fog, unexpected road closure) that were not known before dispatch, you may drive up to 2 additional hours. Important: you must have been able to complete the trip within normal HOS limits under the conditions anticipated at dispatch. This exception does not extend the 14-hour window; it only adds to the 11-hour driving limit.</p>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 3: Advanced Fatigue Management ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 3: Advanced Fatigue Management</h2>';
 
   body += '<h3>Sleep Debt Science</h3>';
@@ -1918,10 +1939,10 @@ Packets.fleetRefresher = function () {
     body += '<tr><td>' + (q + 1) + '</td><td>' + fatigueQs[q] + '</td><td></td></tr>';
   }
   body += '</tbody></table>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 4: Health & Wellness Check-In ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 4: Health &amp; Wellness Check-In</h2>';
 
   body += '<h3>BMI &amp; Cardiovascular Awareness</h3>';
@@ -1962,10 +1983,10 @@ Packets.fleetRefresher = function () {
     'Know your medical history (surgeries, hospitalizations, chronic conditions)',
     'Be honest with the examiner &mdash; hiding conditions creates liability for you'
   ]);
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 5: Defensive Driving Refresher ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 5: Defensive Driving Refresher</h2>';
 
   body += '<h3>Space Management Review</h3>';
@@ -1992,10 +2013,10 @@ Packets.fleetRefresher = function () {
 
   body += '<h3>Speed Management in Adverse Conditions</h3>';
   body += '<p>California enforces a 55 mph truck speed limit on many highways (CVC 22406). In adverse conditions, appropriate speed may be well below the posted limit. Rain: reduce by one-third. Snow: reduce by half or more. Ice: do not drive unless absolutely necessary. If you can&rsquo;t see far enough ahead to stop within your sight distance, you are going too fast.</p>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 6: Hazard Recognition Update ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 6: Hazard Recognition Update</h2>';
 
   body += '<h3>Seasonal Hazard Calendar</h3>';
@@ -2025,10 +2046,10 @@ Packets.fleetRefresher = function () {
   body += '<li><strong>The &ldquo;one more hour&rdquo; push:</strong> You&rsquo;ve driven tired before and nothing happened. Until it does.</li>';
   body += '<li><strong>The backing maneuver you&rsquo;ve done 1,000 times:</strong> Most backing accidents happen to experienced drivers in familiar locations.</li>';
   body += '</ul>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 7: Emergency Preparedness Audit ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 7: Emergency Preparedness Audit</h2>';
   body += '<p>Use this section to perform a date-based audit of your emergency equipment. Record the last inspection date for each item.</p>';
 
@@ -2087,10 +2108,10 @@ Packets.fleetRefresher = function () {
   body += '<tr><td>Emergency Contact #1</td><td></td><td></td><td></td></tr>';
   body += '<tr><td>Emergency Contact #2</td><td></td><td></td><td></td></tr>';
   body += '</tbody></table>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 8: Regulatory Compliance Self-Audit ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 8: Regulatory Compliance Self-Audit</h2>';
 
   body += '<h3>CSA Score Check</h3>';
@@ -2126,10 +2147,10 @@ Packets.fleetRefresher = function () {
   body += '<tr><td style="font-weight:bold;">Hazmat endorsement renewal date (if applicable)</td><td></td></tr>';
   body += '<tr><td style="font-weight:bold;">TWIC card expiration (if applicable)</td><td></td></tr>';
   body += '</tbody></table>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 9: Mentorship Opportunity ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 9: Mentorship Opportunity</h2>';
 
   body += '<h3>An Invitation</h3>';
@@ -2169,10 +2190,10 @@ Packets.fleetRefresher = function () {
   ]);
 
   body += '<p style="margin-top:16px;">If you are interested in mentoring, contact your Safety Director or Fleet Manager.</p>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- Section 10: Goals & Action Plan ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h2>Section 10: Goals &amp; Action Plan</h2>';
 
   body += '<h3>Quarterly Safety Goals</h3>';
@@ -2202,10 +2223,10 @@ Packets.fleetRefresher = function () {
   body += '<tr><td>Water intake (oz per day)</td><td></td><td></td><td></td></tr>';
   body += '<tr><td>Meals packed vs. eaten out</td><td></td><td></td><td></td></tr>';
   body += '</tbody></table>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
   /* ---- SIGN-OFF SHEET ---- */
-  body += '<div class="page-break">' + Packets._header();
+  body += '<div class="page-break">' + Packets._fleetHeader();
   body += '<h1 style="text-align:center;">Driver Acknowledgment &amp; Sign-Off Sheet</h1>';
   body += '<h3 style="text-align:center;">Experienced Driver Safety Refresher Packet</h3>';
   body += '<p>I, the undersigned, acknowledge that I have received, reviewed, and understand the contents of this Experienced Driver Safety Refresher Packet. I understand this refresher supplements my initial training and all applicable federal (FMCSA), state, and company-specific safety policies remain in effect. I commit to applying the updated safety practices and information contained herein.</p>';
@@ -2252,9 +2273,9 @@ Packets.fleetRefresher = function () {
   body += '<tr><td style="width:40%;font-weight:bold;">Safety Director Signature</td><td></td></tr>';
   body += '<tr><td style="font-weight:bold;">Date</td><td></td></tr>';
   body += '</tbody></table>';
-  body += Packets._footer() + '</div>';
+  body += Packets._fleetFooter() + '</div>';
 
-  return Packets._wrap('Mile 12 Warrior — Fleet Experienced Driver Refresher Packet', body);
+  return Packets._wrap('Mile 12 Warrior — Fleet Experienced Driver Refresher Packet', Packets._finalizeFleetPacketHtml(body));
 };
 
 /* ============================================================
@@ -2632,11 +2653,16 @@ Packets._applyFleetPrefill = function (html, type, info) {
   if (company) {
     html = html.replace(/Company Name: _+/g, 'Company Name: ' + esc(company));
     html = html.replace(
+      /(<p class="fleet-cover-company"[^>]*>Company Name: )_+/,
+      '$1' + esc(company)
+    );
+    html = html.replace(
       /At <strong>_+<\/strong> \(company name\)/,
       'At <strong>' + esc(company) + '</strong> (company name)'
     );
   }
   if (packetDate) {
+    html = html.replace(/(<p class="fleet-cover-date"[^>]*>Date: )_+(<\/p>)/, '$1' + esc(packetDate) + '$2');
     html = html.replace(
       /(<p style="margin-top:32px;font-size:10pt;">Company Name:[^<]+<\/p>\s*<p style="font-size:10pt;">)Date: _+(<\/p>)/,
       '$1Date: ' + esc(packetDate) + '$2'

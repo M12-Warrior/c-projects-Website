@@ -122,6 +122,26 @@ if (typeof Packets._applyOrgStamp === 'function' && typeof Packets._finalizeFlee
   } else {
     ok('fleet refresher prefill merges emergency contacts');
   }
+  if (hireHtml.indexOf('Safety resources provided by Mile 12 Warrior') === -1) {
+    fail('fleet new hire missing fleet footer branding');
+  } else if (hireHtml.indexOf('<div class="header"><h1>Mile 12 Warrior</h1>') !== -1) {
+    fail('fleet new hire should not include Mile 12 page header');
+  } else if (hireHtml.indexOf('fleet-cover-company') === -1) {
+    fail('fleet new hire missing company-first cover');
+  } else {
+    ok('fleet new hire uses company-first cover and fleet footers');
+  }
+  if (refHtml.indexOf('Safety resources provided by Mile 12 Warrior') === -1) {
+    fail('fleet refresher missing fleet footer branding');
+  } else {
+    ok('fleet refresher uses fleet footers');
+  }
+  var newDriverHtml = Packets.newDriver();
+  if (newDriverHtml.indexOf('<div class="header"><h1>Mile 12 Warrior</h1>') !== -1) {
+    ok('individual new driver packet keeps Mile 12 header');
+  } else {
+    fail('individual packets should keep Mile 12 header');
+  }
 } else {
   fail('missing optional fleet yard/prefill helpers');
 }
