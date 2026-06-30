@@ -792,18 +792,6 @@
         <p style="font-size:0.88rem;color:var(--green);max-width:720px;margin:12px auto 0;text-align:center;line-height:1.55;font-weight:600"><strong>Every safety packet and the 90-Day Course are free</strong> — view online, print, or download anytime. No checkout required.</p>
       </div>
 
-      <div style="background:var(--surface,#0f1219);border:1px solid var(--border);border-radius:var(--radius,16px);padding:28px 32px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
-        <div>
-          <span style="font-family:var(--mono);font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue)">Featured Course</span>
-          <h3 style="font-family:var(--font-heading,'Space Grotesk',sans-serif);font-size:1.2rem;font-weight:700;margin:4px 0">New Driver 90-Day Onboarding Course</h3>
-          <p style="font-size:0.85rem;color:var(--text-2);margin:0">10 modules, 47 lessons, quizzes, and certificate of completion — <strong style="color:var(--green)">FREE</strong> <span style="font-size:0.78rem;color:var(--text-3)">(full course access)</span></p>
-        </div>
-        <a href="/course" class="btn btn-primary" style="text-decoration:none"><span>Start the Course</span></a>
-      </div>
-
-      <div class="packet-grid">
-      </div>
-
       <div class="packet-grid">
         <!-- Individual Driver Packets -->
         <div class="packet-group">
@@ -812,28 +800,17 @@
             Individual Driver Packets
           </h3>
 
-          <div class="packet-card" style="--packet-accent: #818cf8;">
+          <div class="packet-card nd-hub-card" style="--packet-accent: #818cf8;">
             <div class="packet-tier packet-tier-free">Tier 1 — FREE</div>
-            <h4>New Driver Packet</h4>
-            <p>Your first 90 days — HOS fundamentals, essential checklists, daily routines, defensive driving basics, and mental health resources. 13 sections covering everything a new CDL driver needs.</p>
+            <h4>New Driver Packet &amp; 90-Day Course</h4>
+            <p>Your first 90 days — interactive checklist, printable packet, and the full onboarding course. One unified progress story: work the course and check off cab-ready items as you go.</p>
             <ul class="packet-includes">
-              <li>Complete HOS rules reference (49 CFR 395)</li>
-              <li>Pre-trip & post-trip DVIR checklists</li>
-              <li>Breakdown kit & first aid checklists</li>
-              <li>Emergency contacts card (fillable)</li>
-              <li>8-step roadside safety protocol</li>
-              <li>Daily routine checklists (morning/road/evening)</li>
+              <li>Interactive checklist + printable Tier 1 packet</li>
+              <li>90-Day Course — 10 modules, 47 lessons, certificate</li>
+              <li>Pre-trip &amp; post-trip DVIR checklists</li>
+              <li>Driver&rsquo;s Wall challenge — perfect score, zero retakes</li>
             </ul>
-            <div class="packet-actions">
-              <button type="button" class="btn btn-primary" onclick="Tier1Checklist.open()">
-                <span>View Packet Online</span>
-              </button>
-              <button type="button" class="btn btn-secondary" onclick="Packets.print('new-driver')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-                <span>Print Free Packet</span>
-              </button>
-              <a href="/packets/new-driver" class="btn btn-secondary" style="text-decoration:none">Full-page checklist</a>
-            </div>
+            <div id="tier1NewDriverHub" data-nd-hub data-nd-hub-tab="checklist"></div>
             <div class="coffee-support tier1-community" id="tier1Community">
               <h4>$0 Thank you</h4>
               <p>This packet is free &mdash; no payment or checkout. The best thank-you is joining the driver community: share a tip, a first-week win, or a question in the <strong>Truckers Lounge</strong>.</p>
@@ -1062,6 +1039,7 @@
 
   <script src="/js/packets.js"></script>
   <script src="/js/tier1-checklist.js"></script>
+  <script src="/js/new-driver-hub.js"></script>
   <script>
     if (typeof Packets !== 'undefined' && Packets.loadAccessConfig) {
       Packets.loadAccessConfig();

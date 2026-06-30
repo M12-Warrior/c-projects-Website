@@ -204,6 +204,7 @@
         <div class="course-progress-label" id="progressLabel">0 of 10 modules complete</div>
         <div class="course-progress-bar"><div class="course-progress-fill" id="progressFill"></div></div>
       </div>
+      <p style="font-size:0.85rem;color:var(--text-3);margin:12px 0 0;max-width:520px">Pair with the <a href="/packets/new-driver" style="color:var(--blue);font-weight:600">printable New Driver checklist</a> — same roadmap; track course modules and checklist items together.</p>
       <div class="course-ctas">
         <button type="button" class="btn btn-primary" id="enrollBtn" onclick="selectModule(1)"><span>Start the Course</span></button>
         <button type="button" class="btn btn-glass" id="previewModule1Btn" style="display:none" onclick="selectModule(1)">Preview Module 1</button>
@@ -261,6 +262,7 @@
   </footer>
 
   <script src="/js/packets.js"></script>
+  <script src="/js/new-driver-hub.js"></script>
   <script>
 (function(){
 
@@ -648,6 +650,7 @@ var CB_REWARDS = {
 var STORAGE_KEY = 'm12w_course';
 var activeModule = null;
 var accessFlags = { hasCourseAccess: false, hasModule1Preview: false };
+var courseFirstEngageDone = false;
 
 function canOpenModule(id) {
   if (accessFlags.hasCourseAccess) return true;
@@ -789,6 +792,10 @@ function renderSidebar() {
 }
 
 function selectModule(id) {
+  if (!courseFirstEngageDone) {
+    courseFirstEngageDone = true;
+    if (typeof NewDriverHub !== 'undefined') NewDriverHub.maybePromptFirstEngage('course');
+  }
   activeModule = id;
   renderSidebar();
   var p = getProgress();
@@ -878,9 +885,15 @@ function markLesson(modId, lessonId, btn) {
   var p = getProgress();
   var mp = p.modules[modId];
   if (!mp.lessons) mp.lessons = [];
+  var firstLessonEver = true;
+  for (var i = 1; i <= 10; i++) {
+    var m = p.modules[i];
+    if (m && m.lessons && m.lessons.length) { firstLessonEver = false; break; }
+  }
   if (mp.lessons.indexOf(lessonId) === -1) {
     mp.lessons.push(lessonId);
     saveProgress(p);
+    if (firstLessonEver && typeof NewDriverHub !== 'undefined') NewDriverHub.showFirstLessonBanner();
   }
   btn.className = 'lesson-mark-btn done';
   btn.textContent = '\u2713 Completed';
@@ -1161,6 +1174,7 @@ function renderComplete(main) {
   html += '</div>';
   main.innerHTML = html;
   loadCompletionContent();
+  if (typeof NewDriverHub !== 'undefined') NewDriverHub.showAccountPrompt('course-complete');
 }
 
 function loadCompletionContent() {
@@ -1192,7 +1206,8 @@ function loadCompletionContent() {
 function renderCompletionSignedOut(container) {
   var p = getProgress();
   var name = (p.studentName || '').replace(/"/g, '&quot;');
-  var html = '<p class="comp-sub" style="margin-bottom:20px">Sign in to request your <strong>mailed certificate</strong> (numbered and archived) and, if you wish, a copy to your insurance or safety department.</p>';
+  var html = '<div class="wall-celebrate" style="margin-bottom:16px"><strong>Challenge accepted?</strong> Create an account to request your numbered certificate and, with a perfect run (100% every quiz, zero retakes), earn the <a href="/drivers-wall">Driver\u2019s Wall</a>.</div>';
+  html += '<p class="comp-sub" style="margin-bottom:20px">Sign in to request your <strong>mailed certificate</strong> (numbered and archived) and, if you wish, a copy to your insurance or safety department.</p>';
   html += '<div class="cert-name-group"><label for="certName">Your name (for certificate)</label><input type="text" id="certName" placeholder="Full name" value="' + name + '" onchange="saveStudentName(this.value)"></div>';
   html += '<div class="comp-btns">';
   html += '<button class="btn btn-primary" onclick="downloadCertificate()">Download Certificate</button>';

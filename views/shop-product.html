@@ -200,19 +200,27 @@
           var formHtml;
           if (isFreeDigital && packetMeta) {
             var isTier1 = packetMeta.type === 'new-driver';
-            var viewFn = packetMeta.fleet ? 'Packets.viewFleet' : (isTier1 ? 'Tier1Checklist.open' : 'Packets.viewGated');
-            var printFn = packetMeta.fleet ? 'Packets.printFleet' : (isTier1 ? 'Packets.print' : 'Packets.printGated');
-            var downloadFn = packetMeta.fleet ? 'Packets.downloadFleet' : (isTier1 ? 'Packets.download' : 'Packets.downloadGated');
+            if (isTier1) {
+              formHtml = '<div style="display:flex;flex-direction:column;gap:14px;">' +
+                  '<p style="font-size:0.9rem;color:var(--text-2);line-height:1.55;margin:0">The New Driver checklist and 90-Day Course are <strong>free</strong> — same dual entry as the homepage. No checkout required.</p>' +
+                  '<div id="shopNewDriverHub" data-nd-hub></div>' +
+                  '<button type="button" class="btn btn-secondary" onclick="Packets.download(\'new-driver\')">Download full packet</button>' +
+                '</div>';
+            } else {
+            var viewFn = packetMeta.fleet ? 'Packets.viewFleet' : 'Packets.viewGated';
+            var printFn = packetMeta.fleet ? 'Packets.printFleet' : 'Packets.printGated';
+            var downloadFn = packetMeta.fleet ? 'Packets.downloadFleet' : 'Packets.downloadGated';
             var typeArg = "'" + packetMeta.type.replace(/'/g, "\\'") + "'";
             formHtml = '<div style="display:flex;flex-direction:column;gap:12px;">' +
                 '<p style="font-size:0.9rem;color:var(--text-2);line-height:1.55;margin:0">This packet is <strong>free</strong> right now — no payment or checkout. View online, print, or download below.</p>' +
                 '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">' +
                   '<a href="' + freeLink.href + '" class="btn btn-primary" style="text-decoration:none">' + freeLink.label + '</a>' +
-                  (isTier1 ? '' : '<button type="button" class="btn btn-secondary" onclick="' + viewFn + '(' + typeArg + ')">View online</button>') +
+                  '<button type="button" class="btn btn-secondary" onclick="' + viewFn + '(' + typeArg + ')">View online</button>' +
                   '<button type="button" class="btn btn-secondary" onclick="' + printFn + '(' + typeArg + ')">Print / Save as PDF</button>' +
                   '<button type="button" class="btn btn-secondary" onclick="' + downloadFn + '(' + typeArg + ')">Download</button>' +
                 '</div>' +
               '</div>';
+            }
           } else if (isFreeDigital && freeLink) {
             formHtml = '<div style="display:flex;flex-direction:column;gap:12px;">' +
                 '<p style="font-size:0.9rem;color:var(--text-2);line-height:1.55;margin:0">This is <strong>free</strong> right now — no payment or checkout.' +
@@ -244,6 +252,11 @@
               benefitsBlock +
               formHtml +
             '</div>';
+
+          if (slug === 'new-driver-packet' && typeof NewDriverHub !== 'undefined') {
+            var shopHub = document.getElementById('shopNewDriverHub');
+            if (shopHub) NewDriverHub.mount(shopHub);
+          }
 
           if (paymentsEnabled && !isFreeDigital) {
             var addBtn = document.getElementById('addToCartBtn');
@@ -308,6 +321,7 @@
 
   <script src="/js/packets.js"></script>
   <script src="/js/tier1-checklist.js"></script>
+  <script src="/js/new-driver-hub.js"></script>
   <script src="/js/main.js"></script>
 </body>
 </html>

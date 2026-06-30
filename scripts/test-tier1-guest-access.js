@@ -12,11 +12,20 @@ let failed = 0;
 function ok(label) { console.log('ok', label); }
 function fail(label, detail) { console.error('FAIL', label, detail || ''); failed++; }
 
-if (!indexHtml.includes('Tier1Checklist.open()')) fail('homepage Tier1 checklist button');
-else ok('homepage Tier1 checklist button');
+const hubJs = fs.readFileSync(path.join(root, 'public', 'js', 'new-driver-hub.js'), 'utf8');
 
-if (!indexHtml.includes("Packets.print('new-driver')")) fail('homepage print button');
-else ok('homepage print button');
+if (!indexHtml.includes('new-driver-hub.js')) fail('homepage new-driver-hub script');
+else ok('homepage new-driver-hub script');
+
+if (!indexHtml.includes('data-nd-hub')) fail('homepage nd-hub tabs mount');
+else ok('homepage nd-hub tabs mount');
+
+if (!hubJs.includes('/course')) fail('new-driver-hub course link');
+else ok('new-driver-hub course link');
+
+if (indexHtml.includes('Tier1Checklist.open()')) ok('homepage Tier1 checklist reference');
+else if (indexHtml.includes('tier1-checklist.js')) ok('homepage Tier1 checklist via hub');
+else fail('homepage Tier1 checklist');
 
 if (!indexHtml.includes('tier1-checklist.js')) fail('homepage tier1-checklist script');
 else ok('homepage tier1-checklist script');

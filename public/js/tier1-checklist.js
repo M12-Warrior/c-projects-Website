@@ -149,6 +149,9 @@ var Tier1Checklist = (function () {
     intro.appendChild(title);
     intro.appendChild(el('p', 'tier1-modal-sub',
       'Check off items as you work through your first 90 days. Progress saves in this browser — no account needed. Free packet — no payment or checkout.'));
+    var courseLink = el('p', 'tier1-modal-crosslink');
+    courseLink.innerHTML = 'Working through the course? <a href="/course">Continue the 90-Day Course</a>';
+    intro.appendChild(courseLink);
     header.appendChild(intro);
     var closeBtn = el('button', 'tier1-modal-close');
     closeBtn.type = 'button';
@@ -180,6 +183,7 @@ var Tier1Checklist = (function () {
   }
 
   function open() {
+    if (typeof NewDriverHub !== 'undefined') NewDriverHub.maybePromptFirstEngage('checklist');
     openModal();
   }
 
