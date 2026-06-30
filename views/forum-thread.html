@@ -191,12 +191,24 @@
 
           const loggedIn = await checkAuth();
           const locked = !!t.locked;
+          const catSlug = (t.category && t.category.slug) ? t.category.slug : '';
+          const coffeeShop = catSlug === 'general';
 
           if (loggedIn) {
             contentEl.textContent = firstReplyContent || t.content || '';
             contentEl.style.display = (firstReplyContent || t.content) ? 'block' : 'none';
             if (gateCard) gateCard.style.display = 'none';
             renderReplies(replies);
+          } else if (coffeeShop) {
+            contentEl.textContent = '';
+            contentEl.style.display = 'none';
+            if (gateCard) {
+              gateCard.style.display = 'block';
+              var gatePs = gateCard.querySelectorAll('p');
+              if (gatePs[0]) gatePs[0].textContent = 'Sign in to read Coffee Shop threads';
+              if (gatePs[1]) gatePs[1].textContent = 'The Coffee Shop requires a free account so we can monitor conversations and keep the lounge welcoming.';
+            }
+            repliesList.innerHTML = '<p class="text-muted">Sign in to view replies in the Coffee Shop.</p>';
           } else {
             var sneakLen = 350;
             var teaser = (firstReplyContent || t.content || '').slice(0, sneakLen);

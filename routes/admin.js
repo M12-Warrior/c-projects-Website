@@ -282,7 +282,12 @@ const CUSTOMER_CATEGORIES = ['individual', 'fleet', 'school'];
 // GET /api/admin/users
 router.get('/users', (req, res) => {
   const rows = db.prepare(`
-    SELECT id, username, email, role, customer_category, created_at, mic_color FROM users
+    SELECT id, username, email, role, customer_category, created_at, mic_color,
+      COALESCE(forum_banned, 0) AS forum_banned,
+      COALESCE(account_disabled, 0) AS account_disabled,
+      COALESCE(warning_count, 0) AS warning_count,
+      admin_notes, last_warning_at, last_warning_message
+    FROM users
     ORDER BY username ASC
   `).all();
   const users = rows.map((u) => {
@@ -296,7 +301,13 @@ router.get('/users', (req, res) => {
       created_at: u.created_at,
       mic_color: micBadge.normalizeMicColor(u.mic_color),
       mic_lit: micBadge.isMicLit(u.id),
-      subscriber_tier: tier
+      subscriber_tier: tier,
+      forum_banned: !!u.forum_banned,
+      account_disabled: !!u.account_disabled,
+      warning_count: u.warning_count || 0,
+      admin_notes: u.admin_notes || '',
+      last_warning_at: u.last_warning_at || null,
+      last_warning_message: u.last_warning_message || ''
     };
   });
   res.json({ users });
@@ -342,6 +353,79 @@ router.delete('/users/:id', (req, res) => {
 
   db.prepare('DELETE FROM users WHERE id = ?').run(id);
   res.json({ success: true });
+});
+
+// POST /api/admin/users/:id/warn — record warning and optional message to driver
+router.post('/users/:id/warn', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) return res.status(400).json({ error: 'Invalid user ID' });
+  const message = typeof req.body.message === 'string' ? req.body.message.trim() : '';
+  if (!message) return res.status(400).json({ error: 'Warning message is required.' });
+
+  const existing = db.prepare('SELECT id, username, email FROM users WHERE id = ?').get(id);
+  if (!existing) return res.status(404).json({ error: 'User not found' });
+
+  db.prepare(`
+    UPDATE users
+    SET warning_count = COALESCE(warning_count, 0) + 1,
+        last_warning_at = datetime('now'),
+        last_warning_message = ?,
+        admin_notes = CASE
+          WHEN COALESCE(admin_notes, '') = '' THEN ?
+          ELSE admin_notes || char(10) || ?
+        END
+    WHERE id = ?
+  `).run(message, '[' + new Date().toISOString().slice(0, 10) + '] Warn: ' + message, '[' + new Date().toISOString().slice(0, 10) + '] Warn: ' + message, id);
+
+  res.json({ success: true, username: existing.username });
+});
+
+// PUT /api/admin/users/:id/moderation — forum ban, account disable, admin notes
+router.put('/users/:id/moderation', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) return res.status(400).json({ error: 'Invalid user ID' });
+  if (id === req.session.user.id) return res.status(403).json({ error: 'Cannot moderate your own account' });
+
+  const existing = db.prepare('SELECT id FROM users WHERE id = ?').get(id);
+  if (!existing) return res.status(404).json({ error: 'User not found' });
+
+  const updates = [];
+  const values = [];
+  if (typeof req.body.forum_banned === 'boolean') {
+    updates.push('forum_banned = ?');
+    values.push(req.body.forum_banned ? 1 : 0);
+  }
+  if (typeof req.body.account_disabled === 'boolean') {
+    updates.push('account_disabled = ?');
+    values.push(req.body.account_disabled ? 1 : 0);
+  }
+  if (typeof req.body.admin_notes === 'string') {
+    updates.push('admin_notes = ?');
+    values.push(req.body.admin_notes.trim());
+  }
+  if (updates.length === 0) {
+    return res.status(400).json({ error: 'No moderation fields provided.' });
+  }
+  values.push(id);
+  db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...values);
+  res.json({ success: true });
+});
+
+// GET /api/admin/forum/replies — recent replies for moderation
+router.get('/forum/replies', (req, res) => {
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 50));
+  const rows = db.prepare(`
+    SELECT r.id, r.thread_id, r.user_id, r.content, r.created_at,
+      u.username, t.title AS thread_title, t.slug AS thread_slug,
+      c.name AS category_name
+    FROM forum_replies r
+    LEFT JOIN users u ON u.id = r.user_id
+    LEFT JOIN forum_threads t ON t.id = r.thread_id
+    LEFT JOIN forum_categories c ON c.id = t.category_id
+    ORDER BY r.created_at DESC
+    LIMIT ?
+  `).all(limit);
+  res.json({ replies: rows });
 });
 
 // GET /api/admin/content

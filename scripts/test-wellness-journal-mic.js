@@ -29,9 +29,24 @@ const shopHtml = fs.readFileSync(path.join(root, 'views', 'shop.html'), 'utf8');
 const shopProductHtml = fs.readFileSync(path.join(root, 'views', 'shop-product.html'), 'utf8');
 const servicesHtml = fs.readFileSync(path.join(root, 'views', 'services.html'), 'utf8');
 const journalJs = fs.readFileSync(path.join(root, 'routes', 'journal.js'), 'utf8');
+const serverJs = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
+const forumJs = fs.readFileSync(path.join(root, 'routes', 'forum.js'), 'utf8');
+const adminJs = fs.readFileSync(path.join(root, 'routes', 'admin.js'), 'utf8');
 
-if (shopHtml.includes('trucker-wellness-journal-monthly') && shopHtml.includes('Download Free')) ok('shop journal free CTA');
+if (serverJs.includes("app.get('/journal/print', (req, res)")) ok('journal print route guest-accessible');
+else fail('journal print should not require login');
+
+if (typeof wellnessAccess.guestCanAccessJournalPrint === 'function' && wellnessAccess.guestCanAccessJournalPrint()) ok('guestCanAccessJournalPrint');
+else fail('guestCanAccessJournalPrint missing or false');
+
+if (shopHtml.includes('trucker-wellness-journal-monthly') && shopHtml.includes('Download Journal')) ok('shop journal free CTA');
 else fail('shop missing journal free CTA');
+
+if (shopHtml.includes('/shop/product/trucker-wellness-journal-monthly') && shopHtml.includes('digitalCardHref')) ok('shop journal card links to product page');
+else fail('shop journal card should link to product page');
+
+if (journalJs.includes("router.post('/fulfillment-log', (req, res)")) ok('fulfillment-log allows guests');
+else fail('fulfillment-log should not require session');
 
 if (shopProductHtml.includes("'trucker-wellness-journal-monthly'")) ok('shop-product journal free slug');
 else fail('shop-product missing journal free slug');
@@ -43,8 +58,17 @@ const journalSections = (servicesHtml.match(/<!-- ===== WELLNESS JOURNAL ===== -
 if (journalSections === 1) ok('services single wellness journal section');
 else fail('services should have one wellness journal section', 'found ' + journalSections);
 
-if (journalJs.includes('wellnessAccess.userHasWellnessJournalAccess')) ok('journal route uses wellnessAccess');
-else fail('journal route missing wellnessAccess gate');
+if (shopProductHtml.includes('no account needed') || shopProductHtml.includes('no account')) ok('shop-product journal guest copy');
+else fail('shop-product missing guest journal copy');
+
+if (servicesHtml.includes('account optional') || servicesHtml.includes('Optional free account')) ok('services welcoming journal copy');
+else fail('services missing welcoming journal copy');
+
+if (forumJs.includes('profanityFilter')) ok('forum profanity filter wired');
+else fail('forum missing profanity filter');
+
+if (adminJs.includes('/users/:id/warn') && adminJs.includes('/forum/replies')) ok('admin forum moderation routes');
+else fail('admin forum moderation routes missing');
 
 const testUser = 'mic_lit_test_' + Date.now();
 const insert = db.prepare(`

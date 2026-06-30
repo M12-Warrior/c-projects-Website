@@ -12,6 +12,7 @@ const session = require('express-session');
 const SqliteStore = require('better-sqlite3-session-store')(session);
 const cors = require('cors');
 const db = require('./db/database');
+const { buildMonthPrintPages } = require('./lib/journalPrintMonth');
 const { UPLOADS_DIR } = require('./lib/paths');
 
 const uploadsDir = UPLOADS_DIR;
@@ -318,8 +319,13 @@ app.get('/journal', requireLogin, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'journal.html'));
 });
 
-app.get('/journal/print', requireLogin, (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'journal-print.html'));
+app.get('/journal/print', (req, res) => {
+  const templatePath = path.join(__dirname, 'views', 'journal-print.html');
+  let html = fs.readFileSync(templatePath, 'utf8');
+  const month = buildMonthPrintPages();
+  html = html.replace('<!-- JOURNAL_MONTH_LABEL -->', month.monthLabel);
+  html = html.replace('<!-- JOURNAL_DAY_PAGES -->', month.pagesHtml);
+  res.type('html').send(html);
 });
 
 app.get('/admin', requireAdmin, (req, res) => {

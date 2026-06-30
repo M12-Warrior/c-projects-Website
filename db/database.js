@@ -202,6 +202,24 @@ try {
   db.exec('ALTER TABLE users ADD COLUMN totp_backup_codes TEXT');
 } catch (_) {}
 try {
+  db.exec('ALTER TABLE users ADD COLUMN forum_banned INTEGER DEFAULT 0');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE users ADD COLUMN account_disabled INTEGER DEFAULT 0');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE users ADD COLUMN admin_notes TEXT DEFAULT ""');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE users ADD COLUMN warning_count INTEGER DEFAULT 0');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE users ADD COLUMN last_warning_at DATETIME');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE users ADD COLUMN last_warning_message TEXT');
+} catch (_) {}
+try {
   db.exec('CREATE INDEX IF NOT EXISTS idx_users_customer_category ON users(customer_category)');
 } catch (_) {}
 try {
@@ -255,6 +273,18 @@ db.exec(`
   );
   CREATE INDEX IF NOT EXISTS idx_journal_user_date ON subscriber_journal_entries(user_id, entry_date);
 `);
+
+try {
+  db.exec(`
+    DELETE FROM subscriber_journal_entries
+    WHERE id NOT IN (
+      SELECT MAX(id) FROM subscriber_journal_entries GROUP BY user_id, entry_date
+    )
+  `);
+} catch (_) {}
+try {
+  db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_journal_user_entry_date ON subscriber_journal_entries(user_id, entry_date)');
+} catch (_) {}
 
 // Course completions (numbered certificates, mailing, optional copy to insurance/safety)
 db.exec(`
@@ -794,7 +824,7 @@ try {
     `).run(
       'Trucker Wellness Journal — Monthly',
       'trucker-wellness-journal-monthly',
-      'E-product subscription: get the Trucker Wellness Journal as a downloadable and printable PDF-style log (sleep, meals, exercise, mood, mileage, notes) plus full platform perks: CB mic badge on the forum (tiers grow with tenure), Forum and Blog access, private My Journal online, incognito option, 30-day tier restore, and subscriber-priority messaging.',
+      'FREE Trucker Wellness Journal — download or print anytime with no account. Optional free account unlocks My Journal online (save notes across devices), Coffee Shop community on the Forum, CB mic recognition, and progress tracking. Welcoming for solitary drivers on the road.',
       6.99,
       'subscription',
       9999,
@@ -811,7 +841,7 @@ try {
     UPDATE products SET description = ?
     WHERE slug = 'trucker-wellness-journal-monthly'
   `).run(
-    'E-product subscription: get the Trucker Wellness Journal as a downloadable and printable PDF-style log (sleep, meals, exercise, mood, mileage, notes) plus full platform perks: CB mic badge on the forum (tiers grow with tenure), Forum and Blog access, private My Journal online, incognito option, 30-day tier restore, and subscriber-priority messaging.'
+    'FREE Trucker Wellness Journal — download or print anytime with no account. Optional free account unlocks My Journal online (save notes across devices), Coffee Shop community on the Forum, CB mic recognition, and progress tracking. Welcoming for solitary drivers on the road.'
   );
 } catch (_) {}
 

@@ -174,10 +174,25 @@
           const cat = data.category || data;
           let threads = data.threads || data.thread_list || [];
           if (!isLoggedIn) {
-            if (banner) banner.style.display = 'flex';
-            var showCount = Math.min(3, threads.length);
-            threads = threads.slice(0, showCount);
-            if (gateCard) gateCard.style.display = 'block';
+            if (slug === 'general') {
+              if (banner) {
+                banner.style.display = 'flex';
+                banner.querySelector('p').textContent = 'Sign in to enter the Coffee Shop';
+                var subP = banner.querySelectorAll('p')[1];
+                if (subP) subP.textContent = 'The Coffee Shop is our main driver lounge — sign in or create a free account to read threads and join the conversation.';
+              }
+              threads = [];
+              if (gateCard) {
+                gateCard.style.display = 'block';
+                gateCard.querySelector('p').textContent = 'The Coffee Shop requires a free account so we can keep conversations safe and welcoming.';
+              }
+              listEl.innerHTML = '<p class="text-muted">Sign in to view Coffee Shop threads.</p>';
+            } else {
+              if (banner) banner.style.display = 'flex';
+              var showCount = Math.min(3, threads.length);
+              threads = threads.slice(0, showCount);
+              if (gateCard) gateCard.style.display = 'block';
+            }
           } else {
             if (gateCard) gateCard.style.display = 'none';
           }
@@ -193,6 +208,9 @@
             titleEl.textContent = cat.name || 'Room';
           }
           document.title = (titleEl.textContent) + ' — Mile 12 Warrior Forum';
+          if (slug === 'general' && !isLoggedIn) {
+            // listEl already set above for Coffee Shop login gate
+          } else {
           listEl.innerHTML = threads.map(function(t) {
             const badges = [];
             if (t.pinned) badges.push('<span class="thread-badge badge-pinned">Pinned</span>');
@@ -208,6 +226,7 @@
               '<div class="thread-item-stats">' + (t.reply_count ?? t.replyCount ?? 0) + ' replies</div>' +
             '</a>';
           }).join('') || '<p class="text-muted">No threads yet.</p>';
+          }
         } catch (e) {
           titleEl.textContent = 'Category';
           listEl.innerHTML = '<p class="text-muted">Unable to load category.</p>';

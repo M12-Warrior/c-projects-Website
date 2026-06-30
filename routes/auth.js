@@ -161,10 +161,14 @@ router.post('/login', loginLimiter, (req, res) => {
   const input = username.trim();
   const isEmail = input.includes('@');
   const user = isEmail
-    ? db.prepare('SELECT id, username, email, password, role, avatar, bio, home_base, customer_category, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum, totp_enabled FROM users WHERE email = ?').get(input)
-    : db.prepare('SELECT id, username, email, password, role, avatar, bio, home_base, customer_category, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum, totp_enabled FROM users WHERE username = ?').get(input);
+    ? db.prepare('SELECT id, username, email, password, role, avatar, bio, home_base, customer_category, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum, totp_enabled, COALESCE(account_disabled, 0) AS account_disabled FROM users WHERE email = ?').get(input)
+    : db.prepare('SELECT id, username, email, password, role, avatar, bio, home_base, customer_category, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum, totp_enabled, COALESCE(account_disabled, 0) AS account_disabled FROM users WHERE username = ?').get(input);
   if (!user) {
     return res.status(401).json({ error: 'Invalid username or password' });
+  }
+
+  if (user.account_disabled) {
+    return res.status(403).json({ error: 'This account has been disabled. Contact Joyce@mile12warrior.com if you have questions.' });
   }
 
   const matches = bcrypt.compareSync(password, user.password);
@@ -208,11 +212,15 @@ router.post('/login/2fa', twoFactorLimiter, (req, res) => {
     return res.status(400).json({ error: 'Enter the 6-digit code from your authenticator app, or a backup code.' });
   }
 
-  const user = db.prepare('SELECT id, username, email, role, avatar, bio, home_base, customer_category, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum, totp_secret, totp_enabled, totp_backup_codes FROM users WHERE id = ?').get(pending.userId);
+  const user = db.prepare('SELECT id, username, email, role, avatar, bio, home_base, customer_category, created_at, opt_in_newsletter, opt_in_blog, opt_in_product_updates, opt_in_forum, totp_secret, totp_enabled, totp_backup_codes, COALESCE(account_disabled, 0) AS account_disabled FROM users WHERE id = ?').get(pending.userId);
   if (!user || !user.totp_enabled) {
     // 2FA was turned off (or user removed) in the meantime; force a clean restart.
     delete req.session.pending2fa;
     return res.status(400).json({ error: 'Your sign-in session expired. Please enter your password again.' });
+  }
+  if (user.account_disabled) {
+    delete req.session.pending2fa;
+    return res.status(403).json({ error: 'This account has been disabled. Contact Joyce@mile12warrior.com if you have questions.' });
   }
 
   let verified = totp.verifyToken(code, user.totp_secret);

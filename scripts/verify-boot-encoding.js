@@ -14,6 +14,8 @@ const bootFiles = [
   'lib/module1PreviewAccess.js',
   'lib/laTime.js',
   'lib/micBadge.js',
+  'lib/wellnessAccess.js',
+  'lib/profanityFilter.js',
   'views/packet-page.html',
   ...fs.readdirSync(path.join(root, 'routes')).filter((f) => f.endsWith('.js')).map((f) => path.join('routes', f))
 ];

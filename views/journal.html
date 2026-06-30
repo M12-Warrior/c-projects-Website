@@ -53,17 +53,23 @@
 
       <div id="journalGate" class="glass-card" style="padding:32px;text-align:center;display:none;">
         <h2 class="page-title" style="margin-bottom:12px">Trucker Wellness Journal</h2>
-        <p style="color:var(--text-2);margin-bottom:20px">Track your notes and progress in your own private journal. The Wellness Journal is <strong>free</strong> right now — sign in to use My Journal online or download the printable log.</p>
-        <a href="/login?redirect=%2Fjournal" class="btn btn-primary">Sign in for free access</a>
+        <p style="color:var(--text-2);margin-bottom:12px">The printable journal is <strong>free</strong> — <a href="/journal/print">download or print anytime</a> with no account.</p>
+        <p style="color:var(--text-2);margin-bottom:20px">Create a <strong>free account</strong> to save notes online in My Journal across devices, join the Coffee Shop, and unlock community perks.</p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+          <a href="/login?redirect=%2Fjournal" class="btn btn-primary">Sign in</a>
+          <a href="/register?redirect=%2Fjournal" class="btn btn-glass">Create free account</a>
+          <a href="/journal/print" class="btn btn-secondary">Download / print only</a>
+        </div>
       </div>
 
       <div id="journalApp" style="display:none;">
         <h1 class="page-title">My Wellness Journal</h1>
-        <p class="page-subtitle" style="margin-bottom:24px">Your private notes and progress. Log sleep, mood, goals, or anything you want to track.</p>
+        <p class="page-subtitle" style="margin-bottom:8px">One note per day &mdash; edit anytime.</p>
+        <p class="page-subtitle" style="margin-bottom:24px;font-size:0.92rem;color:var(--text-2)">Pick a day below, write your note, and save. Each calendar day holds one entry.</p>
 
         <p style="margin-bottom:24px;">
           <a href="/journal/print" class="btn btn-primary">Download or print the journal</a>
-          <span style="font-size:0.85rem;color:var(--text-2);margin-left:12px;">E-product: print or save as PDF anytime.</span>
+          <span style="font-size:0.85rem;color:var(--text-2);margin-left:12px;">Full month of lined pages for handwriting.</span>
         </p>
         <p style="margin-bottom:24px;">
           <a href="/contact?subscriber=1" class="btn btn-glass">Message us (subscriber priority)</a>
@@ -71,21 +77,27 @@
         </p>
 
         <div class="glass-card" style="padding:24px;margin-bottom:32px;">
-          <h3 style="font-size:1rem;margin-bottom:16px">Add entry</h3>
+          <h3 style="font-size:1rem;margin-bottom:8px" id="journalMonthLabel">This month</h3>
+          <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:16px">Select a day, then save your note for that date.</p>
+          <div id="dayPicker" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
           <form id="journalForm">
             <div class="form-group">
               <label class="form-label" for="entryDate">Date</label>
-              <input type="date" id="entryDate" name="entry_date" class="form-input" style="max-width:180px">
+              <input type="date" id="entryDate" name="entry_date" class="form-input" style="max-width:180px" readonly>
             </div>
             <div class="form-group">
-              <label class="form-label" for="entryContent">Notes</label>
-              <textarea id="entryContent" name="content" class="form-input" rows="4" placeholder="Sleep, meals, exercise, mood, mileage, goals…"></textarea>
+              <label class="form-label" for="entryContent">Notes for this day</label>
+              <textarea id="entryContent" name="content" class="form-input" rows="6" placeholder="Sleep, meals, exercise, mood, mileage, goals…"></textarea>
             </div>
-            <button type="submit" class="btn btn-primary">Save entry</button>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+              <button type="submit" class="btn btn-primary" id="saveEntryBtn">Save day</button>
+              <button type="button" class="btn btn-glass" id="clearDayBtn" style="display:none;">Clear this day</button>
+              <span id="entryStatus" style="font-size:0.85rem;color:var(--text-2);"></span>
+            </div>
           </form>
         </div>
 
-        <h3 style="font-size:1rem;margin-bottom:12px">Your entries</h3>
+        <h3 style="font-size:1rem;margin-bottom:12px">Days with notes</h3>
         <div id="entriesList"></div>
       </div>
     </div>
@@ -118,6 +130,73 @@
       }
 
       let isSubscriber = false;
+      let entriesByDate = {};
+      let currentEntryId = null;
+      let monthDays = [];
+
+      function laTodayIso() {
+        return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+      }
+
+      function buildMonthDays() {
+        const iso = laTodayIso();
+        const parts = iso.split('-');
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10);
+        const daysInMonth = new Date(year, month, 0).getDate();
+        monthDays = [];
+        for (let d = 1; d <= daysInMonth; d += 1) {
+          const dayIso = year + '-' + String(month).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+          monthDays.push(dayIso);
+        }
+        const labelDate = new Date(year, month - 1, 1);
+        const monthLabel = document.getElementById('journalMonthLabel');
+        if (monthLabel) {
+          monthLabel.textContent = labelDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'America/Los_Angeles' });
+        }
+      }
+
+      function renderDayPicker() {
+        const picker = document.getElementById('dayPicker');
+        if (!picker) return;
+        const today = laTodayIso();
+        picker.innerHTML = monthDays.map(function(iso) {
+          const d = new Date(iso + 'T12:00:00');
+          const label = d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', timeZone: 'America/Los_Angeles' });
+          const hasNote = !!entriesByDate[iso];
+          const active = document.getElementById('entryDate') && document.getElementById('entryDate').value === iso;
+          return '<button type="button" class="btn btn-glass btn-small journal-day-btn' +
+            (active ? ' btn-primary' : '') +
+            '" data-date="' + iso + '" style="min-width:52px;' + (hasNote ? 'border-color:var(--green,#22c55e);' : '') + '">' +
+            label + (hasNote ? ' &#9679;' : '') +
+            '</button>';
+        }).join('');
+
+        picker.querySelectorAll('.journal-day-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            selectDay(btn.dataset.date);
+          });
+        });
+      }
+
+      function selectDay(iso) {
+        const dateInput = document.getElementById('entryDate');
+        const contentInput = document.getElementById('entryContent');
+        const clearBtn = document.getElementById('clearDayBtn');
+        const statusEl = document.getElementById('entryStatus');
+        if (dateInput) dateInput.value = iso;
+        const entry = entriesByDate[iso];
+        currentEntryId = entry ? entry.id : null;
+        if (contentInput) contentInput.value = entry ? (entry.content || '') : '';
+        if (clearBtn) clearBtn.style.display = entry ? 'inline-flex' : 'none';
+        if (statusEl) statusEl.textContent = entry ? 'Saved note for this day.' : '';
+        renderDayPicker();
+      }
+
+      function setDefaultDate() {
+        buildMonthDays();
+        selectDay(laTodayIso());
+      }
 
       async function checkAuth() {
         try {
@@ -158,11 +237,6 @@
         document.getElementById('journalApp').style.display = 'none';
       }
 
-      function setDefaultDate() {
-        const input = document.getElementById('entryDate');
-        if (input && !input.value) input.value = new Date().toISOString().slice(0, 10);
-      }
-
       async function loadEntries() {
         const list = document.getElementById('entriesList');
         try {
@@ -173,82 +247,39 @@
           }
           const data = await r.json();
           const entries = data.entries || [];
+          entriesByDate = {};
+          entries.forEach(function(e) {
+            const key = (e.entry_date || '').slice(0, 10);
+            if (key) entriesByDate[key] = e;
+          });
+          renderDayPicker();
+          const activeDate = document.getElementById('entryDate') && document.getElementById('entryDate').value;
+          if (activeDate) selectDay(activeDate);
           if (entries.length === 0) {
-            list.innerHTML = '<p class="text-muted">No entries yet. Add one above to start tracking your progress.</p>';
+            list.innerHTML = '<p class="text-muted">No notes yet this month. Pick a day above to start.</p>';
             return;
           }
           list.innerHTML = entries.map(function(e) {
-            const snippet = (e.content || '').slice(0, 120);
-            const more = (e.content || '').length > 120;
             const contentEscaped = escapeHtml(e.content || '').replace(/\n/g, '<br>');
-            return '<article class="glass-card journal-entry" data-id="' + e.id + '" style="padding:20px;margin-bottom:16px;">' +
+            const iso = (e.entry_date || '').slice(0, 10);
+            return '<article class="glass-card journal-entry" data-id="' + e.id + '" data-date="' + escapeHtml(iso) + '" style="padding:20px;margin-bottom:16px;">' +
               '<div class="journal-entry-view">' +
                 '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">' +
                   '<strong style="color:var(--text-2);font-size:0.9rem">' + formatDate(e.entry_date) + '</strong>' +
                   '<div style="display:flex;gap:8px;">' +
-                    '<button type="button" class="btn btn-glass btn-small journal-edit" data-id="' + e.id + '">Edit</button>' +
+                    '<button type="button" class="btn btn-glass btn-small journal-open-day" data-date="' + escapeHtml(iso) + '">Edit day</button>' +
                     '<button type="button" class="btn btn-glass btn-small journal-delete" data-id="' + e.id + '">Delete</button>' +
                   '</div>' +
                 '</div>' +
                 '<div class="journal-entry-body" style="margin-top:12px;white-space:pre-wrap;">' + contentEscaped + '</div>' +
               '</div>' +
-              '<div class="journal-entry-edit hidden" style="margin-top:12px;">' +
-                '<label class="form-label">Date</label>' +
-                '<input type="date" class="form-input entry-edit-date" data-id="' + e.id + '" value="' + escapeHtml((e.entry_date || '').slice(0, 10)) + '" style="max-width:160px;margin-bottom:8px">' +
-                '<textarea class="form-input entry-edit-content" data-id="' + e.id + '" rows="4" style="margin-bottom:12px">' + escapeHtml(e.content || '') + '</textarea>' +
-                '<div style="display:flex;gap:8px;">' +
-                  '<button type="button" class="btn btn-primary btn-save-edit" data-id="' + e.id + '">Save</button>' +
-                  '<button type="button" class="btn btn-glass btn-cancel-edit" data-id="' + e.id + '">Cancel</button>' +
-                '</div>' +
-              '</div>' +
             '</article>';
           }).join('');
 
-          list.querySelectorAll('.journal-edit').forEach(function(btn) {
+          list.querySelectorAll('.journal-open-day').forEach(function(btn) {
             btn.addEventListener('click', function() {
-              const id = btn.dataset.id;
-              const card = list.querySelector('.journal-entry[data-id="' + id + '"]');
-              if (card) {
-                card.querySelector('.journal-entry-view').classList.add('hidden');
-                card.querySelector('.journal-entry-edit').classList.remove('hidden');
-              }
-            });
-          });
-          list.querySelectorAll('.btn-cancel-edit').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-              const id = btn.dataset.id;
-              const card = list.querySelector('.journal-entry[data-id="' + id + '"]');
-              if (card) {
-                card.querySelector('.journal-entry-view').classList.remove('hidden');
-                card.querySelector('.journal-entry-edit').classList.add('hidden');
-              }
-            });
-          });
-          list.querySelectorAll('.btn-save-edit').forEach(function(btn) {
-            btn.addEventListener('click', async function() {
-              const id = btn.dataset.id;
-              const card = list.querySelector('.journal-entry[data-id="' + id + '"]');
-              const dateInput = card.querySelector('.entry-edit-date');
-              const contentInput = card.querySelector('.entry-edit-content');
-              const content = contentInput.value.trim();
-              if (!content) { showToast('Content is required.', false); return; }
-              try {
-                const r = await fetch('/api/journal/entries/' + id, {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  credentials: 'include',
-                  body: JSON.stringify({ entry_date: dateInput.value, content: content })
-                });
-                if (r.ok) {
-                  showToast('Entry updated.', true);
-                  loadEntries();
-                } else {
-                  const err = await r.json().catch(function() { return {}; });
-                  showToast(err.error || 'Failed to update.', false);
-                }
-              } catch (e) {
-                showToast('Failed to update.', false);
-              }
+              selectDay(btn.dataset.date);
+              document.getElementById('journalForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
           });
           list.querySelectorAll('.journal-delete').forEach(function(btn) {
@@ -287,19 +318,38 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ entry_date: dateInput.value || new Date().toISOString().slice(0, 10), content: content })
+            body: JSON.stringify({ entry_date: dateInput.value || laTodayIso(), content: content })
           });
           if (r.ok) {
-            showToast('Entry saved.', true);
-            contentInput.value = '';
-            setDefaultDate();
-            loadEntries();
+            const saved = await r.json().catch(function() { return {}; });
+            showToast(saved.updated ? 'Day updated.' : 'Day saved.', true);
+            await loadEntries();
+            selectDay(dateInput.value || laTodayIso());
           } else {
             const err = await r.json().catch(function() { return {}; });
             showToast(err.error || 'Failed to save.', false);
           }
         } catch (e) {
           showToast('Failed to save.', false);
+        }
+      });
+
+      document.getElementById('clearDayBtn').addEventListener('click', async function() {
+        if (!currentEntryId) return;
+        if (!confirm('Clear the note for this day?')) return;
+        try {
+          const r = await fetch('/api/journal/entries/' + currentEntryId, { method: 'DELETE', credentials: 'include' });
+          if (r.ok) {
+            showToast('Day cleared.', true);
+            currentEntryId = null;
+            document.getElementById('entryContent').value = '';
+            document.getElementById('clearDayBtn').style.display = 'none';
+            loadEntries();
+          } else {
+            showToast('Failed to clear day.', false);
+          }
+        } catch (e) {
+          showToast('Failed to clear day.', false);
         }
       });
 

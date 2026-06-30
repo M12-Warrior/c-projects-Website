@@ -148,8 +148,9 @@
       </div>
 
       <div id="tabUsers" class="admin-tab-content hidden">
+        <p style="color:var(--text-2);font-size:0.9rem;margin-bottom:12px">Warn drivers for inappropriate language or bullying, block forum access, or disable login. Delete removes the account after confirmation.</p>
         <table class="admin-table">
-          <thead><tr><th>Handle</th><th>Mic</th><th>Email</th><th>Role</th><th>Category</th><th>Joined</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Handle</th><th>Mic</th><th>Email</th><th>Role</th><th>Category</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
           <tbody id="usersTable"></tbody>
         </table>
       </div>
@@ -229,6 +230,15 @@
       </div>
 
       <div id="tabForum" class="admin-tab-content hidden">
+        <div class="admin-section" style="margin-bottom:28px">
+          <h3>Recent replies — moderation</h3>
+          <p style="color:var(--text-2);font-size:0.9rem;margin-bottom:12px">Edit to bleep foul language, delete posts, or warn drivers from the Users tab. Profanity is masked on the public forum; you see raw text here.</p>
+          <table class="admin-table">
+            <thead><tr><th>Thread</th><th>Author</th><th>Reply</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="forumRepliesTable"></tbody>
+          </table>
+        </div>
+        <h3>Threads</h3>
         <table class="admin-table">
           <thead><tr><th>Title</th><th>Category</th><th>Author</th><th>Replies</th><th>Pinned</th><th>Locked</th><th>Date</th><th>Actions</th></tr></thead>
           <tbody id="forumTable"></tbody>
@@ -1215,16 +1225,28 @@
             const role = u.role || 'user';
             const cat = (u.customer_category || '').toLowerCase();
             const catOpts = '<option value="">—</option><option value="individual"' + (cat === 'individual' ? ' selected' : '') + '>Individual</option><option value="fleet"' + (cat === 'fleet' ? ' selected' : '') + '>Fleet</option><option value="school"' + (cat === 'school' ? ' selected' : '') + '>School</option>';
+            var statusBits = [];
+            if (u.forum_banned) statusBits.push('<span style="color:var(--red,#f87171)">Forum blocked</span>');
+            if (u.account_disabled) statusBits.push('<span style="color:var(--red,#f87171)">Login disabled</span>');
+            if (u.warning_count > 0) statusBits.push('Warnings: ' + u.warning_count);
+            if (!statusBits.length) statusBits.push('—');
             return '<tr data-id="' + id + '">' +
               '<td>' + escapeHtml(u.username || u.email) + '</td>' +
               '<td>' + adminMicBadgeHtml(u) + '</td>' +
               '<td>' + escapeHtml(u.email || '—') + '</td>' +
               '<td><select class="form-input role-select" style="max-width:120px; padding:6px;"><option value="user"' + (role === 'user' ? ' selected' : '') + '>user</option><option value="admin"' + (role === 'admin' ? ' selected' : '') + '>admin</option></select></td>' +
               '<td><select class="form-input category-select" style="max-width:120px; padding:6px;">' + catOpts + '</select></td>' +
+              '<td style="font-size:0.82rem">' + statusBits.join('<br>') + '</td>' +
               '<td>' + formatDate(u.created_at || u.joined_at) + '</td>' +
-              '<td><div class="admin-actions"><button type="button" class="admin-btn admin-btn-primary user-save-role">Save</button><button type="button" class="admin-btn admin-btn-danger user-delete">Delete</button></div></td>' +
+              '<td><div class="admin-actions" style="flex-wrap:wrap;gap:4px">' +
+                '<button type="button" class="admin-btn admin-btn-primary user-save-role">Save</button>' +
+                '<button type="button" class="admin-btn admin-btn-primary user-warn">Warn</button>' +
+                '<button type="button" class="admin-btn admin-btn-primary user-forum-ban">' + (u.forum_banned ? 'Unblock forum' : 'Block forum') + '</button>' +
+                '<button type="button" class="admin-btn admin-btn-primary user-disable">' + (u.account_disabled ? 'Enable login' : 'Disable login') + '</button>' +
+                '<button type="button" class="admin-btn admin-btn-danger user-delete">Delete</button>' +
+              '</div></td>' +
             '</tr>';
-          }).join('') || '<tr><td colspan="7">No users</td></tr>';
+          }).join('') || '<tr><td colspan="8">No users</td></tr>';
 
           el.querySelectorAll('.user-save-role').forEach(function(btn) {
             btn.addEventListener('click', async function() {
@@ -1247,13 +1269,67 @@
           });
           el.querySelectorAll('.user-delete').forEach(function(btn) {
             btn.addEventListener('click', async function() {
-              if (!confirmAction('Delete this user?')) return;
+              if (!confirmAction('Delete this user account permanently? This cannot be undone.')) return;
               const row = btn.closest('tr');
               const id = row.getAttribute('data-id');
               try {
                 const r = await fetch('/api/admin/users/' + id, { method: 'DELETE', credentials: 'include' });
                 if (r.ok) { row.remove(); showToast('User deleted.', true); }
                 else showToast('Failed to delete.', false);
+              } catch (_) { showToast('Failed.', false); }
+            });
+          });
+          el.querySelectorAll('.user-warn').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              const row = btn.closest('tr');
+              const id = row.getAttribute('data-id');
+              const message = prompt('Warning message for this driver (bullying, foul language, etc.):');
+              if (!message || !message.trim()) return;
+              try {
+                const r = await fetch('/api/admin/users/' + id + '/warn', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ message: message.trim() })
+                });
+                if (r.ok) { showToast('Warning recorded.', true); loadUsers(); }
+                else showToast('Failed to warn.', false);
+              } catch (_) { showToast('Failed.', false); }
+            });
+          });
+          el.querySelectorAll('.user-forum-ban').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              const row = btn.closest('tr');
+              const id = row.getAttribute('data-id');
+              const block = btn.textContent.indexOf('Unblock') === -1;
+              if (!confirmAction(block ? 'Block this user from the forum?' : 'Restore forum access for this user?')) return;
+              try {
+                const r = await fetch('/api/admin/users/' + id + '/moderation', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ forum_banned: block })
+                });
+                if (r.ok) { showToast(block ? 'Forum access blocked.' : 'Forum access restored.', true); loadUsers(); }
+                else showToast('Failed.', false);
+              } catch (_) { showToast('Failed.', false); }
+            });
+          });
+          el.querySelectorAll('.user-disable').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+              const row = btn.closest('tr');
+              const id = row.getAttribute('data-id');
+              const disable = btn.textContent.indexOf('Enable') === -1;
+              if (!confirmAction(disable ? 'Disable login for this account?' : 'Re-enable login for this account?')) return;
+              try {
+                const r = await fetch('/api/admin/users/' + id + '/moderation', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ account_disabled: disable })
+                });
+                if (r.ok) { showToast(disable ? 'Login disabled.' : 'Login enabled.', true); loadUsers(); }
+                else showToast('Failed.', false);
               } catch (_) { showToast('Failed.', false); }
             });
           });
@@ -1907,6 +1983,79 @@
 
       async function loadForum() {
         const el = document.getElementById('forumTable');
+        const repliesEl = document.getElementById('forumRepliesTable');
+        if (repliesEl) {
+          try {
+            const repRes = await fetch('/api/admin/forum/replies?limit=40', { credentials: 'include' });
+            const repData = await repRes.json();
+            const replies = repData.replies || [];
+            repliesEl.innerHTML = replies.map(function(r) {
+              var snippet = escapeHtml((r.content || '').slice(0, 160));
+              if ((r.content || '').length > 160) snippet += '…';
+              return '<tr data-reply-id="' + r.id + '" data-user-id="' + (r.user_id || '') + '">' +
+                '<td><a href="/forum/thread/' + escapeHtml(r.thread_slug || '') + '" target="_blank" rel="noopener">' + escapeHtml(r.thread_title || '—') + '</a></td>' +
+                '<td>' + escapeHtml(r.username || '—') + '</td>' +
+                '<td style="max-width:280px">' + snippet + '</td>' +
+                '<td>' + formatDate(r.created_at) + '</td>' +
+                '<td><div class="admin-actions"><button type="button" class="admin-btn admin-btn-primary forum-reply-edit">Edit</button><button type="button" class="admin-btn admin-btn-primary forum-reply-bleep">Bleep</button><button type="button" class="admin-btn admin-btn-danger forum-reply-delete">Delete</button></div></td>' +
+              '</tr>';
+            }).join('') || '<tr><td colspan="5">No replies yet</td></tr>';
+            repliesEl.querySelectorAll('.forum-reply-delete').forEach(function(btn) {
+              btn.addEventListener('click', async function() {
+                if (!confirmAction('Delete this reply?')) return;
+                var row = btn.closest('tr');
+                var id = row.getAttribute('data-reply-id');
+                try {
+                  var r = await fetch('/api/forum/replies/' + id, { method: 'DELETE', credentials: 'include' });
+                  if (r.ok) { row.remove(); showToast('Reply deleted.', true); }
+                  else showToast('Failed.', false);
+                } catch (_) { showToast('Failed.', false); }
+              });
+            });
+            repliesEl.querySelectorAll('.forum-reply-edit').forEach(function(btn) {
+              btn.addEventListener('click', async function() {
+                var row = btn.closest('tr');
+                var id = row.getAttribute('data-reply-id');
+                var current = row.cells[2].textContent.replace(/…$/, '');
+                var updated = prompt('Edit reply content:', current);
+                if (updated == null) return;
+                try {
+                  var r = await fetch('/api/forum/replies/' + id, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ content: updated.trim() })
+                  });
+                  if (r.ok) { showToast('Reply updated.', true); loadForum(); }
+                  else showToast('Failed.', false);
+                } catch (_) { showToast('Failed.', false); }
+              });
+            });
+            repliesEl.querySelectorAll('.forum-reply-bleep').forEach(function(btn) {
+              btn.addEventListener('click', async function() {
+                var row = btn.closest('tr');
+                var id = row.getAttribute('data-reply-id');
+                var current = row.cells[2].textContent.replace(/…$/, '');
+                var bleeped = current.replace(/\b\w{4,}\b/gi, function(w) {
+                  if (/^(the|and|for|you|that|with|this|from|have|are|was|not|but|can|all|your|our)$/i.test(w)) return w;
+                  return '*'.repeat(w.length);
+                });
+                try {
+                  var r = await fetch('/api/forum/replies/' + id, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ content: '[Moderated] ' + bleeped.trim() })
+                  });
+                  if (r.ok) { showToast('Reply bleeped.', true); loadForum(); }
+                  else showToast('Failed.', false);
+                } catch (_) { showToast('Failed.', false); }
+              });
+            });
+          } catch (_) {
+            if (repliesEl) repliesEl.innerHTML = '<tr><td colspan="5">Could not load replies.</td></tr>';
+          }
+        }
         const allThreads = [];
         try {
           const catRes = await fetch('/api/forum/categories', { credentials: 'include' });

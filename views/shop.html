@@ -52,7 +52,7 @@
 
       <div id="subscriptionSection" style="margin-bottom:32px;display:none">
         <h2 style="font-family:var(--font);font-size:1.2rem;font-weight:700;margin-bottom:8px">Subscriptions</h2>
-        <p style="font-size:0.9rem;color:var(--text-2);margin-bottom:16px" id="subscriptionIntro">The <strong>Trucker Wellness Journal</strong> is <strong>free to download</strong> right now. Get the printable journal, use <a href="/journal">My Journal</a> online, pick your CB mic color, and join the <a href="/forum">Forum</a> Coffee Shop — no checkout required while drivers gear shop is paused.</p>
+        <p style="font-size:0.9rem;color:var(--text-2);margin-bottom:16px" id="subscriptionIntro">The <strong>Trucker Wellness Journal</strong> is <strong>FREE</strong> — download or print anytime, no account needed. Optional free account unlocks My Journal online, the Forum Coffee Shop, CB mic perks, and progress tracking.</p>
         <div id="subscriptionGrid" class="shop-grid"></div>
       </div>
 
@@ -103,6 +103,11 @@
         if (id === 'complete-bundle') return '/course';
         if (id === 'fleet-bundle') return '/services';
         return '/services';
+      }
+
+      function digitalCardHref(id) {
+        if (id === 'trucker-wellness-journal-monthly') return '/shop/product/trucker-wellness-journal-monthly';
+        return digitalAccessHref(id);
       }
 
       function digitalAccessLabel(id) {
@@ -189,7 +194,7 @@
           notice.innerHTML = '<strong>All training is free right now</strong> — packets, the 90-Day Course on <a href="/services" style="color:var(--gold)">Services</a>, and the <a href="/journal/print" style="color:var(--gold)">Wellness Journal</a>. Drivers gear checkout is coming soon; browse merchandise below. Questions? <a href="mailto:joyce@mile12warrior.com?subject=Mile%2012%20Warrior%20%E2%80%94%20General%20Contact" style="color:var(--gold)">Email Joyce</a> or <a href="/contact" style="color:var(--gold)">contact us</a>.';
           var subIntro = document.getElementById('subscriptionIntro');
           if (subIntro) {
-            subIntro.innerHTML = 'The <strong>Trucker Wellness Journal</strong> is <strong>free to download</strong> right now. Get the printable journal, use <a href="/journal">My Journal</a> online, pick your CB mic color, and join the <a href="/forum">Forum</a> Coffee Shop — no checkout required while drivers gear shop is paused.';
+            subIntro.innerHTML = 'The <strong>Trucker Wellness Journal</strong> is <strong>FREE</strong> — download or print anytime, no account needed. Optional free account unlocks <a href="/login?redirect=%2Fjournal">My Journal</a> online, the <a href="/login?redirect=%2Fforum%2Fcategory%2Fgeneral">Coffee Shop</a>, CB mic perks, and progress tracking.';
           }
           return;
         }
@@ -232,7 +237,7 @@
         if (!dg) return;
         var digital = [
           { id: 'course-90day', name: '90-Day Onboarding Course', desc: '10 modules, 47 lessons, quizzes, and certificate. Everything new drivers need.', link: '/course', badge: 'Course' },
-          { id: 'trucker-wellness-journal-monthly', name: 'Trucker Wellness Journal', desc: 'Downloadable daily log for sleep, meals, exercise, mood, mileage & notes. My Journal online + forum mic perks.', link: '/journal/print', badge: 'Journal' },
+          { id: 'trucker-wellness-journal-monthly', name: 'Trucker Wellness Journal', desc: 'FREE downloadable daily log — sleep, meals, exercise, mood, mileage & notes. Optional account: My Journal online, Coffee Shop, mic perks.', link: '/journal/print', badge: 'Journal — Free' },
           { id: 'seasoned-packet', name: 'Seasoned Driver Packet', desc: 'Advanced strategies for experienced drivers. 11 sections.', badge: 'Tier 2' },
           { id: 'fleet-new-hire-packet', name: 'Fleet New Hire Orientation Packet', desc: 'Complete onboarding with sign-off sheets for safety departments.', badge: 'Fleet' },
           { id: 'fleet-refresher-packet', name: 'Fleet Refresher Packet', desc: 'Annual refresher with self-assessments and sign-off sheets.', badge: 'Fleet' },
@@ -255,7 +260,7 @@
             '<span style="font-family:var(--mono);font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;padding:4px 12px;border:1px solid rgba(99,102,241,0.3);border-radius:4px;color:var(--blue)">' + escapeHtml(p.badge) + '</span>' +
             '</div>';
           var onerr = "if(!this.dataset.triedJpg){ this.dataset.triedJpg='1'; this.src='" + imgPathJpg + "'; return; } if(!this.dataset.triedPng){ this.dataset.triedPng='1'; this.src='" + imgPathPng + "'; return; } var pl=this.nextElementSibling; if(pl){ pl.style.display='flex'; } this.style.display='none';";
-          var cardHref = href;
+          var cardHref = p.cardLink || digitalCardHref(p.id) || href;
           var cardAttrs = cardHref ? ' data-product-href="' + escapeHtml(cardHref) + '"' : '';
           return '<article class="product-card"' + cardAttrs + '>' +
             '<div class="product-image product-image--digital" style="height:140px;display:flex;align-items:stretch;justify-content:center">' +

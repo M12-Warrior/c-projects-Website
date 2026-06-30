@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../db/database');
 const subscriptionRouter = require('./subscription');
 const micBadge = require('../lib/micBadge');
+const profanityFilter = require('../lib/profanityFilter');
 
 const router = express.Router();
 
@@ -23,6 +24,21 @@ function requireAdmin(req, res, next) {
     return res.status(403).json({ error: 'Admin access required' });
   }
   next();
+}
+
+function isAdminSession(req) {
+  return !!(req.session && req.session.user && req.session.user.role === 'admin');
+}
+
+function userForumBanned(userId) {
+  if (!userId) return false;
+  const row = db.prepare('SELECT forum_banned FROM users WHERE id = ?').get(userId);
+  return !!(row && row.forum_banned);
+}
+
+function maskContentIfNeeded(req, text) {
+  if (isAdminSession(req)) return text;
+  return profanityFilter.maskProfanity(text);
 }
 
 // Generate slug from title: lowercase, hyphens, remove special chars, append timestamp
@@ -160,7 +176,7 @@ router.get('/threads/:slug', (req, res) => {
     username: r.username,
     home_base: r.home_base || null,
     subscriber_tier: subscriberTier(r.user_id),
-    content: r.content,
+    content: maskContentIfNeeded(req, r.content),
     created_at: r.created_at
   })));
 
@@ -173,6 +189,14 @@ router.post('/threads', requireSession, (req, res) => {
 
   if (!category_id || !title || !content) {
     return res.status(400).json({ error: 'category_id, title, and content are required' });
+  }
+
+  if (userForumBanned(req.session.user.id)) {
+    return res.status(403).json({ error: 'Your forum access has been suspended. Contact Joyce if you have questions.' });
+  }
+
+  if (profanityFilter.containsProfanity(title) || profanityFilter.containsProfanity(content)) {
+    return res.status(400).json({ error: 'Please keep language respectful. Revise your post and try again.' });
   }
 
   const category = db.prepare('SELECT id FROM forum_categories WHERE id = ?').get(category_id);
@@ -226,6 +250,14 @@ router.post('/threads/:slug/replies', requireSession, (req, res) => {
     return res.status(400).json({ error: 'content is required' });
   }
 
+  if (userForumBanned(req.session.user.id)) {
+    return res.status(403).json({ error: 'Your forum access has been suspended. Contact Joyce if you have questions.' });
+  }
+
+  if (profanityFilter.containsProfanity(content)) {
+    return res.status(400).json({ error: 'Please keep language respectful. Revise your reply and try again.' });
+  }
+
   const thread = db.prepare('SELECT * FROM forum_threads WHERE slug = ?').get(slug);
   if (!thread) {
     return res.status(404).json({ error: 'Thread not found' });
@@ -271,7 +303,7 @@ router.post('/threads/:slug/replies', requireSession, (req, res) => {
 // 6. PUT /api/forum/threads/:id — Admin only
 router.put('/threads/:id', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id, 10);
-  const { pinned, locked } = req.body;
+  const { pinned, locked, title } = req.body;
 
   const thread = db.prepare('SELECT id FROM forum_threads WHERE id = ?').get(id);
   if (!thread) {
@@ -287,6 +319,10 @@ router.put('/threads/:id', requireAdmin, (req, res) => {
   if (typeof locked === 'number' || typeof locked === 'boolean') {
     updates.push('locked = ?');
     values.push(locked ? 1 : 0);
+  }
+  if (typeof title === 'string' && title.trim()) {
+    updates.push('title = ?');
+    values.push(title.trim());
   }
 
   if (updates.length > 0) {
@@ -323,6 +359,23 @@ router.delete('/replies/:id', requireAdmin, (req, res) => {
 
   db.prepare('DELETE FROM forum_replies WHERE id = ?').run(id);
 
+  res.json({ success: true });
+});
+
+// 9. PUT /api/forum/replies/:id — Admin edit reply content (bleep/delete workflow)
+router.put('/replies/:id', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const content = typeof req.body.content === 'string' ? req.body.content.trim() : '';
+  if (!content) {
+    return res.status(400).json({ error: 'content is required' });
+  }
+
+  const reply = db.prepare('SELECT id FROM forum_replies WHERE id = ?').get(id);
+  if (!reply) {
+    return res.status(404).json({ error: 'Reply not found' });
+  }
+
+  db.prepare('UPDATE forum_replies SET content = ? WHERE id = ?').run(content, id);
   res.json({ success: true });
 });
 
