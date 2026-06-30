@@ -1,15 +1,8 @@
 const express = require('express');
 const db = require('../db/database');
+const siteEmails = require('../lib/siteEmails');
 
 const router = express.Router();
-
-const BOOKING_EMAIL = 'admin@mile12warrior.com';
-const GENERAL_EMAIL = 'joyce@mile12warrior.com';
-
-function normalizeCategory(raw) {
-  const v = (raw == null ? '' : String(raw)).trim().toLowerCase();
-  return v === 'booking' || v === 'services' || v === 'booking/services' ? 'booking' : 'general';
-}
 
 // POST /api/contact
 router.post('/', (req, res) => {
@@ -26,13 +19,15 @@ router.post('/', (req, res) => {
     return res.status(400).json({ error: 'Message is required' });
   }
 
-  const msgCategory = normalizeCategory(category);
+  const msgCategory = siteEmails.normalizeCategory(category);
+  const isBooking = siteEmails.isBookingCategory(msgCategory);
   let finalSubject = subject ? subject.trim() : '';
   if (subscriber_priority) {
     finalSubject = '[Subscriber - Priority] ' + (finalSubject || 'Subscriber feedback');
   }
-  const categoryTag = msgCategory === 'booking' ? '[Booking/Services]' : '[General]';
-  finalSubject = categoryTag + ' ' + (finalSubject || (msgCategory === 'booking' ? 'Booking inquiry' : 'General inquiry'));
+  const categoryTag = siteEmails.categoryTag(msgCategory);
+  const defaultSubject = siteEmails.subjectForCategory(msgCategory);
+  finalSubject = categoryTag + ' ' + (finalSubject || defaultSubject);
 
   try {
     const insert = db.prepare(`
@@ -41,9 +36,9 @@ router.post('/', (req, res) => {
     `);
     insert.run(name.trim(), email.trim(), finalSubject || null, message.trim(), msgCategory);
 
-    const notifyTo = msgCategory === 'booking'
-      ? (process.env.BOOKING_EMAIL || process.env.ADMIN_EMAIL || BOOKING_EMAIL).trim()
-      : (process.env.GENERAL_EMAIL || GENERAL_EMAIL).trim();
+    const notifyTo = isBooking
+      ? (process.env.BOOKING_EMAIL || process.env.ADMIN_EMAIL || siteEmails.BOOKING).trim()
+      : (process.env.GENERAL_EMAIL || siteEmails.GENERAL).trim();
     try {
       const host = process.env.SMTP_HOST;
       const user = process.env.SMTP_USER;
@@ -54,13 +49,14 @@ router.post('/', (req, res) => {
         const from = process.env.FROM_EMAIL || process.env.SMTP_USER || 'noreply@mile12warrior.com';
         const transport = nodemailer.createTransport({ host, port, secure: port === 465, auth: { user, pass } });
         const subj = finalSubject || '(no subject)';
+        const categoryLabel = isBooking ? 'Booking / services' : 'General';
         transport.sendMail(
           {
             from,
             to: notifyTo,
             replyTo: email.trim(),
             subject: `[Contact] ${subj}`,
-            text: `Category: ${msgCategory === 'booking' ? 'Booking / services' : 'General'}\nFrom: ${name.trim()} <${email.trim()}>\n\n${message.trim()}`,
+            text: `Category: ${categoryLabel} (${msgCategory})\nFrom: ${name.trim()} <${email.trim()}>\n\n${message.trim()}`,
           },
           function (err) {
             if (err) console.error('[contact email]', err);

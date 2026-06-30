@@ -64,8 +64,13 @@
             <div class="form-group">
               <label class="form-label" for="category">What is this about?</label>
               <select id="category" name="category" class="form-input">
-                <option value="general">General inquiry — joyce@mile12warrior.com</option>
-                <option value="booking">Booking / services — admin@mile12warrior.com</option>
+                <option value="general">General contact — joyce@mile12warrior.com</option>
+                <option value="booking">Booking &amp; services inquiry — admin@mile12warrior.com</option>
+                <option value="expo">EXPO &amp; info tent — admin@mile12warrior.com</option>
+                <option value="presentation">Class or group presentation — admin@mile12warrior.com</option>
+                <option value="one-on-one">One-on-one education / coaching — admin@mile12warrior.com</option>
+                <option value="fleet">Fleet or consulting — admin@mile12warrior.com</option>
+                <option value="wellness-partner">Wellness partner inquiry — admin@mile12warrior.com</option>
               </select>
               <p style="font-size:0.82rem;color:var(--text-3);margin-top:6px;line-height:1.45">Bookings, EXPO, presentations, coaching, and fleet programs go to <strong>admin@mile12warrior.com</strong>. General messages go to <strong>joyce@mile12warrior.com</strong>.</p>
             </div>
@@ -96,11 +101,11 @@
           <p style="margin-bottom: 12px;">
             <strong>Bookings &amp; services:</strong><br>
             EXPO, presentations, coaching, fleet programs, and operational requests<br>
-            <a href="mailto:admin@mile12warrior.com?subject=Booking%20inquiry">admin@mile12warrior.com</a>
+            <a href="mailto:admin@mile12warrior.com?subject=Mile%2012%20Warrior%20%E2%80%94%20Booking%20%26%20Services%20Inquiry">admin@mile12warrior.com</a>
           </p>
           <p style="margin-bottom: 12px;">
             <strong>General contact:</strong><br>
-            <a href="mailto:joyce@mile12warrior.com">joyce@mile12warrior.com</a>
+            <a href="mailto:joyce@mile12warrior.com?subject=Mile%2012%20Warrior%20%E2%80%94%20General%20Contact">joyce@mile12warrior.com</a>
           </p>
           <p style="margin-bottom: 12px;">
             <strong>Phone:</strong><br>
@@ -143,7 +148,7 @@
           <a href="/shop">Shop</a>
           <a href="/contact">Contact</a>
         </nav>
-        <p class="footer-contact">Bookings &amp; services: <a href="mailto:admin@mile12warrior.com">admin@mile12warrior.com</a> · General: <a href="mailto:joyce@mile12warrior.com">joyce@mile12warrior.com</a> · <a href="tel:+19162927411">(916) 292-7411</a></p>
+        <p class="footer-contact">Bookings &amp; services: <a href="mailto:admin@mile12warrior.com?subject=Mile%2012%20Warrior%20%E2%80%94%20Booking%20%26%20Services%20Inquiry">admin@mile12warrior.com</a> · General: <a href="mailto:joyce@mile12warrior.com?subject=Mile%2012%20Warrior%20%E2%80%94%20General%20Contact">joyce@mile12warrior.com</a> · <a href="tel:+19162927411">(916) 292-7411</a></p>
         <div class="footer-social">
           <a href="https://www.facebook.com/mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="Facebook">Facebook</a>
           <a href="https://x.com/mile12warrior" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">X</a>
@@ -252,15 +257,52 @@
         });
       }
 
-      // Booking vs general from query (?type=booking or ?category=booking)
+      var CATEGORY_SUBJECTS = {
+        general: 'Mile 12 Warrior — General Contact',
+        booking: 'Mile 12 Warrior — Booking & Services Inquiry',
+        expo: 'Mile 12 Warrior — EXPO & Info Tent Request',
+        presentation: 'Mile 12 Warrior — Class or Group Presentation Request',
+        'one-on-one': 'Mile 12 Warrior — One-on-One Education Request',
+        fleet: 'Mile 12 Warrior — Fleet or Consulting Inquiry',
+        'wellness-partner': 'Mile 12 Warrior — Wellness Partner Inquiry'
+      };
+
       (function initContactCategory() {
         const params = new URLSearchParams(window.location.search);
-        const booking = params.get('type') === 'booking' || params.get('category') === 'booking';
         const categoryEl = document.getElementById('category');
         const subjectInput = document.getElementById('subject');
-        if (booking && categoryEl) categoryEl.value = 'booking';
-        if (booking && subjectInput && !subjectInput.value) {
-          subjectInput.placeholder = 'e.g. EXPO booth, fleet presentation, wellness coaching';
+        const typeParam = params.get('type') || params.get('category') || '';
+        const allowed = Object.keys(CATEGORY_SUBJECTS);
+        if (categoryEl && allowed.indexOf(typeParam) !== -1) categoryEl.value = typeParam;
+
+        function syncSubjectFromCategory() {
+          if (!categoryEl || !subjectInput) return;
+          var suggested = CATEGORY_SUBJECTS[categoryEl.value];
+          if (!suggested) return;
+          if (!subjectInput.value || subjectInput.dataset.autoSubject === '1') {
+            subjectInput.value = suggested;
+            subjectInput.dataset.autoSubject = '1';
+          }
+        }
+
+        if (categoryEl) {
+          categoryEl.addEventListener('change', function() {
+            if (subjectInput) {
+              subjectInput.value = CATEGORY_SUBJECTS[categoryEl.value] || '';
+              subjectInput.dataset.autoSubject = '1';
+            }
+          });
+        }
+        if (subjectInput) {
+          subjectInput.addEventListener('input', function() {
+            if (subjectInput.value !== (CATEGORY_SUBJECTS[categoryEl && categoryEl.value] || '')) {
+              delete subjectInput.dataset.autoSubject;
+            }
+          });
+        }
+        syncSubjectFromCategory();
+        if (categoryEl && categoryEl.value !== 'general' && subjectInput && !subjectInput.value) {
+          subjectInput.placeholder = 'e.g. event date, audience size, fleet name';
         }
       })();
 
