@@ -126,5 +126,30 @@ if (typeof Packets._applyOrgStamp === 'function' && typeof Packets._finalizeFlee
   fail('missing optional fleet yard/prefill helpers');
 }
 
+const packetPagePath = path.join(root, 'views/packet-page.html');
+const packetPageBuf = fs.readFileSync(packetPagePath);
+const packetPageNulls = packetPageBuf.filter((b) => b === 0).length;
+if (packetPageNulls > 0) {
+  fail('packet-page.html has ' + packetPageNulls + ' null bytes (UTF-16). Re-save as UTF-8.');
+} else {
+  ok('packet-page.html is UTF-8 (no null bytes)');
+}
+
+const packetPageHtml = packetPageBuf.toString('utf8');
+if (packetPageHtml.indexOf('Packets.viewFleet') === -1 || packetPageHtml.indexOf('id="packetActions"') === -1) {
+  fail('packet-page.html missing viewFleet wiring or packetActions mount');
+} else {
+  ok('packet-page.html wires viewFleet and packetActions');
+}
+
+var fleetViewHtml = Packets._buildFleetHtml('fleet-new-hire');
+if (!fleetViewHtml || fleetViewHtml.indexOf('49 CFR') === -1) {
+  fail('viewFleet source HTML missing 49 CFR orientation content');
+} else if (fleetViewHtml.indexOf('id="packetActions"') !== -1 || fleetViewHtml.indexOf('packet-page-actions') !== -1) {
+  fail('viewFleet HTML must be generated packet content, not packet-page shell');
+} else {
+  ok('viewFleet prepares fleet-new-hire packet HTML (not page shell)');
+}
+
 if (process.exitCode) process.exit(process.exitCode);
 console.log('All packet render checks passed.');
