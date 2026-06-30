@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Driver's Wall — Mile 12 Warrior</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .wall-hero{max-width:900px;margin:0 auto;padding:120px 24px 32px;text-align:center}
+    .wall-hero h1{font-family:var(--font);font-size:2.2rem;margin:0 0 12px}
+    .wall-hero p{color:var(--text-2);line-height:1.6;margin:0 auto;max-width:640px}
+    .wall-criteria{font-size:.85rem;color:var(--text-3);margin-top:16px}
+    .wall-grid{max-width:900px;margin:0 auto;padding:0 24px 80px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+    .wall-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 18px;text-align:center}
+    .wall-handle{font-family:var(--font);font-size:1.15rem;font-weight:700;color:var(--blue);margin-bottom:6px}
+    .wall-date{font-size:.75rem;color:var(--text-3)}
+    .wall-empty{grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-3)}
+    .wall-back{display:inline-flex;align-items:center;gap:6px;color:var(--text-2);text-decoration:none;font-size:.85rem;margin-bottom:24px}
+    .wall-back:hover{color:var(--blue)}
+  </style>
+</head>
+<body>
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.png" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';">
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/course">Course</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/login">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="wall-hero">
+    <a href="/course" class="wall-back">&larr; Back to Course</a>
+    <h1>Driver&rsquo;s Wall</h1>
+    <p>Drivers who completed the full 90-Day Onboarding Course with a <strong>perfect score on every knowledge check</strong> and <strong>zero retakes or module redos</strong> earn a spot here. Keep the shiny side up.</p>
+    <p class="wall-criteria">100% on all 10 module quizzes &middot; first-attempt perfect run</p>
+  </header>
+
+  <section class="wall-grid" id="wallGrid" aria-live="polite">
+    <div class="wall-empty">Loading drivers&hellip;</div>
+  </section>
+
+  <footer class="footer" style="margin-top:20px">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+  (function() {
+    function escapeHtml(str) {
+      if (!str) return '';
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+    function formatDate(iso) {
+      if (!iso) return '';
+      try {
+        return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      } catch (_) { return iso; }
+    }
+    fetch('/api/course/wall')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var grid = document.getElementById('wallGrid');
+        if (!grid) return;
+        var drivers = data.drivers || [];
+        if (!drivers.length) {
+          grid.innerHTML = '<div class="wall-empty"><p>No drivers on the wall yet. Finish the course with a perfect run to be the first.</p><p style="margin-top:12px"><a href="/course">Start the course</a></p></div>';
+          return;
+        }
+        grid.innerHTML = drivers.map(function(d) {
+          return '<article class="wall-card">' +
+            '<div class="wall-handle">' + escapeHtml(d.cb_handle || d.display_name || 'Driver') + '</div>' +
+            '<div class="wall-date">Completed ' + escapeHtml(formatDate(d.completed_at)) + '</div>' +
+          '</article>';
+        }).join('');
+      })
+      .catch(function() {
+        var grid = document.getElementById('wallGrid');
+        if (grid) grid.innerHTML = '<div class="wall-empty">Could not load the wall. Please try again later.</div>';
+      });
+  })();
+  </script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

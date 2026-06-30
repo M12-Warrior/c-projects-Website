@@ -281,7 +281,9 @@
           const res = await fetch('/api/shop/products', { credentials: 'include' });
           const data = await res.json();
           const allProducts = data.products || data || [];
-          var subscriptionProducts = allProducts.filter(function(p) { return p.is_subscription || p.subscription_plan; });
+          var subscriptionProducts = allProducts.filter(function(p) {
+            return (p.is_subscription || p.subscription_plan) && p.slug !== 'trucker-wellness-journal-monthly';
+          });
           // Merchandise & Gear: only physical products (exclude digital so they don't duplicate the Digital Products section)
           var products = allProducts.filter(function(p) {
             if (p.is_subscription || p.subscription_plan) return false;

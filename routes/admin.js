@@ -396,6 +396,43 @@ router.delete('/messages/:id', (req, res) => {
   res.json({ success: true });
 });
 
+// DELETE /api/admin/drivers-wall/:id — Remove from public Driver's Wall
+router.delete('/drivers-wall/:id', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const row = db.prepare('SELECT id FROM drivers_wall WHERE id = ?').get(id);
+  if (!row) return res.status(404).json({ error: 'Wall entry not found' });
+  const now = new Date().toISOString();
+  db.prepare(`
+    UPDATE drivers_wall SET removed = 1, removed_at = ?, removed_by = ? WHERE id = ?
+  `).run(now, req.session.user.id, id);
+  res.json({ success: true });
+});
+
+// POST /api/admin/drivers-wall/:id/restore — Restore moderated wall entry
+router.post('/drivers-wall/:id/restore', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const row = db.prepare('SELECT id FROM drivers_wall WHERE id = ?').get(id);
+  if (!row) return res.status(404).json({ error: 'Wall entry not found' });
+  db.prepare(`
+    UPDATE drivers_wall SET removed = 0, removed_at = NULL, removed_by = NULL WHERE id = ?
+  `).run(id);
+  res.json({ success: true });
+});
+
+// GET /api/admin/drivers-wall — List wall entries for moderation
+router.get('/drivers-wall', (req, res) => {
+  const rows = db.prepare(`
+    SELECT w.id, w.user_id, w.cb_handle, w.display_name, w.completed_at,
+           w.removed, w.removed_at, w.created_at, u.email, u.username
+    FROM drivers_wall w
+    JOIN users u ON u.id = w.user_id
+    ORDER BY w.removed ASC, w.completed_at DESC
+  `).all();
+  res.json({ entries: rows });
+});
+
 // GET /api/admin/completions — Course completions (certificates) for mailing and copy requests
 router.get('/completions', (req, res) => {
   const rows = db.prepare(`
@@ -1118,6 +1155,32 @@ router.put('/cms/pages/:key', (req, res) => {
     ON CONFLICT(page_key) DO UPDATE SET content_json = excluded.content_json, updated_at = datetime('now')
   `).run(key, json);
   return res.json({ success: true, key, fields: next });
+});
+
+router.get('/drivers-wall', (req, res) => {
+  const rows = db.prepare(`
+    SELECT dw.id, dw.user_id, dw.cb_handle, dw.completed_at, dw.status, dw.created_at, dw.removed_at,
+           u.username, u.email
+    FROM drivers_wall dw
+    JOIN users u ON u.id = dw.user_id
+    ORDER BY dw.status ASC, dw.completed_at DESC, dw.id DESC
+  `).all();
+  res.json({ entries: rows });
+});
+
+router.patch('/drivers-wall/:id', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id) || id < 1) return res.status(400).json({ error: 'Invalid id' });
+  const action = (req.body && req.body.action) || 'remove';
+  const existing = db.prepare('SELECT id FROM drivers_wall WHERE id = ?').get(id);
+  if (!existing) return res.status(404).json({ error: 'Entry not found' });
+  const adminId = req.session.user.id;
+  if (action === 'restore') {
+    db.prepare(`UPDATE drivers_wall SET status = 'active', removed_at = NULL, removed_by = NULL WHERE id = ?`).run(id);
+    return res.json({ success: true, status: 'active' });
+  }
+  db.prepare(`UPDATE drivers_wall SET status = 'removed', removed_at = datetime('now'), removed_by = ? WHERE id = ?`).run(adminId, id);
+  res.json({ success: true, status: 'removed' });
 });
 
 module.exports = router;

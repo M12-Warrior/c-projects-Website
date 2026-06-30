@@ -280,6 +280,45 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_course_completions_cert ON course_completions(certificate_number);
 `);
 
+// Course progress sync and Driver's Wall (100% perfect, zero redos)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS course_progress (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id),
+    progress_json TEXT NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS drivers_wall (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL UNIQUE REFERENCES users(id),
+    cb_handle TEXT NOT NULL,
+    completed_at DATETIME NOT NULL,
+    perfect_score INTEGER DEFAULT 1,
+    status TEXT DEFAULT 'active',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    removed_at DATETIME DEFAULT NULL,
+    removed_by INTEGER REFERENCES users(id)
+  );
+`);
+try {
+  db.exec("ALTER TABLE drivers_wall ADD COLUMN status TEXT DEFAULT 'active'");
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE drivers_wall ADD COLUMN removed_at DATETIME');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE drivers_wall ADD COLUMN removed_by INTEGER REFERENCES users(id)');
+} catch (_) {}
+try {
+  db.exec('CREATE INDEX IF NOT EXISTS idx_drivers_wall_status ON drivers_wall(status)');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE users ADD COLUMN cb_handle TEXT');
+} catch (_) {}
+try {
+  db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_cb_handle ON users(cb_handle) WHERE cb_handle IS NOT NULL');
+} catch (_) {}
+
 // Product access grants: per-user download/access limits and fleet license expiry (12 months)
 db.exec(`
   CREATE TABLE IF NOT EXISTS product_access_grants (
@@ -774,6 +813,11 @@ try {
   `).run(
     'E-product subscription: get the Trucker Wellness Journal as a downloadable and printable PDF-style log (sleep, meals, exercise, mood, mileage, notes) plus full platform perks: CB mic badge on the forum (tiers grow with tenure), Forum and Blog access, private My Journal online, incognito option, 30-day tier restore, and subscriber-priority messaging.'
   );
+} catch (_) {}
+
+// Physical wellness journal superseded by monthly digital — hide from shop listing
+try {
+  db.prepare(`UPDATE products SET active = 0 WHERE slug = 'trucker-wellness-journal'`).run();
 } catch (_) {}
 
 // EMERGENCY 2FA ESCAPE HATCH (no-lockout safety net for the solo admin).

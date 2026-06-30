@@ -77,6 +77,20 @@
     .quiz-result{padding:16px 20px;border-radius:var(--radius-sm);margin-top:20px;font-size:.88rem;font-weight:500}
     .quiz-result.pass{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);color:var(--green)}
     .quiz-result.fail{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.25);color:var(--red)}
+    .quiz-review{margin-top:20px;padding-top:8px;border-top:1px solid var(--border)}
+    .quiz-review-title{font-size:.82rem;font-weight:600;color:var(--text);margin:0 0 14px;text-transform:uppercase;letter-spacing:.04em}
+    .quiz-review-item{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:10px}
+    .quiz-answer-row{font-size:.84rem;margin-top:8px;line-height:1.5}
+    .quiz-answer-row.wrong{color:var(--red)}
+    .quiz-answer-row.correct{color:var(--green)}
+    .quiz-answer-label{font-weight:600;margin-right:6px}
+    .quiz-explain{font-size:.8rem;color:var(--text-3);margin-top:8px;line-height:1.5}
+    .quiz-retake-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+    .cert-quick-request{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px}
+    .cert-quick-request h3{font-size:1rem;margin:0 0 8px;color:var(--text)}
+    .cert-quick-request p{font-size:.85rem;color:var(--text-2);margin:0 0 14px;line-height:1.5}
+    .wall-celebrate{background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(52,211,153,.08));border:1px solid rgba(99,102,241,.25);border-radius:var(--radius);padding:18px 20px;margin-bottom:20px}
+    .wall-celebrate a{color:var(--blue);font-weight:600}
     .module-complete-btn{margin-top:24px}
     .purchase-overlay{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:60px 32px;text-align:center}
     .purchase-lock{width:64px;height:64px;border-radius:50%;background:rgba(99,102,241,.1);display:inline-flex;align-items:center;justify-content:center;margin-bottom:24px}
@@ -652,13 +666,65 @@ function getProgress() {
 function defaultProgress() {
   var p = { purchased: false, modules: {}, studentName: '' };
   for (var i = 1; i <= 10; i++) {
-    p.modules[i] = { unlocked: false, completed: false, lessons: [], quizScore: null };
+    p.modules[i] = { unlocked: false, completed: false, lessons: [], quizScore: null, quizAttempts: 0, moduleRedos: 0 };
   }
   return p;
 }
 
+function normalizeModuleProgress(mp) {
+  if (!mp) mp = {};
+  if (!mp.lessons) mp.lessons = [];
+  if (mp.quizAttempts == null) mp.quizAttempts = 0;
+  if (mp.quizRetries == null) mp.quizRetries = 0;
+  if (mp.moduleRedos == null) mp.moduleRedos = 0;
+  return mp;
+}
+
+var syncProgressTimer = null;
+function syncProgressToServer(p) {
+  if (syncProgressTimer) clearTimeout(syncProgressTimer);
+  syncProgressTimer = setTimeout(function() {
+    fetch('/api/course/progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ progress: p })
+    }).then(function(r) { return r.json(); }).catch(function() {});
+  }, 700);
+}
+
+function mergeProgress(local, server) {
+  if (!server || !server.modules) return local;
+  if (!local || !local.modules) return server;
+  var out = JSON.parse(JSON.stringify(local));
+  for (var i = 1; i <= 10; i++) {
+    var lm = normalizeModuleProgress(out.modules[i]);
+    var sm = normalizeModuleProgress(server.modules[i]);
+    if (sm.completed && !lm.completed) out.modules[i] = sm;
+    else if (sm.completed === lm.completed) {
+      if ((sm.quizAttempts || 0) > (lm.quizAttempts || 0)) out.modules[i] = sm;
+      else if ((sm.moduleRedos || 0) > (lm.moduleRedos || 0)) out.modules[i] = sm;
+      else if (sm.quizScore != null && lm.quizScore == null) out.modules[i] = sm;
+    }
+    out.modules[i] = normalizeModuleProgress(out.modules[i]);
+  }
+  if (server.studentName && !out.studentName) out.studentName = server.studentName;
+  return out;
+}
+
+function isPerfectWallEligible(p) {
+  if (!p || !p.modules) return false;
+  for (var i = 1; i <= 10; i++) {
+    var mp = p.modules[i];
+    if (!mp || !mp.completed || mp.quizScore !== 100) return false;
+    if ((mp.quizRetries || 0) > 0 || (mp.moduleRedos || 0) > 0) return false;
+  }
+  return true;
+}
+
 function saveProgress(p) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch(e) {}
+  syncProgressToServer(p);
 }
 
 function countCompleted() {
@@ -860,43 +926,152 @@ function renderQuizHTML(modId, mp) {
   return html;
 }
 
-function submitQuiz(modId) {
+function renderQuizFeedbackHTML(modId, grade, score, passed) {
+  var html = '<div class="quiz-result ' + (passed ? 'pass' : 'fail') + '">';
+  html += passed
+    ? 'You passed with ' + score + '% (' + grade.correct + '/' + grade.total + ')!'
+    : 'You scored ' + score + '% (' + grade.correct + '/' + grade.total + '). You need 70% to pass.';
+  html += '</div>';
+  var wrong = grade.results.filter(function(r) { return !r.isCorrect; });
+  if (wrong.length > 0) {
+    html += '<div class="quiz-review"><div class="quiz-review-title">Review incorrect answers</div>';
+    wrong.forEach(function(r) {
+      html += '<div class="quiz-review-item">';
+      html += '<div class="quiz-q-num">Question ' + (r.qi + 1) + '</div>';
+      html += '<div class="quiz-q-text">' + escapeHtml(r.question) + '</div>';
+      html += '<div class="quiz-answer-row wrong"><span class="quiz-answer-label">Your answer:</span> ' + escapeHtml(r.userAnswer) + '</div>';
+      html += '<div class="quiz-answer-row correct"><span class="quiz-answer-label">Correct answer:</span> ' + escapeHtml(r.correctAnswer) + '</div>';
+      if (r.explain) html += '<div class="quiz-explain">' + escapeHtml(r.explain) + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+  html += '<div class="quiz-retake-btns">';
+  html += '<button type="button" class="btn btn-primary" onclick="retryQuiz(' + modId + ')">Retry this quiz</button>';
+  html += '<button type="button" class="btn btn-glass" onclick="redoModule(' + modId + ')">Redo module</button>';
+  html += '</div>';
+  if (passed) {
+    if (modId < 10) {
+      html += '<div style="margin-top:14px"><button type="button" class="btn btn-green module-complete-btn" onclick="selectModule(' + (modId + 1) + ')">Continue to Module ' + (modId + 1) + ' &rarr;</button></div>';
+    } else {
+      html += '<div style="margin-top:14px"><button type="button" class="btn btn-green module-complete-btn" onclick="selectModule(10)">View Completion &amp; Certificate</button></div>';
+    }
+  }
+  return html;
+}
+
+function gradeQuiz(modId) {
   var mod = COURSE_DATA[modId];
-  if (!mod || !mod.quiz) return;
-  var total = mod.quiz.length;
+  var results = [];
   var correct = 0;
   var allAnswered = true;
   mod.quiz.forEach(function(q, qi) {
     var sel = document.querySelector('input[name="q' + modId + '_' + qi + '"]:checked');
     if (!sel) { allAnswered = false; return; }
-    if (parseInt(sel.value) === q.ans) correct++;
+    var userAns = parseInt(sel.value, 10);
+    var isCorrect = userAns === q.ans;
+    if (isCorrect) correct++;
+    results.push({
+      qi: qi,
+      question: q.q,
+      userAnswer: q.opts[userAns],
+      userIndex: userAns,
+      correctAnswer: q.opts[q.ans],
+      correctIndex: q.ans,
+      isCorrect: isCorrect,
+      explain: q.explain || null
+    });
   });
-  if (!allAnswered) {
-    var rd = document.getElementById('quizResult');
-    if (rd) { rd.innerHTML = '<div class="quiz-result fail">Please answer all questions before submitting.</div>'; }
-    return;
-  }
-  var score = Math.round(correct / total * 100);
+  return { allAnswered: allAnswered, correct: correct, total: mod.quiz.length, results: results };
+}
+
+function highlightQuizAnswers(modId, results) {
+  results.forEach(function(r) {
+    var opts = document.querySelectorAll('input[name="q' + modId + '_' + r.qi + '"]');
+    opts.forEach(function(inp, oi) {
+      var lbl = inp.closest('.quiz-option');
+      if (!lbl) return;
+      if (oi === r.correctIndex) lbl.classList.add('correct');
+      else if (oi === r.userIndex && !r.isCorrect) lbl.classList.add('incorrect');
+    });
+  });
+}
+
+function retryQuiz(modId) {
   var p = getProgress();
-  var mp = p.modules[modId];
-  mp.quizScore = score;
-  if (score >= 70) {
-    mp.completed = true;
-    if (modId < 10 && accessFlags.hasCourseAccess) {
-      var next = p.modules[modId + 1];
-      next.unlocked = true;
+  var mp = normalizeModuleProgress(p.modules[modId]);
+  mp.quizScore = null;
+  mp.completed = false;
+  p.modules[modId] = mp;
+  saveProgress(p);
+  updateHeroProgress();
+  renderSidebar();
+  selectModule(modId);
+}
+
+function redoModule(modId) {
+  if (!confirm('Redo this module? Your lesson progress and quiz score for Module ' + modId + ' will reset. Later modules will lock until you pass again.')) return;
+  var p = getProgress();
+  var mp = normalizeModuleProgress(p.modules[modId]);
+  mp.lessons = [];
+  mp.quizScore = null;
+  mp.completed = false;
+  mp.quizAttempts = 0;
+  mp.moduleRedos = (mp.moduleRedos || 0) + 1;
+  p.modules[modId] = mp;
+  if (accessFlags.hasCourseAccess) {
+    for (var i = modId + 1; i <= 10; i++) {
+      var next = normalizeModuleProgress(p.modules[i]);
+      next.unlocked = false;
+      next.completed = false;
+      p.modules[i] = next;
     }
   }
   saveProgress(p);
   updateHeroProgress();
   renderSidebar();
+  selectModule(modId);
+}
 
-  var rd = document.getElementById('quizResult');
+function submitQuiz(modId) {
+  var mod = COURSE_DATA[modId];
+  if (!mod || !mod.quiz) return;
+  var grade = gradeQuiz(modId);
+  if (!grade.allAnswered) {
+    var rd = document.getElementById('quizResult');
+    if (rd) { rd.innerHTML = '<div class="quiz-result fail">Please answer all questions before submitting.</div>'; }
+    return;
+  }
+  var score = Math.round(grade.correct / grade.total * 100);
+  var p = getProgress();
+  var mp = normalizeModuleProgress(p.modules[modId]);
+  if ((mp.quizAttempts || 0) >= 1) mp.quizRetries = (mp.quizRetries || 0) + 1;
+  mp.quizAttempts = (mp.quizAttempts || 0) + 1;
+  mp.quizScore = score;
   if (score >= 70) {
-    // Re-render the module so the full "passed" view (including CB reward) appears
-    selectModule(modId);
+    mp.completed = true;
+    if (modId < 10 && accessFlags.hasCourseAccess) {
+      var next = normalizeModuleProgress(p.modules[modId + 1]);
+      next.unlocked = true;
+      p.modules[modId + 1] = next;
+    }
   } else {
-    if (rd) rd.innerHTML = '<div class="quiz-result fail">You scored ' + score + '% (' + correct + '/' + total + '). You need 70% to pass. Review the lessons and try again.</div>';
+    mp.completed = false;
+  }
+  p.modules[modId] = mp;
+  saveProgress(p);
+  updateHeroProgress();
+  renderSidebar();
+  highlightQuizAnswers(modId, grade.results);
+  var rd = document.getElementById('quizResult');
+  if (rd) rd.innerHTML = renderQuizFeedbackHTML(modId, grade, score, score >= 70);
+  if (score >= 70 && isPerfectWallEligible(p)) {
+    fetch('/api/course/progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ progress: p })
+    }).catch(function() {});
   }
 }
 
@@ -978,7 +1153,10 @@ function renderComplete(main) {
   var html = '<div class="completion-section" id="completionSection">';
   html += '<div class="completion-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>';
   html += '<h2>Course Complete!</h2>';
-  html += '<p class="comp-sub">You\u2019ve mastered the fundamentals. All 10 modules are done. Your certificate will be mailed to you and recorded in our records.</p>';
+  html += '<p class="comp-sub">You\u2019ve mastered the fundamentals. All 10 modules are done.</p>';
+  if (isPerfectWallEligible(p)) {
+    html += '<div class="wall-celebrate"><strong>Perfect run!</strong> You scored 100% on every knowledge check with zero retakes. You qualify for the <a href="/drivers-wall">Driver\u2019s Wall</a>.</div>';
+  }
   html += '<div id="completionContent">Loading\u2026</div>';
   html += '</div>';
   main.innerHTML = html;
@@ -1029,7 +1207,18 @@ function renderCompletionSignedOut(container) {
 function renderCompletionForm(container) {
   var p = getProgress();
   var name = (p.studentName || '').replace(/"/g, '&quot;');
-  var html = '<p class="comp-sub" style="margin-bottom:20px">Enter your mailing address so we can send your <strong>numbered certificate</strong>. You can also request a copy be emailed to your insurance or safety department.</p>';
+  var html = '<div class="cert-quick-request">';
+  html += '<h3>Request your certificate</h3>';
+  html += '<p>Even while the course is free, you can request a numbered certificate of completion. Joyce will follow up by email.</p>';
+  html += '<form id="certQuickForm" class="cert-form-grid" style="margin-bottom:0">';
+  html += '<div class="cert-form-group"><label>Your full name (on certificate)</label><input type="text" name="studentName" required placeholder="Full legal name" value="' + name + '"></div>';
+  html += '<div class="cert-form-group"><label>CB handle (optional)</label><input type="text" name="cbHandle" placeholder="Your forum handle"></div>';
+  html += '<div class="cert-form-group"><label>Notes for Joyce (optional)</label><input type="text" name="message" placeholder="Mailing preference, company name, etc."></div>';
+  html += '<button type="submit" class="btn btn-primary">Request certificate</button>';
+  html += '</form>';
+  html += '<p id="certQuickStatus" style="font-size:.82rem;color:var(--text-3);margin:12px 0 0"></p>';
+  html += '</div>';
+  html += '<p class="comp-sub" style="margin-bottom:20px">Prefer a <strong>mailed certificate</strong>? Enter your full mailing address below. You can also request copies to insurance or safety.</p>';
   html += '<form id="certificateForm" class="cert-form-grid">';
   html += '<div class="cert-form-group"><label>Your full name (on certificate)</label><input type="text" name="studentName" required placeholder="Full legal name" value="' + name + '"></div>';
   html += '<div class="cert-form-group"><label>Mailing name (if different)</label><input type="text" name="mailingName" placeholder="Name for envelope"></div>';
@@ -1038,7 +1227,7 @@ function renderCompletionForm(container) {
   html += '<div class="cert-form-group"><label>ZIP code</label><input type="text" name="mailingZip" required placeholder="ZIP" pattern="[0-9\\-]+"></div>';
   html += '<div class="cert-form-group"><label>Email copy to insurance (optional)</label><input type="email" name="copyToInsuranceEmail" placeholder="insurance@company.com"></div>';
   html += '<div class="cert-form-group"><label>Email copy to safety department (optional)</label><input type="email" name="copyToSafetyEmail" placeholder="safety@carrier.com"></div>';
-  html += '<button type="submit" class="btn btn-primary" style="margin-top:8px">Submit &amp; request certificate</button>';
+  html += '<button type="submit" class="btn btn-glass" style="margin-top:8px">Submit mailing address for certificate</button>';
   html += '</form>';
   html += '<div class="comp-btns" style="margin-top:24px">';
   html += '<button class="btn btn-glass" onclick="downloadCertificate()">Download certificate (preview)</button>';
@@ -1048,6 +1237,61 @@ function renderCompletionForm(container) {
   html += compLinksHtml();
   container.innerHTML = html;
   document.getElementById('certificateForm').addEventListener('submit', submitCertificateForm);
+  document.getElementById('certQuickForm').addEventListener('submit', submitQuickCertificateRequest);
+  prefillCbHandle(document.querySelector('#certQuickForm input[name="cbHandle"]'));
+}
+
+function prefillCbHandle(input) {
+  if (!input) return;
+  fetch('/api/auth/me', { credentials: 'include' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.user && data.user.username && !input.value) input.value = data.user.username;
+    })
+    .catch(function() {});
+}
+
+function submitQuickCertificateRequest(e) {
+  e.preventDefault();
+  var form = e.target;
+  var btn = form.querySelector('button[type="submit"]');
+  var status = document.getElementById('certQuickStatus');
+  var studentName = (form.studentName && form.studentName.value || '').trim();
+  var cbHandle = (form.cbHandle && form.cbHandle.value || '').trim();
+  var message = (form.message && form.message.value || '').trim();
+  if (!studentName) {
+    alert('Please enter your name for the certificate.');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Sending\u2026';
+  fetch('/api/course/certificate/request', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({
+      progress: getProgress(),
+      studentName: studentName,
+      cbHandle: cbHandle || undefined,
+      message: message || undefined
+    })
+  })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      btn.disabled = false;
+      btn.textContent = 'Request certificate';
+      if (!res.ok) {
+        if (status) status.textContent = res.data.error || 'Could not send request. Sign in and try again.';
+        return;
+      }
+      saveStudentName(studentName);
+      if (status) status.textContent = res.data.message || 'Certificate request sent. Joyce will follow up by email.';
+    })
+    .catch(function() {
+      btn.disabled = false;
+      btn.textContent = 'Request certificate';
+      if (status) status.textContent = 'Something went wrong. Please try again or email joyce@mile12warrior.com.';
+    });
 }
 
 function submitCertificateForm(e) {
@@ -1103,6 +1347,10 @@ function renderCompletionSuccess(container, data) {
   var certNum = data.certificateNumber || lastCertificateNumber || '';
   var html = '<div class="comp-success-num">Certificate #' + escapeHtml(certNum) + ' is on the way!</div>';
   html += '<p class="comp-sub">We\u2019ve recorded your completion. Mile 12 Warrior will mail your certificate to the address you provided. If you requested copies to insurance or safety, those will be sent separately.</p>';
+  var p = getProgress();
+  if (isPerfectWallEligible(p)) {
+    html += '<div class="wall-celebrate" style="margin-bottom:16px">Perfect score, zero retakes — you\u2019re on the <a href="/drivers-wall">Driver\u2019s Wall</a>!</div>';
+  }
   html += '<div class="comp-btns">';
   html += '<button class="btn btn-primary" onclick="downloadCertificate()">Download Certificate</button>';
   html += '<button class="btn btn-green" onclick="downloadPacket()">Download New Driver Packet</button>';
@@ -1113,7 +1361,7 @@ function renderCompletionSuccess(container, data) {
 }
 
 function compLinksHtml() {
-  return '<div class="comp-links"><a href="/forum">Join the Forum</a><a href="/blog">Read the Blog</a><a href="/shop">Browse the Shop</a><a href="/services">Explore More Services</a></div>';
+  return '<div class="comp-links"><a href="/drivers-wall">Driver\u2019s Wall</a><a href="/forum">Join the Forum</a><a href="/blog">Read the Blog</a><a href="/shop">Browse the Shop</a><a href="/services">Explore More Services</a></div>';
 }
 
 function saveStudentName(name) {
@@ -1219,7 +1467,7 @@ function applyAccessFlags(data) {
   } else {
     prog.purchased = false;
     for (var i = 1; i <= 10; i++) {
-      if (!prog.modules[i]) prog.modules[i] = { unlocked: false, completed: false, lessons: [], quizScore: null };
+      if (!prog.modules[i]) prog.modules[i] = { unlocked: false, completed: false, lessons: [], quizScore: null, quizAttempts: 0, moduleRedos: 0 };
       prog.modules[i].unlocked = (i === 1 && accessFlags.hasModule1Preview);
     }
   }
@@ -1242,7 +1490,20 @@ function init() {
   renderSidebar();
   fetch('/api/shop/course-access', { credentials: 'include' })
     .then(function(r) { return r.json(); })
-    .then(function(data) { applyAccessFlags(data); })
+    .then(function(data) {
+      applyAccessFlags(data);
+      return fetch('/api/course/progress', { credentials: 'include' })
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(serverData) {
+          if (serverData && serverData.progress) {
+            var merged = mergeProgress(getProgress(), serverData.progress);
+            saveProgress(merged);
+            updateHeroProgress();
+            renderSidebar();
+          }
+        })
+        .catch(function() {});
+    })
     .catch(function() {
       applyAccessFlags({ hasCourseAccess: false, hasModule1Preview: false });
     });
@@ -1307,6 +1568,8 @@ window.previewFullCourse = previewFullCourse;
 window.toggleLesson = toggleLesson;
 window.markLesson = markLesson;
 window.submitQuiz = submitQuiz;
+window.retryQuiz = retryQuiz;
+window.redoModule = redoModule;
 window.downloadCertificate = downloadCertificate;
 window.downloadPacket = downloadPacket;
 

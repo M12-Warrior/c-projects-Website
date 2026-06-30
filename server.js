@@ -331,6 +331,10 @@ app.get('/course', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'course.html'));
 });
 
+app.get('/drivers-wall', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'drivers-wall.html'));
+});
+
 app.get('/refresh', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'refresh.html'));
 });

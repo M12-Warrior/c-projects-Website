@@ -5,6 +5,13 @@ const stripe = require('../lib/stripe');
 const paymentConfig = require('../lib/paymentConfig');
 const router = express.Router();
 
+const SHOP_LISTING_EXCLUDE_SLUGS = new Set(['trucker-wellness-journal']);
+
+function filterShopProducts(products) {
+  if (!Array.isArray(products)) return products;
+  return products.filter((p) => !SHOP_LISTING_EXCLUDE_SLUGS.has(p.slug));
+}
+
 // Require session (401 if not logged in)
 function requireSession(req, res, next) {
   if (!req.session || !req.session.user) {
@@ -386,7 +393,7 @@ router.get('/products', (req, res) => {
     WHERE active = 1
     ORDER BY COALESCE(is_subscription, 0) DESC, name
   `).all();
-  const products = applyDefaultImage(rows);
+  const products = applyDefaultImage(filterShopProducts(rows));
   res.json({ products });
 });
 
