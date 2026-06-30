@@ -2791,6 +2791,58 @@ Packets.printDirect = function (type) {
   });
 };
 
+// Open packet in a new tab for reading (no print dialog).
+Packets.viewGated = function (type, onResult) {
+  return Packets._checkIndividualAccess(type).then(function (res) {
+    if (!res.allowed) {
+      if (onResult) onResult(res);
+      else if (res.message) alert(res.message);
+      return res;
+    }
+    var html = Packets._buildHtml(res.accessType);
+    if (!html) {
+      var bad = { allowed: false, message: 'Could not generate packet.' };
+      if (onResult) onResult(bad);
+      return bad;
+    }
+    Packets._trackEvent(res.accessType, 'view');
+    var opened = Packets._openHtmlWindow(html, {
+      print: false,
+      onError: function (msg) {
+        var blocked = { allowed: false, message: msg };
+        if (onResult) onResult(blocked);
+        else alert(msg);
+      }
+    });
+    if (!opened) return res;
+    if (onResult) onResult(res);
+    return res;
+  });
+};
+
+// Gated fleet view: same entitlement check as download/print, opens for reading.
+Packets.viewFleet = function (type, onResult) {
+  return Packets._checkFleetAccess(type).then(function (res) {
+    if (!res.allowed) { if (onResult) onResult(res); return res; }
+    var html = Packets._buildFleetHtml(type);
+    if (!html) { var r = { allowed: false, message: 'Unknown packet.' }; if (onResult) onResult(r); return r; }
+    html = Packets._applyLicenseStamp(html, res.license);
+    var opened = Packets._openHtmlWindow(html, {
+      print: false,
+      onError: function (msg) {
+        if (onResult) onResult({ allowed: false, message: msg });
+      }
+    });
+    if (!opened) {
+      var blocked = { allowed: false, message: 'Pop-up blocked. Allow pop-ups or use Download.' };
+      if (onResult) onResult(blocked);
+      return blocked;
+    }
+    if (onResult) onResult(res);
+    return res;
+  });
+};
+
 // Gated individual packet download (seasoned driver, etc.)
 Packets.downloadGated = function (type, onResult) {
   return Packets._checkIndividualAccess(type).then(function (res) {

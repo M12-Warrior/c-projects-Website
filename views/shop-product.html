@@ -77,14 +77,14 @@
       var freeAccess = true;
 
       var DIGITAL_FREE_SLUGS = {
-        'course-90day': { href: '/course', label: 'Start Course — Free' },
-        'new-driver-packet': { href: '/services', label: 'Get Free Packet' },
-        'seasoned-packet': { href: '/services', label: 'Download Free on Services' },
-        'fleet-new-hire-packet': { href: '/services', label: 'Download Free on Services' },
-        'fleet-refresher-packet': { href: '/services', label: 'Download Free on Services' },
-        'fleet-bundle': { href: '/services', label: 'Download Free on Services' },
-        'complete-bundle': { href: '/services', label: 'All Free on Services' },
-        'trucker-wellness-journal-monthly': { href: '/journal/print', label: 'Download Free Journal' }
+        'course-90day': { href: '/course', label: 'Start Course — Free', kind: 'course' },
+        'new-driver-packet': { href: '/packets/new-driver', label: 'View Packet — Free', kind: 'packet', type: 'new-driver', fleet: false },
+        'seasoned-packet': { href: '/packets/seasoned-driver', label: 'View Packet — Free', kind: 'packet', type: 'seasoned-driver', fleet: false },
+        'fleet-new-hire-packet': { href: '/packets/fleet-new-hire', label: 'View Packet — Free', kind: 'packet', type: 'fleet-new-hire', fleet: true },
+        'fleet-refresher-packet': { href: '/packets/fleet-refresher', label: 'View Packet — Free', kind: 'packet', type: 'fleet-refresher', fleet: true },
+        'fleet-bundle': { href: '/services', label: 'View Fleet Packets — Free', kind: 'bundle' },
+        'complete-bundle': { href: '/course', label: 'Start Course — Free', kind: 'bundle' },
+        'trucker-wellness-journal-monthly': { href: '/journal/print', label: 'Download Free Journal', kind: 'journal' }
       };
 
       function getCart() {
@@ -195,23 +195,46 @@
             : '<div class="product-image" style="height: 320px;">' + placeholderIcon + '</div>';
           const subBadge = isSub ? '<span style="display:inline-block;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue);background:rgba(59,130,246,0.15);padding:4px 10px;border-radius:4px;margin-left:12px;font-weight:600;vertical-align:middle;">Monthly subscription</span>' : '';
           const buyLabel = isSub ? 'Add subscription to cart' : 'Add to cart';
-          var freeLink = DIGITAL_FREE_SLUGS[slug] || (isFreeTier1 ? { href: '/services', label: 'Get free access' } : null);
-          const formHtml = isFreeDigital && freeLink
-            ? '<div style="display:flex;flex-direction:column;gap:12px;">' +
-                '<p style="font-size:0.9rem;color:var(--text-2);line-height:1.55;margin:0">This is <strong>free</strong> right now — no payment or checkout. Sign in to download the journal, use My Journal online, and join the Coffee Shop on the forum.</p>' +
+          var freeLink = DIGITAL_FREE_SLUGS[slug] || (isFreeTier1 ? { href: '/packets/new-driver', label: 'View Packet — Free', kind: 'packet', type: 'new-driver', fleet: false } : null);
+          var packetMeta = freeLink && freeLink.kind === 'packet' ? freeLink : null;
+          var formHtml;
+          if (isFreeDigital && packetMeta) {
+            var isTier1 = packetMeta.type === 'new-driver';
+            var viewFn = packetMeta.fleet ? 'Packets.viewFleet' : (isTier1 ? 'Tier1Checklist.open' : 'Packets.viewGated');
+            var printFn = packetMeta.fleet ? 'Packets.printFleet' : (isTier1 ? 'Packets.print' : 'Packets.printGated');
+            var downloadFn = packetMeta.fleet ? 'Packets.downloadFleet' : (isTier1 ? 'Packets.download' : 'Packets.downloadGated');
+            var typeArg = "'" + packetMeta.type.replace(/'/g, "\\'") + "'";
+            formHtml = '<div style="display:flex;flex-direction:column;gap:12px;">' +
+                '<p style="font-size:0.9rem;color:var(--text-2);line-height:1.55;margin:0">This packet is <strong>free</strong> right now — no payment or checkout. View online, print, or download below.</p>' +
                 '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">' +
                   '<a href="' + freeLink.href + '" class="btn btn-primary" style="text-decoration:none">' + freeLink.label + '</a>' +
-                  '<a href="/journal" class="btn btn-secondary" style="text-decoration:none">My Journal online</a>' +
-                  '<a href="/forum/category/general" class="btn btn-secondary" style="text-decoration:none">Visit the Coffee Shop</a>' +
+                  (isTier1 ? '' : '<button type="button" class="btn btn-secondary" onclick="' + viewFn + '(' + typeArg + ')">View online</button>') +
+                  '<button type="button" class="btn btn-secondary" onclick="' + printFn + '(' + typeArg + ')">Print / Save as PDF</button>' +
+                  '<button type="button" class="btn btn-secondary" onclick="' + downloadFn + '(' + typeArg + ')">Download</button>' +
                 '</div>' +
-              '</div>'
-            : (paymentsEnabled
+              '</div>';
+          } else if (isFreeDigital && freeLink) {
+            formHtml = '<div style="display:flex;flex-direction:column;gap:12px;">' +
+                '<p style="font-size:0.9rem;color:var(--text-2);line-height:1.55;margin:0">This is <strong>free</strong> right now — no payment or checkout.' +
+                (freeLink.kind === 'journal' ? ' Sign in to download the journal, use My Journal online, and join the Coffee Shop on the forum.' : '') +
+                '</p>' +
+                '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">' +
+                  '<a href="' + freeLink.href + '" class="btn btn-primary" style="text-decoration:none">' + freeLink.label + '</a>' +
+                  (freeLink.kind === 'journal'
+                    ? '<a href="/journal" class="btn btn-secondary" style="text-decoration:none">My Journal online</a>' +
+                      '<a href="/forum/category/general" class="btn btn-secondary" style="text-decoration:none">Visit the Coffee Shop</a>'
+                    : '') +
+                '</div>' +
+              '</div>';
+          } else {
+            formHtml = (paymentsEnabled
             ? '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">' +
                 '<button type="button" id="addToCartBtn" class="btn btn-primary">' + buyLabel + '</button>' +
                 '<a href="/shop/cart" class="btn btn-glass">View cart</a>' +
                 '<span id="addedMsg" class="hidden" style="color:var(--gold-light);font-size:0.9rem;">Added to cart.</span>' +
               '</div>'
             : '<p style="font-size:0.9rem;color:var(--text-2);line-height:1.55;margin:0">Drivers gear checkout is coming soon. Need something now? <a href="mailto:joyce@mile12warrior.com?subject=Mile%2012%20Warrior%20%E2%80%94%20General%20Contact" style="color:var(--gold)">Email Joyce</a> or use our <a href="/contact" style="color:var(--gold)">contact form</a>.</p>');
+          }
           container.innerHTML =
             '<div class="product-detail-wrap" style="max-width: 700px;">' +
               '<div style="margin-bottom: 24px;">' + imgHtml + '</div>' +
@@ -283,6 +306,8 @@
     </div>
   </footer>
 
+  <script src="/js/packets.js"></script>
+  <script src="/js/tier1-checklist.js"></script>
   <script src="/js/main.js"></script>
 </body>
 </html>

@@ -218,6 +218,18 @@ app.get('/packets/new-driver', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'packets-new-driver.html'));
 });
 
+app.get('/packets/seasoned-driver', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'packet-page.html'));
+});
+
+app.get('/packets/fleet-new-hire', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'packet-page.html'));
+});
+
+app.get('/packets/fleet-refresher', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'packet-page.html'));
+});
+
 app.get('/services', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'services.html'));
 });

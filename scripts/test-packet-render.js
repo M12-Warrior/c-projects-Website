@@ -64,10 +64,11 @@ if (Packets._buildHtml('seasoned-packet') && Packets._buildHtml('seasoned-packet
   fail('_buildHtml product slug');
 }
 
-if (typeof Packets.printGated === 'function' && typeof Packets.previewAdmin === 'function') {
-  ok('gated print and admin preview helpers present');
+if (typeof Packets.printGated === 'function' && typeof Packets.previewAdmin === 'function' &&
+    typeof Packets.viewGated === 'function' && typeof Packets.viewFleet === 'function') {
+  ok('gated print, view, and admin preview helpers present');
 } else {
-  fail('missing printGated or previewAdmin');
+  fail('missing printGated, viewGated, viewFleet, or previewAdmin');
 }
 
 if (typeof Packets._openHtmlWindow === 'function' &&

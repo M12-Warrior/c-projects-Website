@@ -8,6 +8,8 @@ const shopJs = fs.readFileSync(path.join(root, 'routes', 'shop.js'), 'utf8');
 const stripeJs = fs.readFileSync(path.join(root, 'routes', 'stripe.js'), 'utf8');
 const servicesHtml = fs.readFileSync(path.join(root, 'views', 'services.html'), 'utf8');
 const shopHtml = fs.readFileSync(path.join(root, 'views', 'shop.html'), 'utf8');
+const shopProductHtml = fs.readFileSync(path.join(root, 'views', 'shop-product.html'), 'utf8');
+const serverJs = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
 const indexHtml = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
 
 let failed = 0;
@@ -40,6 +42,18 @@ else fail('services missing admin booking email CTA');
 
 if (servicesHtml.includes('Packets.printGated(\'seasoned-driver\')')) ok('seasoned free download buttons');
 else fail('services missing seasoned download buttons');
+
+if (shopHtml.includes('/packets/seasoned-driver')) ok('shop seasoned packet links to packet page');
+else fail('shop.html should link seasoned-packet to /packets/seasoned-driver');
+
+if (shopProductHtml.includes("href: '/packets/seasoned-driver'")) ok('shop product seasoned packet page href');
+else fail('shop-product.html should link seasoned-packet to packet page');
+
+if (serverJs.includes("app.get('/packets/seasoned-driver'")) ok('server seasoned driver packet route');
+else fail('server.js missing /packets/seasoned-driver route');
+
+if (indexHtml.includes('href="/packets/seasoned-driver"')) ok('homepage seasoned view packet link');
+else fail('homepage missing seasoned view packet link');
 
 if (shopHtml.includes('freeAccess')) ok('shop.html reads freeAccess flag');
 else fail('shop.html missing freeAccess');

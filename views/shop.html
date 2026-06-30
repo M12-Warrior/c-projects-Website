@@ -90,15 +90,27 @@
       var paymentsEnabled = false;
       var freeAccess = true;
 
+      var PACKET_PAGE_HREFS = {
+        'seasoned-packet': '/packets/seasoned-driver',
+        'fleet-new-hire-packet': '/packets/fleet-new-hire',
+        'fleet-refresher-packet': '/packets/fleet-refresher'
+      };
+
       function digitalAccessHref(id) {
         if (id === 'course-90day') return '/course';
         if (id === 'trucker-wellness-journal-monthly') return '/journal/print';
+        if (PACKET_PAGE_HREFS[id]) return PACKET_PAGE_HREFS[id];
+        if (id === 'complete-bundle') return '/course';
+        if (id === 'fleet-bundle') return '/services';
         return '/services';
       }
 
       function digitalAccessLabel(id) {
         if (id === 'course-90day') return 'Start Course — Free';
         if (id === 'trucker-wellness-journal-monthly') return 'Download Journal — Free';
+        if (PACKET_PAGE_HREFS[id]) return 'View Packet — Free';
+        if (id === 'complete-bundle') return 'Start Course — Free';
+        if (id === 'fleet-bundle') return 'View Fleet Packets — Free';
         return 'Download Free';
       }
 
