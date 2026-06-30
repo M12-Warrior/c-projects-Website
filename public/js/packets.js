@@ -3213,11 +3213,14 @@ Packets._FLEET_ACCESS_TYPE = {
 
 // Check entitlement for a fleet packet. Returns a promise of { allowed, license, message }.
 Packets._checkFleetAccess = function (type) {
+  var accessType = Packets._normalizeType(type);
   if (Packets._isFreeDigitalAccess()) {
-    return Promise.resolve({ allowed: true, license: null, freeAccess: true });
+    return Promise.resolve({ allowed: true, license: null, freeAccess: true, accessType: accessType });
   }
-  var accessType = Packets._FLEET_ACCESS_TYPE[type];
-  if (!accessType) return Promise.resolve({ allowed: false, message: 'Unknown packet.' });
+  if (!Packets._FLEET_ACCESS_TYPE[accessType]) {
+    return Promise.resolve({ allowed: false, message: 'Unknown packet.', accessType: accessType });
+  }
+  accessType = Packets._FLEET_ACCESS_TYPE[accessType];
   return fetch('/api/shop/packet-access?type=' + encodeURIComponent(accessType), { credentials: 'include' })
     .then(function (r) { return r.json(); })
     .then(function (data) {
@@ -3242,7 +3245,7 @@ Packets._checkFleetAccess = function (type) {
 };
 
 Packets._buildFleetHtml = function (type) {
-  switch (type) {
+  switch (Packets._normalizeType(type)) {
     case 'fleet-new-hire': return Packets.fleetNewHire();
     case 'fleet-refresher': return Packets.fleetRefresher();
     default: return null;
@@ -3251,13 +3254,14 @@ Packets._buildFleetHtml = function (type) {
 
 // Gated fleet download: only works with a valid per-yard license; stamps the output.
 Packets.downloadFleet = function (type, onResult) {
-  return Packets._checkFleetAccess(type).then(function (res) {
+  var accessType = Packets._normalizeType(type);
+  return Packets._checkFleetAccess(accessType).then(function (res) {
     if (!res.allowed) { if (onResult) onResult(res); return res; }
-    var built = Packets._buildFleetHtml(type);
+    var built = Packets._buildFleetHtml(accessType);
     if (!built) { var r = { allowed: false, message: 'Unknown packet.' }; if (onResult) onResult(r); return r; }
     return Packets._resolveFleetYardUserId().then(function () {
-      var html = Packets._prepareFleetHtml(type, res.license);
-      var filename = Packets._filenameForType(type);
+      var html = Packets._prepareFleetHtml(accessType, res.license);
+      var filename = Packets._filenameForType(accessType);
       if (!Packets._downloadHtmlBlob(html, filename)) {
         var r2 = { allowed: false, message: 'Could not generate packet.' };
         if (onResult) onResult(r2);
@@ -3268,7 +3272,7 @@ Packets.downloadFleet = function (type, onResult) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ type: Packets._FLEET_ACCESS_TYPE[type] })
+          body: JSON.stringify({ type: Packets._FLEET_ACCESS_TYPE[accessType] })
         }).catch(function () {});
       } catch (_) {}
       if (onResult) onResult(res);
@@ -3279,18 +3283,19 @@ Packets.downloadFleet = function (type, onResult) {
 
 // Gated fleet print: same entitlement check + stamping.
 Packets.printFleet = function (type, onResult) {
-  return Packets._checkFleetAccess(type).then(function (res) {
+  var accessType = Packets._normalizeType(type);
+  return Packets._checkFleetAccess(accessType).then(function (res) {
     if (!res.allowed) { if (onResult) onResult(res); return res; }
-    var built = Packets._buildFleetHtml(type);
+    var built = Packets._buildFleetHtml(accessType);
     if (!built) { var r = { allowed: false, message: 'Unknown packet.' }; if (onResult) onResult(r); return r; }
     return Packets._resolveFleetYardUserId().then(function () {
-      var html = Packets._prepareFleetHtml(type, res.license);
+      var html = Packets._prepareFleetHtml(accessType, res.license);
       try {
         fetch('/api/shop/packet-download-log', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ type: Packets._FLEET_ACCESS_TYPE[type] })
+          body: JSON.stringify({ type: Packets._FLEET_ACCESS_TYPE[accessType] })
         }).catch(function () {});
       } catch (_) {}
       var opened = Packets._openHtmlWindow(html, {
@@ -3422,11 +3427,13 @@ Packets.viewGated = function (type, onResult) {
 
 // Gated fleet view: same entitlement check as download/print, opens for reading.
 Packets.viewFleet = function (type, onResult) {
-  return Packets._checkFleetAccess(type).then(function (res) {
+  var accessType = Packets._normalizeType(type);
+  return Packets._checkFleetAccess(accessType).then(function (res) {
     if (!res.allowed) { if (onResult) onResult(res); return res; }
     return Packets._resolveFleetYardUserId().then(function () {
-      var html = Packets._prepareFleetHtml(type, res.license);
+      var html = Packets._prepareFleetHtml(accessType, res.license);
       if (!html) { var r = { allowed: false, message: 'Unknown packet.' }; if (onResult) onResult(r); return r; }
+      Packets._trackEvent(accessType, 'view');
       var opened = Packets._openHtmlWindow(html, {
         print: false,
         onError: function (msg) {
