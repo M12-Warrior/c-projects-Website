@@ -884,6 +884,7 @@
             Fleet Safety Department Packets
           </h3>
           <p class="packet-group-desc">Designed for safety directors to distribute during onboarding or annual refreshers. Includes sign-off sheets and section-by-section acknowledgment forms for driver qualification files (per 49 CFR 391.51).</p>
+          <div id="fleetYardHostHome" style="margin-bottom:20px;max-width:720px"></div>
 
           <div class="packet-card" style="--packet-accent: #fbbf24;">
             <div class="packet-tier packet-tier-free">Fleet — FREE</div>
@@ -1065,6 +1066,12 @@
     if (typeof Packets !== 'undefined' && Packets.loadAccessConfig) {
       Packets.loadAccessConfig();
     }
+    (function () {
+      var host = document.getElementById('fleetYardHostHome');
+      if (host && typeof Packets !== 'undefined' && Packets.mountFleetYardPanel) {
+        Packets.mountFleetYardPanel(host);
+      }
+    })();
   </script>
   <script src="/js/main.js"></script>
 </body>

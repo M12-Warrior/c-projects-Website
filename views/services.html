@@ -219,7 +219,7 @@
         <p class="pricing-section-desc" data-cms="safetySectionDesc">Professional, print-ready safety packets for individual drivers and fleet safety departments. Complete with checklists, regulatory references, fillable forms, and sign-off sheets.</p>
         <p style="font-size:0.88rem;color:var(--text-2);max-width:720px;margin:-8px auto 20px;text-align:center;line-height:1.55"><strong>Every safety packet is free</strong> — view online, print, or download below. No account or checkout needed. Paid checkout will return later when our drivers gear shop opens.</p>
 
-        <div class="pricing-grid">
+          <div class="pricing-grid">
           <div class="price-card">
             <span class="pc-tier t-free">Tier 1 — Free</span>
             <h3 class="pc-name">New Driver Packet</h3>
@@ -278,6 +278,8 @@
               </button>
             </div>
           </div>
+
+          <div id="fleetYardHostServices" style="margin:20px 0;max-width:720px;grid-column:1/-1"></div>
 
           <div class="price-card">
             <span class="pc-tier t-fleet">Fleet — New Hire</span>
@@ -504,6 +506,12 @@
     if (typeof Packets !== 'undefined' && Packets.loadAccessConfig) {
       Packets.loadAccessConfig();
     }
+    (function () {
+      var host = document.getElementById('fleetYardHostServices');
+      if (host && typeof Packets !== 'undefined' && Packets.mountFleetYardPanel) {
+        Packets.mountFleetYardPanel(host);
+      }
+    })();
   </script>
   <script>
     // Reveal gated fleet packet downloads for customers who already hold a valid,

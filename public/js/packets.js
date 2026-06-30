@@ -2409,6 +2409,207 @@ Packets.getNewDriverChecklist = function () {
 };
 
 /* ============================================================
+   Optional fleet / yard info (free mode, localStorage)
+   Lets safety departments label printed packets for their own
+   records. Never required; not sent to Mile 12 Warrior.
+   ============================================================ */
+Packets._FLEET_YARD_STORAGE_BASE = 'm12_fleet_yard_v1';
+Packets._fleetYardUserId = null;
+Packets._fleetYardUserIdPromise = null;
+
+Packets._fleetYardStorageKey = function (userId) {
+  var suffix = userId != null ? String(userId) : 'guest';
+  return Packets._FLEET_YARD_STORAGE_BASE + '_' + suffix;
+};
+
+Packets._resolveFleetYardUserId = function () {
+  if (Packets._fleetYardUserId != null) {
+    return Promise.resolve(Packets._fleetYardUserId);
+  }
+  if (Packets._fleetYardUserIdPromise) return Packets._fleetYardUserIdPromise;
+  Packets._fleetYardUserIdPromise = fetch('/api/auth/me', { credentials: 'include' })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      Packets._fleetYardUserId = (data && data.user && data.user.id != null) ? data.user.id : null;
+      return Packets._fleetYardUserId;
+    })
+    .catch(function () {
+      Packets._fleetYardUserId = null;
+      return null;
+    });
+  return Packets._fleetYardUserIdPromise;
+};
+
+Packets.loadFleetYardInfo = function () {
+  return Packets._resolveFleetYardUserId().then(function (userId) {
+    return Packets._loadFleetYardInfo(userId);
+  });
+};
+
+Packets._loadFleetYardInfo = function (userId) {
+  try {
+    var raw = localStorage.getItem(Packets._fleetYardStorageKey(userId));
+    if (!raw) return null;
+    var parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+    return {
+      company: parsed.company ? String(parsed.company).trim() : '',
+      yardIdentifier: parsed.yardIdentifier ? String(parsed.yardIdentifier).trim() : '',
+      yardLabel: parsed.yardLabel ? String(parsed.yardLabel).trim() : ''
+    };
+  } catch (_) {
+    return null;
+  }
+};
+
+Packets._loadFleetYardInfoSync = function () {
+  return Packets._loadFleetYardInfo(Packets._fleetYardUserId);
+};
+
+Packets.saveFleetYardInfo = function (info) {
+  info = info || {};
+  return Packets._resolveFleetYardUserId().then(function (userId) {
+    var payload = {
+      company: info.company ? String(info.company).trim().slice(0, 200) : '',
+      yardIdentifier: info.yardIdentifier ? String(info.yardIdentifier).trim().slice(0, 300) : '',
+      yardLabel: info.yardLabel ? String(info.yardLabel).trim().slice(0, 200) : '',
+      savedAt: new Date().toISOString()
+    };
+    if (!payload.company && !payload.yardIdentifier && !payload.yardLabel) {
+      try { localStorage.removeItem(Packets._fleetYardStorageKey(userId)); } catch (_) {}
+      return payload;
+    }
+    try {
+      localStorage.setItem(Packets._fleetYardStorageKey(userId), JSON.stringify(payload));
+    } catch (_) {}
+    return payload;
+  });
+};
+
+Packets.clearFleetYardInfo = function () {
+  return Packets._resolveFleetYardUserId().then(function (userId) {
+    try { localStorage.removeItem(Packets._fleetYardStorageKey(userId)); } catch (_) {}
+    return true;
+  });
+};
+
+Packets._fleetYardHasValues = function (info) {
+  return !!(info && (info.company || info.yardIdentifier || info.yardLabel));
+};
+
+Packets._readFleetYardFromDom = function () {
+  var panel = document.querySelector('.fleet-yard-panel');
+  if (!panel) return null;
+  var companyIn = panel.querySelector('.fy-company');
+  var yardIn = panel.querySelector('.fy-yard');
+  var labelIn = panel.querySelector('.fy-label');
+  return {
+    company: companyIn ? String(companyIn.value || '').trim() : '',
+    yardIdentifier: yardIn ? String(yardIn.value || '').trim() : '',
+    yardLabel: labelIn ? String(labelIn.value || '').trim() : ''
+  };
+};
+
+Packets._getFleetYardForStamp = function () {
+  var fromDom = Packets._readFleetYardFromDom();
+  if (Packets._fleetYardHasValues(fromDom)) return fromDom;
+  return Packets._loadFleetYardInfoSync();
+};
+
+// Mount optional collapsible yard panel into a container element.
+Packets.mountFleetYardPanel = function (container, options) {
+  if (!container) return;
+  options = options || {};
+  container.innerHTML =
+    '<details class="fleet-yard-panel" style="margin:0 0 18px 0;border:1px solid var(--border, rgba(255,255,255,0.12));border-radius:10px;background:rgba(255,255,255,0.03);overflow:hidden">' +
+    '<summary style="cursor:pointer;padding:14px 16px;font-weight:600;font-size:0.92rem;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px">' +
+    '<span>Your fleet / yard <span style="font-weight:500;color:var(--text-2,#94a3b8)">(optional)</span></span>' +
+    '<span aria-hidden="true" style="font-size:0.75rem;color:var(--text-3,#64748b)">Expand</span>' +
+    '</summary>' +
+    '<div style="padding:0 16px 16px 16px">' +
+    '<p style="margin:0 0 14px 0;font-size:0.82rem;color:var(--text-2,#94a3b8);line-height:1.55">' +
+    'Optional &mdash; helps your team identify this packet; not sent to Mile 12 Warrior unless you choose to save. ' +
+    'Stored on this device only for your convenience.' +
+    '</p>' +
+    '<label style="display:block;margin-bottom:10px;font-size:0.82rem;color:var(--text-2,#94a3b8)">Company / fleet name</label>' +
+    '<input type="text" class="fy-company" maxlength="200" placeholder="e.g. ABC Trucking LLC" style="width:100%;margin-bottom:12px;padding:10px 12px;border-radius:8px;border:1px solid var(--border,rgba(255,255,255,0.15));background:var(--surface,rgba(0,0,0,0.2));color:inherit;font:inherit">' +
+    '<label style="display:block;margin-bottom:10px;font-size:0.82rem;color:var(--text-2,#94a3b8)">Yard or terminal identifier <span style="font-weight:400">(terminal # or address)</span></label>' +
+    '<input type="text" class="fy-yard" maxlength="300" placeholder="e.g. Terminal 3 or 1200 Industrial Blvd" style="width:100%;margin-bottom:12px;padding:10px 12px;border-radius:8px;border:1px solid var(--border,rgba(255,255,255,0.15));background:var(--surface,rgba(0,0,0,0.2));color:inherit;font:inherit">' +
+    '<label style="display:block;margin-bottom:10px;font-size:0.82rem;color:var(--text-2,#94a3b8)">Yard nickname / label <span style="font-weight:400">(optional)</span></label>' +
+    '<input type="text" class="fy-label" maxlength="200" placeholder="e.g. Sacramento yard" style="width:100%;margin-bottom:14px;padding:10px 12px;border-radius:8px;border:1px solid var(--border,rgba(255,255,255,0.15));background:var(--surface,rgba(0,0,0,0.2));color:inherit;font:inherit">' +
+    '<div style="display:flex;flex-wrap:wrap;gap:8px">' +
+    '<button type="button" class="btn btn-secondary fy-save" style="flex:1;min-width:140px">Save on this device</button>' +
+    '<button type="button" class="btn btn-glass fy-clear" style="flex:0 0 auto">Clear</button>' +
+    '</div>' +
+    '<p class="fy-status" style="margin:10px 0 0 0;font-size:0.78rem;color:var(--green,#22c55e);display:none"></p>' +
+    '</div></details>';
+
+  var companyIn = container.querySelector('.fy-company');
+  var yardIn = container.querySelector('.fy-yard');
+  var labelIn = container.querySelector('.fy-label');
+  var statusEl = container.querySelector('.fy-status');
+  var detailsEl = container.querySelector('.fleet-yard-panel');
+
+  function showStatus(msg, isError) {
+    if (!statusEl) return;
+    statusEl.textContent = msg;
+    statusEl.style.display = 'block';
+    statusEl.style.color = isError ? 'var(--red,#ef4444)' : 'var(--green,#22c55e)';
+  }
+
+  function readForm() {
+    return {
+      company: companyIn ? companyIn.value : '',
+      yardIdentifier: yardIn ? yardIn.value : '',
+      yardLabel: labelIn ? labelIn.value : ''
+    };
+  }
+
+  function fillForm(info) {
+    if (!info) return;
+    if (companyIn) companyIn.value = info.company || '';
+    if (yardIn) yardIn.value = info.yardIdentifier || '';
+    if (labelIn) labelIn.value = info.yardLabel || '';
+  }
+
+  Packets.loadFleetYardInfo().then(function (info) {
+    if (Packets._fleetYardHasValues(info)) fillForm(info);
+    if (options.openIfFilled && info && detailsEl) detailsEl.open = true;
+  });
+
+  var saveBtn = container.querySelector('.fy-save');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function () {
+      Packets.saveFleetYardInfo(readForm()).then(function () {
+        showStatus('Saved on this device. Print or download to stamp your copy.');
+      });
+    });
+  }
+
+  var clearBtn = container.querySelector('.fy-clear');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function () {
+      Packets.clearFleetYardInfo().then(function () {
+        if (companyIn) companyIn.value = '';
+        if (yardIn) yardIn.value = '';
+        if (labelIn) labelIn.value = '';
+        showStatus('Cleared from this device.');
+      });
+    });
+  }
+
+  [companyIn, yardIn, labelIn].forEach(function (input) {
+    if (!input) return;
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (saveBtn) saveBtn.click();
+      }
+    });
+  });
+};
+
+/* ============================================================
    Per-yard license stamping (anti-abuse)
    Stamps the company + yard identifier + expiry onto fleet packets
    so a printed sheet is visibly tied to ONE yard.
@@ -2478,6 +2679,68 @@ Packets._applyLicenseStamp = function (html, license) {
     out = runTop + runBottom + banner + out;
   }
   return out;
+};
+
+// Optional org stamp for free-mode self-service yard labeling (local device only).
+// org: { company, yardIdentifier, yardLabel }
+Packets._applyOrgStamp = function (html, org) {
+  if (!org || (!org.company && !org.yardIdentifier && !org.yardLabel)) return html;
+  var esc = Packets._escapeHtml;
+  var company = esc(org.company || 'Your fleet');
+  var yard = esc(org.yardIdentifier || '');
+  var label = org.yardLabel ? (' (' + esc(org.yardLabel) + ')') : '';
+  var stampedOn = Packets._formatDate(new Date().toISOString()) || new Date().toLocaleDateString('en-US');
+  var yardPart = yard ? ('yard ' + yard + label) : (org.yardLabel ? esc(org.yardLabel) : '');
+  var runningLine = 'Prepared for ' + company +
+    (yardPart ? (' &mdash; ' + yardPart) : '') +
+    ' &mdash; ' + stampedOn + ' &mdash; internal fleet copy';
+  var stampCss =
+    '<style>' +
+    '.org-stamp{border:2px solid #2563eb;background:#eff6ff;color:#1e3a8a;' +
+    'padding:10px 14px;margin:0 0 18px 0;border-radius:6px;font-size:9.5pt;line-height:1.5;}' +
+    '.org-stamp strong{color:#1e3a8a;}' +
+    '.org-run{position:fixed;left:0;right:0;font-size:7.5pt;color:#1e3a8a;background:#eff6ff;' +
+    'border-bottom:1px solid #2563eb;padding:3px 8px;text-align:center;z-index:9998;' +
+    '-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
+    '.org-run-top{top:0;}' +
+    '.org-run-bottom{bottom:0;border-bottom:none;border-top:1px solid #2563eb;}' +
+    'body{padding-top:22px;padding-bottom:22px;}' +
+    '@media print{.org-stamp,.org-run{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}' +
+    '</style>';
+  var banner =
+    '<div class="org-stamp">' +
+    '<strong>Internal fleet copy</strong> &mdash; for your organization&rsquo;s records only.<br>' +
+    'Prepared for: <strong>' + company + '</strong><br>' +
+    (yardPart ? ('Yard / terminal: <strong>' + (yard || esc(org.yardLabel)) + label + '</strong><br>') : '') +
+    'Date prepared: <strong>' + esc(stampedOn) + '</strong><br>' +
+    'This label was added on your device. Mile 12 Warrior does not receive this information.' +
+    '</div>';
+  var runTop = '<div class="org-run org-run-top">' + runningLine + '</div>';
+  var runBottom = '<div class="org-run org-run-bottom">' + runningLine + '</div>';
+  var out = html;
+  if (out.indexOf('</head>') !== -1) {
+    out = out.replace('</head>', stampCss + '</head>');
+  } else {
+    out = stampCss + out;
+  }
+  if (out.indexOf('<body>') !== -1) {
+    out = out.replace('<body>', '<body>' + runTop + runBottom + banner);
+  } else {
+    out = runTop + runBottom + banner + out;
+  }
+  return out;
+};
+
+Packets._finalizeFleetHtml = function (html, license) {
+  if (!html) return html;
+  if (license && (license.fleetCompany || license.yardIdentifier)) {
+    html = Packets._applyLicenseStamp(html, license);
+  }
+  var org = Packets._getFleetYardForStamp();
+  if (Packets._fleetYardHasValues(org)) {
+    html = Packets._applyOrgStamp(html, org);
+  }
+  return html;
 };
 
 // Product slugs and aliases -> internal packet type
@@ -2657,25 +2920,27 @@ Packets._buildFleetHtml = function (type) {
 Packets.downloadFleet = function (type, onResult) {
   return Packets._checkFleetAccess(type).then(function (res) {
     if (!res.allowed) { if (onResult) onResult(res); return res; }
-    var html = Packets._buildFleetHtml(type);
-    if (!html) { var r = { allowed: false, message: 'Unknown packet.' }; if (onResult) onResult(r); return r; }
-    html = Packets._applyLicenseStamp(html, res.license);
-    var filename = Packets._filenameForType(type);
-    if (!Packets._downloadHtmlBlob(html, filename)) {
-      var r = { allowed: false, message: 'Could not generate packet.' };
-      if (onResult) onResult(r);
-      return r;
-    }
-    try {
-      fetch('/api/shop/packet-download-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ type: Packets._FLEET_ACCESS_TYPE[type] })
-      }).catch(function () {});
-    } catch (_) {}
-    if (onResult) onResult(res);
-    return res;
+    var built = Packets._buildFleetHtml(type);
+    if (!built) { var r = { allowed: false, message: 'Unknown packet.' }; if (onResult) onResult(r); return r; }
+    return Packets._resolveFleetYardUserId().then(function () {
+      var html = Packets._finalizeFleetHtml(built, res.license);
+      var filename = Packets._filenameForType(type);
+      if (!Packets._downloadHtmlBlob(html, filename)) {
+        var r2 = { allowed: false, message: 'Could not generate packet.' };
+        if (onResult) onResult(r2);
+        return r2;
+      }
+      try {
+        fetch('/api/shop/packet-download-log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ type: Packets._FLEET_ACCESS_TYPE[type] })
+        }).catch(function () {});
+      } catch (_) {}
+      if (onResult) onResult(res);
+      return res;
+    });
   });
 };
 
@@ -2683,30 +2948,32 @@ Packets.downloadFleet = function (type, onResult) {
 Packets.printFleet = function (type, onResult) {
   return Packets._checkFleetAccess(type).then(function (res) {
     if (!res.allowed) { if (onResult) onResult(res); return res; }
-    var html = Packets._buildFleetHtml(type);
-    if (!html) { var r = { allowed: false, message: 'Unknown packet.' }; if (onResult) onResult(r); return r; }
-    html = Packets._applyLicenseStamp(html, res.license);
-    try {
-      fetch('/api/shop/packet-download-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ type: Packets._FLEET_ACCESS_TYPE[type] })
-      }).catch(function () {});
-    } catch (_) {}
-    var opened = Packets._openHtmlWindow(html, {
-      print: true,
-      onError: function (msg) {
-        if (onResult) onResult({ allowed: false, message: msg });
+    var built = Packets._buildFleetHtml(type);
+    if (!built) { var r = { allowed: false, message: 'Unknown packet.' }; if (onResult) onResult(r); return r; }
+    return Packets._resolveFleetYardUserId().then(function () {
+      var html = Packets._finalizeFleetHtml(built, res.license);
+      try {
+        fetch('/api/shop/packet-download-log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ type: Packets._FLEET_ACCESS_TYPE[type] })
+        }).catch(function () {});
+      } catch (_) {}
+      var opened = Packets._openHtmlWindow(html, {
+        print: true,
+        onError: function (msg) {
+          if (onResult) onResult({ allowed: false, message: msg });
+        }
+      });
+      if (!opened) {
+        var blocked = { allowed: false, message: 'Pop-up blocked. Allow pop-ups or use Download.' };
+        if (onResult) onResult(blocked);
+        return blocked;
       }
+      if (onResult) onResult(res);
+      return res;
     });
-    if (!opened) {
-      var blocked = { allowed: false, message: 'Pop-up blocked. Allow pop-ups or use Download.' };
-      if (onResult) onResult(blocked);
-      return blocked;
-    }
-    if (onResult) onResult(res);
-    return res;
   });
 };
 
@@ -2824,22 +3091,24 @@ Packets.viewGated = function (type, onResult) {
 Packets.viewFleet = function (type, onResult) {
   return Packets._checkFleetAccess(type).then(function (res) {
     if (!res.allowed) { if (onResult) onResult(res); return res; }
-    var html = Packets._buildFleetHtml(type);
-    if (!html) { var r = { allowed: false, message: 'Unknown packet.' }; if (onResult) onResult(r); return r; }
-    html = Packets._applyLicenseStamp(html, res.license);
-    var opened = Packets._openHtmlWindow(html, {
-      print: false,
-      onError: function (msg) {
-        if (onResult) onResult({ allowed: false, message: msg });
+    var built = Packets._buildFleetHtml(type);
+    if (!built) { var r = { allowed: false, message: 'Unknown packet.' }; if (onResult) onResult(r); return r; }
+    return Packets._resolveFleetYardUserId().then(function () {
+      var html = Packets._finalizeFleetHtml(built, res.license);
+      var opened = Packets._openHtmlWindow(html, {
+        print: false,
+        onError: function (msg) {
+          if (onResult) onResult({ allowed: false, message: msg });
+        }
+      });
+      if (!opened) {
+        var blocked = { allowed: false, message: 'Pop-up blocked. Allow pop-ups or use Download.' };
+        if (onResult) onResult(blocked);
+        return blocked;
       }
+      if (onResult) onResult(res);
+      return res;
     });
-    if (!opened) {
-      var blocked = { allowed: false, message: 'Pop-up blocked. Allow pop-ups or use Download.' };
-      if (onResult) onResult(blocked);
-      return blocked;
-    }
-    if (onResult) onResult(res);
-    return res;
   });
 };
 

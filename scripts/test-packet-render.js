@@ -84,5 +84,23 @@ if (typeof Packets._schedulePrint === 'function') {
   fail('_schedulePrint helper missing');
 }
 
+if (typeof Packets._applyOrgStamp === 'function' && typeof Packets._finalizeFleetHtml === 'function' &&
+    typeof Packets.mountFleetYardPanel === 'function') {
+  ok('optional fleet yard stamp helpers present');
+  var sampleHtml = Packets._wrap('Fleet test', '<p>Test</p>');
+  var stamped = Packets._applyOrgStamp(sampleHtml, {
+    company: 'Test Fleet LLC',
+    yardIdentifier: 'Terminal 7',
+    yardLabel: 'North yard'
+  });
+  if (stamped.indexOf('Test Fleet LLC') === -1 || stamped.indexOf('Terminal 7') === -1) {
+    fail('_applyOrgStamp missing company/yard in output');
+  } else {
+    ok('_applyOrgStamp embeds company and yard');
+  }
+} else {
+  fail('missing optional fleet yard helpers');
+}
+
 if (process.exitCode) process.exit(process.exitCode);
 console.log('All packet render checks passed.');
