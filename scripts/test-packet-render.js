@@ -85,7 +85,7 @@ if (typeof Packets._schedulePrint === 'function') {
 }
 
 if (typeof Packets._applyOrgStamp === 'function' && typeof Packets._finalizeFleetHtml === 'function' &&
-    typeof Packets.mountFleetYardPanel === 'function') {
+    typeof Packets.mountFleetYardPanel === 'function' && typeof Packets._applyFleetPrefill === 'function') {
   ok('optional fleet yard stamp helpers present');
   var sampleHtml = Packets._wrap('Fleet test', '<p>Test</p>');
   var stamped = Packets._applyOrgStamp(sampleHtml, {
@@ -98,8 +98,32 @@ if (typeof Packets._applyOrgStamp === 'function' && typeof Packets._finalizeFlee
   } else {
     ok('_applyOrgStamp embeds company and yard');
   }
+  var hireHtml = Packets.fleetNewHire();
+  var prefilled = Packets._applyFleetPrefill(hireHtml, 'fleet-new-hire', {
+    company: 'Acme Trucking',
+    packetDate: 'June 29, 2026',
+    chain: {
+      safetyDirector: { name: 'Jane Safety', phone: '555-0100' },
+      afterHoursHotline: { phone: '555-0199' }
+    },
+    contacts: { dispatchPhone: '555-0200' }
+  });
+  if (prefilled.indexOf('Acme Trucking') === -1) fail('prefill missing company');
+  else if (prefilled.indexOf('Jane Safety') === -1) fail('prefill missing safety director');
+  else if (prefilled.indexOf('555-0199') === -1) fail('prefill missing after-hours hotline');
+  else if (prefilled.indexOf('555-0200') === -1) fail('prefill missing dispatch phone');
+  else ok('fleet new hire prefill merges chain of command and dispatch');
+  var refHtml = Packets.fleetRefresher();
+  var refFilled = Packets._applyFleetPrefill(refHtml, 'fleet-refresher', {
+    contacts: { dispatchName: 'Dispatch Desk', dispatchPhone: '555-0300' }
+  });
+  if (refFilled.indexOf('Dispatch Desk') === -1 || refFilled.indexOf('555-0300') === -1) {
+    fail('prefill missing refresher emergency contacts');
+  } else {
+    ok('fleet refresher prefill merges emergency contacts');
+  }
 } else {
-  fail('missing optional fleet yard helpers');
+  fail('missing optional fleet yard/prefill helpers');
 }
 
 if (process.exitCode) process.exit(process.exitCode);

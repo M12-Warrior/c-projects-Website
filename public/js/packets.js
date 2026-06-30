@@ -2409,17 +2409,101 @@ Packets.getNewDriverChecklist = function () {
 };
 
 /* ============================================================
-   Optional fleet / yard info (free mode, localStorage)
-   Lets safety departments label printed packets for their own
-   records. Never required; not sent to Mile 12 Warrior.
+   Optional fleet prefill (free mode, localStorage)
+   Yard labeling + Safety Chain of Command + key contacts.
+   Never required; not sent to Mile 12 Warrior unless feedback mailto.
    ============================================================ */
 Packets._FLEET_YARD_STORAGE_BASE = 'm12_fleet_yard_v1';
+Packets._FLEET_PREFILL_STORAGE_BASE = 'm12_fleet_prefill_v2';
+Packets._FLEET_FEEDBACK_EMAIL = 'admin@mile12warrior.com';
+Packets._FLEET_FEEDBACK_SUBJECT = 'Mile 12 Warrior — Fleet Packet Feedback';
+
+Packets._FLEET_CHAIN_ROLES = [
+  { key: 'safetyDirector', label: 'Safety Director' },
+  { key: 'assistantSafetyManager', label: 'Assistant Safety Manager' },
+  { key: 'fleetManager', label: 'Fleet Manager' },
+  { key: 'operationsManager', label: 'Operations Manager' },
+  { key: 'humanResources', label: 'Human Resources' },
+  { key: 'afterHoursHotline', label: 'After-Hours Safety Hotline', phoneOnly: true }
+];
+
+Packets._FLEET_EMERGENCY_ROWS = [
+  { key: 'dispatch', label: 'Dispatch (24-hour)', nameKey: 'dispatchName', phoneKey: 'dispatchPhone' },
+  { key: 'safetyDirector', label: 'Safety Director', chainKey: 'safetyDirector' },
+  { key: 'roadside', label: 'Roadside Assistance', nameKey: 'roadsideName', phoneKey: 'roadsidePhone' },
+  { key: 'insurance', label: 'Insurance Company', nameKey: 'insuranceName', phoneKey: 'insurancePhone' },
+  { key: 'emergency1', label: 'Emergency Contact #1', nameKey: 'emergency1Name', phoneKey: 'emergency1Phone' },
+  { key: 'emergency2', label: 'Emergency Contact #2', nameKey: 'emergency2Name', phoneKey: 'emergency2Phone' }
+];
 Packets._fleetYardUserId = null;
 Packets._fleetYardUserIdPromise = null;
 
-Packets._fleetYardStorageKey = function (userId) {
+Packets._fleetPrefillStorageKey = function (userId) {
   var suffix = userId != null ? String(userId) : 'guest';
-  return Packets._FLEET_YARD_STORAGE_BASE + '_' + suffix;
+  return Packets._FLEET_PREFILL_STORAGE_BASE + '_' + suffix;
+};
+
+Packets._fleetYardStorageKey = Packets._fleetPrefillStorageKey;
+
+Packets._emptyFleetPrefill = function () {
+  var chain = {};
+  Packets._FLEET_CHAIN_ROLES.forEach(function (role) {
+    chain[role.key] = { name: '', phone: '' };
+  });
+  return {
+    company: '',
+    yardIdentifier: '',
+    yardLabel: '',
+    packetDate: '',
+    chain: chain,
+    contacts: {
+      dispatchName: '', dispatchPhone: '',
+      roadsideName: '', roadsidePhone: '',
+      insuranceName: '', insurancePhone: '',
+      emergency1Name: '', emergency1Phone: '',
+      emergency2Name: '', emergency2Phone: ''
+    }
+  };
+};
+
+Packets._normalizeFleetPrefill = function (parsed) {
+  var out = Packets._emptyFleetPrefill();
+  if (!parsed || typeof parsed !== 'object') return out;
+  out.company = parsed.company ? String(parsed.company).trim() : '';
+  out.yardIdentifier = parsed.yardIdentifier ? String(parsed.yardIdentifier).trim() : '';
+  out.yardLabel = parsed.yardLabel ? String(parsed.yardLabel).trim() : '';
+  out.packetDate = parsed.packetDate ? String(parsed.packetDate).trim() : '';
+  var chain = parsed.chain && typeof parsed.chain === 'object' ? parsed.chain : {};
+  Packets._FLEET_CHAIN_ROLES.forEach(function (role) {
+    var src = chain[role.key] || {};
+    out.chain[role.key] = {
+      name: src.name ? String(src.name).trim() : '',
+      phone: src.phone ? String(src.phone).trim() : ''
+    };
+  });
+  var contacts = parsed.contacts && typeof parsed.contacts === 'object' ? parsed.contacts : {};
+  [
+    'dispatchName', 'dispatchPhone', 'roadsideName', 'roadsidePhone',
+    'insuranceName', 'insurancePhone', 'emergency1Name', 'emergency1Phone',
+    'emergency2Name', 'emergency2Phone'
+  ].forEach(function (k) {
+    out.contacts[k] = contacts[k] ? String(contacts[k]).trim() : '';
+  });
+  return out;
+};
+
+Packets._migrateLegacyFleetYard = function (userId) {
+  try {
+    var suffix = userId != null ? String(userId) : 'guest';
+    var legacyKey = Packets._FLEET_YARD_STORAGE_BASE + '_' + suffix;
+    var raw = localStorage.getItem(legacyKey);
+    if (!raw) return null;
+    var parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+    return Packets._normalizeFleetPrefill(parsed);
+  } catch (_) {
+    return null;
+  }
 };
 
 Packets._resolveFleetYardUserId = function () {
@@ -2446,19 +2530,17 @@ Packets.loadFleetYardInfo = function () {
   });
 };
 
+Packets.loadFleetPrefillInfo = Packets.loadFleetYardInfo;
+
 Packets._loadFleetYardInfo = function (userId) {
   try {
-    var raw = localStorage.getItem(Packets._fleetYardStorageKey(userId));
-    if (!raw) return null;
-    var parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object') return null;
-    return {
-      company: parsed.company ? String(parsed.company).trim() : '',
-      yardIdentifier: parsed.yardIdentifier ? String(parsed.yardIdentifier).trim() : '',
-      yardLabel: parsed.yardLabel ? String(parsed.yardLabel).trim() : ''
-    };
+    var raw = localStorage.getItem(Packets._fleetPrefillStorageKey(userId));
+    if (raw) {
+      return Packets._normalizeFleetPrefill(JSON.parse(raw));
+    }
+    return Packets._migrateLegacyFleetYard(userId);
   } catch (_) {
-    return null;
+    return Packets._migrateLegacyFleetYard(userId);
   }
 };
 
@@ -2467,88 +2549,317 @@ Packets._loadFleetYardInfoSync = function () {
 };
 
 Packets.saveFleetYardInfo = function (info) {
-  info = info || {};
+  info = Packets._normalizeFleetPrefill(info || {});
   return Packets._resolveFleetYardUserId().then(function (userId) {
     var payload = {
-      company: info.company ? String(info.company).trim().slice(0, 200) : '',
-      yardIdentifier: info.yardIdentifier ? String(info.yardIdentifier).trim().slice(0, 300) : '',
-      yardLabel: info.yardLabel ? String(info.yardLabel).trim().slice(0, 200) : '',
+      company: info.company ? info.company.slice(0, 200) : '',
+      yardIdentifier: info.yardIdentifier ? info.yardIdentifier.slice(0, 300) : '',
+      yardLabel: info.yardLabel ? info.yardLabel.slice(0, 200) : '',
+      packetDate: info.packetDate ? info.packetDate.slice(0, 40) : '',
+      chain: info.chain || {},
+      contacts: info.contacts || {},
       savedAt: new Date().toISOString()
     };
-    if (!payload.company && !payload.yardIdentifier && !payload.yardLabel) {
-      try { localStorage.removeItem(Packets._fleetYardStorageKey(userId)); } catch (_) {}
+    if (!Packets._fleetPrefillHasValues(payload)) {
+      try {
+        localStorage.removeItem(Packets._fleetPrefillStorageKey(userId));
+        localStorage.removeItem(Packets._fleetYardStorageKey(userId));
+      } catch (_) {}
       return payload;
     }
     try {
-      localStorage.setItem(Packets._fleetYardStorageKey(userId), JSON.stringify(payload));
+      localStorage.setItem(Packets._fleetPrefillStorageKey(userId), JSON.stringify(payload));
     } catch (_) {}
     return payload;
   });
 };
 
+Packets.saveFleetPrefillInfo = Packets.saveFleetYardInfo;
+
 Packets.clearFleetYardInfo = function () {
   return Packets._resolveFleetYardUserId().then(function (userId) {
-    try { localStorage.removeItem(Packets._fleetYardStorageKey(userId)); } catch (_) {}
+    try {
+      localStorage.removeItem(Packets._fleetPrefillStorageKey(userId));
+      localStorage.removeItem(Packets._fleetYardStorageKey(userId));
+    } catch (_) {}
     return true;
   });
 };
 
+Packets.clearFleetPrefillInfo = Packets.clearFleetYardInfo;
+
 Packets._fleetYardHasValues = function (info) {
-  return !!(info && (info.company || info.yardIdentifier || info.yardLabel));
+  return Packets._fleetPrefillHasValues(info);
 };
 
-Packets._readFleetYardFromDom = function () {
-  var panel = document.querySelector('.fleet-yard-panel');
-  if (!panel) return null;
+Packets._fleetPrefillHasValues = function (info) {
+  if (!info) return false;
+  if (info.company || info.yardIdentifier || info.yardLabel || info.packetDate) return true;
+  var chain = info.chain || {};
+  for (var ck in chain) {
+    if (!Object.prototype.hasOwnProperty.call(chain, ck)) continue;
+    var row = chain[ck];
+    if (row && (row.name || row.phone)) return true;
+  }
+  var contacts = info.contacts || {};
+  for (var fk in contacts) {
+    if (Object.prototype.hasOwnProperty.call(contacts, fk) && contacts[fk]) return true;
+  }
+  return false;
+};
+
+Packets._escapeRegExp = function (str) {
+  return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+Packets._prefillCell = function (value) {
+  var v = String(value == null ? '' : value).trim();
+  if (!v) return null;
+  return Packets._escapeHtml(v);
+};
+
+Packets._applyFleetPrefill = function (html, type, info) {
+  if (!html || !info) return html;
+  type = Packets._normalizeType(type);
+  if (type !== 'fleet-new-hire' && type !== 'fleet-refresher') return html;
+
+  var esc = Packets._escapeHtml;
+  var company = String(info.company || '').trim();
+  var packetDate = String(info.packetDate || '').trim();
+  var chain = info.chain || {};
+  var contacts = info.contacts || {};
+
+  if (company) {
+    html = html.replace(/Company Name: _+/g, 'Company Name: ' + esc(company));
+    html = html.replace(
+      /At <strong>_+<\/strong> \(company name\)/,
+      'At <strong>' + esc(company) + '</strong> (company name)'
+    );
+  }
+  if (packetDate) {
+    html = html.replace(
+      /(<p style="margin-top:32px;font-size:10pt;">Company Name:[^<]+<\/p>\s*<p style="font-size:10pt;">)Date: _+(<\/p>)/,
+      '$1Date: ' + esc(packetDate) + '$2'
+    );
+  }
+
+  if (type === 'fleet-new-hire') {
+    Packets._FLEET_CHAIN_ROLES.forEach(function (role) {
+      var row = chain[role.key] || {};
+      var name = Packets._prefillCell(row.name);
+      var phone = Packets._prefillCell(row.phone);
+      if (!name && !phone) return;
+      if (role.phoneOnly) {
+        if (!phone) return;
+        var hotRe = new RegExp(
+          '(<tr><td>' + Packets._escapeRegExp(role.label) + '</td><td>&mdash;</td><td>)_+(</td></tr>)'
+        );
+        html = html.replace(hotRe, '$1' + phone + '$2');
+        return;
+      }
+      var rowRe = new RegExp(
+        '(<tr><td>' + Packets._escapeRegExp(role.label) + '</td><td>)_+(</td><td>)_+(</td></tr>)'
+      );
+      html = html.replace(rowRe, '$1' + (name || '&nbsp;') + '$2' + (phone || '&nbsp;') + '$3');
+    });
+
+    var dispatchPhone = Packets._prefillCell(contacts.dispatchPhone);
+    if (dispatchPhone) {
+      html = html.replace(
+        /Your dispatch number: _+/,
+        'Your dispatch number: ' + dispatchPhone
+      );
+    }
+  }
+
+  if (type === 'fleet-refresher') {
+    Packets._FLEET_EMERGENCY_ROWS.forEach(function (rowDef) {
+      var nameVal = '';
+      var phoneVal = '';
+      if (rowDef.chainKey) {
+        var chainRow = chain[rowDef.chainKey] || {};
+        nameVal = chainRow.name || '';
+        phoneVal = chainRow.phone || '';
+      } else {
+        nameVal = contacts[rowDef.nameKey] || '';
+        phoneVal = contacts[rowDef.phoneKey] || '';
+      }
+      var name = Packets._prefillCell(nameVal);
+      var phone = Packets._prefillCell(phoneVal);
+      if (!name && !phone) return;
+      var emRe = new RegExp(
+        '(<tr><td>' + Packets._escapeRegExp(rowDef.label) + '</td><td>)(</td><td>)(</td><td>)(</td></tr>)'
+      );
+      html = html.replace(emRe, '$1' + (name || '&nbsp;') + '$2' + (phone || '&nbsp;') + '$3&nbsp;$4');
+    });
+  }
+
+  return html;
+};
+
+Packets._readFleetPrefillFromDom = function () {
+  var panel = document.querySelector('.fleet-prefill-panel, .fleet-yard-panel');
+  if (!panel) return Packets._emptyFleetPrefill();
+  var info = Packets._emptyFleetPrefill();
   var companyIn = panel.querySelector('.fy-company');
   var yardIn = panel.querySelector('.fy-yard');
   var labelIn = panel.querySelector('.fy-label');
-  return {
-    company: companyIn ? String(companyIn.value || '').trim() : '',
-    yardIdentifier: yardIn ? String(yardIn.value || '').trim() : '',
-    yardLabel: labelIn ? String(labelIn.value || '').trim() : ''
-  };
+  var dateIn = panel.querySelector('.fy-packet-date');
+  info.company = companyIn ? String(companyIn.value || '').trim() : '';
+  info.yardIdentifier = yardIn ? String(yardIn.value || '').trim() : '';
+  info.yardLabel = labelIn ? String(labelIn.value || '').trim() : '';
+  info.packetDate = dateIn ? String(dateIn.value || '').trim() : '';
+  Packets._FLEET_CHAIN_ROLES.forEach(function (role) {
+    var nameIn = panel.querySelector('.fy-coc-' + role.key + '-name');
+    var phoneIn = panel.querySelector('.fy-coc-' + role.key + '-phone');
+    info.chain[role.key] = {
+      name: nameIn ? String(nameIn.value || '').trim() : '',
+      phone: phoneIn ? String(phoneIn.value || '').trim() : ''
+    };
+  });
+  [
+    'dispatchName', 'dispatchPhone', 'roadsideName', 'roadsidePhone',
+    'insuranceName', 'insurancePhone', 'emergency1Name', 'emergency1Phone',
+    'emergency2Name', 'emergency2Phone'
+  ].forEach(function (k) {
+    var input = panel.querySelector('.fy-contact-' + k);
+    info.contacts[k] = input ? String(input.value || '').trim() : '';
+  });
+  return info;
+};
+
+Packets._readFleetYardFromDom = function () {
+  return Packets._readFleetPrefillFromDom();
+};
+
+Packets._getFleetPrefillForMerge = function () {
+  var fromDom = Packets._readFleetPrefillFromDom();
+  if (Packets._fleetPrefillHasValues(fromDom)) return fromDom;
+  return Packets._loadFleetYardInfoSync() || Packets._emptyFleetPrefill();
 };
 
 Packets._getFleetYardForStamp = function () {
-  var fromDom = Packets._readFleetYardFromDom();
-  if (Packets._fleetYardHasValues(fromDom)) return fromDom;
-  return Packets._loadFleetYardInfoSync();
+  var info = Packets._getFleetPrefillForMerge();
+  return {
+    company: info.company || '',
+    yardIdentifier: info.yardIdentifier || '',
+    yardLabel: info.yardLabel || ''
+  };
 };
 
-// Mount optional collapsible yard panel into a container element.
-Packets.mountFleetYardPanel = function (container, options) {
+Packets._prepareFleetHtml = function (type, license) {
+  var built = Packets._buildFleetHtml(type);
+  if (!built) return null;
+  var info = Packets._getFleetPrefillForMerge();
+  if (Packets._fleetPrefillHasValues(info)) {
+    built = Packets._applyFleetPrefill(built, type, info);
+  }
+  return Packets._finalizeFleetHtml(built, license);
+};
+
+Packets._openFleetFeedbackMailto = function (message) {
+  var body = String(message || '').trim();
+  if (!body) {
+    body = 'I\'d like to suggest an improvement to the fleet packets:\n\n';
+  }
+  var subject = encodeURIComponent(Packets._FLEET_FEEDBACK_SUBJECT);
+  var mailBody = encodeURIComponent(body);
+  window.location.href = 'mailto:' + Packets._FLEET_FEEDBACK_EMAIL + '?subject=' + subject + '&body=' + mailBody;
+};
+
+// Mount optional collapsible fleet prefill panel (yard + chain of command + contacts).
+Packets.mountFleetPrefillPanel = function (container, options) {
   if (!container) return;
   options = options || {};
+
+  var inputStyle = 'width:100%;margin-bottom:10px;padding:10px 12px;border-radius:8px;border:1px solid var(--border,rgba(255,255,255,0.15));background:var(--surface,rgba(0,0,0,0.2));color:inherit;font:inherit';
+  var labelStyle = 'display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-2,#94a3b8)';
+  var sectionStyle = 'margin:12px 0 0 0;border:1px solid var(--border,rgba(255,255,255,0.1));border-radius:8px;background:rgba(255,255,255,0.02);overflow:hidden';
+  var sectionSummaryStyle = 'cursor:pointer;padding:12px 14px;font-weight:600;font-size:0.86rem;list-style:none';
+
+  var chainFields = '';
+  Packets._FLEET_CHAIN_ROLES.forEach(function (role) {
+    chainFields +=
+      '<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border,rgba(255,255,255,0.08))">' +
+      '<div style="font-size:0.84rem;font-weight:600;margin-bottom:8px">' + role.label + '</div>';
+    if (!role.phoneOnly) {
+      chainFields +=
+        '<label style="' + labelStyle + '">Name</label>' +
+        '<input type="text" class="fy-coc-' + role.key + '-name" maxlength="120" placeholder="Name" style="' + inputStyle + '">';
+    }
+    chainFields +=
+      '<label style="' + labelStyle + '">Phone</label>' +
+      '<input type="text" class="fy-coc-' + role.key + '-phone" maxlength="60" placeholder="Phone" style="' + inputStyle + '">' +
+      '</div>';
+  });
+
+  var contactFields =
+    '<label style="' + labelStyle + '">Dispatch name <span style="font-weight:400">(optional)</span></label>' +
+    '<input type="text" class="fy-contact-dispatchName" maxlength="120" placeholder="e.g. Night dispatch" style="' + inputStyle + '">' +
+    '<label style="' + labelStyle + '">Dispatch phone (24-hour)</label>' +
+    '<input type="text" class="fy-contact-dispatchPhone" maxlength="60" placeholder="e.g. 800-555-0100" style="' + inputStyle + '">' +
+    '<label style="' + labelStyle + '">Roadside assistance</label>' +
+    '<input type="text" class="fy-contact-roadsideName" maxlength="120" placeholder="Provider name" style="' + inputStyle + '">' +
+    '<input type="text" class="fy-contact-roadsidePhone" maxlength="60" placeholder="Roadside phone" style="' + inputStyle + '">' +
+    '<label style="' + labelStyle + '">Insurance company</label>' +
+    '<input type="text" class="fy-contact-insuranceName" maxlength="120" placeholder="Insurance carrier" style="' + inputStyle + '">' +
+    '<input type="text" class="fy-contact-insurancePhone" maxlength="60" placeholder="Claims phone" style="' + inputStyle + '">' +
+    '<label style="' + labelStyle + '">Emergency contact #1</label>' +
+    '<input type="text" class="fy-contact-emergency1Name" maxlength="120" placeholder="Name" style="' + inputStyle + '">' +
+    '<input type="text" class="fy-contact-emergency1Phone" maxlength="60" placeholder="Phone" style="' + inputStyle + '">' +
+    '<label style="' + labelStyle + '">Emergency contact #2</label>' +
+    '<input type="text" class="fy-contact-emergency2Name" maxlength="120" placeholder="Name" style="' + inputStyle + '">' +
+    '<input type="text" class="fy-contact-emergency2Phone" maxlength="60" placeholder="Phone" style="' + inputStyle + '">';
+
   container.innerHTML =
-    '<details class="fleet-yard-panel" style="margin:0 0 18px 0;border:1px solid var(--border, rgba(255,255,255,0.12));border-radius:10px;background:rgba(255,255,255,0.03);overflow:hidden">' +
+    '<details class="fleet-prefill-panel fleet-yard-panel" style="margin:0 0 18px 0;border:1px solid var(--border, rgba(255,255,255,0.12));border-radius:10px;background:rgba(255,255,255,0.03);overflow:hidden">' +
     '<summary style="cursor:pointer;padding:14px 16px;font-weight:600;font-size:0.92rem;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px">' +
-    '<span>Your fleet / yard <span style="font-weight:500;color:var(--text-2,#94a3b8)">(optional)</span></span>' +
+    '<span>Customize before print <span style="font-weight:500;color:var(--text-2,#94a3b8)">(optional)</span></span>' +
     '<span aria-hidden="true" style="font-size:0.75rem;color:var(--text-3,#64748b)">Expand</span>' +
     '</summary>' +
     '<div style="padding:0 16px 16px 16px">' +
     '<p style="margin:0 0 14px 0;font-size:0.82rem;color:var(--text-2,#94a3b8);line-height:1.55">' +
-    'Optional &mdash; helps your team identify this packet; not sent to Mile 12 Warrior unless you choose to save. ' +
-    'Stored on this device only for your convenience.' +
+    'Fill in company-specific details before you print or download. Saved on this device only &mdash; Mile 12 Warrior does not receive this information.' +
     '</p>' +
-    '<label style="display:block;margin-bottom:10px;font-size:0.82rem;color:var(--text-2,#94a3b8)">Company / fleet name</label>' +
-    '<input type="text" class="fy-company" maxlength="200" placeholder="e.g. ABC Trucking LLC" style="width:100%;margin-bottom:12px;padding:10px 12px;border-radius:8px;border:1px solid var(--border,rgba(255,255,255,0.15));background:var(--surface,rgba(0,0,0,0.2));color:inherit;font:inherit">' +
-    '<label style="display:block;margin-bottom:10px;font-size:0.82rem;color:var(--text-2,#94a3b8)">Yard or terminal identifier <span style="font-weight:400">(terminal # or address)</span></label>' +
-    '<input type="text" class="fy-yard" maxlength="300" placeholder="e.g. Terminal 3 or 1200 Industrial Blvd" style="width:100%;margin-bottom:12px;padding:10px 12px;border-radius:8px;border:1px solid var(--border,rgba(255,255,255,0.15));background:var(--surface,rgba(0,0,0,0.2));color:inherit;font:inherit">' +
-    '<label style="display:block;margin-bottom:10px;font-size:0.82rem;color:var(--text-2,#94a3b8)">Yard nickname / label <span style="font-weight:400">(optional)</span></label>' +
-    '<input type="text" class="fy-label" maxlength="200" placeholder="e.g. Sacramento yard" style="width:100%;margin-bottom:14px;padding:10px 12px;border-radius:8px;border:1px solid var(--border,rgba(255,255,255,0.15));background:var(--surface,rgba(0,0,0,0.2));color:inherit;font:inherit">' +
-    '<div style="display:flex;flex-wrap:wrap;gap:8px">' +
+    '<details class="fleet-prefill-section" open style="' + sectionStyle + '">' +
+    '<summary style="' + sectionSummaryStyle + '">Fleet / yard label</summary>' +
+    '<div style="padding:0 14px 14px 14px">' +
+    '<label style="' + labelStyle + '">Company / fleet name</label>' +
+    '<input type="text" class="fy-company" maxlength="200" placeholder="e.g. ABC Trucking LLC" style="' + inputStyle + '">' +
+    '<label style="' + labelStyle + '">Packet date <span style="font-weight:400">(cover page)</span></label>' +
+    '<input type="text" class="fy-packet-date" maxlength="40" placeholder="e.g. June 29, 2026" style="' + inputStyle + '">' +
+    '<label style="' + labelStyle + '">Yard or terminal identifier</label>' +
+    '<input type="text" class="fy-yard" maxlength="300" placeholder="e.g. Terminal 3 or 1200 Industrial Blvd" style="' + inputStyle + '">' +
+    '<label style="' + labelStyle + '">Yard nickname / label</label>' +
+    '<input type="text" class="fy-label" maxlength="200" placeholder="e.g. Sacramento yard" style="' + inputStyle + '">' +
+    '</div></details>' +
+    '<details class="fleet-prefill-section" style="' + sectionStyle + '">' +
+    '<summary style="' + sectionSummaryStyle + '">Safety Chain of Command</summary>' +
+    '<div style="padding:0 14px 14px 14px">' +
+    '<p style="margin:0 0 12px 0;font-size:0.8rem;color:var(--text-3,#64748b);line-height:1.5">New Hire packet &mdash; Section 1. Names and phones merge into the Safety Chain of Command table.</p>' +
+    chainFields +
+    '</div></details>' +
+    '<details class="fleet-prefill-section" style="' + sectionStyle + '">' +
+    '<summary style="' + sectionSummaryStyle + '">Key contacts</summary>' +
+    '<div style="padding:0 14px 14px 14px">' +
+    '<p style="margin:0 0 12px 0;font-size:0.8rem;color:var(--text-3,#64748b);line-height:1.5">New Hire &mdash; accident dispatch line. Refresher &mdash; Emergency Contacts Update table (Section 7).</p>' +
+    contactFields +
+    '</div></details>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px">' +
     '<button type="button" class="btn btn-secondary fy-save" style="flex:1;min-width:140px">Save on this device</button>' +
     '<button type="button" class="btn btn-glass fy-clear" style="flex:0 0 auto">Clear</button>' +
     '</div>' +
     '<p class="fy-status" style="margin:10px 0 0 0;font-size:0.78rem;color:var(--green,#22c55e);display:none"></p>' +
+    '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border,rgba(255,255,255,0.1))">' +
+    '<p style="margin:0 0 8px 0;font-size:0.82rem;color:var(--text-2,#94a3b8)">Help us improve these forms</p>' +
+    '<textarea class="fy-feedback-text" rows="3" maxlength="2000" placeholder="Suggest a field, wording change, or missing contact row..." style="' + inputStyle + 'margin-bottom:8px;resize:vertical;min-height:72px"></textarea>' +
+    '<button type="button" class="btn btn-glass fy-feedback" style="width:100%">Suggest an improvement</button>' +
+    '</div>' +
     '</div></details>';
 
-  var companyIn = container.querySelector('.fy-company');
-  var yardIn = container.querySelector('.fy-yard');
-  var labelIn = container.querySelector('.fy-label');
+  var panel = container.querySelector('.fleet-prefill-panel');
   var statusEl = container.querySelector('.fy-status');
-  var detailsEl = container.querySelector('.fleet-yard-panel');
+  var detailsEl = panel;
 
   function showStatus(msg, isError) {
     if (!statusEl) return;
@@ -2557,49 +2868,69 @@ Packets.mountFleetYardPanel = function (container, options) {
     statusEl.style.color = isError ? 'var(--red,#ef4444)' : 'var(--green,#22c55e)';
   }
 
-  function readForm() {
-    return {
-      company: companyIn ? companyIn.value : '',
-      yardIdentifier: yardIn ? yardIn.value : '',
-      yardLabel: labelIn ? labelIn.value : ''
-    };
-  }
-
   function fillForm(info) {
     if (!info) return;
+    var companyIn = panel.querySelector('.fy-company');
+    var yardIn = panel.querySelector('.fy-yard');
+    var labelIn = panel.querySelector('.fy-label');
+    var dateIn = panel.querySelector('.fy-packet-date');
     if (companyIn) companyIn.value = info.company || '';
     if (yardIn) yardIn.value = info.yardIdentifier || '';
     if (labelIn) labelIn.value = info.yardLabel || '';
+    if (dateIn) dateIn.value = info.packetDate || '';
+    Packets._FLEET_CHAIN_ROLES.forEach(function (role) {
+      var row = (info.chain && info.chain[role.key]) || {};
+      var nameIn = panel.querySelector('.fy-coc-' + role.key + '-name');
+      var phoneIn = panel.querySelector('.fy-coc-' + role.key + '-phone');
+      if (nameIn) nameIn.value = row.name || '';
+      if (phoneIn) phoneIn.value = row.phone || '';
+    });
+    var contacts = info.contacts || {};
+    [
+      'dispatchName', 'dispatchPhone', 'roadsideName', 'roadsidePhone',
+      'insuranceName', 'insurancePhone', 'emergency1Name', 'emergency1Phone',
+      'emergency2Name', 'emergency2Phone'
+    ].forEach(function (k) {
+      var input = panel.querySelector('.fy-contact-' + k);
+      if (input) input.value = contacts[k] || '';
+    });
   }
 
-  Packets.loadFleetYardInfo().then(function (info) {
-    if (Packets._fleetYardHasValues(info)) fillForm(info);
+  Packets.loadFleetPrefillInfo().then(function (info) {
+    if (Packets._fleetPrefillHasValues(info)) fillForm(info);
     if (options.openIfFilled && info && detailsEl) detailsEl.open = true;
   });
 
-  var saveBtn = container.querySelector('.fy-save');
+  var saveBtn = panel.querySelector('.fy-save');
   if (saveBtn) {
     saveBtn.addEventListener('click', function () {
-      Packets.saveFleetYardInfo(readForm()).then(function () {
-        showStatus('Saved on this device. Print or download to stamp your copy.');
+      Packets.saveFleetPrefillInfo(Packets._readFleetPrefillFromDom()).then(function () {
+        showStatus('Saved on this device. Print or download to merge your answers.');
       });
     });
   }
 
-  var clearBtn = container.querySelector('.fy-clear');
+  var clearBtn = panel.querySelector('.fy-clear');
   if (clearBtn) {
     clearBtn.addEventListener('click', function () {
-      Packets.clearFleetYardInfo().then(function () {
-        if (companyIn) companyIn.value = '';
-        if (yardIn) yardIn.value = '';
-        if (labelIn) labelIn.value = '';
+      Packets.clearFleetPrefillInfo().then(function () {
+        fillForm(Packets._emptyFleetPrefill());
+        var feedback = panel.querySelector('.fy-feedback-text');
+        if (feedback) feedback.value = '';
         showStatus('Cleared from this device.');
       });
     });
   }
 
-  [companyIn, yardIn, labelIn].forEach(function (input) {
-    if (!input) return;
+  var feedbackBtn = panel.querySelector('.fy-feedback');
+  if (feedbackBtn) {
+    feedbackBtn.addEventListener('click', function () {
+      var feedback = panel.querySelector('.fy-feedback-text');
+      Packets._openFleetFeedbackMailto(feedback ? feedback.value : '');
+    });
+  }
+
+  panel.querySelectorAll('input').forEach(function (input) {
     input.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -2608,6 +2939,8 @@ Packets.mountFleetYardPanel = function (container, options) {
     });
   });
 };
+
+Packets.mountFleetYardPanel = Packets.mountFleetPrefillPanel;
 
 /* ============================================================
    Per-yard license stamping (anti-abuse)
@@ -2923,7 +3256,7 @@ Packets.downloadFleet = function (type, onResult) {
     var built = Packets._buildFleetHtml(type);
     if (!built) { var r = { allowed: false, message: 'Unknown packet.' }; if (onResult) onResult(r); return r; }
     return Packets._resolveFleetYardUserId().then(function () {
-      var html = Packets._finalizeFleetHtml(built, res.license);
+      var html = Packets._prepareFleetHtml(type, res.license);
       var filename = Packets._filenameForType(type);
       if (!Packets._downloadHtmlBlob(html, filename)) {
         var r2 = { allowed: false, message: 'Could not generate packet.' };
@@ -2951,7 +3284,7 @@ Packets.printFleet = function (type, onResult) {
     var built = Packets._buildFleetHtml(type);
     if (!built) { var r = { allowed: false, message: 'Unknown packet.' }; if (onResult) onResult(r); return r; }
     return Packets._resolveFleetYardUserId().then(function () {
-      var html = Packets._finalizeFleetHtml(built, res.license);
+      var html = Packets._prepareFleetHtml(type, res.license);
       try {
         fetch('/api/shop/packet-download-log', {
           method: 'POST',
@@ -3091,10 +3424,9 @@ Packets.viewGated = function (type, onResult) {
 Packets.viewFleet = function (type, onResult) {
   return Packets._checkFleetAccess(type).then(function (res) {
     if (!res.allowed) { if (onResult) onResult(res); return res; }
-    var built = Packets._buildFleetHtml(type);
-    if (!built) { var r = { allowed: false, message: 'Unknown packet.' }; if (onResult) onResult(r); return r; }
     return Packets._resolveFleetYardUserId().then(function () {
-      var html = Packets._finalizeFleetHtml(built, res.license);
+      var html = Packets._prepareFleetHtml(type, res.license);
+      if (!html) { var r = { allowed: false, message: 'Unknown packet.' }; if (onResult) onResult(r); return r; }
       var opened = Packets._openHtmlWindow(html, {
         print: false,
         onError: function (msg) {
