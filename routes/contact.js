@@ -3,9 +3,17 @@ const db = require('../db/database');
 
 const router = express.Router();
 
+const BOOKING_EMAIL = 'admin@mile12warrior.com';
+const GENERAL_EMAIL = 'joyce@mile12warrior.com';
+
+function normalizeCategory(raw) {
+  const v = (raw == null ? '' : String(raw)).trim().toLowerCase();
+  return v === 'booking' || v === 'services' || v === 'booking/services' ? 'booking' : 'general';
+}
+
 // POST /api/contact
 router.post('/', (req, res) => {
-  const { name, email, subject, message, subscriber_priority, opt_out_address_book } = req.body;
+  const { name, email, subject, message, subscriber_priority, opt_out_address_book, category } = req.body;
 
   // Validate required fields
   if (!name || typeof name !== 'string' || !name.trim()) {
@@ -18,19 +26,24 @@ router.post('/', (req, res) => {
     return res.status(400).json({ error: 'Message is required' });
   }
 
+  const msgCategory = normalizeCategory(category);
   let finalSubject = subject ? subject.trim() : '';
   if (subscriber_priority) {
     finalSubject = '[Subscriber - Priority] ' + (finalSubject || 'Subscriber feedback');
   }
+  const categoryTag = msgCategory === 'booking' ? '[Booking/Services]' : '[General]';
+  finalSubject = categoryTag + ' ' + (finalSubject || (msgCategory === 'booking' ? 'Booking inquiry' : 'General inquiry'));
 
   try {
     const insert = db.prepare(`
-      INSERT INTO contact_messages (name, email, subject, message)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO contact_messages (name, email, subject, message, category)
+      VALUES (?, ?, ?, ?, ?)
     `);
-    insert.run(name.trim(), email.trim(), finalSubject || null, message.trim());
+    insert.run(name.trim(), email.trim(), finalSubject || null, message.trim(), msgCategory);
 
-    const adminTo = (process.env.ADMIN_EMAIL || process.env.FROM_EMAIL || 'admin@mile12warrior.com').trim();
+    const notifyTo = msgCategory === 'booking'
+      ? (process.env.BOOKING_EMAIL || process.env.ADMIN_EMAIL || BOOKING_EMAIL).trim()
+      : (process.env.GENERAL_EMAIL || GENERAL_EMAIL).trim();
     try {
       const host = process.env.SMTP_HOST;
       const user = process.env.SMTP_USER;
@@ -44,18 +57,18 @@ router.post('/', (req, res) => {
         transport.sendMail(
           {
             from,
-            to: adminTo,
+            to: notifyTo,
             replyTo: email.trim(),
             subject: `[Contact] ${subj}`,
-            text: `From: ${name.trim()} <${email.trim()}>\n\n${message.trim()}`,
+            text: `Category: ${msgCategory === 'booking' ? 'Booking / services' : 'General'}\nFrom: ${name.trim()} <${email.trim()}>\n\n${message.trim()}`,
           },
           function (err) {
-            if (err) console.error('[contact email admin]', err);
+            if (err) console.error('[contact email]', err);
           }
         );
       }
     } catch (e) {
-      console.error('[contact email admin]', e && e.message);
+      console.error('[contact email]', e && e.message);
     }
 
     // Keep a lightweight guest address book for follow-up and involvement tracking.

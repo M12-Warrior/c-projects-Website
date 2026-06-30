@@ -240,6 +240,9 @@ try {
 try {
   db.exec('ALTER TABLE orders ADD COLUMN payment_method TEXT');
 } catch (_) {}
+try {
+  db.exec("ALTER TABLE contact_messages ADD COLUMN category TEXT DEFAULT 'general'");
+} catch (_) {}
 // Subscriber journal: personal notes and progress for wellness journal subscribers
 db.exec(`
   CREATE TABLE IF NOT EXISTS subscriber_journal_entries (

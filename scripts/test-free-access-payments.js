@@ -34,8 +34,8 @@ else fail('stripe.js missing checkout gate');
 if (servicesHtml.includes('EXPO, Info Tents')) ok('services EXPO section');
 else fail('services missing EXPO section');
 
-if (servicesHtml.includes('mailto:joyce@mile12warrior.com')) ok('services email CTA');
-else fail('services missing email CTA');
+if (servicesHtml.includes('mailto:admin@mile12warrior.com?subject=EXPO')) ok('services booking email CTA');
+else fail('services missing admin booking email CTA');
 
 if (servicesHtml.includes('Packets.printGated(\'seasoned-driver\')')) ok('seasoned free download buttons');
 else fail('services missing seasoned download buttons');

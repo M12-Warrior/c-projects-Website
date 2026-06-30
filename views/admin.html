@@ -3042,11 +3042,15 @@
           const messages = data.messages || data || [];
           el.innerHTML = messages.map(function(m) {
             const readClass = m.read ? 'opacity-60' : '';
+            const cat = (m.category === 'booking') ? 'booking' : 'general';
+            const catLabel = cat === 'booking' ? 'Booking / services' : 'General';
+            const catColor = cat === 'booking' ? 'var(--gold)' : 'var(--blue)';
             return '<div class="profile-section ' + readClass + '" data-id="' + m.id + '">' +
               '<div class="flex-between mb-16">' +
                 '<strong>' + escapeHtml(m.name || m.sender || '—') + '</strong>' +
                 '<span class="text-muted">' + formatDate(m.created_at || m.date) + '</span>' +
               '</div>' +
+              '<p><span style="display:inline-block;font-size:0.75rem;font-weight:600;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,0.06);color:' + catColor + '">' + escapeHtml(catLabel) + '</span></p>' +
               '<p><strong>Email:</strong> ' + escapeHtml(m.email || '—') + '</p>' +
               '<p><strong>Subject:</strong> ' + escapeHtml(m.subject || '—') + '</p>' +
               '<p>' + escapeHtml((m.message || m.body || '').slice(0, 500)) + ((m.message || m.body || '').length > 500 ? '…' : '') + '</p>' +

@@ -714,8 +714,8 @@ router.post('/request-replacement', requireSession, (req, res) => {
       (note ? ('Note: ' + note + '\n') : '') +
       'Account: ' + (userRow ? (userRow.username + ' / ' + userRow.email) : ('user #' + uid));
     db.prepare(`
-      INSERT INTO contact_messages (name, email, subject, message, read)
-      VALUES (?, ?, ?, ?, 0)
+      INSERT INTO contact_messages (name, email, subject, message, read, category)
+      VALUES (?, ?, ?, ?, 0, 'booking')
     `).run(
       (grant.fleet_company || (userRow && userRow.username) || 'Fleet customer'),
       (userRow && userRow.email) || '',

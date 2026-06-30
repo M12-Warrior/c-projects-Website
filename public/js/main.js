@@ -171,7 +171,7 @@ function downloadChecklist(id) {
     '&copy; 2026 Mile 12 Warrior LLC. All rights reserved.<br>' +
     'For educational purposes only — not medical, legal, or regulatory advice.<br>' +
     'Verify current regulations at fmcsa.dot.gov and dot.ca.gov<br>' +
-    'mile12warrior.com | joyce@mile12warrior.com | (916) 292-7411' +
+    'mile12warrior.com | Bookings: admin@mile12warrior.com | General: joyce@mile12warrior.com | (916) 292-7411' +
     '</div></body></html>';
 
   var blob = new Blob([html], { type: 'text/html' });
