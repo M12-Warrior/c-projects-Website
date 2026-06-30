@@ -1,4 +1,4 @@
-// Smoke checks: admin@ for bookings, joyce@ for general contact, approved subject lines
+// Smoke checks: admin@ for bookings, joyce@ for general contact, Joyce-approved subjects
 const fs = require('fs');
 const path = require('path');
 const siteEmails = require('../lib/siteEmails');
@@ -8,39 +8,42 @@ const servicesHtml = fs.readFileSync(path.join(root, 'views', 'services.html'), 
 const contactHtml = fs.readFileSync(path.join(root, 'views', 'contact.html'), 'utf8');
 const contactJs = fs.readFileSync(path.join(root, 'routes', 'contact.js'), 'utf8');
 const indexHtml = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
+const aboutHtml = fs.readFileSync(path.join(root, 'views', 'about.html'), 'utf8');
+
+const enc = (s) => encodeURIComponent(s);
+const S = siteEmails.SUBJECTS;
 
 let failed = 0;
 function ok(label) { console.log('ok', label); }
 function fail(label, detail) { console.error('FAIL', label, detail || ''); failed++; }
 
-const P = siteEmails.SUBJECT_PARAMS;
+function expectSubject(html, subject, label) {
+  if (html.includes(enc(subject))) ok(label);
+  else fail(label, subject);
+}
 
-if (servicesHtml.includes('subject=' + P.EXPO)) ok('services EXPO uses approved subject');
-else fail('services EXPO should use approved subject');
+expectSubject(servicesHtml, S.EXPO, 'services EXPO subject');
+expectSubject(servicesHtml, S.CLASS_PRESENTATION, 'services class presentation subject');
+expectSubject(servicesHtml, S.ONE_ON_ONE, 'services one-on-one subject');
+expectSubject(servicesHtml, S.FLEET_CONSULTING, 'services fleet/consulting subject');
+expectSubject(servicesHtml, S.WELLNESS_PARTNER, 'services wellness partner subject');
+expectSubject(servicesHtml, S.BOOKING_SERVICES, 'services footer booking subject');
 
-if (servicesHtml.includes('subject=' + P.CLASS_PRESENTATION)) ok('services class presentation uses approved subject');
-else fail('services class presentation should use approved subject');
-
-if (servicesHtml.includes('subject=' + P.ONE_ON_ONE)) ok('coaching uses approved subject');
-else fail('coaching should use approved subject');
-
-if (servicesHtml.includes('subject=' + P.FLEET_CONSULTING)) ok('fleet program uses approved subject');
-else fail('fleet program should use approved subject');
-
-if (servicesHtml.includes('subject=' + P.WELLNESS_PARTNER)) ok('wellness partner uses approved subject');
-else fail('wellness partner should use approved subject');
-
-if (contactHtml.includes('value="expo"') && contactHtml.includes('value="fleet"')) ok('contact form category dropdown');
+if (contactHtml.includes('value="expo"') && contactHtml.includes('value="wellness-partner"')) ok('contact form category options');
 else fail('contact form missing expanded category dropdown');
 
-if (contactHtml.includes('subject=' + P.BOOKING_SERVICES) && contactHtml.includes('subject=' + P.GENERAL)) ok('contact page mailto subjects');
-else fail('contact page should use approved mailto subjects');
+expectSubject(contactHtml, S.BOOKING_SERVICES, 'contact page admin mailto subject');
+expectSubject(contactHtml, S.GENERAL, 'contact page joyce mailto subject');
 
-if (contactJs.includes('siteEmails')) ok('contact API uses siteEmails');
-else fail('contact API missing siteEmails routing');
+if (contactJs.includes("require('../lib/siteEmails')") && contactJs.includes('isBookingCategory')) ok('contact API routes by category via siteEmails');
+else fail('contact API missing siteEmails category routing');
 
-if (indexHtml.includes('subject=' + P.BOOKING_SERVICES) && indexHtml.includes('subject=' + P.GENERAL)) ok('home reach-out uses approved subjects');
-else fail('home reach-out should use approved subjects');
+expectSubject(indexHtml, S.BOOKING_SERVICES, 'home reach-out booking subject');
+expectSubject(indexHtml, S.GENERAL, 'home reach-out general subject');
+expectSubject(indexHtml, S.BOOKING_SERVICES, 'home footer booking subject');
+
+expectSubject(aboutHtml, S.GENERAL, 'about page joyce subject');
+expectSubject(aboutHtml, S.BOOKING_SERVICES, 'about page admin subject');
 
 if (failed) process.exit(1);
 console.log('All email routing checks passed.');
