@@ -789,13 +789,14 @@
         <span class="section-tag">Manifest — Free Downloads</span>
         <h2>Driver Safety Packets</h2>
         <p>Professional training and print-ready packets for drivers and fleet safety departments — built from the same roadmap above.</p>
+        <p style="font-size:0.88rem;color:var(--green);max-width:720px;margin:12px auto 0;text-align:center;line-height:1.55;font-weight:600"><strong>Every safety packet and the 90-Day Course are free</strong> — view online, print, or download anytime. No checkout required.</p>
       </div>
 
       <div style="background:var(--surface,#0f1219);border:1px solid var(--border);border-radius:var(--radius,16px);padding:28px 32px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
         <div>
           <span style="font-family:var(--mono);font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue)">Featured Course</span>
           <h3 style="font-family:var(--font-heading,'Space Grotesk',sans-serif);font-size:1.2rem;font-weight:700;margin:4px 0">New Driver 90-Day Onboarding Course</h3>
-          <p style="font-size:0.85rem;color:var(--text-2);margin:0">10 modules, 47 lessons, quizzes, and certificate of completion — <strong style="color:var(--green)">$149</strong></p>
+          <p style="font-size:0.85rem;color:var(--text-2);margin:0">10 modules, 47 lessons, quizzes, and certificate of completion — <strong style="color:var(--green)">FREE</strong> <span style="font-size:0.78rem;color:var(--text-3)">(full course access)</span></p>
         </div>
         <a href="/course" class="btn btn-primary" style="text-decoration:none"><span>Start the Course</span></a>
       </div>
@@ -851,7 +852,7 @@
 
           </div>
           <div class="packet-card" style="--packet-accent: #34d399;">
-            <div class="packet-tier">Tier 2 — $29</div>
+            <div class="packet-tier packet-tier-free">Tier 2 — FREE</div>
             <h4>Seasoned Driver Packet</h4>
             <p>For drivers with 2+ years — advanced fatigue science, long-term health strategies, regulatory self-audit tools, career sustainability planning, and mentorship guidance. 11 sections for the experienced professional.</p>
             <ul class="packet-includes">
@@ -863,12 +864,12 @@
               <li>Career wellness & mentorship plan</li>
             </ul>
             <div class="packet-actions">
-              <a href="/services#packets" class="btn btn-primary" style="text-decoration:none">
-                <span>Get It — $29</span>
-              </a>
-              <a href="/services" class="btn btn-secondary" style="text-decoration:none">
-                <span>See All Pricing</span>
-              </a>
+              <button type="button" class="btn btn-primary" onclick="Packets.printGated('seasoned-driver')">
+                <span>Print / Save as PDF</span>
+              </button>
+              <button type="button" class="btn btn-secondary" onclick="Packets.downloadGated('seasoned-driver')">
+                <span>Download Packet</span>
+              </button>
             </div>
           </div>
         </div>
@@ -882,7 +883,7 @@
           <p class="packet-group-desc">Designed for safety directors to distribute during onboarding or annual refreshers. Includes sign-off sheets and section-by-section acknowledgment forms for driver qualification files (per 49 CFR 391.51).</p>
 
           <div class="packet-card" style="--packet-accent: #fbbf24;">
-            <div class="packet-tier">Fleet — $79</div>
+            <div class="packet-tier packet-tier-free">Fleet — FREE</div>
             <h4>New Hire Orientation Packet</h4>
             <p>Complete onboarding package with federal/state compliance overview, detailed inspection checklists, accident procedures, fatigue management program, and wellness resources. Built to protect the driver, the company, and your insurance.</p>
             <ul class="packet-includes">
@@ -894,17 +895,17 @@
               <li>Driver sign-off sheet + section acknowledgments</li>
             </ul>
             <div class="packet-actions">
-              <a href="/services" class="btn btn-primary" style="text-decoration:none">
-                <span>Get It — $79</span>
-              </a>
-              <a href="/services" class="btn btn-secondary" style="text-decoration:none">
-                <span>Fleet Bundle — $129</span>
-              </a>
+              <button type="button" class="btn btn-primary" onclick="Packets.printFleet('fleet-new-hire')">
+                <span>Print / Save as PDF</span>
+              </button>
+              <button type="button" class="btn btn-secondary" onclick="Packets.downloadFleet('fleet-new-hire')">
+                <span>Download Packet</span>
+              </button>
             </div>
           </div>
 
           <div class="packet-card" style="--packet-accent: #f472b6;">
-            <div class="packet-tier">Fleet — $79</div>
+            <div class="packet-tier packet-tier-free">Fleet — FREE</div>
             <h4>Seasoned Driver Refresher Packet</h4>
             <p>Annual or semi-annual refresher for experienced drivers. Covers HOS updates, advanced fatigue management with self-assessment, health check-in, seasonal hazard calendar, regulatory self-audit, and mentorship opportunities. Documented refresher training improves CSA scores and insurance premiums.</p>
             <ul class="packet-includes">
@@ -916,12 +917,12 @@
               <li>Driver sign-off sheet + section acknowledgments</li>
             </ul>
             <div class="packet-actions">
-              <a href="/services" class="btn btn-primary" style="text-decoration:none">
-                <span>Get It — $79</span>
-              </a>
-              <a href="/services" class="btn btn-secondary" style="text-decoration:none">
-                <span>Fleet Bundle — $129</span>
-              </a>
+              <button type="button" class="btn btn-primary" onclick="Packets.printFleet('fleet-refresher')">
+                <span>Print / Save as PDF</span>
+              </button>
+              <button type="button" class="btn btn-secondary" onclick="Packets.downloadFleet('fleet-refresher')">
+                <span>Download Packet</span>
+              </button>
             </div>
           </div>
         </div>
@@ -1051,6 +1052,11 @@
 
   <script src="/js/packets.js"></script>
   <script src="/js/tier1-checklist.js"></script>
+  <script>
+    if (typeof Packets !== 'undefined' && Packets.loadAccessConfig) {
+      Packets.loadAccessConfig();
+    }
+  </script>
   <script src="/js/main.js"></script>
 </body>
 </html>
