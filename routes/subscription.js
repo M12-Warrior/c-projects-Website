@@ -1,6 +1,9 @@
 const express = require('express');
 const db = require('../db/database');
 const { laNow, wellnessFirstPeriodEnd, wellnessRenewPeriodEnd } = require('../lib/laTime');
+const paymentConfig = require('../lib/paymentConfig');
+const micBadge = require('../lib/micBadge');
+const wellnessAccess = require('../lib/wellnessAccess');
 
 const router = express.Router();
 const PLAN_WELLNESS = 'wellness_journal';
@@ -56,6 +59,11 @@ router.get('/me', requireSession, (req, res) => {
     }
   }
 
+  if (!active && paymentConfig.isFreeAccessMode()) {
+    active = wellnessAccess.userHasWellnessJournalAccess(userId, req.session.user.role);
+    tier = micBadge.isMicLit(userId) ? 1 : 0;
+  }
+
   res.json({
     subscription: {
       active,
@@ -64,7 +72,8 @@ router.get('/me', requireSession, (req, res) => {
       started_at,
       current_period_end
     },
-    mic_visible: user && user.mic_visible !== undefined ? !!user.mic_visible : true
+    mic_visible: user && user.mic_visible !== undefined ? !!user.mic_visible : true,
+    freeAccess: paymentConfig.isFreeAccessMode()
   });
 });
 
@@ -78,18 +87,10 @@ router.put('/mic-visible', requireSession, (req, res) => {
 // Get subscriber tier for a user (for forum/blog display). Returns 0 if not active subscriber.
 function getSubscriberTierForUser(userId) {
   if (!userId) return 0;
-  const row = db.prepare(`
-    SELECT status, started_at, current_period_end
-    FROM subscriptions
-    WHERE user_id = ? AND plan = ?
-    ORDER BY created_at DESC
-    LIMIT 1
-  `).get(userId, PLAN_WELLNESS);
-  if (!row || row.status !== 'active') return 0;
-  const end = new Date(row.current_period_end);
-  if (end <= new Date()) return 0;
-  const months = monthsBetween(row.started_at, new Date());
-  return tierFromMonths(months);
+  const paidTier = wellnessAccess.getPaidWellnessTier(userId);
+  if (paidTier > 0) return paidTier;
+  if (paymentConfig.isFreeAccessMode() && micBadge.isMicLit(userId)) return 1;
+  return 0;
 }
 
 // Create or renew subscription when user purchases wellness journal monthly.

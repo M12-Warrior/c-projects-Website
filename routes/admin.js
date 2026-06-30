@@ -295,7 +295,7 @@ router.get('/users', (req, res) => {
       customer_category: u.customer_category,
       created_at: u.created_at,
       mic_color: micBadge.normalizeMicColor(u.mic_color),
-      mic_lit: micBadge.hasPaidOrder(u.id),
+      mic_lit: micBadge.isMicLit(u.id),
       subscriber_tier: tier
     };
   });

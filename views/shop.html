@@ -52,7 +52,7 @@
 
       <div id="subscriptionSection" style="margin-bottom:32px;display:none">
         <h2 style="font-family:var(--font);font-size:1.2rem;font-weight:700;margin-bottom:8px">Subscriptions</h2>
-        <p style="font-size:0.9rem;color:var(--text-2);margin-bottom:16px">The <strong>Trucker Wellness Journal</strong> is a <strong>monthly subscription</strong>. Subscribers get the journal as a downloadable/printable e-product, a <strong>CB mic badge</strong> on the forum that grows with tenure, full access to <a href="/forum">Forum</a> and <a href="/blog">Blog</a>, and can go <strong>incognito</strong> any time. Resubscribe within 30 days to keep your mic tier.</p>
+        <p style="font-size:0.9rem;color:var(--text-2);margin-bottom:16px" id="subscriptionIntro">The <strong>Trucker Wellness Journal</strong> is <strong>free to download</strong> right now. Get the printable journal, use <a href="/journal">My Journal</a> online, pick your CB mic color, and join the <a href="/forum">Forum</a> Coffee Shop — no checkout required while drivers gear shop is paused.</p>
         <div id="subscriptionGrid" class="shop-grid"></div>
       </div>
 
@@ -92,11 +92,13 @@
 
       function digitalAccessHref(id) {
         if (id === 'course-90day') return '/course';
+        if (id === 'trucker-wellness-journal-monthly') return '/journal/print';
         return '/services';
       }
 
       function digitalAccessLabel(id) {
         if (id === 'course-90day') return 'Start Course — Free';
+        if (id === 'trucker-wellness-journal-monthly') return 'Download Journal — Free';
         return 'Download Free';
       }
 
@@ -172,11 +174,19 @@
         var notice = document.getElementById('shopNotice');
         if (!notice) return;
         if (freeAccess) {
-          notice.innerHTML = '<strong>All training is free right now</strong> — packets and the 90-Day Course on <a href="/services" style="color:var(--gold)">Services</a>. Drivers gear checkout is coming soon; browse merchandise below. Questions? <a href="mailto:joyce@mile12warrior.com?subject=Mile%2012%20Warrior%20%E2%80%94%20General%20Contact" style="color:var(--gold)">Email Joyce</a> or <a href="/contact" style="color:var(--gold)">contact us</a>.';
+          notice.innerHTML = '<strong>All training is free right now</strong> — packets, the 90-Day Course on <a href="/services" style="color:var(--gold)">Services</a>, and the <a href="/journal/print" style="color:var(--gold)">Wellness Journal</a>. Drivers gear checkout is coming soon; browse merchandise below. Questions? <a href="mailto:joyce@mile12warrior.com?subject=Mile%2012%20Warrior%20%E2%80%94%20General%20Contact" style="color:var(--gold)">Email Joyce</a> or <a href="/contact" style="color:var(--gold)">contact us</a>.';
+          var subIntro = document.getElementById('subscriptionIntro');
+          if (subIntro) {
+            subIntro.innerHTML = 'The <strong>Trucker Wellness Journal</strong> is <strong>free to download</strong> right now. Get the printable journal, use <a href="/journal">My Journal</a> online, pick your CB mic color, and join the <a href="/forum">Forum</a> Coffee Shop — no checkout required while drivers gear shop is paused.';
+          }
           return;
         }
         if (!paymentsEnabled) return;
         notice.innerHTML = 'Secure online checkout is available. Browse, add to cart, and complete your purchase when you&rsquo;re ready. Questions? <a href="/contact" style="color:var(--gold)">Contact us</a>.';
+        var subIntroPaid = document.getElementById('subscriptionIntro');
+        if (subIntroPaid) {
+          subIntroPaid.innerHTML = 'The <strong>Trucker Wellness Journal</strong> is a <strong>monthly subscription</strong>. Subscribers get the journal as a downloadable/printable e-product, a <strong>CB mic badge</strong> on the forum that grows with tenure, full access to <a href="/forum">Forum</a> and <a href="/blog">Blog</a>, and can go <strong>incognito</strong> any time. Resubscribe within 30 days to keep your mic tier.';
+        }
       }
 
       function updateCartBadge() {
@@ -210,6 +220,7 @@
         if (!dg) return;
         var digital = [
           { id: 'course-90day', name: '90-Day Onboarding Course', desc: '10 modules, 47 lessons, quizzes, and certificate. Everything new drivers need.', link: '/course', badge: 'Course' },
+          { id: 'trucker-wellness-journal-monthly', name: 'Trucker Wellness Journal', desc: 'Downloadable daily log for sleep, meals, exercise, mood, mileage & notes. My Journal online + forum mic perks.', link: '/journal/print', badge: 'Journal' },
           { id: 'seasoned-packet', name: 'Seasoned Driver Packet', desc: 'Advanced strategies for experienced drivers. 11 sections.', badge: 'Tier 2' },
           { id: 'fleet-new-hire-packet', name: 'Fleet New Hire Orientation Packet', desc: 'Complete onboarding with sign-off sheets for safety departments.', badge: 'Fleet' },
           { id: 'fleet-refresher-packet', name: 'Fleet Refresher Packet', desc: 'Annual refresher with self-assessments and sign-off sheets.', badge: 'Fleet' },
@@ -292,7 +303,7 @@
                 '</div>' +
                 '<div class="product-actions">' +
                   ((freeAccess || !paymentsEnabled)
-                    ? '<span class="btn-add-cart" style="opacity:0.65;cursor:default;text-align:center;display:block" aria-disabled="true">Coming soon</span>'
+                    ? '<a href="/journal/print" class="btn-add-cart" style="text-align:center;text-decoration:none;display:block">Download Free</a>'
                     : (paymentsEnabled
                     ? '<button type="button" class="btn-add-cart" data-slug="' + escapeHtml(slug) + '" data-name="' + escapeHtml(p.name) + '" data-price="' + escapeHtml(String(p.price)) + '" data-sub="1">Subscribe</button>'
                     : '<span class="btn-add-cart" style="opacity:0.65;cursor:default;text-align:center;display:block" aria-disabled="true">Purchases opening soon</span>')) +

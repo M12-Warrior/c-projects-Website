@@ -1,6 +1,6 @@
 const express = require('express');
 const db = require('../db/database');
-const subscriptionRouter = require('./subscription');
+const wellnessAccess = require('../lib/wellnessAccess');
 
 const router = express.Router();
 
@@ -15,11 +15,10 @@ function requireWellnessSubscriber(req, res, next) {
   if (!req.session || !req.session.user) {
     return res.status(401).json({ error: 'Authentication required' });
   }
-  const tier = subscriptionRouter.getSubscriberTierForUser(req.session.user.id);
-  if (tier < 1) {
-    return res.status(403).json({ error: 'Active Trucker Wellness Journal subscription required to use the journal.' });
+  if (wellnessAccess.userHasWellnessJournalAccess(req.session.user.id, req.session.user.role)) {
+    return next();
   }
-  next();
+  return res.status(403).json({ error: 'Active Trucker Wellness Journal subscription required to use the journal.' });
 }
 
 // GET /api/journal/entries — list current user's journal entries (optional ?from=YYYY-MM-DD&to=YYYY-MM-DD, default recent first)
@@ -109,6 +108,10 @@ router.delete('/entries/:id', requireSession, requireWellnessSubscriber, (req, r
 // POST /api/journal/fulfillment-log — After subscriber uses print/download flow, mark paid wellness orders complete (v1).
 router.post('/fulfillment-log', requireSession, (req, res) => {
   const userId = req.session.user.id;
+  const visitorKey = (req.session && req.sessionID) ? String(req.sessionID) : String(userId);
+  if (wellnessAccess.userHasWellnessJournalAccess(userId)) {
+    wellnessAccess.logJournalDownload(userId, visitorKey);
+  }
   try {
     const row = db.prepare(`
       SELECT o.id FROM orders o

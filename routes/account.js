@@ -1,6 +1,8 @@
 const express = require('express');
 const db = require('../db/database');
 const micBadge = require('../lib/micBadge');
+const wellnessAccess = require('../lib/wellnessAccess');
+const subscriptionRouter = require('./subscription');
 
 const router = express.Router();
 const PLAN_WELLNESS = 'wellness_journal';
@@ -154,7 +156,8 @@ router.get('/summary', requireSession, (req, res) => {
     });
   }
 
-  if (sub.subscription.active) {
+  const wellnessUnlocked = wellnessAccess.userHasWellnessJournalAccess(userId, user.role);
+  if (sub.subscription.active || wellnessUnlocked) {
     access.push({
       kind: 'journal',
       title: 'My Journal',
@@ -203,20 +206,21 @@ router.get('/summary', requireSession, (req, res) => {
     });
   }
 
-  const micLit = micBadge.hasPaidOrder(userId);
+  const micLit = micBadge.isMicLit(userId);
   const micColor = micBadge.normalizeMicColor(user.mic_color);
   const isAdmin = (user.role || '') === 'admin';
-  const subActive = sub.subscription.active;
+  const subActive = sub.subscription.active || wellnessUnlocked;
+  const forumMicTier = subscriptionRouter.getSubscriberTierForUser(userId);
   // My Cab color picker: every logged-in user; admins always. Forum badge still needs active journal sub.
   const hasMicPicker = true;
 
   const mic = {
     has_mic_privilege: hasMicPicker,
-    can_show_on_forum: subActive,
+    can_show_on_forum: forumMicTier > 0,
     is_admin: isAdmin,
     mic_visible: sub.mic_visible,
-    tier: subActive ? sub.subscription.tier : 0,
-    tier_label: subActive ? tierLabel(sub.subscription.tier) : '',
+    tier: forumMicTier,
+    tier_label: forumMicTier ? tierLabel(forumMicTier) : '',
     mic_color: micColor,
     mic_lit: micLit,
     mic_colors: micBadge.MIC_COLORS
@@ -274,7 +278,7 @@ router.patch('/mic-color', requireSession, (req, res) => {
   res.json({
     success: true,
     mic_color: color,
-    mic_lit: micBadge.hasPaidOrder(userId)
+    mic_lit: micBadge.isMicLit(userId)
   });
 });
 

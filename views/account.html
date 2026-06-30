@@ -246,14 +246,14 @@
         document.getElementById('accountMicPickerLead').textContent =
           mic.can_show_on_forum
             ? 'Pick a paint job for your forum mic. Leave it on tier default to match your subscription tenure color.'
-            : 'Pick your mic color now — it saves to your handle. Subscribe to Trucker Wellness Journal (monthly) to show the mic on forum posts.';
+            : 'Pick your mic color now — it saves to your handle. Download the free journal or join the Coffee Shop to show your lit mic on forum posts.';
 
         var litEl = document.getElementById('accountMicLitNote');
         if (mic.mic_lit) {
-          litEl.textContent = 'Lit up — you have at least one paid purchase on file. Your mic glows on the forum.';
+          litEl.textContent = 'Lit up — your mic glows on the forum when you download free training, join the Coffee Shop, or make a shop purchase.';
           litEl.classList.remove('is-off');
         } else {
-          litEl.textContent = 'Not lit yet — any paid shop purchase lights up your mic badge.';
+          litEl.textContent = 'Not lit yet — download a free packet, join the forum Coffee Shop, or make any shop purchase to light up your mic badge.';
           litEl.classList.add('is-off');
         }
 
@@ -499,8 +499,8 @@
         }
         if (!mic.can_show_on_forum) {
           var litNote = mic.mic_lit
-            ? ' Your mic is <strong>lit</strong> on the forum from a paid shop purchase.'
-            : ' Any paid shop purchase lights up your mic glow on the forum.';
+            ? ' Your mic is <strong>lit</strong> on the forum from a free download, Coffee Shop signup, or shop purchase.'
+            : ' Download a free packet or join the Coffee Shop to light up your mic glow on the forum.';
           textEl.innerHTML = 'Your handle keeps the color you pick above. <strong>Trucker Wellness Journal</strong> (monthly) adds the tiered CB mic next to your name on forum posts.' + litNote;
           if (toggleWrap) toggleWrap.style.display = 'none';
           return;

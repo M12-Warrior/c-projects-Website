@@ -56,5 +56,8 @@ else fail('homepage missing free packet CTAs');
 if (indexHtml.includes('Packets.loadAccessConfig')) ok('homepage loads free access config');
 else fail('homepage missing loadAccessConfig');
 
+if (shopHtml.includes('Wellness Journal')) ok('shop mentions Wellness Journal');
+else fail('shop missing Wellness Journal mention');
+
 if (failed) process.exit(1);
 console.log('All free-access / paused-checkout checks passed.');

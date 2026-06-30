@@ -83,7 +83,8 @@
         'fleet-new-hire-packet': { href: '/services', label: 'Download Free on Services' },
         'fleet-refresher-packet': { href: '/services', label: 'Download Free on Services' },
         'fleet-bundle': { href: '/services', label: 'Download Free on Services' },
-        'complete-bundle': { href: '/services', label: 'All Free on Services' }
+        'complete-bundle': { href: '/services', label: 'All Free on Services' },
+        'trucker-wellness-journal-monthly': { href: '/journal/print', label: 'Download Free Journal' }
       };
 
       function getCart() {
@@ -161,7 +162,7 @@
           const isSub = product.is_subscription || product.subscription_plan;
           const isDigital = String(product.category || '').toLowerCase() === 'digital' || !!DIGITAL_FREE_SLUGS[slug];
           const isFreeTier1 = slug === 'new-driver-packet';
-          const isFreeDigital = freeAccess && (isDigital || isFreeTier1 || DIGITAL_FREE_SLUGS[slug]);
+          const isFreeDigital = freeAccess && (isDigital || isFreeTier1 || DIGITAL_FREE_SLUGS[slug] || isSub);
           const priceDisplay = (isFreeDigital || isFreeTier1)
             ? '<span style="color:var(--green);font-weight:700">FREE</span>'
             : ((!paymentsEnabled && !isSub)
@@ -173,7 +174,7 @@
                 '<p style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--blue);font-weight:600;margin-bottom:4px;">Monthly subscription</p>' +
                 '<p style="font-weight:700;font-size:1.1rem;margin-bottom:16px;">E-product + platform perks</p>' +
                 '<ul style="margin:0;padding-left:22px;color:var(--text-2);font-size:0.9rem;line-height:1.65;">' +
-                  '<li style="margin-bottom:10px;"><strong>Downloadable &amp; printable journal</strong> — The Trucker Wellness Journal as an e-product: log sleep, meals, exercise, mood, mileage &amp; notes. <a href="/journal/print">Download or print</a> anytime (subscribers only); use your browser&rsquo;s Print to save as PDF.</li>' +
+                  '<li style="margin-bottom:10px;"><strong>Downloadable &amp; printable journal</strong> — The Trucker Wellness Journal as an e-product: log sleep, meals, exercise, mood, mileage &amp; notes. <a href="/journal/print">Download or print</a> anytime; use your browser&rsquo;s Print to save as PDF.</li>' +
                   '<li style="margin-bottom:10px;"><strong>CB mic badge</strong> ' + cbMicSvg + ' — Stand out on the <a href="/forum">Forum</a>. Tier grows with tenure: <strong>Bronze</strong> (1–2 mo) → <strong>Silver</strong> (3–5) → <strong>Gold</strong> (6–11) → <strong>Blue</strong> (12+).</li>' +
                   '<li style="margin-bottom:10px;"><strong>Full platform access</strong> — <a href="/forum">Forum</a>, <a href="/blog">Blog</a>, and private <a href="/journal">My Journal</a> online to track notes and progress.</li>' +
                   '<li style="margin-bottom:10px;"><strong>Incognito option</strong> — Hide your mic for the current session anytime; default is to show it.</li>' +
@@ -197,9 +198,10 @@
           var freeLink = DIGITAL_FREE_SLUGS[slug] || (isFreeTier1 ? { href: '/services', label: 'Get free access' } : null);
           const formHtml = isFreeDigital && freeLink
             ? '<div style="display:flex;flex-direction:column;gap:12px;">' +
-                '<p style="font-size:0.9rem;color:var(--text-2);line-height:1.55;margin:0">This is <strong>free</strong> right now — no payment or checkout. Access it on the Services or Course page.</p>' +
+                '<p style="font-size:0.9rem;color:var(--text-2);line-height:1.55;margin:0">This is <strong>free</strong> right now — no payment or checkout. Sign in to download the journal, use My Journal online, and join the Coffee Shop on the forum.</p>' +
                 '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">' +
                   '<a href="' + freeLink.href + '" class="btn btn-primary" style="text-decoration:none">' + freeLink.label + '</a>' +
+                  '<a href="/journal" class="btn btn-secondary" style="text-decoration:none">My Journal online</a>' +
                   '<a href="/forum/category/general" class="btn btn-secondary" style="text-decoration:none">Visit the Coffee Shop</a>' +
                 '</div>' +
               '</div>'
