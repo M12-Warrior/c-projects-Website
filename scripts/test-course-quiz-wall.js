@@ -61,7 +61,7 @@ if (shopHtml.includes("p.slug !== 'trucker-wellness-journal-monthly'")) ok('shop
 else fail('shop subscription dedup missing');
 
 const shopJs = fs.readFileSync(path.join(root, 'routes', 'shop.js'), 'utf8');
-if (shopJs.includes('trucker-wellness-journal') && shopJs.includes('SHOP_LISTING_EXCLUDE')) ok('shop API excludes physical journal');
+if (shopJs.includes('SHOP_LISTING_EXCLUDE_SLUGS') && shopJs.includes('trucker-wellness-journal')) ok('shop API excludes physical journal');
 else fail('shop API exclude list missing');
 
 const wallHtml = fs.readFileSync(path.join(root, 'views', 'drivers-wall.html'), 'utf8');

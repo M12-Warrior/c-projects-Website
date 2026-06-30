@@ -666,7 +666,7 @@ function getProgress() {
 function defaultProgress() {
   var p = { purchased: false, modules: {}, studentName: '' };
   for (var i = 1; i <= 10; i++) {
-    p.modules[i] = { unlocked: false, completed: false, lessons: [], quizScore: null, quizAttempts: 0, moduleRedos: 0 };
+    p.modules[i] = { unlocked: false, completed: false, lessons: [], quizScore: null, quizAttempts: 0, quizRetries: 0, moduleRedos: 0 };
   }
   return p;
 }

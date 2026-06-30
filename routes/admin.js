@@ -396,43 +396,6 @@ router.delete('/messages/:id', (req, res) => {
   res.json({ success: true });
 });
 
-// DELETE /api/admin/drivers-wall/:id — Remove from public Driver's Wall
-router.delete('/drivers-wall/:id', (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  if (!id) return res.status(400).json({ error: 'Invalid id' });
-  const row = db.prepare('SELECT id FROM drivers_wall WHERE id = ?').get(id);
-  if (!row) return res.status(404).json({ error: 'Wall entry not found' });
-  const now = new Date().toISOString();
-  db.prepare(`
-    UPDATE drivers_wall SET removed = 1, removed_at = ?, removed_by = ? WHERE id = ?
-  `).run(now, req.session.user.id, id);
-  res.json({ success: true });
-});
-
-// POST /api/admin/drivers-wall/:id/restore — Restore moderated wall entry
-router.post('/drivers-wall/:id/restore', (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  if (!id) return res.status(400).json({ error: 'Invalid id' });
-  const row = db.prepare('SELECT id FROM drivers_wall WHERE id = ?').get(id);
-  if (!row) return res.status(404).json({ error: 'Wall entry not found' });
-  db.prepare(`
-    UPDATE drivers_wall SET removed = 0, removed_at = NULL, removed_by = NULL WHERE id = ?
-  `).run(id);
-  res.json({ success: true });
-});
-
-// GET /api/admin/drivers-wall — List wall entries for moderation
-router.get('/drivers-wall', (req, res) => {
-  const rows = db.prepare(`
-    SELECT w.id, w.user_id, w.cb_handle, w.display_name, w.completed_at,
-           w.removed, w.removed_at, w.created_at, u.email, u.username
-    FROM drivers_wall w
-    JOIN users u ON u.id = w.user_id
-    ORDER BY w.removed ASC, w.completed_at DESC
-  `).all();
-  res.json({ entries: rows });
-});
-
 // GET /api/admin/completions — Course completions (certificates) for mailing and copy requests
 router.get('/completions', (req, res) => {
   const rows = db.prepare(`

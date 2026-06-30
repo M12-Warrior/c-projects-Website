@@ -89,9 +89,11 @@
           return;
         }
         grid.innerHTML = drivers.map(function(d) {
+          var handle = d.cbHandle || d.cb_handle || d.display_name || 'Driver';
+          var completed = d.completedAt || d.completed_at;
           return '<article class="wall-card">' +
-            '<div class="wall-handle">' + escapeHtml(d.cb_handle || d.display_name || 'Driver') + '</div>' +
-            '<div class="wall-date">Completed ' + escapeHtml(formatDate(d.completed_at)) + '</div>' +
+            '<div class="wall-handle">' + escapeHtml(handle) + '</div>' +
+            '<div class="wall-date">Completed ' + escapeHtml(formatDate(completed)) + '</div>' +
           '</article>';
         }).join('');
       })

@@ -335,6 +335,10 @@ app.get('/drivers-wall', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'drivers-wall.html'));
 });
 
+app.get('/course/wall', (req, res) => {
+  res.redirect(301, '/drivers-wall');
+});
+
 app.get('/refresh', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'refresh.html'));
 });

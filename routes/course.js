@@ -183,7 +183,7 @@ router.post('/certificate/request', requireSession, (req, res) => {
   const user = getUserRow(userId);
   const {
     studentName,
-    cbHandle,
+    cbHandle: cbHandleInput,
     message,
     mailingName,
     mailingAddress,
@@ -197,7 +197,7 @@ router.post('/certificate/request', requireSession, (req, res) => {
   const name = (studentName && String(studentName).trim())
     || (user && user.username)
     || 'Course graduate';
-  const cbHandle = courseProgress.displayCbHandle(user);
+  const cbHandle = (cbHandleInput && String(cbHandleInput).trim()) || courseProgress.displayCbHandle(user);
 
   const existing = db.prepare('SELECT certificate_number FROM course_completions WHERE user_id = ? ORDER BY id DESC LIMIT 1').get(userId);
   let certificateNumber = existing ? existing.certificate_number : null;
@@ -251,7 +251,6 @@ router.post('/certificate/request', requireSession, (req, res) => {
   if (copyToInsuranceEmail) messageLines.push('Insurance copy email: ' + copyToInsuranceEmail);
   if (copyToSafetyEmail) messageLines.push('Safety copy email: ' + copyToSafetyEmail);
   if (message) messageLines.push('Notes: ' + message);
-  if (cbHandle) messageLines.push('CB handle (form): ' + cbHandle);
 
   db.prepare(`
     INSERT INTO contact_messages (name, email, subject, message, category)
