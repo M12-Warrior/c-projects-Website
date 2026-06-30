@@ -3042,9 +3042,19 @@
           const messages = data.messages || data || [];
           el.innerHTML = messages.map(function(m) {
             const readClass = m.read ? 'opacity-60' : '';
-            const cat = (m.category === 'booking') ? 'booking' : 'general';
-            const catLabel = cat === 'booking' ? 'Booking / services' : 'General';
-            const catColor = cat === 'booking' ? 'var(--gold)' : 'var(--blue)';
+            const rawCat = (m.category || 'general').toLowerCase();
+            const bookingCats = ['booking', 'expo', 'presentation', 'one-on-one', 'fleet', 'wellness-partner'];
+            const isBooking = bookingCats.indexOf(rawCat) >= 0;
+            const catLabels = {
+              booking: 'Booking / services',
+              expo: 'EXPO / info tent',
+              presentation: 'Class presentation',
+              'one-on-one': 'One-on-one education',
+              fleet: 'Fleet / consulting',
+              'wellness-partner': 'Wellness partner'
+            };
+            const catLabel = isBooking ? (catLabels[rawCat] || 'Booking / services') : 'General';
+            const catColor = isBooking ? 'var(--gold)' : 'var(--blue)';
             return '<div class="profile-section ' + readClass + '" data-id="' + m.id + '">' +
               '<div class="flex-between mb-16">' +
                 '<strong>' + escapeHtml(m.name || m.sender || '—') + '</strong>' +
