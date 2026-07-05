@@ -79,6 +79,7 @@
 
         <div class="account-tablist" role="tablist" aria-label="Account sections">
           <button type="button" class="account-tab" role="tab" id="tabBtnHome" aria-selected="true" aria-controls="tabPanelHome">Home</button>
+          <button type="button" class="account-tab" role="tab" id="tabBtnCommunity" aria-selected="false" aria-controls="tabPanelCommunity">Community</button>
           <button type="button" class="account-tab" role="tab" id="tabBtnAccess" aria-selected="false" aria-controls="tabPanelAccess">Your access</button>
           <button type="button" class="account-tab" role="tab" id="tabBtnOrders" aria-selected="false" aria-controls="tabPanelOrders">Purchase log</button>
         </div>
@@ -128,6 +129,22 @@
         <div class="account-panel" role="tabpanel" id="tabPanelOrders" hidden aria-labelledby="tabBtnOrders">
           <p class="page-subtitle reveal" style="margin-bottom:16px;font-size:0.95rem">Receipts and line items — the paperwork side of the road.</p>
           <div id="ordersList"></div>
+        </div>
+
+        <div class="account-panel" role="tabpanel" id="tabPanelCommunity" hidden aria-labelledby="tabBtnCommunity">
+          <p class="page-subtitle reveal" style="margin-bottom:20px;font-size:0.95rem">Two channels, two audiences — jump in when you are ready. Both spaces are free with your account; no pressure to post on day one.</p>
+          <div class="account-access-grid">
+            <article class="account-access-card reveal glass-card">
+              <h3>Family Circle</h3>
+              <p>For spouses, partners, kids, parents, and friends of drivers. Share tips, offer support, and chat with families who get the long miles — part of our Social Butterflies space.</p>
+              <a class="btn btn-primary" href="/social-butterflies/community" style="margin-top:12px">Visit Family Circle</a>
+            </article>
+            <article class="account-access-card reveal glass-card">
+              <h3>Driver's Lounge</h3>
+              <p>For professional drivers on the road. Connect with fellow drivers in the forum — Coffee Shop threads, safety talk, and the CB handle you set up in this cab.</p>
+              <a class="btn btn-primary" href="/forum" style="margin-top:12px">Go to the Forum</a>
+            </article>
+          </div>
         </div>
       </div>
     </div>
@@ -406,13 +423,16 @@
         var homeBtn = document.getElementById('tabBtnHome');
         var accessBtn = document.getElementById('tabBtnAccess');
         var ordersBtn = document.getElementById('tabBtnOrders');
+        var communityBtn = document.getElementById('tabBtnCommunity');
         var homePanel = document.getElementById('tabPanelHome');
         var accessPanel = document.getElementById('tabPanelAccess');
         var ordersPanel = document.getElementById('tabPanelOrders');
+        var communityPanel = document.getElementById('tabPanelCommunity');
         var map = [
           { btn: homeBtn, panel: homePanel, id: 'home' },
           { btn: accessBtn, panel: accessPanel, id: 'access' },
-          { btn: ordersBtn, panel: ordersPanel, id: 'orders' }
+          { btn: ordersBtn, panel: ordersPanel, id: 'orders' },
+          { btn: communityBtn, panel: communityPanel, id: 'community' }
         ];
         map.forEach(function(m) {
           var sel = m.id === which;
@@ -421,7 +441,7 @@
         });
         if (typeof window.refreshReveal === 'function') {
           window.refreshReveal();
-          if (which === 'orders' || which === 'access') {
+          if (which === 'orders' || which === 'access' || which === 'community') {
             requestAnimationFrame(function() { window.refreshReveal(); });
           }
         }
@@ -431,6 +451,7 @@
         document.getElementById('tabBtnHome').addEventListener('click', function() { setTab('home'); });
         document.getElementById('tabBtnAccess').addEventListener('click', function() { setTab('access'); });
         document.getElementById('tabBtnOrders').addEventListener('click', function() { setTab('orders'); });
+        document.getElementById('tabBtnCommunity').addEventListener('click', function() { setTab('community'); });
       }
 
       function packetTypeForSlug(slug) {

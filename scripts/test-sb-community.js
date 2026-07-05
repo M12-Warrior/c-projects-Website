@@ -42,5 +42,13 @@ else fail('forumConstants slug export');
 if (communityHtml.includes('No conversations yet')) ok('community empty state copy');
 else fail('community empty state copy');
 
+const accountHtml = fs.readFileSync(path.join(root, 'views', 'account.html'), 'utf8');
+if (accountHtml.includes('id="tabBtnCommunity"') && accountHtml.includes('id="tabPanelCommunity"')) ok('account community tab');
+else fail('account community tab');
+if (accountHtml.includes('/social-butterflies/community') && accountHtml.includes('Family Circle')) ok('account family circle link');
+else fail('account family circle link');
+if (accountHtml.includes('href="/forum"') && accountHtml.includes("Driver's Lounge")) ok('account forum link');
+else fail('account forum link');
+
 if (failed) process.exit(1);
 console.log('All Social Butterflies community checks passed.');
