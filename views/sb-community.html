@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Circle Community — Social Butterflies</title>
+  <meta name="description" content="Tips, support, and conversation for families and friends of professional truck drivers.">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/social-butterflies.css">
+</head>
+<body class="social-butterflies-page sb-community-page">
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.png" alt="Mile 12 Warrior logo: gold highway shield with M and 12" class="nav-logo-img">
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/social-butterflies" class="active">Social Butterflies</a></li>
+        <li><a href="/social-butterflies/community">Family Circle</a></li>
+        <li><a href="/wellness">Wellness Partners</a></li>
+        <li><a href="/#roadmap">Roadmap</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/refresh">Refresh</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/register" class="nav-auth-link">Sign up</a> &middot; <a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container">
+      <a href="/social-butterflies" class="sb-back-link">&larr; Back to Social Butterflies</a>
+
+      <header class="sb-community-hero">
+        <div class="sb-badge"><span class="sb-badge-dot"></span> Family Circle</div>
+        <h1>Community for <span>trucker families</span></h1>
+        <p class="sb-hero-lead">Share tips you have learned over time, lift up another family who needs help, or simply chat when the miles feel long and you are waiting for your driver to reach home or a safe haven.</p>
+      </header>
+
+      <div class="sb-community-welcome sb-card" id="communityWelcome">
+        <h3>Welcome — you belong here</h3>
+        <p>This space is for spouses, partners, kids, parents, and friends of drivers — not a duplicate of the driver forum. Start a conversation about home-time routines, worry on stormy nights, creative check-ins, or anything that helps your household thrive while someone you love is on the road.</p>
+        <ul>
+          <li><strong>Share tips &amp; tricks</strong> — what works for your family at home and on the phone.</li>
+          <li><strong>Offer support</strong> — someone may be having a hard week; your kindness matters.</li>
+          <li><strong>Chat through long days</strong> — you are not alone while you wait.</li>
+        </ul>
+      </div>
+
+      <div class="sb-signin-banner sb-card hidden" id="communitySigninBanner">
+        <div>
+          <p class="sb-signin-title">Sign in to join the Family Circle</p>
+          <p class="sb-signin-sub">A free account lets you read every conversation and post replies. We keep the community safe and welcoming for families.</p>
+        </div>
+        <div class="sb-signin-actions">
+          <a href="/login" class="sb-btn sb-btn-primary">Sign In</a>
+          <a href="/register" class="sb-btn sb-btn-outline">Create Account</a>
+        </div>
+      </div>
+
+      <div class="sb-community-toolbar">
+        <h2 class="sb-section-title" style="margin:0">Conversations</h2>
+        <a href="/social-butterflies/community/new" class="sb-btn sb-btn-primary hidden" id="newThreadBtn">Start a conversation</a>
+      </div>
+
+      <div id="threadList" class="thread-list sb-thread-list"></div>
+
+      <div class="sb-empty-state sb-card hidden" id="emptyState">
+        <p class="sb-empty-lead">No conversations yet — be the first to say hello.</p>
+        <p>Share a tip that helped your household, ask a question other families might relate to, or introduce yourself. Someone else may be waiting up tonight too.</p>
+        <a href="/social-butterflies/community/new" class="sb-btn sb-btn-primary hidden" id="emptyNewBtn">Start the first conversation</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <p class="footer-tagline">Social Butterflies — support for families and friends of professional truck drivers.</p>
+        <nav class="footer-nav">
+          <a href="/">Home</a>
+          <a href="/social-butterflies">Social Butterflies</a>
+          <a href="/social-butterflies/community">Family Circle</a>
+          <a href="/contact">Contact</a>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N ST., STE N, SACRAMENTO CA 95816</p>
+        <p>&copy; 2026 Mile 12 Warrior LLC. "Mile 12 Warrior" and "Social Butterflies" are trademarks of Mile 12 Warrior LLC.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      var FAMILY_SLUG = 'family-circle';
+      var isLoggedIn = false;
+
+      function formatDate(iso) {
+        if (!iso) return '';
+        var d = new Date(iso);
+        var now = new Date();
+        var diff = now - d;
+        if (diff < 60000) return 'Just now';
+        if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+        if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+        if (diff < 604800000) return Math.floor(diff / 86400000) + 'd ago';
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+      }
+
+      function esc(s) {
+        return String(s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      async function checkAuth() {
+        try {
+          var r = await fetch('/api/auth/me', { credentials: 'include' });
+          if (r.ok) {
+            var data = await r.json();
+            if (data.user) {
+              isLoggedIn = true;
+              document.getElementById('newThreadBtn').classList.remove('hidden');
+              document.getElementById('emptyNewBtn').classList.remove('hidden');
+              document.getElementById('communitySigninBanner').classList.add('hidden');
+              var authLink = document.querySelector('.nav-auth-link');
+              if (authLink) authLink.textContent = data.user.username || 'Account';
+            }
+          }
+        } catch (_) {}
+        if (!isLoggedIn) {
+          document.getElementById('communitySigninBanner').classList.remove('hidden');
+        }
+      }
+
+      async function loadThreads() {
+        var listEl = document.getElementById('threadList');
+        var emptyEl = document.getElementById('emptyState');
+        try {
+          var r = await fetch('/api/forum/categories/' + encodeURIComponent(FAMILY_SLUG), { credentials: 'include' });
+          var data = await r.json();
+          var threads = data.threads || [];
+          if (!isLoggedIn) {
+            listEl.innerHTML = '<p class="sb-muted">Sign in to view Family Circle conversations.</p>';
+            emptyEl.classList.add('hidden');
+            return;
+          }
+          if (!threads.length) {
+            listEl.innerHTML = '';
+            emptyEl.classList.remove('hidden');
+            return;
+          }
+          emptyEl.classList.add('hidden');
+          listEl.innerHTML = threads.map(function(t) {
+            var badges = [];
+            if (t.pinned) badges.push('<span class="thread-badge badge-pinned">Pinned</span>');
+            if (t.locked) badges.push('<span class="thread-badge badge-locked">Locked</span>');
+            var slug = t.slug || t.id;
+            return '<a href="/social-butterflies/community/thread/' + slug + '" class="thread-item sb-thread-item">' +
+              '<div class="thread-item-main">' +
+                '<div class="thread-item-title">' + (badges.length ? '<span class="thread-badges">' + badges.join('') + '</span> ' : '') + esc(t.title || 'Conversation') + '</div>' +
+                '<div class="thread-item-meta">by ' + esc(t.username || 'Anonymous') + ' &middot; ' + formatDate(t.created_at) + '</div>' +
+              '</div>' +
+              '<div class="thread-item-stats">' + (t.reply_count || 0) + ' repl' + ((t.reply_count || 0) === 1 ? 'y' : 'ies') + '</div>' +
+            '</a>';
+          }).join('');
+        } catch (e) {
+          listEl.innerHTML = '<p class="sb-muted">Unable to load conversations. Please try again.</p>';
+        }
+      }
+
+      (async function() {
+        await checkAuth();
+        loadThreads();
+      })();
+    })();
+  </script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

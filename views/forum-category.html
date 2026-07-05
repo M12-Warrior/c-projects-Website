@@ -169,6 +169,10 @@
           listEl.innerHTML = '<p class="text-muted">Invalid category.</p>';
           return;
         }
+        if (slug === 'family-circle') {
+          window.location.replace('/social-butterflies/community');
+          return;
+        }
         try {
           const r = await fetch('/api/forum/categories/' + encodeURIComponent(slug), { credentials: 'include' });
           const data = await r.json();

@@ -85,6 +85,7 @@
           const data = await r.json();
           const cats = Array.isArray(data) ? data : (data.categories || []);
           cats.forEach(function(c) {
+            if (c.slug === 'family-circle') return;
             const opt = document.createElement('option');
             opt.value = c.id;
             opt.textContent = c.name || 'Category';

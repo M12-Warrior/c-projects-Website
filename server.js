@@ -219,6 +219,18 @@ app.get('/social-butterflies', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'social-butterflies.html'));
 });
 
+app.get('/social-butterflies/community', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'sb-community.html'));
+});
+
+app.get('/social-butterflies/community/new', requireLogin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'sb-community-new.html'));
+});
+
+app.get('/social-butterflies/community/thread/:slug', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'sb-community-thread.html'));
+});
+
 app.get('/packets/new-driver', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'packets-new-driver.html'));
 });

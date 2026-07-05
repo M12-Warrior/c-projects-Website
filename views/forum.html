@@ -121,7 +121,8 @@
         try {
           const r = await fetch('/api/forum/categories', { credentials: 'include' });
           const data = await r.json();
-          const cats = Array.isArray(data) ? data : (data.categories || []);
+          const cats = (Array.isArray(data) ? data : (data.categories || []))
+            .filter(function(c) { return c.slug !== 'family-circle'; });
           cats.sort(function(a, b) {
             if (a.slug === 'general') return -1;
             if (b.slug === 'general') return 1;

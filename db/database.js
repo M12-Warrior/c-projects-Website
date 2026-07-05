@@ -682,6 +682,19 @@ try {
   }
 } catch (_) {}
 
+// Social Butterflies — Family Circle community (existing databases, idempotent)
+try {
+  const familyCircle = db.prepare('SELECT id FROM forum_categories WHERE slug = ?').get('family-circle');
+  if (!familyCircle) {
+    db.prepare('INSERT INTO forum_categories (name, slug, description, sort_order) VALUES (?, ?, ?, ?)').run(
+      'Family Circle — Community',
+      'family-circle',
+      'A warm space for spouses, partners, kids, and friends of drivers — share tips, support one another, and chat through long days while you wait for your driver to reach home or a safe haven.',
+      10
+    );
+  }
+} catch (_) {}
+
 const isProduction = process.env.NODE_ENV === 'production';
 
 function resolveInitialAdminPassword() {
@@ -727,6 +740,12 @@ const seedIfEmpty = () => {
     insertCategory.run('Equipment & Tech', 'equipment-tech', 'Trucks, trailers, ELDs, dashcams, and gear recommendations.', 3);
     insertCategory.run('Mile 12 Moments', 'mile-12-moments', 'Share your Mile 12 turning points — the moments that tested you and made you stronger.', 4);
     insertCategory.run('Miles Without Borders', 'miles-without-borders', 'Truckers from every country: share your experiences, cultural differences, and the struggles of the road. A place to compare how driver fatigue and hours-of-service are managed worldwide — and learn from each other.', 5);
+    insertCategory.run(
+      'Family Circle — Community',
+      'family-circle',
+      'A warm space for spouses, partners, kids, and friends of drivers — share tips, support one another, and chat through long days while you wait for your driver to reach home or a safe haven.',
+      10
+    );
   }
 
   const productCount = db.prepare('SELECT COUNT(*) as count FROM products').get();

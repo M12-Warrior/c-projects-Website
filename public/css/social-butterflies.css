@@ -54,4 +54,35 @@ body.social-butterflies-page .sb-driver-link { color: var(--sb-teal); font-weigh
 body.social-butterflies-page .footer { background: rgba(255, 240, 230, 0.85); border-top: 1px solid var(--sb-border); }
 body.social-butterflies-page .footer, body.social-butterflies-page .footer a { color: var(--sb-text-2); }
 body.social-butterflies-page .footer-brand span { color: var(--sb-text); }
-@media (max-width: 640px) { body.social-butterflies-page .sb-hero { padding-bottom: 32px; } body.social-butterflies-page .sb-callout { padding: 20px; } }
+/* Family Circle community */
+body.sb-community-page .sb-back-link { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px; font-size: 0.88rem; color: var(--sb-text-2); text-decoration: none; }
+body.sb-community-page .sb-back-link:hover { color: var(--sb-coral-dark); }
+body.sb-community-page .sb-community-hero { text-align: center; padding: 8px 0 32px; max-width: 720px; margin: 0 auto 24px; }
+body.sb-community-page .sb-community-welcome { margin-bottom: 28px; max-width: 720px; }
+body.sb-community-page .sb-community-welcome ul { margin: 12px 0 0; padding-left: 20px; }
+body.sb-community-page .sb-community-welcome li { margin-top: 8px; font-size: 0.92rem; line-height: 1.65; color: var(--sb-text-2); }
+body.sb-community-page .sb-signin-banner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; padding: 20px 24px; }
+body.sb-community-page .sb-signin-title { font-weight: 600; margin-bottom: 4px; color: var(--sb-text); }
+body.sb-community-page .sb-signin-sub { font-size: 0.88rem; color: var(--sb-text-2); margin: 0; }
+body.sb-community-page .sb-signin-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+body.sb-community-page .sb-community-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+body.sb-community-page .sb-thread-list { margin-bottom: 24px; }
+body.sb-community-page .sb-thread-item { background: var(--sb-surface); border-color: var(--sb-border); color: var(--sb-text); }
+body.sb-community-page .sb-thread-item:hover { border-color: rgba(232, 116, 97, 0.35); background: var(--sb-bg-soft); }
+body.sb-community-page .sb-thread-item .thread-item-meta { color: var(--sb-text-3); }
+body.sb-community-page .sb-thread-item .thread-item-stats { color: var(--sb-text-3); }
+body.sb-community-page .sb-empty-state { text-align: center; padding: 32px 24px; max-width: 560px; margin: 0 auto; }
+body.sb-community-page .sb-empty-lead { font-weight: 600; font-size: 1.05rem; color: var(--sb-text); margin-bottom: 10px; }
+body.sb-community-page .sb-muted { color: var(--sb-text-2); font-size: 0.92rem; line-height: 1.65; }
+body.sb-community-page .sb-thread-article { padding: 28px; margin-bottom: 24px; }
+body.sb-community-page .sb-thread-title { font-size: 1.5rem; font-weight: 700; line-height: 1.25; margin-bottom: 8px; color: var(--sb-text); }
+body.sb-community-page .sb-thread-meta { font-size: 0.85rem; color: var(--sb-text-3); margin-bottom: 20px; }
+body.sb-community-page .sb-thread-body { font-size: 0.95rem; line-height: 1.75; color: var(--sb-text-2); white-space: pre-wrap; }
+body.sb-community-page .sb-reply-card { background: var(--sb-surface); border-color: var(--sb-border); }
+body.sb-community-page .sb-reply-card .reply-author { color: var(--sb-coral-dark); font-weight: 600; }
+body.sb-community-page .sb-reply-card .reply-date { color: var(--sb-text-3); }
+body.sb-community-page .sb-reply-card .reply-body { color: var(--sb-text-2); }
+body.sb-community-page .sb-form .form-label { color: var(--sb-text); }
+body.sb-community-page .sb-form .form-input { background: var(--sb-surface); border-color: var(--sb-border); color: var(--sb-text); }
+body.sb-community-page .hidden { display: none !important; }
+@media (max-width: 640px) { body.social-butterflies-page .sb-hero { padding-bottom: 32px; } body.social-butterflies-page .sb-callout { padding: 20px; } body.sb-community-page .sb-signin-banner { flex-direction: column; align-items: flex-start; } }

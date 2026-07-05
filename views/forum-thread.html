@@ -193,6 +193,10 @@
           const loggedIn = await checkAuth();
           const locked = !!t.locked;
           const catSlug = (t.category && t.category.slug) ? t.category.slug : '';
+          if (catSlug === 'family-circle') {
+            window.location.replace('/social-butterflies/community/thread/' + slug);
+            return;
+          }
           const coffeeShop = catSlug === 'general';
 
           if (loggedIn) {

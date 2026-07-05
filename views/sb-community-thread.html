@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation — Family Circle</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/social-butterflies.css">
+</head>
+<body class="social-butterflies-page sb-community-page">
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.png" alt="Mile 12 Warrior logo: gold highway shield with M and 12" class="nav-logo-img">
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/social-butterflies" class="active">Social Butterflies</a></li>
+        <li><a href="/social-butterflies/community">Family Circle</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/register" class="nav-auth-link">Sign up</a> &middot; <a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container">
+      <a href="/social-butterflies/community" class="sb-back-link">&larr; Back to Family Circle</a>
+
+      <article class="sb-thread-article sb-card">
+        <h1 class="sb-thread-title"><span id="threadBadges"></span><span id="threadTitleText">Loading…</span></h1>
+        <p class="sb-thread-meta" id="threadMeta"></p>
+        <div id="threadContent" class="sb-thread-body"></div>
+        <div class="sb-signin-banner sb-card hidden" id="threadGateCard" style="margin-top:20px">
+          <p class="sb-signin-title">Sign in to read this conversation</p>
+          <p class="sb-signin-sub">Family Circle requires a free account so we can keep this space safe and welcoming.</p>
+          <div class="sb-signin-actions">
+            <a href="/login" class="sb-btn sb-btn-primary">Sign In</a>
+            <a href="/register" class="sb-btn sb-btn-outline">Create Account</a>
+          </div>
+        </div>
+      </article>
+
+      <div id="repliesSection" class="mt-32">
+        <h2 class="sb-section-title">Replies</h2>
+        <div id="repliesList"></div>
+
+        <div id="replyFormWrap" class="sb-form mt-24 hidden">
+          <form id="replyForm">
+            <div class="form-group">
+              <label class="form-label" for="replyContent">Your reply</label>
+              <textarea id="replyContent" class="form-input" name="content" rows="5" placeholder="Share support, a tip, or a kind word…" required></textarea>
+            </div>
+            <button type="submit" class="sb-btn sb-btn-primary">Post reply</button>
+          </form>
+        </div>
+        <p id="replyLoginPrompt" class="sb-muted mt-24 hidden"><a href="/login" class="sb-driver-link">Sign in</a> to reply to this conversation.</p>
+        <p id="replyLockedMsg" class="sb-muted mt-24 hidden">This conversation is locked. No new replies can be posted.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N ST., STE N, SACRAMENTO CA 95816</p>
+        <p>&copy; 2026 Mile 12 Warrior LLC.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      var FAMILY_SLUG = 'family-circle';
+      var threadData = null;
+      var currentUserId = null;
+
+      function formatDate(iso) {
+        if (!iso) return '';
+        var d = new Date(iso);
+        var now = new Date();
+        var diff = now - d;
+        if (diff < 60000) return 'Just now';
+        if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+        if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+        if (diff < 604800000) return Math.floor(diff / 86400000) + 'd ago';
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+      }
+
+      function getSlug() {
+        var m = /\/social-butterflies\/community\/thread\/([^/?#]+)/.exec(window.location.pathname);
+        return m ? m[1] : '';
+      }
+
+      function esc(s) {
+        return String(s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+      }
+
+      function renderReplies(replies) {
+        var list = document.getElementById('repliesList');
+        list.innerHTML = (replies || []).map(function(r) {
+          return '<div class="reply-card sb-reply-card">' +
+            '<div class="reply-header">' +
+              '<span class="reply-author">' + esc(r.username || 'Anonymous') + '</span>' +
+              '<span class="reply-date">' + formatDate(r.created_at) + '</span>' +
+            '</div>' +
+            '<div class="reply-body">' + esc(r.content) + '</div>' +
+          '</div>';
+        }).join('') || '<p class="sb-muted">No replies yet — be the first to respond.</p>';
+      }
+
+      async function checkAuth() {
+        try {
+          var r = await fetch('/api/auth/me', { credentials: 'include' });
+          if (r.ok) {
+            var data = await r.json();
+            if (data.user) {
+              currentUserId = data.user.id;
+              var authLink = document.querySelector('.nav-auth-link');
+              if (authLink) authLink.textContent = data.user.username || 'Account';
+              return true;
+            }
+          }
+        } catch (_) {}
+        return false;
+      }
+
+      async function loadThread() {
+        var slug = getSlug();
+        if (!slug) {
+          document.getElementById('threadTitleText').textContent = 'Conversation';
+          return;
+        }
+        try {
+          var r = await fetch('/api/forum/threads/' + encodeURIComponent(slug), { credentials: 'include' });
+          var data = await r.json();
+          if (!data.thread) {
+            document.getElementById('threadTitleText').textContent = 'Conversation not found';
+            return;
+          }
+          threadData = data.thread;
+          threadData.replies = data.replies || [];
+          var t = threadData;
+          var catSlug = (t.category && t.category.slug) ? t.category.slug : '';
+          if (catSlug && catSlug !== FAMILY_SLUG) {
+            window.location.replace('/forum/thread/' + slug);
+            return;
+          }
+
+          document.getElementById('threadTitleText').textContent = t.title || 'Conversation';
+          document.title = (t.title || 'Conversation') + ' — Family Circle';
+
+          var badges = [];
+          if (t.pinned) badges.push('<span class="thread-badge badge-pinned">Pinned</span>');
+          if (t.locked) badges.push('<span class="thread-badge badge-locked">Locked</span>');
+          document.getElementById('threadBadges').innerHTML = badges.length ? '<span class="thread-badges">' + badges.join('') + '</span> ' : '';
+
+          document.getElementById('threadMeta').textContent = 'by ' + (t.username || 'Anonymous') + ' · ' + formatDate(t.created_at);
+
+          var replies = threadData.replies;
+          var firstReplyContent = (replies[0] && replies[0].content) ? replies[0].content : '';
+          var contentEl = document.getElementById('threadContent');
+          var gateCard = document.getElementById('threadGateCard');
+          var loggedIn = await checkAuth();
+          var locked = !!t.locked;
+
+          if (loggedIn) {
+            contentEl.innerHTML = esc(firstReplyContent);
+            contentEl.style.display = firstReplyContent ? 'block' : 'none';
+            if (gateCard) gateCard.classList.add('hidden');
+            renderReplies(replies.slice(1));
+          } else {
+            contentEl.innerHTML = '';
+            contentEl.style.display = 'none';
+            if (gateCard) gateCard.classList.remove('hidden');
+            document.getElementById('repliesList').innerHTML = '<p class="sb-muted">Sign in to view replies.</p>';
+          }
+
+          document.getElementById('replyFormWrap').classList.toggle('hidden', !loggedIn || locked);
+          document.getElementById('replyLoginPrompt').classList.toggle('hidden', loggedIn || locked);
+          document.getElementById('replyLockedMsg').classList.toggle('hidden', !locked);
+        } catch (e) {
+          document.getElementById('threadTitleText').textContent = 'Conversation';
+          document.getElementById('repliesList').innerHTML = '<p class="sb-muted">Unable to load conversation.</p>';
+        }
+      }
+
+      document.getElementById('replyForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var slug = getSlug();
+        var content = document.getElementById('replyContent').value.trim();
+        if (!slug || !content) return;
+        var btn = e.target.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = 'Posting…';
+        try {
+          var r = await fetch('/api/forum/threads/' + encodeURIComponent(slug) + '/replies', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ content: content })
+          });
+          var data = await r.json();
+          if (r.ok && data.reply) {
+            threadData.replies = threadData.replies || [];
+            threadData.replies.push(data.reply);
+            renderReplies(threadData.replies.slice(1));
+            document.getElementById('replyContent').value = '';
+          } else {
+            alert(data.error || 'Failed to post reply.');
+          }
+        } catch (_) {
+          alert('Failed to post reply.');
+        }
+        btn.disabled = false;
+        btn.textContent = 'Post reply';
+      });
+
+      loadThread();
+    })();
+  </script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

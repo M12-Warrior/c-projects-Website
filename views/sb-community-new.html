@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Start a Conversation — Family Circle</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/social-butterflies.css">
+</head>
+<body class="social-butterflies-page sb-community-page">
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.png" alt="Mile 12 Warrior logo: gold highway shield with M and 12" class="nav-logo-img">
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/social-butterflies" class="active">Social Butterflies</a></li>
+        <li><a href="/social-butterflies/community">Family Circle</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/register" class="nav-auth-link">Sign up</a> &middot; <a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container" style="max-width:640px">
+      <a href="/social-butterflies/community" class="sb-back-link">&larr; Back to Family Circle</a>
+      <h1 class="sb-section-title">Start a conversation</h1>
+      <p class="sb-muted" style="margin-bottom:24px">Share a tip, ask for support, or say hello to other trucking families. By posting you agree to our <a href="/terms" class="sb-driver-link">Terms of Service</a>.</p>
+
+      <form id="newThreadForm" class="sb-card sb-form">
+        <div class="form-group">
+          <label class="form-label" for="title">Title</label>
+          <input type="text" id="title" class="form-input" name="title" placeholder="What's on your mind?" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="content">Your message</label>
+          <textarea id="content" class="form-input" name="content" rows="8" placeholder="Share your tip, question, or story…" required></textarea>
+        </div>
+        <p id="formError" class="form-error hidden"></p>
+        <button type="submit" class="sb-btn sb-btn-primary">Post conversation</button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      var FAMILY_SLUG = 'family-circle';
+      var categoryId = null;
+
+      async function loadCategory() {
+        try {
+          var r = await fetch('/api/forum/categories/' + encodeURIComponent(FAMILY_SLUG), { credentials: 'include' });
+          var data = await r.json();
+          if (data.category && data.category.id) categoryId = data.category.id;
+        } catch (_) {}
+      }
+
+      document.getElementById('newThreadForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var title = document.getElementById('title').value.trim();
+        var content = document.getElementById('content').value.trim();
+        var errEl = document.getElementById('formError');
+        if (!categoryId) {
+          errEl.textContent = 'Community is not ready yet. Please refresh and try again.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        if (!title || !content) {
+          errEl.textContent = 'Please fill in all fields.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        var btn = e.target.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = 'Posting…';
+        errEl.classList.add('hidden');
+        try {
+          var r = await fetch('/api/forum/threads', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ category_id: categoryId, title: title, content: content })
+          });
+          var data = await r.json();
+          if (r.ok && data.thread && data.thread.slug) {
+            window.location.href = '/social-butterflies/community/thread/' + data.thread.slug;
+            return;
+          }
+          errEl.textContent = data.error || 'Could not create conversation. Please try again.';
+          errEl.classList.remove('hidden');
+        } catch (_) {
+          errEl.textContent = 'Network error. Please try again.';
+          errEl.classList.remove('hidden');
+        }
+        btn.disabled = false;
+        btn.textContent = 'Post conversation';
+      });
+
+      loadCategory();
+    })();
+  </script>
+  <script src="/js/main.js"></script>
+</body>
+</html>
