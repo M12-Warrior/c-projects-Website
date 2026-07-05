@@ -77,7 +77,7 @@ pages.about = () => {
   <button class="back-btn" data-back="home">&#8592; Home</button>
   <div class="page-header">
     <h1 class="page-title">About Mile 12 Warrior</h1>
-    <p class="page-subtitle">Born from 25+ years behind the wheel. One platform. Two brands. One mission.</p>
+    <p class="page-subtitle">Born from 25+ years behind the wheel. One platform for drivers and the people who love them.</p>
   </div>
 
   <h3 class="section-title-m">Meet the Founder</h3>
@@ -108,14 +108,14 @@ pages.about = () => {
   <div class="card"><h3>Warrior Mindset</h3><p>We celebrate resilience without sugarcoating realities. The road is hard. We honor that truth while giving you what you need to thrive.</p></div>
   <div class="card"><h3>Real-Road Perspective</h3><p>This isn't theory from a desk. Every resource comes from someone who's been behind that wheel for 25+ years.</p></div>
 
-  <h3 class="section-title-m" style="margin-top:20px">Our Brands</h3>
+  <h3 class="section-title-m" style="margin-top:20px">Our Community</h3>
   <div class="card"><h3>Mile 12 Warrior LLC</h3><p>Your dedicated ally for turning the toughest stretches into triumphs. Proactive fatigue fighters, mindset resets, 10-hour reset mastery, wellness strategies, and personalized guidance for individuals and fleets.</p></div>
-  <div class="card"><h3>1 Social Butterfly</h3><p>Our supportive avenue for living your best life. Blogs, community, merchandise, and more — strength, creativity, and transformation at 1socialbutterfly.net.</p></div>
+  <div class="card"><h3>Social Butterflies</h3><p>A warm space for spouses, partners, kids, and friends — understanding the trucking life and staying connected across the miles. Visit mile12warrior.com/social-butterflies.</p></div>
 
   <h3 class="section-title-m" style="margin-top:20px">Connect With Joyce</h3>
   <div class="card">
     <p><strong>Email:</strong> <a href="mailto:joyce@mile12warrior.com" style="color:var(--accent)">joyce@mile12warrior.com</a></p>
-    <p style="margin-top:6px"><strong>Websites:</strong> mile12warrior.com | 1socialbutterfly.net</p>
+    <p style="margin-top:6px"><strong>Website:</strong> mile12warrior.com · Social Butterflies section for families</p>
   </div>
 
   <div style="margin-top:16px;text-align:center">
@@ -1323,7 +1323,7 @@ const LEGAL_FOOTER = `
     </div>
     <p style="font-size:0.68rem;color:var(--text-3)">&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
     <p style="font-size:0.65rem;color:var(--text-3);margin-top:4px;max-width:340px;margin-left:auto;margin-right:auto;line-height:1.5">
-      "Mile 12 Warrior" and "1 Social Butterfly" are trademarks of their respective owners. Educational content only — not medical, legal, or regulatory advice.
+      "Mile 12 Warrior" and "Social Butterflies" are trademarks of Mile 12 Warrior LLC. Educational content only — not medical, legal, or regulatory advice.
     </p>
     <p style="font-size:0.62rem;color:var(--text-3);margin-top:6px;max-width:340px;margin-left:auto;margin-right:auto;line-height:1.5">
       <strong>Multi-State Notice:</strong> Drivers from all 50 states may access this app. Each state has its own transportation laws. It is the driver's responsibility to comply with the laws of every state they travel through. California references reflect our home state.
@@ -1339,7 +1339,7 @@ pages.terms = () => {
     <p class="page-subtitle" style="font-size:0.78rem;color:var(--text-3)">Last Updated: February 24, 2026</p>
   </div>
   <div style="font-size:0.85rem;color:var(--text-2);line-height:1.7">
-    <p>By accessing or using the Mile 12 Warrior application ("Service"), operated by Mile 12 Warrior LLC ("we," "us," "our"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree, do not use the Service. This app may link to 1 Social Butterfly, a supportive avenue for living your best life — blogs, community, and merchandise — at 1socialbutterfly.net.</p>
+    <p>By accessing or using the Mile 12 Warrior application ("Service"), operated by Mile 12 Warrior LLC ("we," "us," "our"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree, do not use the Service. This app is part of Mile 12 Warrior, which includes Social Butterflies — resources for families and friends of truck drivers at mile12warrior.com/social-butterflies.</p>
 
     <h3 style="color:var(--text);font-size:0.95rem;margin-top:20px;margin-bottom:8px">1. Eligibility</h3>
     <p>You must be at least 18 years old to use this Service. We do not knowingly collect personal information from children under 13 in compliance with COPPA (15 U.S.C. &sect;&sect; 6501&ndash;6506). California users under 18 may request removal of publicly posted content per Cal. Bus. &amp; Prof. Code &sect; 22581.</p>
@@ -1354,7 +1354,7 @@ pages.terms = () => {
     <p>You agree not to: impersonate others; harass, threaten, or abuse other users; distribute spam or malware; scrape or data-mine the Service; attempt unauthorized access to our systems; or post content encouraging violation of federal or state transportation safety regulations.</p>
 
     <h3 style="color:var(--text);font-size:0.95rem;margin-top:20px;margin-bottom:8px">5. Intellectual Property</h3>
-    <p>All original content, design, code, and logos on the Service are the property of Mile 12 Warrior LLC, protected under the U.S. Copyright Act (17 U.S.C.) and the Lanham Act (15 U.S.C. &sect; 1051 et seq.). &ldquo;1 Social Butterfly&rdquo; is a trademark of its respective owner. Unauthorized reproduction, distribution, or use is prohibited.</p>
+    <p>All original content, design, code, and logos on the Service are the property of Mile 12 Warrior LLC, protected under the U.S. Copyright Act (17 U.S.C.) and the Lanham Act (15 U.S.C. &sect; 1051 et seq.). &ldquo;Social Butterflies&rdquo; is a trademark of Mile 12 Warrior LLC. Unauthorized reproduction, distribution, or use is prohibited.</p>
 
     <h3 style="color:var(--text);font-size:0.95rem;margin-top:20px;margin-bottom:8px">6. E-Commerce &amp; Merchandise</h3>
     <p>All sales are in USD. Prices may change without notice. Orders are subject to availability. Shipping is to U.S. addresses. Returns are accepted within 30 days of delivery in original condition, with refunds processed within 14 business days per California Civil Code &sect; 1723. Sales tax is collected as required by California law (Cal. Rev. &amp; Tax. Code &sect; 6051 et seq.).</p>
@@ -1397,7 +1397,7 @@ pages.privacy = () => {
     <p class="page-subtitle" style="font-size:0.78rem;color:var(--text-3)">Last Updated: February 24, 2026</p>
   </div>
   <div style="font-size:0.85rem;color:var(--text-2);line-height:1.7">
-    <p>Mile 12 Warrior LLC (&ldquo;we,&rdquo; &ldquo;us&rdquo;) operates the Mile 12 Warrior website and mobile application. This Privacy Policy explains how we collect, use, disclose, and protect your personal information. This app may link to 1 Social Butterfly, a supportive avenue for living your best life (blogs, community, merchandise) at 1socialbutterfly.net.</p>
+    <p>Mile 12 Warrior LLC (&ldquo;we,&rdquo; &ldquo;us&rdquo;) operates the Mile 12 Warrior website and mobile application. This Privacy Policy explains how we collect, use, disclose, and protect your personal information. This app is part of Mile 12 Warrior, which includes Social Butterflies — resources for families and friends of truck drivers at mile12warrior.com/social-butterflies.</p>
     <p>We collect only <strong>limited</strong> personal information necessary to provide the Service. We do not sell your data. You have rights to access, correct, and delete your information and to subscribe or unsubscribe from our newsletter, blog, and forum communications at any time.</p>
 
     <h3 style="color:var(--text);font-size:0.95rem;margin-top:20px;margin-bottom:8px">1. Information We Collect</h3>
@@ -1451,7 +1451,7 @@ pages['disclaimer-page'] = () => {
   </div>
   <div style="font-size:0.85rem;color:var(--text-2);line-height:1.7">
     <h3 style="color:var(--text);font-size:0.95rem;margin-top:20px;margin-bottom:8px">General Disclaimer</h3>
-    <p>Mile 12 Warrior LLC provides this application for <strong>educational and informational purposes only</strong>. Nothing on this platform constitutes medical, legal, regulatory, financial, or professional advice. This app may link to 1 Social Butterfly, a supportive avenue for living your best life — blogs, community, and merchandise — at 1socialbutterfly.net.</p>
+    <p>Mile 12 Warrior LLC provides this application for <strong>educational and informational purposes only</strong>. Nothing on this platform constitutes medical, legal, regulatory, financial, or professional advice. This app is part of Mile 12 Warrior, which includes Social Butterflies — resources for families and friends of truck drivers at mile12warrior.com/social-butterflies.</p>
 
     <h3 style="color:var(--text);font-size:0.95rem;margin-top:20px;margin-bottom:8px">Not a Substitute for Professional Advice</h3>
     <p>Our safety guidance, checklists, wellness tips, and blog articles are based on general knowledge and personal experience. They are NOT a substitute for consulting with licensed healthcare providers, attorneys, certified safety professionals, or regulatory authorities.</p>

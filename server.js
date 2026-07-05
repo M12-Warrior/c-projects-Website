@@ -215,6 +215,10 @@ app.get('/about', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'about.html'));
 });
 
+app.get('/social-butterflies', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'social-butterflies.html'));
+});
+
 app.get('/packets/new-driver', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'packets-new-driver.html'));
 });

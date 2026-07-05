@@ -1,0 +1,57 @@
+/* Social Butterflies - warm, family-friendly section theme */
+body.social-butterflies-page {
+  --sb-bg: #fff8f3;
+  --sb-bg-soft: #fff0e6;
+  --sb-surface: #ffffff;
+  --sb-text: #3d2c29;
+  --sb-text-2: #6b534d;
+  --sb-text-3: #9a7f78;
+  --sb-coral: #e87461;
+  --sb-coral-dark: #c95644;
+  --sb-gold: #f4a261;
+  --sb-teal: #2a9d8f;
+  --sb-lavender: #b5838d;
+  --sb-border: rgba(61, 44, 41, 0.12);
+  --sb-shadow: 0 12px 40px rgba(232, 116, 97, 0.12);
+  background: linear-gradient(165deg, var(--sb-bg) 0%, #ffe8dc 45%, #fff5ef 100%);
+  color: var(--sb-text);
+}
+body.social-butterflies-page .grain-overlay { opacity: 0.04; mix-blend-mode: multiply; }
+body.social-butterflies-page .navbar { background: rgba(255, 248, 243, 0.92); border-bottom: 1px solid var(--sb-border); backdrop-filter: blur(12px); }
+body.social-butterflies-page .navbar .nav-links a { color: var(--sb-text-2); }
+body.social-butterflies-page .navbar .nav-links a:hover, body.social-butterflies-page .navbar .nav-links a.active { color: var(--sb-coral-dark); }
+body.social-butterflies-page .nav-logo span, body.social-butterflies-page .nav-logo-fallback span { color: var(--sb-text); }
+body.social-butterflies-page .page-shell { background: transparent; }
+body.social-butterflies-page .sb-hero { text-align: center; padding: 24px 0 48px; max-width: 820px; margin: 0 auto; }
+body.social-butterflies-page .sb-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; background: rgba(244, 162, 97, 0.18); border: 1px solid rgba(244, 162, 97, 0.35); color: var(--sb-coral-dark); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 20px; }
+body.social-butterflies-page .sb-badge-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sb-coral); box-shadow: 0 0 0 4px rgba(232, 116, 97, 0.2); }
+body.social-butterflies-page .sb-hero h1 { font-family: var(--font); font-size: clamp(2rem, 5vw, 2.75rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 16px; color: var(--sb-text); }
+body.social-butterflies-page .sb-hero h1 span { background: linear-gradient(120deg, var(--sb-coral) 0%, var(--sb-gold) 55%, var(--sb-teal) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+body.social-butterflies-page .sb-hero-lead { font-size: 1.05rem; line-height: 1.75; color: var(--sb-text-2); max-width: 640px; margin: 0 auto 28px; }
+body.social-butterflies-page .sb-hero-links { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+body.social-butterflies-page .sb-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 999px; font-weight: 600; font-size: 0.9rem; text-decoration: none; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+body.social-butterflies-page .sb-btn:hover { transform: translateY(-1px); }
+body.social-butterflies-page .sb-btn-primary { background: linear-gradient(135deg, var(--sb-coral) 0%, var(--sb-gold) 100%); color: #fff; box-shadow: var(--sb-shadow); }
+body.social-butterflies-page .sb-btn-outline { background: var(--sb-surface); color: var(--sb-coral-dark); border: 1px solid var(--sb-border); }
+body.social-butterflies-page .sb-section { margin-bottom: 48px; }
+body.social-butterflies-page .sb-section-title { font-family: var(--font); font-size: 1.45rem; font-weight: 700; margin-bottom: 8px; color: var(--sb-text); letter-spacing: -0.02em; }
+body.social-butterflies-page .sb-section-intro { color: var(--sb-text-2); font-size: 0.95rem; line-height: 1.7; margin-bottom: 24px; max-width: 720px; }
+body.social-butterflies-page .sb-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+body.social-butterflies-page .sb-card { background: var(--sb-surface); border: 1px solid var(--sb-border); border-radius: 16px; padding: 24px; box-shadow: var(--sb-shadow); }
+body.social-butterflies-page .sb-card-icon { font-size: 1.6rem; margin-bottom: 12px; }
+body.social-butterflies-page .sb-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 10px; color: var(--sb-text); }
+body.social-butterflies-page .sb-card p, body.social-butterflies-page .sb-card li { font-size: 0.92rem; line-height: 1.65; color: var(--sb-text-2); }
+body.social-butterflies-page .sb-card ul { margin: 0; padding-left: 18px; }
+body.social-butterflies-page .sb-card li + li { margin-top: 8px; }
+body.social-butterflies-page .sb-card--coral { border-top: 4px solid var(--sb-coral); }
+body.social-butterflies-page .sb-card--gold { border-top: 4px solid var(--sb-gold); }
+body.social-butterflies-page .sb-card--teal { border-top: 4px solid var(--sb-teal); }
+body.social-butterflies-page .sb-card--lavender { border-top: 4px solid var(--sb-lavender); }
+body.social-butterflies-page .sb-callout { background: linear-gradient(135deg, rgba(244, 162, 97, 0.15) 0%, rgba(42, 157, 143, 0.1) 100%); border: 1px solid var(--sb-border); border-radius: 16px; padding: 28px 32px; text-align: center; }
+body.social-butterflies-page .sb-callout p { color: var(--sb-text-2); line-height: 1.7; margin-bottom: 16px; }
+body.social-butterflies-page .sb-callout strong { color: var(--sb-text); }
+body.social-butterflies-page .sb-driver-link { color: var(--sb-teal); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+body.social-butterflies-page .footer { background: rgba(255, 240, 230, 0.85); border-top: 1px solid var(--sb-border); }
+body.social-butterflies-page .footer, body.social-butterflies-page .footer a { color: var(--sb-text-2); }
+body.social-butterflies-page .footer-brand span { color: var(--sb-text); }
+@media (max-width: 640px) { body.social-butterflies-page .sb-hero { padding-bottom: 32px; } body.social-butterflies-page .sb-callout { padding: 20px; } }
