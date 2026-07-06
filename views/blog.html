@@ -99,7 +99,7 @@
         if (!grid) return;
         try {
           const [postsRes, meRes] = await Promise.all([
-            fetch('/api/blog/posts', { credentials: 'include' }),
+            fetch('/api/blog/posts?audience=driver', { credentials: 'include' }),
             fetch('/api/auth/me', { credentials: 'include' })
           ]);
           const data = await postsRes.json();

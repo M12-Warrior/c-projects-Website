@@ -109,6 +109,10 @@
           }
           const data = await res.json();
           const { post, comments } = data;
+          if (post.audience === 'family') {
+            window.location.replace('/social-butterflies/blog/' + encodeURIComponent(post.slug));
+            return;
+          }
           const authorName = post.author?.username || 'Unknown';
           const metaStr = formatDate(post.created_at) + ' · ' + escapeHtml(authorName);
 

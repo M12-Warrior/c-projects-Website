@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Article — Social Butterflies</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/social-butterflies.css">
+</head>
+<body class="social-butterflies-page sb-community-page">
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.png" alt="Mile 12 Warrior logo" class="nav-logo-img">
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/social-butterflies" class="active">Social Butterflies</a></li>
+        <li><a href="/social-butterflies/blog">Articles</a></li>
+        <li><a href="/social-butterflies/community">Family Circle</a></li>
+        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container" style="max-width:760px">
+      <a href="/social-butterflies/blog" class="sb-back-link">&larr; Back to Articles</a>
+      <article class="sb-card sb-blog-article" id="postContent">
+        <p class="sb-muted">Loading…</p>
+      </article>
+      <div id="commentsSection" class="mt-24"></div>
+    </div>
+  </main>
+
+  <script src="/js/main.js"></script>
+  <script>
+    (function() {
+      function esc(s) {
+        return String(s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+      function formatDate(iso) {
+        if (!iso) return '';
+        return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      var slug = (window.location.pathname.split('/social-butterflies/blog/')[1] || '').replace(/\/$/, '').trim();
+      var postContent = document.getElementById('postContent');
+      var commentsSection = document.getElementById('commentsSection');
+
+      if (!slug) {
+        postContent.innerHTML = '<p class="sb-muted">Article not found.</p>';
+        return;
+      }
+
+      async function loadPost() {
+        try {
+          var res = await fetch('/api/blog/posts/' + encodeURIComponent(slug), { credentials: 'include' });
+          if (!res.ok) {
+            postContent.innerHTML = '<p class="sb-muted">Article not found.</p>';
+            return;
+          }
+          var data = await res.json();
+          var post = data.post;
+          var comments = data.comments || [];
+          if (post.audience === 'driver') {
+            window.location.replace('/blog/' + encodeURIComponent(post.slug));
+            return;
+          }
+
+          var meUser = null;
+          try {
+            var meRes = await fetch('/api/auth/me', { credentials: 'include' });
+            meUser = (await meRes.json()).user || null;
+          } catch (_) {}
+
+          var isAdmin = meUser && meUser.role === 'admin';
+          var editHtml = isAdmin ? '<p style="margin-top:12px"><a href="/admin?tab=blog&edit=' + post.id + '" class="sb-driver-link">Edit in admin</a></p>' : '';
+          var img = (post.image && post.image.trim()) ? '<div class="sb-blog-article-image"><img src="' + esc(post.image) + '" alt=""></div>' : '';
+
+          postContent.innerHTML =
+            '<h1 class="sb-blog-article-title">' + esc(post.title) + '</h1>' +
+            '<p class="sb-blog-card-meta">' + formatDate(post.created_at) + (post.author && post.author.username ? ' &middot; ' + esc(post.author.username) : '') + '</p>' +
+            img +
+            '<div class="sb-blog-article-body post-content">' + (post.content || '') + '</div>' +
+            editHtml;
+
+          document.title = post.title + ' — Social Butterflies';
+
+          var loggedIn = !!meUser;
+          var commentForm = loggedIn
+            ? '<div class="sb-form mt-16"><textarea id="commentInput" class="form-input" rows="4" placeholder="Share a kind, helpful comment…"></textarea><button type="button" class="sb-btn sb-btn-primary mt-16" id="commentSubmit">Post comment</button></div>'
+            : '<p class="sb-muted mt-16"><a href="/login" class="sb-driver-link">Sign in</a> to comment.</p>';
+
+          commentsSection.innerHTML =
+            '<div class="sb-card">' +
+              '<h2 class="sb-section-title">Comments (' + comments.length + ')</h2>' +
+              '<div id="commentsList">' + comments.map(function(c) {
+                return '<div class="sb-reply-card" style="margin-top:12px;padding:14px;border:1px solid var(--sb-border);border-radius:12px">' +
+                  '<div style="font-size:0.82rem;color:var(--sb-text-3);margin-bottom:6px">' + esc(c.user && c.user.username ? c.user.username : 'Guest') + ' &middot; ' + formatDate(c.created_at) + '</div>' +
+                  '<div>' + esc(c.content) + '</div></div>';
+              }).join('') + '</div>' +
+              commentForm +
+            '</div>';
+
+          var submitBtn = document.getElementById('commentSubmit');
+          if (submitBtn) {
+            submitBtn.addEventListener('click', async function() {
+              var input = document.getElementById('commentInput');
+              var content = (input.value || '').trim();
+              if (!content) return;
+              submitBtn.disabled = true;
+              try {
+                var r = await fetch('/api/blog/posts/' + encodeURIComponent(slug) + '/comments', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ content: content })
+                });
+                if (r.ok) {
+                  input.value = '';
+                  alert('Comment submitted for review. Thank you!');
+                } else {
+                  var err = await r.json().catch(function() { return {}; });
+                  alert(err.error || 'Could not post comment.');
+                }
+              } catch (_) {
+                alert('Network error.');
+              }
+              submitBtn.disabled = false;
+            });
+          }
+        } catch (e) {
+          postContent.innerHTML = '<p class="sb-muted">Could not load article.</p>';
+        }
+      }
+
+      loadPost();
+    })();
+  </script>
+</body>
+</html>

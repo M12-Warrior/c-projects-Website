@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Articles for Families — Social Butterflies</title>
+  <meta name="description" content="Articles and support for families and friends of professional truck drivers.">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/social-butterflies.css">
+</head>
+<body class="social-butterflies-page sb-community-page">
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.png" alt="Mile 12 Warrior logo" class="nav-logo-img">
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/social-butterflies" class="active">Social Butterflies</a></li>
+        <li><a href="/social-butterflies/blog">Articles</a></li>
+        <li><a href="/social-butterflies/community">Family Circle</a></li>
+        <li><a href="/social-butterflies/community/recipes">Road recipes</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/register" class="nav-auth-link">Sign up</a> &middot; <a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container">
+      <a href="/social-butterflies" class="sb-back-link">&larr; Back to Social Butterflies</a>
+
+      <header class="sb-community-hero">
+        <div class="sb-badge"><span class="sb-badge-dot"></span> Articles</div>
+        <h1>Support for <span>trucker families</span></h1>
+        <p class="sb-hero-lead">Curated articles for spouses, partners, kids, and friends — understanding the road, fighting fatigue together, and thriving at home while someone you love is hauling.</p>
+      </header>
+
+      <nav class="sb-community-tabs" aria-label="Social Butterflies sections">
+        <a href="/social-butterflies/blog" class="sb-community-tab is-active">Articles</a>
+        <a href="/social-butterflies/community" class="sb-community-tab">Family Circle</a>
+        <a href="/social-butterflies/community/recipes" class="sb-community-tab">Road recipes</a>
+      </nav>
+
+      <div id="blogGrid" class="sb-blog-grid"></div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N ST., STE N, SACRAMENTO CA 95816</p>
+        <p>&copy; 2026 Mile 12 Warrior LLC.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      var placeholderIcon = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+
+      function esc(s) {
+        return String(s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      function formatDate(iso) {
+        if (!iso) return '';
+        return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      async function loadPosts() {
+        var grid = document.getElementById('blogGrid');
+        try {
+          var res = await fetch('/api/blog/posts?audience=family', { credentials: 'include' });
+          var data = await res.json();
+          var posts = data.posts || [];
+          if (!posts.length) {
+            grid.innerHTML = '<div class="sb-empty-state sb-card"><p class="sb-empty-lead">Articles coming soon</p><p>We are preparing family-focused support articles. Check back — or join <a href="/social-butterflies/community" class="sb-driver-link">Family Circle</a> to connect with other families now.</p></div>';
+            return;
+          }
+          grid.innerHTML = posts.map(function(post) {
+            var img = post.image
+              ? '<img src="' + esc(post.image) + '" alt="" class="sb-blog-card-img" onerror="this.style.display=\'none\'">'
+              : '<span class="sb-blog-card-placeholder">' + placeholderIcon + '</span>';
+            var url = post.public_url || ('/social-butterflies/blog/' + esc(post.slug));
+            return '<article class="sb-card sb-blog-card">' +
+              '<a href="' + url + '" class="sb-blog-card-link">' +
+                '<div class="sb-blog-card-media">' + img + '</div>' +
+                '<div class="sb-blog-card-body">' +
+                  '<p class="sb-blog-card-meta">' + formatDate(post.created_at) + (post.author_username ? ' &middot; ' + esc(post.author_username) : '') + '</p>' +
+                  '<h2 class="sb-blog-card-title">' + esc(post.title) + '</h2>' +
+                  '<p class="sb-blog-card-excerpt">' + esc((post.excerpt || '').slice(0, 160)) + ((post.excerpt || '').length > 160 ? '…' : '') + '</p>' +
+                '</div>' +
+              '</a></article>';
+          }).join('');
+        } catch (e) {
+          grid.innerHTML = '<p class="sb-muted">Could not load articles. Please try again later.</p>';
+        }
+      }
+
+      loadPosts();
+    })();
+  </script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

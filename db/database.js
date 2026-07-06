@@ -232,6 +232,12 @@ try {
   db.exec('ALTER TABLE blog_posts ADD COLUMN scheduled_at DATETIME');
 } catch (_) {}
 try {
+  db.exec("ALTER TABLE blog_posts ADD COLUMN audience TEXT DEFAULT 'driver'");
+} catch (_) {}
+try {
+  db.exec("UPDATE blog_posts SET audience = 'driver' WHERE audience IS NULL OR audience = ''");
+} catch (_) {}
+try {
   db.exec("ALTER TABLE blog_comments ADD COLUMN status TEXT DEFAULT 'approved'");
 } catch (_) {}
 try {

@@ -79,5 +79,28 @@ else fail('recipe author edit');
 if (sbHtml.includes('/social-butterflies/community/recipes')) ok('social-butterflies links to recipes');
 else fail('social-butterflies recipes link');
 
+if (serverJs.includes('/social-butterflies/blog')) ok('server social butterflies blog routes');
+else fail('server social butterflies blog routes');
+
+if (dbJs.includes("audience TEXT DEFAULT 'driver'") || dbJs.includes('audience TEXT')) ok('blog audience column migration');
+else fail('blog audience column migration');
+
+const blogJs = fs.readFileSync(path.join(root, 'routes', 'blog.js'), 'utf8');
+if (blogJs.includes('normalizeAudience') && blogJs.includes("req.query.audience")) ok('blog audience filter API');
+else fail('blog audience filter API');
+
+if (fs.existsSync(path.join(root, 'views', 'sb-blog.html'))) ok('sb blog list page');
+else fail('sb blog list page');
+
+if (sbHtml.includes('id="articles"') && sbHtml.includes('/social-butterflies/blog')) ok('social butterflies articles section');
+else fail('social butterflies articles section');
+
+const adminHtml = fs.readFileSync(path.join(root, 'views', 'admin.html'), 'utf8');
+if (adminHtml.includes('tabSocialButterflies') && adminHtml.includes('loadSocialButterflies')) ok('admin social butterflies tab');
+else fail('admin social butterflies tab');
+
+if (adminHtml.includes('blogNewAudience') && adminHtml.includes('blogAudienceFilter')) ok('admin blog audience controls');
+else fail('admin blog audience controls');
+
 if (failed) process.exit(1);
 console.log('All Social Butterflies community checks passed.');

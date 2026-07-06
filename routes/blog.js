@@ -28,6 +28,17 @@ function slugify(title) {
     .replace(/[^a-z0-9-]/g, '');
 }
 
+function normalizeAudience(raw) {
+  const v = String(raw || 'driver').trim().toLowerCase();
+  return v === 'family' ? 'family' : 'driver';
+}
+
+function publicPostUrl(audience, slug) {
+  return normalizeAudience(audience) === 'family'
+    ? `/social-butterflies/blog/${slug}`
+    : `/blog/${slug}`;
+}
+
 // Run before listing: publish any posts whose scheduled_at is in the past
 function publishScheduled() {
   try {
@@ -38,19 +49,25 @@ function publishScheduled() {
   } catch (_) {}
 }
 
-// GET /api/blog/posts — all published posts with author username, ordered by created_at DESC
+// GET /api/blog/posts — published posts (?audience=driver|family, default driver)
 router.get('/posts', (req, res) => {
   publishScheduled();
+  const audience = normalizeAudience(req.query.audience || 'driver');
   const posts = db.prepare(`
-    SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published,
+    SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published, p.audience,
            p.created_at, p.updated_at, u.username AS author_username
     FROM blog_posts p
     LEFT JOIN users u ON p.author_id = u.id
-    WHERE p.published = 1
+    WHERE p.published = 1 AND COALESCE(p.audience, 'driver') = ?
     ORDER BY p.created_at DESC
-  `).all();
-  const out = posts.map(p => ({ ...p, image: ensureHttpsImage(p.image) }));
-  res.json({ posts: out });
+  `).all(audience);
+  const out = posts.map(p => ({
+    ...p,
+    audience: normalizeAudience(p.audience),
+    image: ensureHttpsImage(p.image),
+    public_url: publicPostUrl(p.audience, p.slug)
+  }));
+  res.json({ posts: out, audience });
 });
 
 // GET /api/blog/admin/posts — admin only: all posts (published + draft) for admin list
@@ -59,13 +76,18 @@ router.get('/admin/posts', (req, res) => {
   publishScheduled();
   try {
     const posts = db.prepare(`
-      SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published, p.scheduled_at,
+      SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published, p.scheduled_at, p.audience,
              p.created_at, p.updated_at, u.username AS author_username
       FROM blog_posts p
       LEFT JOIN users u ON p.author_id = u.id
       ORDER BY p.created_at DESC
     `).all();
-    const out = posts.map(p => ({ ...p, image: ensureHttpsImage(p.image) }));
+    const out = posts.map(p => ({
+      ...p,
+      audience: normalizeAudience(p.audience),
+      image: ensureHttpsImage(p.image),
+      public_url: publicPostUrl(p.audience, p.slug)
+    }));
     res.json({ posts: out });
   } catch (err) {
     return res.status(500).json({ error: 'Failed to load posts', detail: err.message });
@@ -78,21 +100,22 @@ router.get('/admin/posts/:id', (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) return res.status(400).json({ error: 'Invalid post ID' });
   const post = db.prepare(`
-    SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published, p.scheduled_at,
-           p.created_at, p.updated_at, u.username AS author_username
+    SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published, p.audience,
+           p.created_at, p.updated_at,
+           u.id AS author_id, u.username AS author_username
     FROM blog_posts p
     LEFT JOIN users u ON p.author_id = u.id
     WHERE p.id = ?
   `).get(id);
   if (!post) return res.status(404).json({ error: 'Post not found' });
-  res.json({ post: { ...post, image: ensureHttpsImage(post.image) } });
+  res.json({ post: { ...post, audience: normalizeAudience(post.audience), image: ensureHttpsImage(post.image), public_url: publicPostUrl(post.audience, post.slug) } });
 });
 
 // GET /api/blog/posts/:slug — single post by slug with author and comments
 router.get('/posts/:slug', (req, res) => {
   const { slug } = req.params;
   const post = db.prepare(`
-    SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published,
+    SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published, p.audience,
            p.created_at, p.updated_at,
            u.id AS author_id, u.username AS author_username
     FROM blog_posts p
@@ -115,7 +138,9 @@ router.get('/posts/:slug', (req, res) => {
   res.json({
     post: {
       ...postData,
+      audience: normalizeAudience(postData.audience),
       image: ensureHttpsImage(postData.image),
+      public_url: publicPostUrl(postData.audience, postData.slug),
       author: author_username ? { id: author_id, username: author_username } : null
     },
     comments: comments.map(c => ({
@@ -202,7 +227,7 @@ router.post('/posts', (req, res) => {
   if (!req.session.user) return res.status(401).json({ error: 'Authentication required' });
   if (req.session.user.role !== 'admin') return res.status(403).json({ error: 'Admin access required' });
 
-  const { title, content, excerpt, image, published, scheduled_at } = req.body || {};
+  const { title, content, excerpt, image, published, scheduled_at, audience } = req.body || {};
   if (!title || typeof title !== 'string' || !title.trim()) {
     return res.status(400).json({ error: 'Title is required' });
   }
@@ -226,11 +251,13 @@ router.post('/posts', (req, res) => {
   const isScheduled = sched && new Date(sched).getTime() > Date.now();
   const pub = published ? (isScheduled ? 0 : 1) : 0;
 
+  const audienceVal = normalizeAudience(audience);
+
   let result;
   try {
     const insert = db.prepare(`
-      INSERT INTO blog_posts (title, slug, content, excerpt, image, author_id, published, scheduled_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO blog_posts (title, slug, content, excerpt, image, author_id, published, scheduled_at, audience)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     result = insert.run(
       title.trim(),
@@ -240,14 +267,15 @@ router.post('/posts', (req, res) => {
       imageVal,
       req.session.user.id,
       pub,
-      sched || null
+      sched || null,
+      audienceVal
     );
   } catch (err) {
     return res.status(500).json({ error: 'Database insert failed', detail: err.message });
   }
 
   const post = db.prepare(`
-    SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published, p.scheduled_at,
+    SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published, p.scheduled_at, p.audience,
            p.created_at, p.updated_at, u.username AS author_username
     FROM blog_posts p
     LEFT JOIN users u ON p.author_id = u.id
@@ -258,6 +286,8 @@ router.post('/posts', (req, res) => {
     success: true,
     post: {
       ...post,
+      audience: normalizeAudience(post.audience),
+      public_url: publicPostUrl(post.audience, post.slug),
       author_username: post.author_username
     }
   });
@@ -274,7 +304,7 @@ router.put('/posts/:id', (req, res) => {
   const existing = db.prepare('SELECT id FROM blog_posts WHERE id = ?').get(id);
   if (!existing) return res.status(404).json({ error: 'Post not found' });
 
-  const { title, content, excerpt, image, published, scheduled_at } = req.body || {};
+  const { title, content, excerpt, image, published, scheduled_at, audience } = req.body || {};
   const updates = [];
   const params = [];
 
@@ -282,6 +312,7 @@ router.put('/posts/:id', (req, res) => {
   if (content !== undefined) { updates.push('content = ?'); params.push(content); }
   if (excerpt !== undefined) { updates.push('excerpt = ?'); params.push(excerpt); }
   if (image !== undefined) { updates.push('image = ?'); params.push((image && typeof image === 'string' && image.trim()) ? image.trim() : null); }
+  if (audience !== undefined) { updates.push('audience = ?'); params.push(normalizeAudience(audience)); }
   if (scheduled_at !== undefined) {
     const sched = (scheduled_at && typeof scheduled_at === 'string' && scheduled_at.trim()) ? scheduled_at.trim() : null;
     updates.push('scheduled_at = ?');

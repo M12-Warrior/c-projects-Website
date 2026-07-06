@@ -88,6 +88,7 @@
         <button type="button" class="admin-tab active" data-tab="dashboard">Dashboard</button>
         <button type="button" class="admin-tab" data-tab="users">Users</button>
         <button type="button" class="admin-tab" data-tab="blog">Blog</button>
+        <button type="button" class="admin-tab" data-tab="socialButterflies">Social Butterflies</button>
         <button type="button" class="admin-tab" data-tab="forum">Forum</button>
         <button type="button" class="admin-tab" data-tab="shop">Shop</button>
         <button type="button" class="admin-tab" data-tab="services">Services page</button>
@@ -174,6 +175,12 @@
               <option value="5">5</option>
               <option value="all" selected>All</option>
             </select>
+            <label for="blogAudienceFilter" style="font-size:0.85rem;color:var(--text-2);">Audience:</label>
+            <select id="blogAudienceFilter" class="form-input" style="width:auto;min-width:8rem;">
+              <option value="all" selected>All</option>
+              <option value="driver">Driver blog</option>
+              <option value="family">Social Butterflies</option>
+            </select>
             <button type="button" class="btn btn-glass" id="blogRefreshListBtn">Refresh list</button>
             <button type="button" class="btn btn-primary" id="blogNewPostBtn">New Post (Proofread)</button>
           </div>
@@ -192,6 +199,14 @@
               <div class="form-group"><label class="form-label">Excerpt</label><input type="text" name="excerpt" id="blogNewExcerpt" class="form-input">
                 <button type="button" class="btn btn-glass mt-8" id="blogNewExcerptHelperBtn" style="font-size:0.8rem;">Suggest from content</button>
                 <p style="font-size:0.78rem;color:var(--text-3);margin-top:4px;">Short summary shown on the blog list. Leave blank to auto-use the start of your post.</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="blogNewAudience">Audience</label>
+                <select id="blogNewAudience" class="form-input" style="max-width:320px">
+                  <option value="driver">Driver blog (mile12warrior.com/blog)</option>
+                  <option value="family">Social Butterflies — families &amp; friends</option>
+                </select>
+                <p style="font-size:0.78rem;color:var(--text-3);margin-top:4px;">Family articles appear on <code>/social-butterflies/blog</code>, not the main driver blog.</p>
               </div>
               <div class="form-group">
                 <label class="form-label">Featured image</label>
@@ -225,9 +240,42 @@
           </div>
         </div>
         <table class="admin-table">
-          <thead><tr><th>Image</th><th>Title</th><th>Author</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Image</th><th>Title</th><th>Audience</th><th>Author</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
           <tbody id="blogTable"></tbody>
         </table>
+      </div>
+
+      <div id="tabSocialButterflies" class="admin-tab-content hidden">
+        <div class="admin-section">
+          <h3>Social Butterflies — family support hub</h3>
+          <p style="color:var(--text-2);font-size:0.92rem;line-height:1.65;max-width:720px">Quick links to public family pages and the admin tools that power them. Driver-facing content stays on the main site; family articles, community, and recipes live under Social Butterflies.</p>
+        </div>
+        <div class="admin-section">
+          <h4 style="margin-bottom:12px">Public pages</h4>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px">
+            <a href="/social-butterflies" target="_blank" rel="noopener" class="btn btn-glass">Social Butterflies hub</a>
+            <a href="/social-butterflies/blog" target="_blank" rel="noopener" class="btn btn-glass">Family articles</a>
+            <a href="/social-butterflies/community" target="_blank" rel="noopener" class="btn btn-glass">Family Circle</a>
+            <a href="/social-butterflies/community/recipes" target="_blank" rel="noopener" class="btn btn-glass">Road recipes</a>
+            <a href="/account" target="_blank" rel="noopener" class="btn btn-glass">My cab — Community tab</a>
+          </div>
+        </div>
+        <div class="admin-section">
+          <h4 style="margin-bottom:12px">Manage family articles</h4>
+          <p style="color:var(--text-2);font-size:0.9rem;margin-bottom:12px">Use the <strong>Blog</strong> tab. Set audience to <strong>Social Butterflies — families &amp; friends</strong> when creating or editing a post.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:10px">
+            <button type="button" class="btn btn-primary" id="sbAdminNewFamilyPost">New family article</button>
+            <button type="button" class="btn btn-glass" id="sbAdminOpenFamilyPosts">View family posts in Blog tab</button>
+          </div>
+        </div>
+        <div class="admin-section">
+          <h4 style="margin-bottom:12px">Community &amp; recipes</h4>
+          <ul style="color:var(--text-2);font-size:0.9rem;line-height:1.7;padding-left:20px;margin:0">
+            <li><strong>Family Circle conversations</strong> — forum category <code>family-circle</code>. Moderate in the <button type="button" class="btn btn-glass" style="font-size:0.82rem;padding:4px 10px" onclick="goToAdminTab('forum')">Forum tab</button>.</li>
+            <li><strong>Road recipes</strong> — families share labeled recipes at <code>/social-butterflies/community/recipes</code>. Authors edit or delete their own; no separate admin queue yet.</li>
+            <li><strong>Static support copy</strong> — road food tips and family guidance on the Social Butterflies hub page are in <code>views/social-butterflies.html</code> (edit in code or ask your developer).</li>
+          </ul>
+        </div>
       </div>
 
       <div id="tabForum" class="admin-tab-content hidden">
@@ -592,6 +640,13 @@
                 </div>
               </div>
               <div class="form-group"><label class="form-label">Excerpt</label><input type="text" id="blogEditExcerpt" name="excerpt" class="form-input"></div>
+              <div class="form-group">
+                <label class="form-label" for="blogEditAudience">Audience</label>
+                <select id="blogEditAudience" class="form-input" style="max-width:320px">
+                  <option value="driver">Driver blog (mile12warrior.com/blog)</option>
+                  <option value="family">Social Butterflies — families &amp; friends</option>
+                </select>
+              </div>
               <div class="form-group">
                 <label class="form-label">Featured image</label>
                 <p style="font-size:0.8rem;color:var(--text-3);margin-bottom:8px">Upload from your computer (no URL needed), or paste a URL if the image is from another site.</p>
@@ -1398,27 +1453,49 @@
         }
       }
 
+      function blogAudienceLabel(aud) {
+        return (aud === 'family') ? 'Social Butterflies' : 'Driver blog';
+      }
+      function blogPostPublicUrl(p) {
+        if (p.public_url) return p.public_url;
+        return (p.audience === 'family') ? ('/social-butterflies/blog/' + encodeURIComponent(p.slug || '')) : ('/blog/' + encodeURIComponent(p.slug || ''));
+      }
+      function setBlogAudienceFilter(val) {
+        var el = document.getElementById('blogAudienceFilter');
+        if (el) el.value = val || 'all';
+        renderBlogTableFromCache();
+      }
+      window.setBlogAudienceFilter = setBlogAudienceFilter;
+
       function renderBlogTableFromCache() {
         var el = document.getElementById('blogTable');
         if (!el) return;
         var posts = window._blogPostsCache;
-        if (!Array.isArray(posts)) { el.innerHTML = '<tr><td colspan="6">No posts yet. Use <strong>New Post</strong> above to create one; then you can edit it here.</td></tr>'; return; }
+        if (!Array.isArray(posts)) { el.innerHTML = '<tr><td colspan="7">No posts yet. Use <strong>New Post</strong> above to create one; then you can edit it here.</td></tr>'; return; }
         var limitEl = document.getElementById('blogListLimit');
         var limitVal = limitEl && limitEl.value === 'all' ? null : 5;
-        var list = limitVal ? posts.slice(0, limitVal) : posts;
+        var audEl = document.getElementById('blogAudienceFilter');
+        var audFilter = audEl ? audEl.value : 'all';
+        var filtered = posts;
+        if (audFilter && audFilter !== 'all') {
+          filtered = posts.filter(function(p) { return (p.audience || 'driver') === audFilter; });
+        }
+        var list = limitVal ? filtered.slice(0, limitVal) : filtered;
         el.innerHTML = list.length ? list.map(function(p) {
           var status = p.status || (p.published ? 'published' : (p.scheduled_at && new Date(p.scheduled_at) > new Date() ? 'scheduled' : 'draft'));
           var statusLabel = status;
           if (status === 'scheduled' && p.scheduled_at) statusLabel = 'Scheduled ' + (new Date(p.scheduled_at).toLocaleString());
+          var viewUrl = blogPostPublicUrl(p);
           return '<tr data-id="' + p.id + '">' +
             '<td>' + (p.image ? '<img class="blog-thumb" src="' + escapeHtml(p.image) + '" alt="">' : '') + '</td>' +
             '<td>' + escapeHtml(p.title) + '</td>' +
+            '<td>' + escapeHtml(blogAudienceLabel(p.audience || 'driver')) + '</td>' +
             '<td>' + escapeHtml(p.author_username || p.author || '—') + '</td>' +
             '<td><span class="badge-status ' + (status === 'published' ? 'status-delivered' : 'status-pending') + '">' + escapeHtml(statusLabel) + '</span></td>' +
             '<td>' + formatDate(p.created_at || p.date) + '</td>' +
-            '<td><a href="/blog/' + encodeURIComponent(p.slug || '') + '" target="_blank" rel="noopener" class="admin-btn admin-btn-primary blog-view" style="margin-right:8px;text-decoration:none;">View</a><button type="button" class="admin-btn admin-btn-primary blog-edit" style="margin-right:8px;">Edit</button><button type="button" class="admin-btn admin-btn-primary blog-publish" style="margin-right:8px;">Publish</button><button type="button" class="admin-btn admin-btn-danger blog-delete">Delete</button></td>' +
+            '<td><a href="' + viewUrl + '" target="_blank" rel="noopener" class="admin-btn admin-btn-primary blog-view" style="margin-right:8px;text-decoration:none;">View</a><button type="button" class="admin-btn admin-btn-primary blog-edit" style="margin-right:8px;">Edit</button><button type="button" class="admin-btn admin-btn-primary blog-publish" style="margin-right:8px;">Publish</button><button type="button" class="admin-btn admin-btn-danger blog-delete">Delete</button></td>' +
           '</tr>';
-        }).join('') : '<tr><td colspan="6">No posts yet. Use <strong>New Post</strong> above to create one; then you can edit it here.</td></tr>';
+        }).join('') : '<tr><td colspan="7">No posts match this filter. Use <strong>New Post</strong> above to create one.</td></tr>';
       }
 
       function bindBlogTabInteractions() {
@@ -1484,7 +1561,7 @@
         loadBlogCommentsPending();
         var el = document.getElementById('blogTable');
         if (!el) return;
-        el.innerHTML = '<tr><td colspan="6">Loading posts…</td></tr>';
+        el.innerHTML = '<tr><td colspan="7">Loading posts…</td></tr>';
         try {
 
           var res = await fetch('/api/blog/admin/posts', { credentials: 'include', cache: 'no-store' });
@@ -1492,7 +1569,7 @@
           if (!res.ok) {
             var errMsg = data.error || data.detail || ('Request failed: ' + res.status);
             showToast('Could not load posts list: ' + errMsg, false);
-            el.innerHTML = '<tr><td colspan="6">Could not load posts. Check the message above or try refreshing.</td></tr>';
+            el.innerHTML = '<tr><td colspan="7">Could not load posts. Check the message above or try refreshing.</td></tr>';
             return;
           }
           var posts = Array.isArray(data.posts) ? data.posts : (Array.isArray(data) ? data : []);
@@ -1502,6 +1579,11 @@
           if (limitEl && !limitEl._blogLimitBound) {
             limitEl._blogLimitBound = true;
             limitEl.addEventListener('change', renderBlogTableFromCache);
+          }
+          var audEl = document.getElementById('blogAudienceFilter');
+          if (audEl && !audEl._blogAudBound) {
+            audEl._blogAudBound = true;
+            audEl.addEventListener('change', renderBlogTableFromCache);
           }
         } catch (e) {
           showToast('Could not load posts list.', false);
@@ -1520,6 +1602,8 @@
           editTitleEl.value = p.title || '';
           editTitleEl.dispatchEvent(new Event('input'));
           document.getElementById('blogEditExcerpt').value = p.excerpt || '';
+          var audEdit = document.getElementById('blogEditAudience');
+          if (audEdit) audEdit.value = (p.audience === 'family') ? 'family' : 'driver';
           var editImgEl = document.getElementById('blogEditImageUrl');
           editImgEl.value = p.image || '';
           editImgEl.dispatchEvent(new Event('input'));
@@ -1576,12 +1660,14 @@
         this.value = '';
       });
       function getEditPayload() {
+        var audEl = document.getElementById('blogEditAudience');
         return {
           title: document.getElementById('blogEditTitle').value,
           excerpt: document.getElementById('blogEditExcerpt').value,
           image: (document.getElementById('blogEditImageUrl').value || '').trim() || null,
           content: (window.blogQuill ? window.blogQuill.getEditHtml() : ''),
-          scheduled_at: (document.getElementById('blogEditScheduledAt').value || '').trim() || null
+          scheduled_at: (document.getElementById('blogEditScheduledAt').value || '').trim() || null,
+          audience: audEl ? audEl.value : 'driver'
         };
       }
       async function submitEdit(publish) {
@@ -1677,7 +1763,8 @@
           image: (imageEl && imageEl.value) ? imageEl.value.trim() : null,
           content: contentHtml,
           published: !!publish,
-          scheduled_at: (schedEl && schedEl.value) ? schedEl.value.trim() : null
+          scheduled_at: (schedEl && schedEl.value) ? schedEl.value.trim() : null,
+          audience: (document.getElementById('blogNewAudience') && document.getElementById('blogNewAudience').value) || 'driver'
         };
         try {
           const r = await fetch('/api/blog/posts', {
@@ -3257,6 +3344,32 @@
       window.loadDashboard = loadDashboard;
       window.loadUsers = loadUsers;
       window.loadBlog = loadBlog;
+      function loadSocialButterflies() {
+        var newBtn = document.getElementById('sbAdminNewFamilyPost');
+        var openBtn = document.getElementById('sbAdminOpenFamilyPosts');
+        if (newBtn && !newBtn._sbBound) {
+          newBtn._sbBound = true;
+          newBtn.addEventListener('click', function() {
+            goToAdminTab('blog');
+            setBlogAudienceFilter('family');
+            var wrap = document.getElementById('blogNewFormWrap');
+            var aud = document.getElementById('blogNewAudience');
+            if (aud) aud.value = 'family';
+            if (wrap) wrap.classList.remove('hidden');
+            var title = document.getElementById('blogNewTitle');
+            if (title) title.focus();
+          });
+        }
+        if (openBtn && !openBtn._sbBound) {
+          openBtn._sbBound = true;
+          openBtn.addEventListener('click', function() {
+            goToAdminTab('blog');
+            setBlogAudienceFilter('family');
+            loadBlog();
+          });
+        }
+      }
+      window.loadSocialButterflies = loadSocialButterflies;
       window.loadForum = loadForum;
       window.loadShop = loadShop;
       window.loadServices = loadServices;
@@ -3451,7 +3564,14 @@
         if (urlTab === 'blog') {
           var blogTabBtn = document.querySelector('.admin-tab[data-tab="blog"]');
           if (blogTabBtn) activateAdminTab(blogTabBtn, { focusTab: false, skipLoader: true });
-          loadBlog();
+          loadBlog().then(function() {
+            var editId = urlParams.get('edit');
+            if (editId) openBlogEdit(editId);
+            var aud = urlParams.get('audience');
+            if (aud === 'family' || aud === 'driver') setBlogAudienceFilter(aud);
+          });
+        } else if (urlTab === 'socialButterflies' || urlTab === 'social-butterflies') {
+          goToAdminTab('socialButterflies');
         } else if (urlTab === 'partners') {
           goToAdminTab('partners');
         }
