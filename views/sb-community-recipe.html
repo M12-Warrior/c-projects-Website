@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recipe — Family Circle</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/social-butterflies.css">
+</head>
+<body class="social-butterflies-page sb-community-page">
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.png" alt="Mile 12 Warrior logo" class="nav-logo-img">
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/social-butterflies" class="active">Social Butterflies</a></li>
+        <li><a href="/social-butterflies/community/recipes">Road recipes</a></li>
+        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container" style="max-width:720px">
+      <a href="/social-butterflies/community/recipes" class="sb-back-link">&larr; Back to Road recipes</a>
+
+      <article class="sb-card sb-recipe-detail hidden" id="recipeView">
+        <div class="sb-recipe-detail-header">
+          <h1 class="sb-recipe-detail-title" id="recipeTitle">Loading…</h1>
+          <div id="recipeLabels" class="sb-recipe-label-row"></div>
+          <p class="sb-recipe-detail-meta" id="recipeMeta"></p>
+          <p class="sb-recipe-detail-summary" id="recipeSummary"></p>
+          <div class="sb-recipe-owner-actions hidden" id="ownerActions">
+            <button type="button" class="sb-btn sb-btn-outline" id="editBtn">Edit recipe</button>
+            <button type="button" class="sb-btn sb-btn-outline sb-recipe-delete-btn" id="deleteBtn">Delete</button>
+          </div>
+        </div>
+
+        <div class="sb-signin-banner sb-card hidden" id="recipeGateCard" style="margin:20px 0">
+          <p class="sb-signin-title">Sign in to read this recipe</p>
+          <p class="sb-signin-sub">Family Circle requires a free account so we can keep this space safe and welcoming.</p>
+          <div class="sb-signin-actions">
+            <a href="/login" class="sb-btn sb-btn-primary">Sign In</a>
+            <a href="/register" class="sb-btn sb-btn-outline">Create Account</a>
+          </div>
+        </div>
+
+        <div id="recipeBody" class="hidden">
+          <details class="sb-recipe-fold">
+            <summary>Ingredients</summary>
+            <div class="sb-recipe-fold-body" id="recipeIngredients"></div>
+          </details>
+          <details class="sb-recipe-fold">
+            <summary>Instructions</summary>
+            <div class="sb-recipe-fold-body" id="recipeInstructions"></div>
+          </details>
+          <details class="sb-recipe-fold" id="notesFold">
+            <summary>Author notes</summary>
+            <div class="sb-recipe-fold-body" id="recipeNotes"></div>
+          </details>
+        </div>
+      </article>
+
+      <form id="recipeEditForm" class="sb-card sb-form hidden">
+        <h2 class="sb-section-title">Edit your recipe</h2>
+        <p class="sb-muted" style="margin-bottom:16px">Update anytime — your recipe, your control.</p>
+        <div class="form-group">
+          <label class="form-label" for="editTitle">Recipe name</label>
+          <input type="text" id="editTitle" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editSummary">Short intro</label>
+          <textarea id="editSummary" class="form-input" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editLabels">Labels (comma-separated)</label>
+          <input type="text" id="editLabels" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editIngredients">Ingredients</label>
+          <textarea id="editIngredients" class="form-input" rows="6"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editInstructions">Instructions</label>
+          <textarea id="editInstructions" class="form-input" rows="6"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editNotes">Your notes</label>
+          <textarea id="editNotes" class="form-input" rows="3"></textarea>
+        </div>
+        <p id="editError" class="form-error hidden"></p>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+          <button type="submit" class="sb-btn sb-btn-primary">Save changes</button>
+          <button type="button" class="sb-btn sb-btn-outline" id="cancelEditBtn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      var recipe = null;
+      var currentUserId = null;
+      var isLoggedIn = false;
+
+      function esc(s) {
+        return String(s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      function formatDate(iso) {
+        if (!iso) return '';
+        return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      function getSlug() {
+        var m = /\/social-butterflies\/community\/recipes\/([^/?#]+)/.exec(window.location.pathname);
+        return m ? decodeURIComponent(m[1]) : '';
+      }
+
+      function renderView() {
+        if (!recipe) return;
+        document.getElementById('recipeView').classList.remove('hidden');
+        document.getElementById('recipeTitle').textContent = recipe.title;
+        document.getElementById('recipeMeta').textContent = 'Shared by ' + (recipe.username || 'Anonymous') + ' · Updated ' + formatDate(recipe.updated_at || recipe.created_at);
+        document.getElementById('recipeSummary').textContent = recipe.summary || '';
+        document.getElementById('recipeSummary').style.display = recipe.summary ? 'block' : 'none';
+
+        var labelsEl = document.getElementById('recipeLabels');
+        labelsEl.innerHTML = (recipe.labels || []).map(function(l, i) {
+          var name = (recipe.label_names && recipe.label_names[i]) || l.replace(/-/g, ' ');
+          return '<a href="/social-butterflies/community/recipes?label=' + encodeURIComponent(l) + '" class="sb-recipe-label">' + esc(name) + '</a>';
+        }).join('');
+
+        if (isLoggedIn) {
+          document.getElementById('recipeGateCard').classList.add('hidden');
+          document.getElementById('recipeBody').classList.remove('hidden');
+          document.getElementById('recipeIngredients').textContent = recipe.ingredients || '(No ingredients listed)';
+          document.getElementById('recipeInstructions').textContent = recipe.instructions || '(No instructions listed)';
+          var notesFold = document.getElementById('notesFold');
+          if (recipe.author_notes) {
+            notesFold.classList.remove('hidden');
+            document.getElementById('recipeNotes').textContent = recipe.author_notes;
+          } else {
+            notesFold.classList.add('hidden');
+          }
+        } else {
+          document.getElementById('recipeGateCard').classList.remove('hidden');
+          document.getElementById('recipeBody').classList.add('hidden');
+        }
+
+        if (isLoggedIn && currentUserId === recipe.user_id) {
+          document.getElementById('ownerActions').classList.remove('hidden');
+        }
+      }
+
+      function fillEditForm() {
+        document.getElementById('editTitle').value = recipe.title || '';
+        document.getElementById('editSummary').value = recipe.summary || '';
+        document.getElementById('editLabels').value = (recipe.labels || []).join(', ');
+        document.getElementById('editIngredients').value = recipe.ingredients || '';
+        document.getElementById('editInstructions').value = recipe.instructions || '';
+        document.getElementById('editNotes').value = recipe.author_notes || '';
+      }
+
+      async function checkAuth() {
+        try {
+          var r = await fetch('/api/auth/me', { credentials: 'include' });
+          if (r.ok) {
+            var data = await r.json();
+            if (data.user) {
+              isLoggedIn = true;
+              currentUserId = data.user.id;
+            }
+          }
+        } catch (_) {}
+      }
+
+      async function loadRecipe() {
+        var slug = getSlug();
+        if (!slug) {
+          window.location.replace('/social-butterflies/community/recipes');
+          return;
+        }
+        try {
+          var r = await fetch('/api/family-circle/recipes/' + encodeURIComponent(slug), { credentials: 'include' });
+          if (!r.ok) {
+            window.location.replace('/social-butterflies/community/recipes');
+            return;
+          }
+          var data = await r.json();
+          recipe = data.recipe;
+          document.title = recipe.title + ' — Family Circle';
+          renderView();
+        } catch (_) {
+          window.location.replace('/social-butterflies/community/recipes');
+        }
+      }
+
+      document.getElementById('editBtn').addEventListener('click', function() {
+        fillEditForm();
+        document.getElementById('recipeView').classList.add('hidden');
+        document.getElementById('recipeEditForm').classList.remove('hidden');
+      });
+
+      document.getElementById('cancelEditBtn').addEventListener('click', function() {
+        document.getElementById('recipeEditForm').classList.add('hidden');
+        document.getElementById('recipeView').classList.remove('hidden');
+      });
+
+      document.getElementById('deleteBtn').addEventListener('click', async function() {
+        if (!recipe || !confirm('Delete this recipe? This cannot be undone.')) return;
+        try {
+          var r = await fetch('/api/family-circle/recipes/' + recipe.id, {
+            method: 'DELETE',
+            credentials: 'include'
+          });
+          if (r.ok) {
+            window.location.href = '/social-butterflies/community/recipes';
+            return;
+          }
+          var data = await r.json().catch(function() { return {}; });
+          alert(data.error || 'Could not delete recipe.');
+        } catch (_) {
+          alert('Network error. Please try again.');
+        }
+      });
+
+      document.getElementById('recipeEditForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var errEl = document.getElementById('editError');
+        var labels = document.getElementById('editLabels').value.split(/[,;]+/).map(function(s) { return s.trim(); }).filter(Boolean);
+        var payload = {
+          title: document.getElementById('editTitle').value.trim(),
+          summary: document.getElementById('editSummary').value.trim(),
+          ingredients: document.getElementById('editIngredients').value.trim(),
+          instructions: document.getElementById('editInstructions').value.trim(),
+          author_notes: document.getElementById('editNotes').value.trim(),
+          labels: labels
+        };
+        var btn = e.target.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        errEl.classList.add('hidden');
+        try {
+          var r = await fetch('/api/family-circle/recipes/' + recipe.id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload)
+          });
+          var data = await r.json();
+          if (r.ok && data.recipe) {
+            recipe = data.recipe;
+            document.getElementById('recipeEditForm').classList.add('hidden');
+            document.getElementById('recipeView').classList.remove('hidden');
+            renderView();
+            return;
+          }
+          errEl.textContent = data.error || 'Could not save changes.';
+          errEl.classList.remove('hidden');
+        } catch (_) {
+          errEl.textContent = 'Network error. Please try again.';
+          errEl.classList.remove('hidden');
+        }
+        btn.disabled = false;
+      });
+
+      (async function() {
+        await checkAuth();
+        await loadRecipe();
+      })();
+    })();
+  </script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

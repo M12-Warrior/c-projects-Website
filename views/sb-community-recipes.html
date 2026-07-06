@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Road Recipes — Family Circle</title>
+  <meta name="description" content="Family-shared recipes for drivers on the road — steady energy, cab-friendly ideas, and care-package favorites.">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/social-butterflies.css">
+</head>
+<body class="social-butterflies-page sb-community-page">
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.png" alt="Mile 12 Warrior logo: gold highway shield with M and 12" class="nav-logo-img">
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/social-butterflies" class="active">Social Butterflies</a></li>
+        <li><a href="/social-butterflies/community">Family Circle</a></li>
+        <li><a href="/forum">Forum</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/register" class="nav-auth-link">Sign up</a> &middot; <a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container">
+      <a href="/social-butterflies" class="sb-back-link">&larr; Back to Social Butterflies</a>
+
+      <header class="sb-community-hero">
+        <div class="sb-badge"><span class="sb-badge-dot"></span> Family Circle</div>
+        <h1>Road <span>recipes</span></h1>
+        <p class="sb-hero-lead">Pack steady energy for the haul. Share lunches and care-package favorites with labels so other families can find what fits — and keep control of recipes you post.</p>
+      </header>
+
+      <div class="sb-signin-banner sb-card hidden" id="recipesSigninBanner">
+        <div>
+          <p class="sb-signin-title">Sign in to browse and share recipes</p>
+          <p class="sb-signin-sub">A free account lets you read every recipe and share your own. You can edit notes or remove anything you posted anytime.</p>
+        </div>
+        <div class="sb-signin-actions">
+          <a href="/login" class="sb-btn sb-btn-primary">Sign In</a>
+          <a href="/register" class="sb-btn sb-btn-outline">Create Account</a>
+        </div>
+      </div>
+
+      <nav class="sb-community-tabs" aria-label="Family Circle sections">
+        <a href="/social-butterflies/community" class="sb-community-tab">Conversations</a>
+        <a href="/social-butterflies/community/recipes" class="sb-community-tab is-active">Road recipes</a>
+      </nav>
+
+      <div class="sb-community-toolbar">
+        <h2 class="sb-section-title" style="margin:0">Shared recipes</h2>
+        <a href="/social-butterflies/community/recipes/new" class="sb-btn sb-btn-primary hidden" id="newRecipeBtn">Share a recipe</a>
+      </div>
+
+      <div class="sb-recipe-label-bar hidden" id="labelBar" aria-label="Filter by label">
+        <button type="button" class="sb-recipe-label-chip is-active" data-label="">All</button>
+      </div>
+
+      <div id="recipeList" class="sb-recipe-list"></div>
+
+      <div class="sb-empty-state sb-card hidden" id="emptyState">
+        <p class="sb-empty-lead">No recipes yet — be the first to share.</p>
+        <p>Post a lunch wrap, cooler idea, or care-package favorite. Add labels like <strong>steady energy</strong> or <strong>cab-friendly</strong> so others can find it easily.</p>
+        <a href="/social-butterflies/community/recipes/new" class="sb-btn sb-btn-primary hidden" id="emptyNewBtn">Share the first recipe</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>Mile 12 Warrior LLC | 2108 N ST., STE N, SACRAMENTO CA 95816</p>
+        <p>&copy; 2026 Mile 12 Warrior LLC.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      var isLoggedIn = false;
+      var allRecipes = [];
+      var activeLabel = new URLSearchParams(window.location.search).get('label') || '';
+
+      function esc(s) {
+        return String(s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      function formatDate(iso) {
+        if (!iso) return '';
+        var d = new Date(iso);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      function labelChips(labels) {
+        if (!labels || !labels.length) return '';
+        return labels.map(function(l, i) {
+          var name = (labels.label_names && labels.label_names[i]) || l.replace(/-/g, ' ');
+          return '<span class="sb-recipe-label">' + esc(name) + '</span>';
+        }).join('');
+      }
+
+      function renderLabelBar(labelsData) {
+        var bar = document.getElementById('labelBar');
+        var chips = ['<button type="button" class="sb-recipe-label-chip' + (activeLabel ? '' : ' is-active') + '" data-label="">All</button>'];
+        (labelsData.all || []).forEach(function(item) {
+          if (!item.in_use && !item.slug) return;
+          chips.push('<button type="button" class="sb-recipe-label-chip' + (activeLabel === item.slug ? ' is-active' : '') + '" data-label="' + esc(item.slug) + '">' + esc(item.name) + '</button>');
+        });
+        bar.innerHTML = chips.join('');
+        bar.classList.remove('hidden');
+        bar.querySelectorAll('.sb-recipe-label-chip').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            activeLabel = btn.getAttribute('data-label') || '';
+            renderLabelBar(labelsData);
+            renderList();
+          });
+        });
+      }
+
+      function renderList() {
+        var listEl = document.getElementById('recipeList');
+        var emptyEl = document.getElementById('emptyState');
+        var filtered = activeLabel
+          ? allRecipes.filter(function(r) { return (r.labels || []).indexOf(activeLabel) !== -1; })
+          : allRecipes;
+
+        if (!filtered.length) {
+          listEl.innerHTML = activeLabel
+            ? '<p class="sb-muted">No recipes with this label yet. Try another label or share one!</p>'
+            : '';
+          if (!activeLabel && !allRecipes.length) {
+            emptyEl.classList.remove('hidden');
+          } else {
+            emptyEl.classList.add('hidden');
+          }
+          return;
+        }
+        emptyEl.classList.add('hidden');
+        listEl.innerHTML = filtered.map(function(r) {
+          var labelsHtml = (r.labels || []).map(function(l, i) {
+            var name = (r.label_names && r.label_names[i]) || l.replace(/-/g, ' ');
+            return '<span class="sb-recipe-label">' + esc(name) + '</span>';
+          }).join('');
+          var preview = esc(r.summary || 'Tap to peek — open the full recipe for ingredients and steps.');
+          return '<details class="sb-recipe-item sb-card">' +
+            '<summary class="sb-recipe-summary">' +
+              '<span class="sb-recipe-item-title">' + esc(r.title) + '</span>' +
+              (labelsHtml ? '<span class="sb-recipe-label-row">' + labelsHtml + '</span>' : '') +
+              '<span class="sb-recipe-item-meta">by ' + esc(r.username) + ' &middot; ' + formatDate(r.updated_at || r.created_at) + '</span>' +
+            '</summary>' +
+            '<div class="sb-recipe-item-body">' +
+              '<p>' + preview + '</p>' +
+              '<a href="/social-butterflies/community/recipes/' + esc(r.slug) + '" class="sb-btn sb-btn-outline">Open full recipe</a>' +
+            '</div>' +
+          '</details>';
+        }).join('');
+      }
+
+      async function checkAuth() {
+        try {
+          var r = await fetch('/api/auth/me', { credentials: 'include' });
+          if (r.ok) {
+            var data = await r.json();
+            if (data.user) {
+              isLoggedIn = true;
+              document.getElementById('newRecipeBtn').classList.remove('hidden');
+              document.getElementById('emptyNewBtn').classList.remove('hidden');
+              document.getElementById('recipesSigninBanner').classList.add('hidden');
+            }
+          }
+        } catch (_) {}
+        if (!isLoggedIn) {
+          document.getElementById('recipesSigninBanner').classList.remove('hidden');
+        }
+      }
+
+      async function loadRecipes() {
+        var listEl = document.getElementById('recipeList');
+        if (!isLoggedIn) {
+          listEl.innerHTML = '<p class="sb-muted">Sign in to browse Family Circle recipes.</p>';
+          return;
+        }
+        try {
+          var labelsRes = await fetch('/api/family-circle/recipes/labels', { credentials: 'include' });
+          var labelsData = labelsRes.ok ? await labelsRes.json() : { all: [] };
+          renderLabelBar(labelsData);
+
+          var r = await fetch('/api/family-circle/recipes', { credentials: 'include' });
+          var data = await r.json();
+          allRecipes = data.recipes || [];
+          renderList();
+        } catch (e) {
+          listEl.innerHTML = '<p class="sb-muted">Unable to load recipes. Please try again.</p>';
+        }
+      }
+
+      (async function() {
+        await checkAuth();
+        loadRecipes();
+      })();
+    })();
+  </script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

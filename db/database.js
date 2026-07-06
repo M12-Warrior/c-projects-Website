@@ -695,6 +695,27 @@ try {
   }
 } catch (_) {}
 
+// Family Circle — shared road recipes (existing databases, idempotent)
+try {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS family_circle_recipes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      title TEXT NOT NULL,
+      slug TEXT UNIQUE NOT NULL,
+      summary TEXT DEFAULT '',
+      ingredients TEXT NOT NULL DEFAULT '',
+      instructions TEXT NOT NULL DEFAULT '',
+      author_notes TEXT DEFAULT '',
+      labels TEXT DEFAULT '[]',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_fc_recipes_user ON family_circle_recipes(user_id);
+    CREATE INDEX IF NOT EXISTS idx_fc_recipes_updated ON family_circle_recipes(updated_at DESC);
+  `);
+} catch (_) {}
+
 const isProduction = process.env.NODE_ENV === 'production';
 
 function resolveInitialAdminPassword() {

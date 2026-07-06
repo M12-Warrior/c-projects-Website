@@ -50,5 +50,34 @@ else fail('account family circle link');
 if (accountHtml.includes('href="/forum"') && accountHtml.includes("Driver's Lounge")) ok('account forum link');
 else fail('account forum link');
 
+if (serverJs.includes('/api/family-circle/recipes')) ok('family circle recipes API route');
+else fail('family circle recipes API route');
+
+if (dbJs.includes('family_circle_recipes')) ok('family circle recipes table');
+else fail('family circle recipes table');
+
+if (fs.existsSync(path.join(root, 'routes', 'familyCircleRecipes.js'))) ok('familyCircleRecipes route module');
+else fail('familyCircleRecipes route module');
+
+if (fs.existsSync(path.join(root, 'views', 'sb-community-recipes.html'))) ok('recipes list page');
+else fail('recipes list page');
+
+const recipesHtml = fs.readFileSync(path.join(root, 'views', 'sb-community-recipes.html'), 'utf8');
+if (recipesHtml.includes('sb-community-tabs') && recipesHtml.includes('Road recipes')) ok('recipes community tab');
+else fail('recipes community tab');
+
+if (recipesHtml.includes('/api/family-circle/recipes')) ok('recipes page API fetch');
+else fail('recipes page API fetch');
+
+const recipeDetailHtml = fs.readFileSync(path.join(root, 'views', 'sb-community-recipe.html'), 'utf8');
+if (recipeDetailHtml.includes('sb-recipe-fold') && recipeDetailHtml.includes('deleteBtn')) ok('recipe detail fold and delete');
+else fail('recipe detail fold and delete');
+
+if (recipeDetailHtml.includes('recipeEditForm') && recipeDetailHtml.includes('PUT')) ok('recipe author edit');
+else fail('recipe author edit');
+
+if (sbHtml.includes('/social-butterflies/community/recipes')) ok('social-butterflies links to recipes');
+else fail('social-butterflies recipes link');
+
 if (failed) process.exit(1);
 console.log('All Social Butterflies community checks passed.');

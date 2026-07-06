@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Share a Recipe — Family Circle</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/social-butterflies.css">
+</head>
+<body class="social-butterflies-page sb-community-page">
+
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.png" alt="Mile 12 Warrior logo" class="nav-logo-img">
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/social-butterflies" class="active">Social Butterflies</a></li>
+        <li><a href="/social-butterflies/community/recipes">Road recipes</a></li>
+        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="page-container" style="max-width:640px">
+      <a href="/social-butterflies/community/recipes" class="sb-back-link">&larr; Back to Road recipes</a>
+      <h1 class="sb-section-title">Share a recipe</h1>
+      <p class="sb-muted" style="margin-bottom:24px">Add labels so families can find your idea. You stay in control — edit notes or delete your recipe anytime.</p>
+
+      <form id="recipeForm" class="sb-card sb-form">
+        <div class="form-group">
+          <label class="form-label" for="title">Recipe name</label>
+          <input type="text" id="title" class="form-input" required placeholder="Turkey wrap lunch box">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="summary">Short intro (optional)</label>
+          <textarea id="summary" class="form-input" rows="2" placeholder="Why this works on a long haul — steady energy, easy at a stop…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="labels">Labels</label>
+          <p class="sb-muted" style="font-size:0.82rem;margin:0 0 10px">Pick a few or type your own, comma-separated.</p>
+          <div id="labelPicker" class="sb-recipe-label-picker"></div>
+          <input type="text" id="labels" class="form-input" style="margin-top:10px" placeholder="steady-energy, cab-friendly">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="ingredients">Ingredients</label>
+          <textarea id="ingredients" class="form-input" rows="6" placeholder="- whole-grain wrap&#10;- sliced turkey&#10;- …"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="instructions">Instructions</label>
+          <textarea id="instructions" class="form-input" rows="6" placeholder="Layer wrap, pack cooler with…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="author_notes">Your notes (optional)</label>
+          <textarea id="author_notes" class="form-input" rows="3" placeholder="Substitutions, what my driver prefers, cooler tips…"></textarea>
+        </div>
+        <p id="formError" class="form-error hidden"></p>
+        <button type="submit" class="sb-btn sb-btn-primary">Share recipe</button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      var selectedLabels = new Set();
+
+      function esc(s) { return String(s || '').replace(/</g, '&lt;'); }
+
+      async function loadLabelPicker() {
+        try {
+          var r = await fetch('/api/family-circle/recipes/labels', { credentials: 'include' });
+          var data = await r.json();
+          var el = document.getElementById('labelPicker');
+          el.innerHTML = (data.predefined || []).map(function(item) {
+            return '<button type="button" class="sb-recipe-label-chip" data-label="' + esc(item.slug) + '">' + esc(item.name) + '</button>';
+          }).join('');
+          el.querySelectorAll('.sb-recipe-label-chip').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              var slug = btn.getAttribute('data-label');
+              if (selectedLabels.has(slug)) {
+                selectedLabels.delete(slug);
+                btn.classList.remove('is-active');
+              } else {
+                selectedLabels.add(slug);
+                btn.classList.add('is-active');
+              }
+              syncLabelsInput();
+            });
+          });
+        } catch (_) {}
+      }
+
+      function syncLabelsInput() {
+        var extra = document.getElementById('labels').value.split(/[,;]+/).map(function(s) { return s.trim(); }).filter(Boolean);
+        var merged = new Set(selectedLabels);
+        extra.forEach(function(l) { merged.add(l); });
+        document.getElementById('labels').value = Array.from(merged).join(', ');
+      }
+
+      document.getElementById('labels').addEventListener('change', syncLabelsInput);
+
+      document.getElementById('recipeForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        syncLabelsInput();
+        var errEl = document.getElementById('formError');
+        var labelsRaw = document.getElementById('labels').value;
+        var labels = labelsRaw.split(/[,;]+/).map(function(s) { return s.trim(); }).filter(Boolean);
+        var payload = {
+          title: document.getElementById('title').value.trim(),
+          summary: document.getElementById('summary').value.trim(),
+          ingredients: document.getElementById('ingredients').value.trim(),
+          instructions: document.getElementById('instructions').value.trim(),
+          author_notes: document.getElementById('author_notes').value.trim(),
+          labels: labels
+        };
+        if (!payload.title) {
+          errEl.textContent = 'Please add a recipe name.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        if (!payload.ingredients && !payload.instructions) {
+          errEl.textContent = 'Add ingredients or instructions so others can use your recipe.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        var btn = e.target.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = 'Sharing…';
+        errEl.classList.add('hidden');
+        try {
+          var r = await fetch('/api/family-circle/recipes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload)
+          });
+          var data = await r.json();
+          if (r.ok && data.recipe && data.recipe.slug) {
+            window.location.href = '/social-butterflies/community/recipes/' + data.recipe.slug;
+            return;
+          }
+          errEl.textContent = data.error || 'Could not share recipe. Please try again.';
+          errEl.classList.remove('hidden');
+        } catch (_) {
+          errEl.textContent = 'Network error. Please try again.';
+          errEl.classList.remove('hidden');
+        }
+        btn.disabled = false;
+        btn.textContent = 'Share recipe';
+      });
+
+      loadLabelPicker();
+    })();
+  </script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

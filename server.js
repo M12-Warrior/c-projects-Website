@@ -193,6 +193,7 @@ app.use('/api/upload', require('./routes/upload'));
 app.use('/api/cms', require('./routes/cms'));
 app.use('/api/qr', require('./routes/qr'));
 app.use('/api/wellness', require('./routes/wellness'));
+app.use('/api/family-circle/recipes', require('./routes/familyCircleRecipes'));
 
 // Auth helpers
 const requireLogin = (req, res, next) => {
@@ -229,6 +230,18 @@ app.get('/social-butterflies/community/new', requireLogin, (req, res) => {
 
 app.get('/social-butterflies/community/thread/:slug', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'sb-community-thread.html'));
+});
+
+app.get('/social-butterflies/community/recipes', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'sb-community-recipes.html'));
+});
+
+app.get('/social-butterflies/community/recipes/new', requireLogin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'sb-community-recipe-new.html'));
+});
+
+app.get('/social-butterflies/community/recipes/:slug', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'sb-community-recipe.html'));
 });
 
 app.get('/packets/new-driver', (req, res) => {
