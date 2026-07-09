@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="/css/social-butterflies.css">
 </head>
 <body class="social-butterflies-page sb-community-page">
-
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="grain-overlay"></div>
   <div class="scroll-progress" id="scrollProgress"></div>
 
@@ -32,7 +32,7 @@
     </div>
   </nav>
 
-  <main class="page-shell">
+  <main id="main-content" class="page-shell">
     <div class="page-container">
       <a href="/social-butterflies" class="sb-back-link">&larr; Back to Social Butterflies</a>
 
@@ -86,7 +86,7 @@
           }
           grid.innerHTML = posts.map(function(post) {
             var img = post.image
-              ? '<img src="' + esc(post.image) + '" alt="" class="sb-blog-card-img" onerror="this.style.display=\'none\'">'
+              ? '<img src="' + esc(post.image) + '" alt="' + esc(post.title || 'Blog post') + '" class="sb-blog-card-img" onerror="this.style.display=\'none\'">'
               : '<span class="sb-blog-card-placeholder">' + placeholderIcon + '</span>';
             var url = post.public_url || ('/social-butterflies/blog/' + esc(post.slug));
             return '<article class="sb-card sb-blog-card">' +

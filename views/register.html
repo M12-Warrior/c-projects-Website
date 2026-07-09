@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="grain-overlay"></div>
   <div class="scroll-progress" id="scrollProgress"></div>
 
@@ -50,9 +50,9 @@
   </nav>
 
   <!-- ========== AUTH CONTENT ========== -->
-  <main class="page-shell auth-page">
+  <main id="main-content" class="page-shell auth-page">
     <div class="auth-card">
-      <h2>Create Account</h2>
+      <h1 class="auth-title" style="font-family:var(--font);font-size:1.5rem;font-weight:700;margin-bottom:1rem">Create Account</h1>
       <form id="registerForm">
         <div class="form-group">
           <label class="form-label" for="username">Handle (CB handle or username)</label>
@@ -98,7 +98,7 @@
           <label class="flex align-center gap-8" style="cursor:pointer;margin-bottom:8px;"><input type="checkbox" name="opt_in_product_updates" value="1"> Product updates</label>
           <label class="flex align-center gap-8" style="cursor:pointer;"><input type="checkbox" name="opt_in_forum" value="1"> Forum updates</label>
         </div>
-        <div id="registerError" class="form-error hidden"></div>
+        <div id="registerError" class="form-error hidden" role="alert"></div>
         <button type="submit" class="form-btn">Create Account</button>
       </form>
       <p class="form-link">

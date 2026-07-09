@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="grain-overlay"></div>
   <div class="scroll-progress" id="scrollProgress"></div>
 
@@ -46,7 +46,7 @@
     </div>
   </nav>
 
-  <main class="page-shell">
+  <main id="main-content" class="page-shell">
     <div class="page-container">
       <div class="profile-page" id="profilePage">
         <h1 class="page-title reveal" style="font-size:1.45rem;margin-bottom:6px;">Cab settings</h1>
@@ -139,7 +139,7 @@
             <input type="password" id="newPassword" name="newPassword" class="form-input" required minlength="6" autocomplete="new-password">
             <label class="form-label" for="confirmNewPassword">Confirm new password</label>
             <input type="password" id="confirmNewPassword" name="confirmNewPassword" class="form-input" required minlength="6" autocomplete="new-password">
-            <p id="changePasswordError" class="form-error hidden"></p>
+            <p id="changePasswordError" class="form-error hidden" role="alert"></p>
             <p id="changePasswordSuccess" class="text-muted" style="font-size:0.9rem;margin-top:8px;display:none;"></p>
             <button type="submit" class="btn btn-primary mt-16">Update password</button>
           </form>

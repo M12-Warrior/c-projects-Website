@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="grain-overlay"></div>
   <div class="scroll-progress" id="scrollProgress"></div>
 
@@ -44,7 +44,7 @@
     </div>
   </nav>
 
-  <main class="page-shell">
+  <main id="main-content" class="page-shell">
     <div class="page-container">
       <a href="/forum" class="text-muted" style="display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px; font-size: 0.88rem; text-decoration: none;">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -70,7 +70,7 @@
           <textarea id="content" class="form-input" name="content" rows="8" placeholder="Share your question or topic…" required></textarea>
           <p class="form-hint" style="font-size:0.8rem;color:var(--text-3);margin-top:8px">Only post content you own or have permission to use. Do not paste copyrighted articles, lyrics, or images from others.</p>
         </div>
-        <p id="formError" class="form-error hidden"></p>
+        <p id="formError" class="form-error hidden" role="alert"></p>
         <button type="submit" class="form-btn">Create Thread</button>
       </form>
     </div>

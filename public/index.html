@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html lang="en" class="no-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body style="background-color: #2c2c2e;" data-theme="concrete">
-
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="grain-overlay"></div>
   <div class="scroll-progress" id="scrollProgress"></div>
 
@@ -46,7 +46,7 @@
   </nav>
 
   <!-- ========== HERO ========== -->
-  <header class="hero" id="hero">
+  <header class="hero" id="main-content">
     <div class="hero-bg-image" aria-hidden="true"></div>
     <div class="hero-mesh"></div>
     <div class="hero-glow hero-glow-1"></div>
@@ -622,16 +622,18 @@
           <h3>Stay Road-Ready Every Month</h3>
           <p>Join the <strong>Mile 12 Warrior Newsletter</strong> — free monthly tips on safety, wellness, FMCSA updates, and community stories delivered straight to your inbox. Plus, get exclusive downloadable checklists and guides you won't find anywhere else.</p>
         </div>
-        <form class="newsletter-form" id="newsletterForm">
+        <form class="newsletter-form" id="newsletterForm" aria-label="Newsletter signup">
           <div class="newsletter-inputs">
-            <input type="text" id="nlName" placeholder="Your name" class="nl-input" required>
-            <input type="email" id="nlEmail" placeholder="you@example.com" class="nl-input" required>
+            <label class="sr-only" for="nlName">Your name</label>
+            <input type="text" id="nlName" name="name" placeholder="Your name" class="nl-input" required autocomplete="name">
+            <label class="sr-only" for="nlEmail">Email address</label>
+            <input type="email" id="nlEmail" name="email" placeholder="you@example.com" class="nl-input" required autocomplete="email">
           </div>
           <button type="submit" class="btn btn-primary nl-submit">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             Subscribe — It's Free
           </button>
-          <p class="nl-success" id="nlSuccess">You're in! Check your inbox for a welcome email.</p>
+          <p class="nl-success" id="nlSuccess" role="status" aria-live="polite">You're in! Check your inbox for a welcome email.</p>
           <p class="nl-disclaimer">No spam, ever. Unsubscribe anytime. Your data is handled per our <a href="/privacy">Privacy Policy</a>.</p>
         </form>
         <div class="newsletter-or">
@@ -819,12 +821,14 @@
                 <a href="/forum/category/general" class="btn btn-primary" style="text-decoration:none"><span>Visit the Coffee Shop</span></a>
                 <a href="/forum" class="btn btn-secondary" style="text-decoration:none">Browse the Forum</a>
               </div>
-              <form id="thankYouForm" class="coffee-thank-form">
+              <form id="thankYouForm" class="coffee-thank-form" aria-label="Optional thank-you note">
                 <p class="tier1-thank-note">Optional: send a quick note to Mile 12 Warrior.</p>
+                <label class="sr-only" for="tyName">Name (optional)</label>
                 <input type="text" id="tyName" name="name" placeholder="Name (optional)" autocomplete="name">
+                <label class="sr-only" for="tyEmail">Email (optional)</label>
                 <input type="email" id="tyEmail" name="email" placeholder="Email (optional)" autocomplete="email">
                 <button type="submit" class="btn btn-secondary">Send thank you</button>
-                <p class="coffee-thank-success" id="tySuccess" role="status"></p>
+                <p class="coffee-thank-success" id="tySuccess" role="status" aria-live="polite"></p>
               </form>
             </div>
 
@@ -1029,7 +1033,7 @@
           <strong>Privacy:</strong> We collect only limited personal data necessary to operate the Service, in accordance with our <a href="/privacy">Privacy Policy</a>, the California Consumer Privacy Act (CCPA/CPRA — Cal. Civ. Code §1798.100 et seq.), and applicable federal laws. We do not sell your personal information. You may subscribe to our newsletter, blog, and forum updates and unsubscribe at any time.
         </p>
         <p class="footer-disclaimer">
-          <strong>Accessibility:</strong> We strive to make this website accessible to all users in accordance with the Americans with Disabilities Act (ADA) and WCAG 2.1 Level AA guidelines. If you experience any accessibility issues, please <a href="/contact">contact us</a>.
+          <strong>Accessibility:</strong> We strive to make this website accessible under applicable <strong>federal, state, and local</strong> U.S. disability-access laws — including the Americans with Disabilities Act (ADA Title III), the California Unruh Civil Rights Act and Disabled Persons Act, and parallel state/local human-rights laws where we serve customers — using <strong>WCAG 2.1 Level AA</strong> as our technical standard. See our <a href="/accessibility">Accessibility Statement</a>. If you experience any accessibility issues, please <a href="/contact">contact us</a>.
         </p>
       </div>
     </div>

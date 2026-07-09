@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/css/social-butterflies.css">
 </head>
 <body class="social-butterflies-page sb-community-page">
-
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="grain-overlay"></div>
   <div class="scroll-progress" id="scrollProgress"></div>
 
@@ -27,7 +27,7 @@
     </div>
   </nav>
 
-  <main class="page-shell">
+  <main id="main-content" class="page-shell">
     <div class="page-container" style="max-width:720px">
       <a href="/social-butterflies/community/recipes" class="sb-back-link">&larr; Back to Road recipes</a>
 
@@ -95,7 +95,7 @@
           <label class="form-label" for="editNotes">Your notes</label>
           <textarea id="editNotes" class="form-input" rows="3"></textarea>
         </div>
-        <p id="editError" class="form-error hidden"></p>
+        <p id="editError" class="form-error hidden" role="alert"></p>
         <div style="display:flex;flex-wrap:wrap;gap:10px">
           <button type="submit" class="sb-btn sb-btn-primary">Save changes</button>
           <button type="button" class="sb-btn sb-btn-outline" id="cancelEditBtn">Cancel</button>

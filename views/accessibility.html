@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html lang="en" class="no-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="grain-overlay"></div>
   <div class="scroll-progress" id="scrollProgress"></div>
 
@@ -46,55 +46,93 @@
   </nav>
 
   <!-- ========== PAGE SHELL ========== -->
-  <main class="page-shell">
+  <main id="main-content" class="page-shell" tabindex="-1">
     <div class="legal-page" style="max-width:800px;margin:auto;padding:40px 20px;font-size:0.92rem;line-height:1.75;color:var(--text-2)">
       <h1 class="page-title">Accessibility Statement</h1>
+      <p style="font-size:0.85rem;color:var(--text-3)">Last updated: July 9, 2026</p>
 
       <h2>Our Commitment</h2>
-      <p>Mile 12 Warrior LLC is committed to ensuring digital accessibility for people with disabilities. We strive to meet WCAG 2.1 Level AA standards and comply with the Americans with Disabilities Act (ADA) and Section 508 of the Rehabilitation Act where applicable.</p>
+      <p>Mile 12 Warrior LLC is committed to ensuring digital accessibility for people with disabilities throughout the United States. Because this website serves drivers and customers nationwide, we design and maintain it to meet the technical standard used across <strong>federal, state, and local</strong> U.S. disability-access laws: <strong>WCAG 2.1 Level AA</strong> (with WCAG 2.2 AA improvements where practical).</p>
 
-      <h2>Standards We Follow</h2>
+      <h2>Federal Law (United States)</h2>
       <ul>
-        <li>Web Content Accessibility Guidelines (WCAG) 2.1 Level AA</li>
-        <li>Americans with Disabilities Act (ADA), Title III</li>
-        <li>Section 508 of the Rehabilitation Act (29 U.S.C. § 794d)</li>
-        <li>California Government Code § 7405 (state accessibility requirements)</li>
+        <li><strong>Americans with Disabilities Act (ADA), Title III</strong> (42 U.S.C. § 12181 et seq.) — prohibits discrimination by private businesses that are places of public accommodation. The U.S. Department of Justice has stated that websites and mobile apps used to offer goods and services to the public must be accessible. Private Title III entities do not currently have a separate DOJ web rule with a fixed deadline, but courts and settlements routinely treat inaccessible commercial websites as ADA violations.</li>
+        <li><strong>ADA Title II</strong> — applies to state and local <em>government</em> websites (not this private business). The DOJ’s 2024 Title II web rule adopts WCAG 2.1 Level AA for government entities; we still use that same technical bar as our private-sector target.</li>
+        <li><strong>Rehabilitation Act § 504 / § 508</strong> — § 504 covers recipients of federal financial assistance; § 508 covers federal agencies’ electronic content. Mile 12 Warrior is a private business and is not a federal agency; we follow Section 508 / WCAG guidance as best practice when it strengthens accessibility.</li>
+        <li><strong>Communications Act / CVAA</strong> — advanced communications and video accessibility rules apply mainly to certain communications and video providers; we note them for completeness where third-party media is used.</li>
       </ul>
 
-      <h2>Accessibility Features</h2>
-      <p>We have implemented the following features to support accessibility across our platform:</p>
+      <h2>State Law</h2>
+      <p>State civil-rights and disability laws often add damages or broader coverage on top of the ADA. Because we serve customers in all 50 states, we treat equal digital access as a nationwide obligation. Laws that most often appear in website accessibility claims include:</p>
       <ul>
-        <li>Semantic HTML structure for meaningful document outline</li>
-        <li>Full keyboard navigation support</li>
-        <li>ARIA labels on interactive elements</li>
-        <li>Sufficient color contrast ratios throughout the interface</li>
-        <li>Resizable text without loss of content or functionality</li>
-        <li>Descriptive alt text on all images</li>
-        <li>Visible focus indicators for keyboard users</li>
-        <li>Screen reader compatibility</li>
+        <li><strong>California — Unruh Civil Rights Act</strong> (Cal. Civ. Code § 51) — full and equal accommodations in business establishments; an ADA violation is also an Unruh violation (§ 51(f)). Statutory damages can be at least <strong>$4,000 per violation</strong> plus attorney fees.</li>
+        <li><strong>California — Disabled Persons Act</strong> (Cal. Civ. Code §§ 54–55.2) — overlapping state disability access protections (often pleaded with Unruh).</li>
+        <li><strong>New York — Human Rights Law</strong> (N.Y. Exec. Law § 296) — disability discrimination in public accommodations; allows compensatory (and in some cases punitive) damages beyond typical federal ADA private remedies.</li>
+        <li><strong>Other states</strong> — many states have human-rights, public-accommodation, or consumer-protection statutes that plaintiffs may plead alongside the ADA (for example, Massachusetts, Illinois, Pennsylvania, Florida, and others). Requirements and remedies vary by state. Meeting WCAG 2.1 AA is the practical way to address this multi-state exposure.</li>
+      </ul>
+      <p>Mile 12 Warrior LLC is headquartered in California; California Unruh / Disabled Persons Act exposure is therefore primary for our home jurisdiction, while federal ADA and other state laws may apply wherever we offer goods or services online.</p>
+
+      <h2>Local / Municipal Law</h2>
+      <ul>
+        <li><strong>New York City Human Rights Law (NYCHRL)</strong> (N.Y.C. Admin. Code § 8-107) — among the broadest local civil-rights laws in the U.S.; construed liberally and often applied to businesses that serve NYC customers online. Compensatory and punitive damages may be available without the same caps as federal ADA private suits.</li>
+        <li><strong>Other cities and counties</strong> — some localities have human-rights commissions, disability ordinances, or procurement rules that reference WCAG or ADA standards. Sacramento and other California cities generally enforce disability access through state law (Unruh / Disabled Persons Act) and the ADA rather than a separate private-website ordinance; we still maintain WCAG 2.1 AA as the site-wide standard.</li>
+        <li><strong>Building / physical access codes</strong> (ADA Standards, California Building Code, local building codes) govern physical facilities. This statement addresses <em>digital</em> accessibility of mile12warrior.com; physical premises, if any, remain subject to applicable building and access codes separately.</li>
+      </ul>
+
+      <h2>Technical Standard We Follow</h2>
+      <p>Across federal, state, and local frameworks, U.S. courts, DOJ guidance, and settlement agreements consistently use:</p>
+      <ul>
+        <li><strong>WCAG 2.1 Level AA</strong> — primary conformance target for this website</li>
+        <li><strong>WCAG 2.2 Level AA</strong> — adopted where practical as a forward-compatible improvement (includes all 2.1 AA criteria plus additional success criteria)</li>
+      </ul>
+      <p>WCAG is published by the W3C; it is not itself a statute, but it is the measuring stick used to evaluate whether digital barriers violate the ADA and parallel state/local laws.</p>
+      <p><em>This statement is educational information only and does not constitute legal advice. Federal, state, and local accessibility requirements continue to evolve. Verify current obligations with qualified counsel for your situation.</em></p>
+
+      <h2>Conformance Goal</h2>
+      <p>We strive for <strong>WCAG 2.1 Level AA</strong> conformance across public pages so one technical standard satisfies the practical expectations of federal ADA Title III and the major state and local regimes that reference or incorporate ADA-level access. Conformance is an ongoing process — not a one-time certification — and we remediate barriers as we find them.</p>
+
+      <h2>Accessibility Features</h2>
+      <ul>
+        <li>Skip link to main content on every page</li>
+        <li>Semantic HTML landmarks (<code>nav</code>, <code>main</code>, <code>footer</code>) and meaningful headings</li>
+        <li>Keyboard navigation, including Escape to close the mobile menu and arrow-key support for roadmap tabs</li>
+        <li>Visible focus indicators on interactive controls</li>
+        <li>ARIA labels, live regions, and dialog roles where needed</li>
+        <li>Text and UI contrast tuned for WCAG AA on our dark theme</li>
+        <li>Resizable text without loss of essential content</li>
+        <li>Descriptive alternative text on meaningful images; decorative images marked appropriately</li>
+        <li>Respect for <code>prefers-reduced-motion</code> (and optional <code>.reduce-motion</code>)</li>
+        <li>Content remains readable if JavaScript is disabled for core page structure</li>
       </ul>
 
       <h2>Known Limitations</h2>
-      <p>Despite our best efforts, some areas of our site may not yet be fully accessible:</p>
       <ul>
-        <li>Some user-generated content (forum posts and community contributions) may not meet all accessibility standards, as we cannot control the formatting choices of individual authors.</li>
-        <li>Certain third-party embedded content may not fully conform to WCAG 2.1 Level AA.</li>
+        <li>User-generated content (forum posts, community recipes, comments) may not meet all WCAG criteria because authors control formatting and media.</li>
+        <li>Third-party embeds (payment processors, maps, social widgets, authenticator QR flows) may not fully conform; we choose vendors with accessibility support where possible.</li>
+        <li>Some older PDF or printable packet exports may need additional remediation; request an accessible format using the contacts below.</li>
       </ul>
-      <p>We are continuously working to identify and resolve accessibility barriers across the platform.</p>
+      <p>We continuously identify and resolve barriers. Reporting an issue helps us prioritize fixes.</p>
+
+      <h2>Compatible Assistive Technologies</h2>
+      <p>Pages are designed to work with current major browsers (Chrome, Firefox, Safari, Edge) and common assistive technologies such as NVDA, JAWS, VoiceOver, and TalkBack. If you use a specific combination that fails, tell us so we can reproduce and fix it.</p>
 
       <h2>Feedback &amp; Assistance</h2>
-      <p>If you experience any accessibility barriers or need assistance accessing any content on this website, please contact us. We take accessibility feedback seriously and aim to respond within 2 business days.</p>
+      <p>If you experience an accessibility barrier or need content in an alternative format, contact us. We aim to acknowledge accessibility requests within <strong>2 business days</strong> and provide a workaround or remediation timeline as soon as practicable.</p>
       <p>
-        <strong>Email:</strong> <a href="mailto:joyce@mile12warrior.com">joyce@mile12warrior.com</a><br>
+        <strong>Email:</strong> <a href="mailto:joyce@mile12warrior.com?subject=Accessibility%20request%20%E2%80%94%20Mile%2012%20Warrior">joyce@mile12warrior.com</a><br>
         <strong>Phone:</strong> <a href="tel:+19162927411">(916) 292-7411</a><br>
-        <strong>Mail:</strong> 2108 N ST., STE N, SACRAMENTO CA 95816
+        <strong>Mail:</strong> 2108 N ST., STE N, SACRAMENTO CA 95816<br>
+        <strong>Web form:</strong> <a href="/contact">Contact page</a>
       </p>
+      <p>Please include the page URL, a short description of the barrier, and the assistive technology or browser you were using (if known).</p>
 
-      <h2>Enforcement</h2>
-      <p>If you believe you have experienced an accessibility barrier and are not satisfied with our response, you may file a complaint with:</p>
+      <h2>Enforcement &amp; Complaints (Federal, State, Local)</h2>
+      <p>If you believe you have experienced an accessibility barrier and are not satisfied with our response, you may pursue remedies under applicable law, including:</p>
       <ul>
-        <li>The <a href="https://www.ada.gov/file-a-complaint/" target="_blank" rel="noopener">U.S. Department of Justice</a> (ADA complaints)</li>
-        <li>The <a href="https://www.dor.ca.gov" target="_blank" rel="noopener">California Department of Rehabilitation</a></li>
+        <li><strong>Federal:</strong> <a href="https://www.ada.gov/file-a-complaint/" target="_blank" rel="noopener noreferrer">U.S. Department of Justice — ADA complaint</a>; private civil action under ADA Title III (typically injunctive relief and attorney fees in private suits)</li>
+        <li><strong>California (state):</strong> <a href="https://calcivilrights.ca.gov/" target="_blank" rel="noopener noreferrer">California Civil Rights Department</a>; <a href="https://www.dor.ca.gov" target="_blank" rel="noopener noreferrer">California Department of Rehabilitation</a>; private actions under the Unruh Act / Disabled Persons Act</li>
+        <li><strong>New York (state / NYC):</strong> <a href="https://dhr.ny.gov/" target="_blank" rel="noopener noreferrer">NYS Division of Human Rights</a>; <a href="https://www.nyc.gov/site/cchr/index.page" target="_blank" rel="noopener noreferrer">NYC Commission on Human Rights</a></li>
+        <li><strong>Other states / localities:</strong> the civil rights or human rights agency for that jurisdiction, or a private lawsuit under applicable public-accommodation / disability statutes</li>
       </ul>
     </div>
   </main>
@@ -105,13 +143,13 @@
       <div class="footer-bottom">
         <p>Mile 12 Warrior LLC | 2108 N ST., STE N, SACRAMENTO CA 95816</p>
         <p>Family &amp; friends of drivers: visit our <a href="/social-butterflies">Social Butterflies</a> section for support, communication tips, and understanding the trucking life.</p>
-        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem">
+        <nav style="margin:12px 0;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:0.82rem" aria-label="Legal">
           <a href="/terms" style="color:var(--text-2)">Terms of Service</a>
           <a href="/terms#refunds" style="color:var(--text-2)">Refund Policy</a>
           <a href="/privacy" style="color:var(--text-2)">Privacy Policy</a>
           <a href="/disclaimer" style="color:var(--text-2)">Disclaimer</a>
           <a href="/advertise" style="color:var(--text-2)">Advertise</a>
-          <a href="/accessibility" style="color:var(--text-2)">Accessibility</a>
+          <a href="/accessibility" style="color:var(--text-2)" aria-current="page">Accessibility</a>
         </nav>
         <p style="font-size:0.8rem;color:var(--text-3);">Hosted on <a href="https://railway.app" target="_blank" rel="noopener noreferrer">Railway</a>.</p>
         <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>

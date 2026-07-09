@@ -228,8 +228,60 @@ async function initCheckoutBanner() {
 document.addEventListener('DOMContentLoaded', () => {
   initCheckoutBanner();
 
+  // --- Accessibility bootstrap (WCAG 2.1 AA) ---
+  document.documentElement.classList.remove('no-js');
+  document.documentElement.classList.add('js');
+
+  (function initSkipLinkAndMain() {
+    var main =
+      document.getElementById('main-content') ||
+      document.querySelector('main') ||
+      document.getElementById('hero') ||
+      document.querySelector('.hero') ||
+      document.querySelector('.page-shell');
+    if (main) {
+      if (!main.id) main.id = 'main-content';
+      if (!main.hasAttribute('tabindex')) main.setAttribute('tabindex', '-1');
+    }
+    if (!document.querySelector('.skip-link') && main) {
+      var skip = document.createElement('a');
+      skip.className = 'skip-link';
+      skip.href = '#' + main.id;
+      skip.textContent = 'Skip to main content';
+      document.body.insertBefore(skip, document.body.firstChild);
+    }
+    var navbarEl = document.getElementById('navbar');
+    if (navbarEl && !navbarEl.getAttribute('aria-label')) {
+      navbarEl.setAttribute('role', 'navigation');
+      navbarEl.setAttribute('aria-label', 'Primary');
+    }
+    var cartBadge = document.getElementById('cartBadge');
+    if (cartBadge && !cartBadge.getAttribute('aria-live')) {
+      cartBadge.setAttribute('aria-live', 'polite');
+      cartBadge.setAttribute('aria-atomic', 'true');
+    }
+  })();
+
+  // Announce new-tab destination for icon-only / labeled links
+  document.querySelectorAll('a[target="_blank"]').forEach(function (link) {
+    var rel = (link.getAttribute('rel') || '').toLowerCase();
+    if (!/\bnoopener\b/.test(rel)) {
+      link.setAttribute('rel', (rel ? rel + ' ' : '') + 'noopener noreferrer');
+    }
+    var existing = (link.getAttribute('aria-label') || '').trim();
+    if (existing && !/opens in (a )?new (tab|window)/i.test(existing)) {
+      link.setAttribute('aria-label', existing + ' (opens in a new tab)');
+    }
+  });
+
   // --- Scroll progress bar (shared: all pages) ---
   const progressBar = document.getElementById('scrollProgress');
+  if (progressBar) {
+    progressBar.setAttribute('role', 'progressbar');
+    progressBar.setAttribute('aria-label', 'Reading progress');
+    progressBar.setAttribute('aria-valuemin', '0');
+    progressBar.setAttribute('aria-valuemax', '100');
+  }
 
   function updateProgress() {
     if (!progressBar) return;
@@ -237,6 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
     const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
     progressBar.style.width = progress + '%';
+    progressBar.setAttribute('aria-valuenow', String(Math.round(progress)));
   }
 
   // --- Navbar scroll effect ---
@@ -258,11 +311,19 @@ document.addEventListener('DOMContentLoaded', () => {
   if (navToggle && navLinks) {
     navToggle.setAttribute('aria-expanded', 'false');
     navToggle.setAttribute('aria-controls', 'navLinks');
+    if (!navToggle.getAttribute('aria-label')) {
+      navToggle.setAttribute('aria-label', 'Toggle menu');
+    }
 
     function setMobileNavOpen(open) {
       navToggle.classList.toggle('active', open);
       navLinks.classList.toggle('open', open);
       navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      document.body.style.overflow = open ? 'hidden' : '';
+      if (open) {
+        var firstLink = navLinks.querySelector('a');
+        if (firstLink) firstLink.focus();
+      }
     }
 
     navToggle.addEventListener('click', function () {
@@ -322,9 +383,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const staggerContainers =
     '.card-grid, .hazard-bento, .roadmap-grid, .resource-row, .exercise-chips, ' +
     '.page-container, .blog-grid, .about-section, .account-access-grid';
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   function observeRevealTargets(targets) {
     targets.forEach(el => {
       if (el.classList.contains('reveal') && el.dataset.revealObserved) return;
+      if (prefersReducedMotion || document.documentElement.classList.contains('reduce-motion')) {
+        el.classList.add('reveal', 'visible');
+        el.dataset.revealObserved = '1';
+        return;
+      }
       el.classList.add('reveal');
       el.dataset.revealObserved = '1';
       const grid = el.closest(staggerContainers);
@@ -606,16 +674,20 @@ document.addEventListener('DOMContentLoaded', () => {
       phaseTabButtons.forEach(function (t) {
         t.classList.remove('active');
         t.setAttribute('aria-selected', 'false');
+        t.setAttribute('tabindex', '-1');
       });
       tab.classList.add('active');
       tab.setAttribute('aria-selected', 'true');
+      tab.setAttribute('tabindex', '0');
 
       document.querySelectorAll('.phase-panel').forEach(function (p) {
         p.classList.remove('active');
+        p.setAttribute('hidden', '');
       });
       var panel = document.getElementById('panel-' + target);
       if (panel) {
         panel.classList.add('active');
+        panel.removeAttribute('hidden');
         var rect = phaseTabs.getBoundingClientRect();
         if (rect.top < 0 || rect.top > 120) {
           phaseTabs.scrollIntoView({ behavior: phaseTabScrollBehavior, block: 'start' });
@@ -625,6 +697,9 @@ document.addEventListener('DOMContentLoaded', () => {
       tab.scrollIntoView({ behavior: phaseTabScrollBehavior, block: 'nearest', inline: 'center' });
     }
 
+    phaseTabs.setAttribute('role', 'tablist');
+    phaseTabs.setAttribute('aria-label', 'Driver Safety Roadmap phases');
+
     phaseTabButtons.forEach(function (t) {
       var tid = t.dataset.tab;
       if (!tid) return;
@@ -632,10 +707,13 @@ document.addEventListener('DOMContentLoaded', () => {
       t.setAttribute('id', 'phase-tab-' + tid);
       t.setAttribute('aria-controls', 'panel-' + tid);
       t.setAttribute('aria-selected', t.classList.contains('active') ? 'true' : 'false');
+      t.setAttribute('tabindex', t.classList.contains('active') ? '0' : '-1');
       var p = document.getElementById('panel-' + tid);
       if (p) {
         p.setAttribute('role', 'tabpanel');
         p.setAttribute('aria-labelledby', 'phase-tab-' + tid);
+        if (!t.classList.contains('active')) p.setAttribute('hidden', '');
+        else p.removeAttribute('hidden');
       }
     });
 

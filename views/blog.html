@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="grain-overlay"></div>
   <div class="scroll-progress" id="scrollProgress"></div>
 
@@ -46,7 +46,7 @@
   </nav>
 
   <!-- ========== PAGE SHELL ========== -->
-  <main class="page-shell">
+  <main id="main-content" class="page-shell">
     <div class="page-container">
       <h1 class="page-title">Blog</h1>
       <p class="page-subtitle">Stories, tips, and insights from the road.</p>
@@ -112,7 +112,7 @@
           }
           grid.innerHTML = posts.map(post => {
             const imgHtml = post.image
-              ? `<img src="${escapeHtml(post.image)}" alt="" onerror="this.style.display='none'">`
+              ? `<img src="${escapeHtml(post.image)}" alt="${escapeHtml(post.title || 'Blog post')}" onerror="this.style.display='none'">`
               : `<span>${placeholderIcon}</span>`;
             const editMenu = isAdmin ? `
               <div class="blog-card-actions">

@@ -213,10 +213,12 @@
   font-size: 0.9rem;
   transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
-.form-input:focus {
-  outline: none;
-  border-color: var(--blue);
-  box-shadow: 0 0 0 3px var(--blue-glow);
+.form-input:focus,
+.form-input:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 2px;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-glow);
 }
 .form-input::placeholder {
   color: var(--text-3);
@@ -285,10 +287,13 @@ textarea.form-input {
   cursor: pointer;
   min-width: 120px;
 }
-.floating-format-toolbar .ft-font:hover,
-.floating-format-toolbar .ft-font:focus {
+.floating-format-toolbar .ft-font:hover {
   border-color: var(--gold);
-  outline: none;
+}
+.floating-format-toolbar .ft-font:focus-visible {
+  border-color: var(--gold);
+  outline: 2px solid var(--gold-light);
+  outline-offset: 2px;
 }
 
 /* ---------- QUILL RICH-TEXT BLOG EDITOR (WYSIWYG) ---------- */
@@ -1325,7 +1330,10 @@ body.forum-coffee-shop .forum-category-header .page-title {
 .admin-stat-clickable:focus-visible {
   border-color: var(--accent, rgba(255, 200, 80, 0.55));
   background: rgba(255, 255, 255, 0.03);
-  outline: none;
+}
+.admin-stat-clickable:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 2px;
 }
 .admin-section {
   margin-bottom: 40px;

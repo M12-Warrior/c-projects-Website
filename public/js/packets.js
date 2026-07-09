@@ -2797,37 +2797,43 @@ Packets.mountFleetPrefillPanel = function (container, options) {
 
   var chainFields = '';
   Packets._FLEET_CHAIN_ROLES.forEach(function (role) {
+    var nameId = 'fy-coc-' + role.key + '-name';
+    var phoneId = 'fy-coc-' + role.key + '-phone';
     chainFields +=
       '<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border,rgba(255,255,255,0.08))">' +
-      '<div style="font-size:0.84rem;font-weight:600;margin-bottom:8px">' + role.label + '</div>';
+      '<div style="font-size:0.84rem;font-weight:600;margin-bottom:8px" id="fy-coc-' + role.key + '-heading">' + role.label + '</div>';
     if (!role.phoneOnly) {
       chainFields +=
-        '<label style="' + labelStyle + '">Name</label>' +
-        '<input type="text" class="fy-coc-' + role.key + '-name" maxlength="120" placeholder="Name" style="' + inputStyle + '">';
+        '<label for="' + nameId + '" style="' + labelStyle + '">' + role.label + ' — name</label>' +
+        '<input type="text" id="' + nameId + '" class="fy-coc-' + role.key + '-name" maxlength="120" placeholder="Name" style="' + inputStyle + '" aria-labelledby="fy-coc-' + role.key + '-heading ' + nameId + '">';
     }
     chainFields +=
-      '<label style="' + labelStyle + '">Phone</label>' +
-      '<input type="text" class="fy-coc-' + role.key + '-phone" maxlength="60" placeholder="Phone" style="' + inputStyle + '">' +
+      '<label for="' + phoneId + '" style="' + labelStyle + '">' + role.label + ' — phone</label>' +
+      '<input type="text" id="' + phoneId + '" class="fy-coc-' + role.key + '-phone" maxlength="60" placeholder="Phone" style="' + inputStyle + '">' +
       '</div>';
   });
 
   var contactFields =
-    '<label style="' + labelStyle + '">Dispatch name <span style="font-weight:400">(optional)</span></label>' +
-    '<input type="text" class="fy-contact-dispatchName" maxlength="120" placeholder="e.g. Night dispatch" style="' + inputStyle + '">' +
-    '<label style="' + labelStyle + '">Dispatch phone (24-hour)</label>' +
-    '<input type="text" class="fy-contact-dispatchPhone" maxlength="60" placeholder="e.g. 800-555-0100" style="' + inputStyle + '">' +
-    '<label style="' + labelStyle + '">Roadside assistance</label>' +
-    '<input type="text" class="fy-contact-roadsideName" maxlength="120" placeholder="Provider name" style="' + inputStyle + '">' +
-    '<input type="text" class="fy-contact-roadsidePhone" maxlength="60" placeholder="Roadside phone" style="' + inputStyle + '">' +
-    '<label style="' + labelStyle + '">Insurance company</label>' +
-    '<input type="text" class="fy-contact-insuranceName" maxlength="120" placeholder="Insurance carrier" style="' + inputStyle + '">' +
-    '<input type="text" class="fy-contact-insurancePhone" maxlength="60" placeholder="Claims phone" style="' + inputStyle + '">' +
-    '<label style="' + labelStyle + '">Emergency contact #1</label>' +
-    '<input type="text" class="fy-contact-emergency1Name" maxlength="120" placeholder="Name" style="' + inputStyle + '">' +
-    '<input type="text" class="fy-contact-emergency1Phone" maxlength="60" placeholder="Phone" style="' + inputStyle + '">' +
-    '<label style="' + labelStyle + '">Emergency contact #2</label>' +
-    '<input type="text" class="fy-contact-emergency2Name" maxlength="120" placeholder="Name" style="' + inputStyle + '">' +
-    '<input type="text" class="fy-contact-emergency2Phone" maxlength="60" placeholder="Phone" style="' + inputStyle + '">';
+    '<label for="fy-contact-dispatchName" style="' + labelStyle + '">Dispatch name <span style="font-weight:400">(optional)</span></label>' +
+    '<input type="text" id="fy-contact-dispatchName" class="fy-contact-dispatchName" maxlength="120" placeholder="e.g. Night dispatch" style="' + inputStyle + '">' +
+    '<label for="fy-contact-dispatchPhone" style="' + labelStyle + '">Dispatch phone (24-hour)</label>' +
+    '<input type="text" id="fy-contact-dispatchPhone" class="fy-contact-dispatchPhone" maxlength="60" placeholder="e.g. 800-555-0100" style="' + inputStyle + '">' +
+    '<label for="fy-contact-roadsideName" style="' + labelStyle + '">Roadside assistance — name</label>' +
+    '<input type="text" id="fy-contact-roadsideName" class="fy-contact-roadsideName" maxlength="120" placeholder="Provider name" style="' + inputStyle + '">' +
+    '<label for="fy-contact-roadsidePhone" style="' + labelStyle + '">Roadside assistance — phone</label>' +
+    '<input type="text" id="fy-contact-roadsidePhone" class="fy-contact-roadsidePhone" maxlength="60" placeholder="Roadside phone" style="' + inputStyle + '">' +
+    '<label for="fy-contact-insuranceName" style="' + labelStyle + '">Insurance company — name</label>' +
+    '<input type="text" id="fy-contact-insuranceName" class="fy-contact-insuranceName" maxlength="120" placeholder="Insurance carrier" style="' + inputStyle + '">' +
+    '<label for="fy-contact-insurancePhone" style="' + labelStyle + '">Insurance company — phone</label>' +
+    '<input type="text" id="fy-contact-insurancePhone" class="fy-contact-insurancePhone" maxlength="60" placeholder="Claims phone" style="' + inputStyle + '">' +
+    '<label for="fy-contact-emergency1Name" style="' + labelStyle + '">Emergency contact #1 — name</label>' +
+    '<input type="text" id="fy-contact-emergency1Name" class="fy-contact-emergency1Name" maxlength="120" placeholder="Name" style="' + inputStyle + '">' +
+    '<label for="fy-contact-emergency1Phone" style="' + labelStyle + '">Emergency contact #1 — phone</label>' +
+    '<input type="text" id="fy-contact-emergency1Phone" class="fy-contact-emergency1Phone" maxlength="60" placeholder="Phone" style="' + inputStyle + '">' +
+    '<label for="fy-contact-emergency2Name" style="' + labelStyle + '">Emergency contact #2 — name</label>' +
+    '<input type="text" id="fy-contact-emergency2Name" class="fy-contact-emergency2Name" maxlength="120" placeholder="Name" style="' + inputStyle + '">' +
+    '<label for="fy-contact-emergency2Phone" style="' + labelStyle + '">Emergency contact #2 — phone</label>' +
+    '<input type="text" id="fy-contact-emergency2Phone" class="fy-contact-emergency2Phone" maxlength="60" placeholder="Phone" style="' + inputStyle + '">';
 
   container.innerHTML =
     '<details class="fleet-prefill-panel fleet-yard-panel" style="margin:0 0 18px 0;border:1px solid var(--border, rgba(255,255,255,0.12));border-radius:10px;background:rgba(255,255,255,0.03);overflow:hidden">' +
@@ -2842,14 +2848,14 @@ Packets.mountFleetPrefillPanel = function (container, options) {
     '<details class="fleet-prefill-section" open style="' + sectionStyle + '">' +
     '<summary style="' + sectionSummaryStyle + '">Fleet / yard label</summary>' +
     '<div style="padding:0 14px 14px 14px">' +
-    '<label style="' + labelStyle + '">Company / fleet name</label>' +
-    '<input type="text" class="fy-company" maxlength="200" placeholder="e.g. ABC Trucking LLC" style="' + inputStyle + '">' +
-    '<label style="' + labelStyle + '">Packet date <span style="font-weight:400">(cover page)</span></label>' +
-    '<input type="text" class="fy-packet-date" maxlength="40" placeholder="e.g. June 29, 2026" style="' + inputStyle + '">' +
-    '<label style="' + labelStyle + '">Yard or terminal identifier</label>' +
-    '<input type="text" class="fy-yard" maxlength="300" placeholder="e.g. Terminal 3 or 1200 Industrial Blvd" style="' + inputStyle + '">' +
-    '<label style="' + labelStyle + '">Yard nickname / label</label>' +
-    '<input type="text" class="fy-label" maxlength="200" placeholder="e.g. Sacramento yard" style="' + inputStyle + '">' +
+    '<label for="fy-company" style="' + labelStyle + '">Company / fleet name</label>' +
+    '<input type="text" id="fy-company" class="fy-company" maxlength="200" placeholder="e.g. ABC Trucking LLC" style="' + inputStyle + '">' +
+    '<label for="fy-packet-date" style="' + labelStyle + '">Packet date <span style="font-weight:400">(cover page)</span></label>' +
+    '<input type="text" id="fy-packet-date" class="fy-packet-date" maxlength="40" placeholder="e.g. June 29, 2026" style="' + inputStyle + '">' +
+    '<label for="fy-yard" style="' + labelStyle + '">Yard or terminal identifier</label>' +
+    '<input type="text" id="fy-yard" class="fy-yard" maxlength="300" placeholder="e.g. Terminal 3 or 1200 Industrial Blvd" style="' + inputStyle + '">' +
+    '<label for="fy-label" style="' + labelStyle + '">Yard nickname / label</label>' +
+    '<input type="text" id="fy-label" class="fy-label" maxlength="200" placeholder="e.g. Sacramento yard" style="' + inputStyle + '">' +
     '</div></details>' +
     '<details class="fleet-prefill-section" style="' + sectionStyle + '">' +
     '<summary style="' + sectionSummaryStyle + '">Safety Chain of Command</summary>' +
@@ -2867,10 +2873,10 @@ Packets.mountFleetPrefillPanel = function (container, options) {
     '<button type="button" class="btn btn-secondary fy-save" style="flex:1;min-width:140px">Save on this device</button>' +
     '<button type="button" class="btn btn-glass fy-clear" style="flex:0 0 auto">Clear</button>' +
     '</div>' +
-    '<p class="fy-status" style="margin:10px 0 0 0;font-size:0.78rem;color:var(--green,#22c55e);display:none"></p>' +
+    '<p class="fy-status" role="status" aria-live="polite" style="margin:10px 0 0 0;font-size:0.78rem;color:var(--green,#22c55e);display:none"></p>' +
     '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border,rgba(255,255,255,0.1))">' +
-    '<p style="margin:0 0 8px 0;font-size:0.82rem;color:var(--text-2,#94a3b8)">Help us improve these forms</p>' +
-    '<textarea class="fy-feedback-text" rows="3" maxlength="2000" placeholder="Suggest a field, wording change, or missing contact row..." style="' + inputStyle + 'margin-bottom:8px;resize:vertical;min-height:72px"></textarea>' +
+    '<label for="fy-feedback-text" style="margin:0 0 8px 0;font-size:0.82rem;color:var(--text-2,#94a3b8);display:block">Help us improve these forms</label>' +
+    '<textarea id="fy-feedback-text" class="fy-feedback-text" rows="3" maxlength="2000" placeholder="Suggest a field, wording change, or missing contact row..." style="' + inputStyle + 'margin-bottom:8px;resize:vertical;min-height:72px"></textarea>' +
     '<button type="button" class="btn btn-glass fy-feedback" style="width:100%">Suggest an improvement</button>' +
     '</div>' +
     '</div></details>';

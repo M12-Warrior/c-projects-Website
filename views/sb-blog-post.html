@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/css/social-butterflies.css">
 </head>
 <body class="social-butterflies-page sb-community-page">
-
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="grain-overlay"></div>
   <div class="scroll-progress" id="scrollProgress"></div>
 
@@ -28,7 +28,7 @@
     </div>
   </nav>
 
-  <main class="page-shell">
+  <main id="main-content" class="page-shell">
     <div class="page-container" style="max-width:760px">
       <a href="/social-butterflies/blog" class="sb-back-link">&larr; Back to Articles</a>
       <article class="sb-card sb-blog-article" id="postContent">
@@ -81,7 +81,7 @@
 
           var isAdmin = meUser && meUser.role === 'admin';
           var editHtml = isAdmin ? '<p style="margin-top:12px"><a href="/admin?tab=blog&edit=' + post.id + '" class="sb-driver-link">Edit in admin</a></p>' : '';
-          var img = (post.image && post.image.trim()) ? '<div class="sb-blog-article-image"><img src="' + esc(post.image) + '" alt=""></div>' : '';
+          var img = (post.image && post.image.trim()) ? '<div class="sb-blog-article-image"><img src="' + esc(post.image) + '" alt="' + esc(post.title || 'Featured image') + '"></div>' : '';
 
           postContent.innerHTML =
             '<h1 class="sb-blog-article-title">' + esc(post.title) + '</h1>' +

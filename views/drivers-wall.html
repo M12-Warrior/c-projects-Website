@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,13 +24,14 @@
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="grain-overlay"></div>
   <div class="scroll-progress" id="scrollProgress"></div>
 
   <nav class="navbar scrolled" id="navbar">
     <div class="nav-container">
       <a href="/" class="nav-logo">
-        <img src="/images/logo.png" alt="Mile 12 Warrior" class="nav-logo-img" onerror="this.style.display='none';">
+        <img src="/images/logo.png" alt="Mile 12 Warrior logo: gold highway shield with M and 12" class="nav-logo-img" onerror="this.style.display='none';">
       </a>
       <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
       <ul class="nav-links" id="navLinks">
@@ -46,6 +47,7 @@
     </div>
   </nav>
 
+  <main id="main-content">
   <header class="wall-hero">
     <a href="/course" class="wall-back">&larr; Back to Course</a>
     <h1>Driver&rsquo;s Wall</h1>
@@ -56,6 +58,7 @@
   <section class="wall-grid" id="wallGrid" aria-live="polite">
     <div class="wall-empty">Loading drivers&hellip;</div>
   </section>
+  </main>
 
   <footer class="footer" style="margin-top:20px">
     <div class="container">

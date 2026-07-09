@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html lang="en" class="no-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,9 +34,11 @@
     .course-sidebar::-webkit-scrollbar-thumb{background:var(--border-hover);border-radius:4px}
     .course-main{flex:1;min-width:0}
     .mod-nav{list-style:none;margin:0;padding:0}
-    .mod-nav-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:var(--radius-sm);cursor:pointer;transition:background .2s;border:1px solid transparent;margin-bottom:2px}
-    .mod-nav-item:hover{background:var(--surface-2)}
-    .mod-nav-item.active{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.2)}
+    .mod-nav-item{margin-bottom:2px}
+    .mod-nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;border-radius:var(--radius-sm);cursor:pointer;transition:background .2s,border-color .2s;border:1px solid transparent;background:transparent;color:inherit;font:inherit;text-align:left}
+    .mod-nav-btn:hover{background:var(--surface-2)}
+    .mod-nav-btn:focus-visible{outline:2px solid var(--gold-light);outline-offset:2px}
+    .mod-nav-item.active .mod-nav-btn{background:rgba(230,184,0,.1);border-color:rgba(230,184,0,.25)}
     .mod-nav-item.completed .mod-nav-num{color:var(--green)}
     .mod-nav-num{font-family:var(--mono);font-size:.72rem;color:var(--text-3);width:22px;text-align:center;flex-shrink:0}
     .mod-nav-info{flex:1;min-width:0}
@@ -106,12 +108,12 @@
     .completion-section .comp-sub{color:var(--text-2);font-size:.92rem;margin:0 0 32px}
     .cert-name-group{max-width:360px;margin:0 auto 28px;text-align:left}
     .cert-name-group label{display:block;font-size:.78rem;color:var(--text-3);margin-bottom:6px;font-weight:500}
-    .cert-name-group input{width:100%;padding:12px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);color:var(--text);font-family:var(--font-body);font-size:.9rem;outline:none;transition:border-color .2s}
+    .cert-name-group input{width:100%;padding:12px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);color:var(--text);font-family:var(--font-body);font-size:.9rem;transition:border-color .2s}
     .cert-name-group input:focus{border-color:var(--blue)}
     .cert-form-grid{max-width:420px;margin:0 auto 24px;text-align:left;display:grid;gap:14px}
     .cert-form-group label{display:block;font-size:.78rem;color:var(--text-3);margin-bottom:4px;font-weight:500}
     .cert-form-group input{width:100%;padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);color:var(--text);font-size:.9rem}
-    .cert-form-group input:focus{border-color:var(--blue);outline:none}
+    .cert-form-group input:focus-visible{border-color:var(--gold);outline:2px solid var(--gold-light);outline-offset:2px}
     .comp-success-num{font-family:var(--font);font-size:1.25rem;font-weight:700;color:var(--green);margin-bottom:16px}
     .comp-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:32px}
     .comp-links{display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
@@ -155,6 +157,7 @@
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="grain-overlay"></div>
   <div class="scroll-progress" id="scrollProgress"></div>
   <nav class="navbar scrolled" id="navbar">
@@ -184,7 +187,7 @@
     </div>
   </nav>
 
-  <main class="page-shell">
+  <main id="main-content" class="page-shell">
     <section class="course-hero" id="courseHero">
       <a href="/services" class="course-back">&larr; Back to Services</a>
       <h1 class="course-title">New Driver 90-Day Onboarding Course</h1>
@@ -213,7 +216,7 @@
       </div>
     </section>
     <div class="course-layout">
-      <aside class="course-sidebar" id="courseSidebar"></aside>
+      <aside class="course-sidebar" id="courseSidebar" aria-label="Course modules"></aside>
       <div class="course-main" id="courseMain">
         <p style="color:var(--text-3);font-size:.9rem;">Select a module from the sidebar to begin.</p>
       </div>
@@ -782,12 +785,18 @@ function renderSidebar() {
     else status = '<span style="color:var(--text-3)">\uD83D\uDD12</span>';
     var num = i < 10 ? '0' + i : '' + i;
     var lc = mod.lessons.length;
-    html += '<li class="' + cls + '" onclick="selectModule(' + i + ')">';
-    html += '<span class="mod-nav-num">' + num + '</span>';
-    html += '<div class="mod-nav-info"><div class="mod-nav-title">' + mod.title + '</div>';
+    var label = 'Module ' + num + ': ' + mod.title + ', ' + lc + ' lesson' + (lc !== 1 ? 's' : '');
+    if (mp.completed) label += ', completed';
+    else if (!(mp.unlocked || canOpenModule(i))) label += ', locked';
+    html += '<li class="' + cls + '">';
+    html += '<button type="button" class="mod-nav-btn" onclick="selectModule(' + i + ')"' +
+      (isActive ? ' aria-current="true"' : '') +
+      ' aria-label="' + escapeHtml(label) + '">';
+    html += '<span class="mod-nav-num" aria-hidden="true">' + num + '</span>';
+    html += '<div class="mod-nav-info"><div class="mod-nav-title">' + escapeHtml(mod.title) + '</div>';
     html += '<div class="mod-nav-meta">' + lc + ' lesson' + (lc !== 1 ? 's' : '') + '</div></div>';
-    html += '<span class="mod-nav-status">' + status + '</span>';
-    html += '</li>';
+    html += '<span class="mod-nav-status" aria-hidden="true">' + status + '</span>';
+    html += '</button></li>';
   }
   html += '</ul>';
   sb.innerHTML = html;
