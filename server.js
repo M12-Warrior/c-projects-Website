@@ -14,6 +14,9 @@ const cors = require('cors');
 const db = require('./db/database');
 const { buildMonthPrintPages } = require('./lib/journalPrintMonth');
 const { UPLOADS_DIR } = require('./lib/paths');
+const { resolveCountryCode } = require('./lib/trafficGeo');
+const seo = require('./lib/seo');
+const { siteBaseUrl } = require('./lib/siteUrl');
 
 const uploadsDir = UPLOADS_DIR;
 if (!fs.existsSync(uploadsDir)) {
@@ -45,13 +48,16 @@ if (isProduction) {
   }
 }
 
-// Redirect HTTP to HTTPS in production (Railway sends X-Forwarded-Proto)
+// Redirect HTTP→HTTPS and www→apex in production
 if (isProduction) {
   app.use((req, res, next) => {
     const proto = req.get('x-forwarded-proto');
-    if (proto === 'http') {
-      const host = req.get('host') || 'mile12warrior.com';
-      return res.redirect(301, 'https://' + host + req.originalUrl);
+    const host = (req.get('host') || 'mile12warrior.com').toLowerCase();
+    const needsHttps = proto === 'http';
+    const needsApex = host === 'www.mile12warrior.com';
+    if (needsHttps || needsApex) {
+      const targetHost = 'mile12warrior.com';
+      return res.redirect(301, 'https://' + targetHost + req.originalUrl);
     }
     next();
   });
@@ -103,6 +109,11 @@ app.use(session({
   saveUninitialized: false,
   cookie: sessionCookie
 }));
+
+// Marketing partners must sign in at least daily; idle sessions expire sooner.
+const { enforceMarketerSession } = require('./lib/marketerSession');
+app.use(enforceMarketerSession);
+
 // Serve uploaded images from the configured uploads dir (works when it lives on a
 // persistent volume outside public/). Registered first so it wins for /uploads/*.
 app.use('/uploads', express.static(UPLOADS_DIR));
@@ -144,10 +155,17 @@ app.use((req, res, next) => {
   const utmCampaign = (req.query && typeof req.query.utm_campaign === 'string') ? req.query.utm_campaign.slice(0, 200) : null;
   next();
   setImmediate(function() {
-    try {
-      const insert = db.prepare('INSERT INTO traffic_visits (visited_at, visitor_key, user_id, path, referrer, utm_source, utm_medium, utm_campaign) VALUES (datetime(\'now\'), ?, ?, ?, ?, ?, ?, ?)');
-      insert.run(visitorKey, userId, pathSeg, referrer, utmSource, utmMedium, utmCampaign);
-    } catch (_) {}
+    resolveCountryCode(req).then(function(countryCode) {
+      try {
+        const insert = db.prepare('INSERT INTO traffic_visits (visited_at, visitor_key, user_id, path, referrer, utm_source, utm_medium, utm_campaign, country_code) VALUES (datetime(\'now\'), ?, ?, ?, ?, ?, ?, ?, ?)');
+        insert.run(visitorKey, userId, pathSeg, referrer, utmSource, utmMedium, utmCampaign, countryCode || null);
+      } catch (_) {}
+    }).catch(function() {
+      try {
+        const insert = db.prepare('INSERT INTO traffic_visits (visited_at, visitor_key, user_id, path, referrer, utm_source, utm_medium, utm_campaign, country_code) VALUES (datetime(\'now\'), ?, ?, ?, ?, ?, ?, ?, ?)');
+        insert.run(visitorKey, userId, pathSeg, referrer, utmSource, utmMedium, utmCampaign, null);
+      } catch (_) {}
+    });
   });
 });
 
@@ -186,6 +204,7 @@ app.use('/api/stripe', require('./routes/stripe').router);
 app.use('/api/subscription', require('./routes/subscription'));
 app.use('/api/journal', require('./routes/journal'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/marketing', require('./routes/marketing'));
 app.use('/api/contact', require('./routes/contact'));
 app.use('/api/thank-you', require('./routes/thank-you'));
 app.use('/api/course', require('./routes/course'));
@@ -206,10 +225,169 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
+const requireMarketingPortal = (req, res, next) => {
+  const role = req.session.user && req.session.user.role;
+  if (!req.session.user) return res.redirect('/login?redirect=/marketing');
+  if (role !== 'admin' && role !== 'marketer') return res.redirect('/');
+  next();
+};
+
 // Page routes
+app.get('/sitemap.xml', (req, res) => {
+  try {
+    const base = siteBaseUrl(req) || 'https://mile12warrior.com';
+    let posts = [];
+    try {
+      posts = db.prepare(`
+        SELECT slug, audience, created_at, updated_at
+        FROM blog_posts
+        WHERE published = 1
+        ORDER BY created_at DESC
+      `).all();
+    } catch (_) {}
+    const xml = seo.buildSitemapXml(base, posts);
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.send(xml);
+  } catch (err) {
+    res.status(500).type('text').send('Sitemap unavailable');
+  }
+});
+
 app.get('/', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+function formatBlogDate(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch (_) {
+    return '';
+  }
+}
+
+function injectHeadMeta(html, title, metaBlock) {
+  let out = html;
+  if (title) {
+    out = out.replace(/<title>[^<]*<\/title>/i, '<title>' + seo.escapeHtml(title) + '</title>');
+  }
+  if (metaBlock) {
+    if (/<!--\s*SEO_META\s*-->/i.test(out)) {
+      out = out.replace(/<!--\s*SEO_META\s*-->/i, metaBlock);
+    } else {
+      out = out.replace(/<\/head>/i, '  ' + metaBlock + '\n</head>');
+    }
+  }
+  return out;
+}
+
+app.get('/blog', (req, res) => {
+  try {
+    const base = siteBaseUrl(req) || 'https://mile12warrior.com';
+    const title = 'Truck Driver Safety Blog — Fatigue, HOS Rest & Wellness | Mile 12 Warrior';
+    const description = 'Practical articles for professional truck drivers on fatigue management, HOS-aligned rest, sleep, mental wellness, and staying sharp on the road.';
+    const posts = db.prepare(`
+      SELECT p.id, p.title, p.slug, p.excerpt, p.image, p.content, p.created_at, p.author_display,
+             u.username AS author_username
+      FROM blog_posts p
+      LEFT JOIN users u ON p.author_id = u.id
+      WHERE p.published = 1 AND COALESCE(p.audience, 'driver') = 'driver'
+      ORDER BY p.created_at DESC
+      LIMIT 40
+    `).all();
+    const cards = posts.map(function (p) {
+      const author = (p.author_display && String(p.author_display).trim()) || p.author_username || '';
+      const excerpt = seo.truncate(p.excerpt || seo.stripHtml(p.content), 140);
+      const img = p.image
+        ? '<div class="blog-card-image"><img src="' + seo.escapeAttr(p.image) + '" alt="" loading="lazy"></div>'
+        : '<div class="blog-card-image blog-card-placeholder" aria-hidden="true"></div>';
+      return '<article class="blog-card glass-card">'
+        + '<a href="/blog/' + seo.escapeAttr(p.slug) + '" class="blog-card-link">'
+        + img
+        + '<div class="blog-card-body">'
+        + '<h2 class="blog-card-title">' + seo.escapeHtml(p.title) + '</h2>'
+        + '<p class="blog-card-meta">' + seo.escapeHtml(formatBlogDate(p.created_at))
+        + (author ? ' · ' + seo.escapeHtml(author) : '') + '</p>'
+        + (excerpt ? '<p class="blog-card-excerpt">' + seo.escapeHtml(excerpt) + '</p>' : '')
+        + '</div></a></article>';
+    }).join('\n');
+    let html = fs.readFileSync(path.join(__dirname, 'views', 'blog.html'), 'utf8');
+    const meta = seo.renderHeadTags({
+      title: title,
+      description: description,
+      url: base + '/blog',
+      image: base + '/images/logo.png',
+      type: 'website',
+    });
+    html = injectHeadMeta(html, title, meta);
+    html = html.replace(
+      /<h1 class="page-title">Blog<\/h1>\s*<p class="page-subtitle">[^<]*<\/p>/,
+      '<h1 class="page-title">Truck Driver Safety Blog</h1>\n'
+      + '      <p class="page-subtitle">Fatigue management, HOS-aligned rest, wellness, and road-ready tips for professional drivers.</p>'
+    );
+    if (cards) {
+      html = html.replace('<div id="blogGrid" class="blog-grid"></div>', '<div id="blogGrid" class="blog-grid">' + cards + '</div>');
+    }
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=120');
+    res.send(html);
+  } catch (err) {
+    res.sendFile(path.join(__dirname, 'views', 'blog.html'));
+  }
+});
+
+app.get('/blog/:slug', (req, res) => {
+  try {
+    const slug = String(req.params.slug || '').trim();
+    const post = db.prepare(`
+      SELECT p.id, p.title, p.slug, p.content, p.excerpt, p.image, p.published, p.audience,
+             p.author_display, p.created_at, p.updated_at,
+             u.username AS author_username
+      FROM blog_posts p
+      LEFT JOIN users u ON p.author_id = u.id
+      WHERE p.slug = ?
+    `).get(slug);
+    if (!post || !post.published) {
+      return res.status(404).sendFile(path.join(__dirname, 'views', 'blog-post.html'));
+    }
+    if (post.audience === 'family') {
+      return res.redirect(301, '/social-butterflies/blog/' + encodeURIComponent(post.slug));
+    }
+    const base = siteBaseUrl(req) || 'https://mile12warrior.com';
+    const authorName = (post.author_display && String(post.author_display).trim()) || post.author_username || 'Mile 12 Warrior';
+    const description = seo.truncate(post.excerpt || seo.stripHtml(post.content), 160);
+    const title = post.title + ' — Mile 12 Warrior';
+    const url = base + '/blog/' + post.slug;
+    const image = post.image
+      ? (post.image.indexOf('http') === 0 ? post.image : base + post.image)
+      : base + '/images/logo.png';
+    const meta = seo.renderHeadTags({
+      title: title,
+      description: description,
+      url: url,
+      image: image,
+      type: 'article',
+      jsonLd: seo.blogPostingJsonLd(base, post),
+    });
+    const featuredImg = post.image
+      ? '<div class="post-featured-image"><img src="' + seo.escapeAttr(post.image) + '" alt="' + seo.escapeAttr(post.title) + '"></div>'
+      : '';
+    const articleHtml = ''
+      + '<div class="blog-post-header-row"><h1>' + seo.escapeHtml(post.title) + '</h1></div>'
+      + '<div class="post-meta">' + seo.escapeHtml(formatBlogDate(post.created_at)) + ' · ' + seo.escapeHtml(authorName) + '</div>'
+      + featuredImg
+      + '<div class="post-content">' + (post.content || '') + '</div>';
+    let html = fs.readFileSync(path.join(__dirname, 'views', 'blog-post.html'), 'utf8');
+    html = injectHeadMeta(html, title, meta);
+    html = html.replace('<div id="postContent"></div>', '<div id="postContent" data-ssr="1">' + articleHtml + '</div>');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=120');
+    res.send(html);
+  } catch (err) {
+    res.sendFile(path.join(__dirname, 'views', 'blog-post.html'));
+  }
 });
 
 app.get('/about', (req, res) => {
@@ -274,14 +452,6 @@ app.get('/services', (req, res) => {
 
 app.get('/wellness', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'wellness.html'));
-});
-
-app.get('/blog', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'blog.html'));
-});
-
-app.get('/blog/:slug', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'blog-post.html'));
 });
 
 app.get('/forum', (req, res) => {
@@ -370,6 +540,11 @@ app.get('/journal/print', (req, res) => {
 app.get('/admin', requireAdmin, (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.sendFile(path.join(__dirname, 'views', 'admin.html'));
+});
+
+app.get('/marketing', requireMarketingPortal, (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.sendFile(path.join(__dirname, 'views', 'marketing.html'));
 });
 
 app.get('/course', (req, res) => {

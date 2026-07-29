@@ -16,7 +16,7 @@
   <nav class="navbar scrolled" id="navbar">
     <div class="nav-container">
       <a href="/" class="nav-logo">
-        <img src="/images/logo.png" alt="Mile 12 Warrior logo" class="nav-logo-img">
+        <img src="/images/logo.png" alt="Mile 12 Warrior logo: gold highway shield with M and 12" class="nav-logo-img">
       </a>
       <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
       <ul class="nav-links" id="navLinks">
@@ -30,6 +30,8 @@
 
   <main id="main-content" class="page-shell">
     <div class="page-container" style="max-width:760px">
+      
+      <a href="/social-butterflies" class="sb-brand-mark"><img src="/images/social-butterflies-logo.png" alt="Social Butterflies logo"></a>
       <a href="/social-butterflies/blog" class="sb-back-link">&larr; Back to Articles</a>
       <article class="sb-card sb-blog-article" id="postContent">
         <p class="sb-muted">Loading…</p>
@@ -85,7 +87,7 @@
 
           postContent.innerHTML =
             '<h1 class="sb-blog-article-title">' + esc(post.title) + '</h1>' +
-            '<p class="sb-blog-card-meta">' + formatDate(post.created_at) + (post.author && post.author.username ? ' &middot; ' + esc(post.author.username) : '') + '</p>' +
+            '<p class="sb-blog-card-meta">' + formatDate(post.created_at) + ((post.author_name || post.author_display || (post.author && post.author.username)) ? ' &middot; ' + esc(post.author_name || post.author_display || (post.author && post.author.username)) : '') + '</p>' +
             img +
             '<div class="sb-blog-article-body post-content">' + (post.content || '') + '</div>' +
             editHtml;

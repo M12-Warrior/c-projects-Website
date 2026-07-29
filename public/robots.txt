@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+
+# Keep private / utility surfaces out of the index
+Disallow: /admin
+Disallow: /account
+Disallow: /profile
+Disallow: /journal
+Disallow: /shop/cart
+Disallow: /shop/checkout
+Disallow: /shop/order
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /api/
+
+Sitemap: https://mile12warrior.com/sitemap.xml

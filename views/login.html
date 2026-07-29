@@ -91,6 +91,7 @@
         </p>
       </form>
 
+      <p id="loginNotice" class="form-link hidden" style="margin-top:8px;font-size:0.9rem;color:var(--gold-light);"></p>
       <p class="form-link" id="forgotPasswordLink">
         <a href="/forgot-password">Forgot password?</a>
       </p>
@@ -133,6 +134,18 @@
         loginError.classList.add('hidden');
       }
 
+      (function showLoginNotice() {
+        try {
+          const p = new URLSearchParams(window.location.search);
+          const notice = document.getElementById('loginNotice');
+          if (!notice) return;
+          if (p.get('reason') === 'daily') {
+            notice.textContent = 'Marketing partner sessions expire daily (and after inactivity). Please sign in again to continue.';
+            notice.classList.remove('hidden');
+          }
+        } catch (e) {}
+      })();
+
       function getSafeRedirect() {
         try {
           const p = new URLSearchParams(window.location.search);
@@ -147,7 +160,9 @@
       function afterLoginPath(role) {
         const red = getSafeRedirect();
         if (red) return red;
-        return role === 'admin' ? '/admin' : '/account';
+        if (role === 'admin') return '/admin';
+        if (role === 'marketer') return '/marketing';
+        return '/account';
       }
 
       async function checkAuth() {

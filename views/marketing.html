@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Partner Portal — Mile 12 Warrior</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/marketing.css">
+</head>
+<body class="marketing-portal-page">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/images/logo.png" alt="Mile 12 Warrior logo" class="nav-logo-img">
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/marketing" class="active">Marketing Portal</a></li>
+        <li id="navAdminLink" class="hidden"><a href="/admin">Admin</a></li>
+        <li id="navAuth"><a href="/login" class="nav-auth-link">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main id="main-content" class="page-shell">
+    <div class="page-container">
+      <header class="mkt-hero">
+        <div class="mkt-badge">Partner workspace</div>
+        <h1>Marketing Partner Portal</h1>
+        <p id="mktWelcome">Sign in required. This space is for Mile 12 Warrior and Relevant Search Media to track progress, share notes, and message — without live site edit access.</p>
+        <p class="mkt-muted" style="margin-top:10px">Security: marketing partner sessions require a fresh sign-in at least once every 24 hours, and end after 2 hours of inactivity.</p>
+      </header>
+
+      <div id="mktDenied" class="mkt-card hidden">
+        <h3>Access restricted</h3>
+        <p>This portal is only for site owners (admin) and approved marketing partners. <a href="/login">Sign in</a> with your partner account.</p>
+      </div>
+
+      <div id="mktApp" class="hidden">
+        <div class="mkt-tabs" role="tablist" id="mktTabs">
+          <button type="button" class="mkt-tab active" data-tab="overview">Overview</button>
+          <button type="button" class="mkt-tab" data-tab="progress">Progress</button>
+          <button type="button" class="mkt-tab" data-tab="siteinfo">Site info</button>
+          <button type="button" class="mkt-tab" data-tab="shared">Shared notes</button>
+          <button type="button" class="mkt-tab" data-tab="messages">Messages</button>
+          <button type="button" class="mkt-tab" data-tab="private">My notes &amp; calendar</button>
+          <button type="button" class="mkt-tab" data-tab="contacts">Contacts</button>
+        </div>
+
+        <section class="mkt-panel active" id="panel-overview">
+          <div class="mkt-grid">
+            <article class="mkt-card">
+              <h3>Engagement</h3>
+              <div id="engSummary" class="mkt-muted">Loading…</div>
+            </article>
+            <article class="mkt-card">
+              <h3>Working rules (agreed)</h3>
+              <ul class="mkt-list" id="engRules"></ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="mkt-panel" id="panel-progress">
+          <div class="mkt-card">
+            <h3>Progress tracker</h3>
+            <p class="mkt-muted">Visible to you and Mile 12 Warrior. Use this for monthly work, audits, and deliverables.</p>
+            <form class="mkt-form" id="progressForm">
+              <input name="title" placeholder="Item title" required maxlength="200">
+              <textarea name="details" placeholder="Details / notes" maxlength="8000"></textarea>
+              <div class="mkt-actions">
+                <select name="status">
+                  <option value="planned">Planned</option>
+                  <option value="in_progress">In progress</option>
+                  <option value="done">Done</option>
+                  <option value="blocked">Blocked</option>
+                </select>
+                <input name="month_label" placeholder="Month label (e.g. Aug 2026)" maxlength="80">
+                <button type="submit" class="mkt-btn mkt-btn-primary">Add item</button>
+              </div>
+            </form>
+            <ul class="mkt-list" id="progressList"></ul>
+          </div>
+        </section>
+
+        <section class="mkt-panel" id="panel-siteinfo">
+          <div class="mkt-card">
+            <h3>Important website information</h3>
+            <p class="mkt-muted">Shared facts both sides need (brand notes, keywords focus, access status, URLs). Temporary items can be deleted.</p>
+            <form class="mkt-form" id="siteInfoForm">
+              <input name="title" placeholder="Title" required maxlength="200">
+              <textarea name="body" placeholder="Details" maxlength="10000"></textarea>
+              <button type="submit" class="mkt-btn mkt-btn-primary">Save info</button>
+            </form>
+            <ul class="mkt-list" id="siteInfoList"></ul>
+          </div>
+        </section>
+
+        <section class="mkt-panel" id="panel-shared">
+          <div class="mkt-card">
+            <h3>Shared notes</h3>
+            <p class="mkt-muted">Visible to Thomas, Adam, and Mile 12 Warrior. Delete when a note is no longer needed.</p>
+            <form class="mkt-form" id="sharedNoteForm">
+              <input name="title" placeholder="Optional title" maxlength="200">
+              <textarea name="body" placeholder="Note" required maxlength="10000"></textarea>
+              <button type="submit" class="mkt-btn mkt-btn-primary">Add shared note</button>
+            </form>
+            <ul class="mkt-list" id="sharedNoteList"></ul>
+          </div>
+        </section>
+
+        <section class="mkt-panel" id="panel-messages">
+          <div class="mkt-grid">
+            <article class="mkt-card">
+              <h3>Direct messages</h3>
+              <p class="mkt-muted">Private messages between portal users. Website change requests should still go by email for implementation.</p>
+              <form class="mkt-form" id="messageForm">
+                <select name="to_user_id" id="messageTo" required></select>
+                <textarea name="body" placeholder="Write a message" required maxlength="8000"></textarea>
+                <button type="submit" class="mkt-btn mkt-btn-primary">Send</button>
+              </form>
+              <div id="messageStatus"></div>
+            </article>
+            <article class="mkt-card">
+              <h3>Conversation</h3>
+              <label class="mkt-muted" for="threadWith">View thread with</label>
+              <select id="threadWith" style="width:100%;margin:8px 0 12px;padding:10px;border-radius:8px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.12);color:var(--text)"></select>
+              <div class="mkt-thread" id="messageThread"><p class="mkt-muted">Select a person to view messages.</p></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="mkt-panel" id="panel-private">
+          <div class="mkt-grid">
+            <article class="mkt-card">
+              <h3>My private notes</h3>
+              <p class="mkt-muted">Only you see these (admin can view for oversight). Delete anytime.</p>
+              <form class="mkt-form" id="privateNoteForm">
+                <input name="title" placeholder="Optional title" maxlength="200">
+                <textarea name="body" placeholder="Private note" required maxlength="10000"></textarea>
+                <button type="submit" class="mkt-btn mkt-btn-primary">Save private note</button>
+              </form>
+              <ul class="mkt-list" id="privateNoteList"></ul>
+            </article>
+            <article class="mkt-card">
+              <h3>My calendar</h3>
+              <p class="mkt-muted">Personal schedule for audits, content due dates, calls.</p>
+              <form class="mkt-form" id="calendarForm">
+                <input name="title" placeholder="Event title" required maxlength="200">
+                <input name="event_date" type="date" required>
+                <textarea name="details" placeholder="Details (optional)" maxlength="4000"></textarea>
+                <button type="submit" class="mkt-btn mkt-btn-primary">Add event</button>
+              </form>
+              <ul class="mkt-list mkt-cal-list" id="calendarList"></ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="mkt-panel" id="panel-contacts">
+          <div class="mkt-card">
+            <h3>Partner contacts</h3>
+            <ul class="mkt-list" id="contactsList"></ul>
+            <div id="adminPasswordReset" class="hidden" style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08)">
+              <h3>Reset marketer password</h3>
+              <p class="mkt-muted">Admin only. Share the new password securely.</p>
+              <form class="mkt-form" id="resetPwForm">
+                <select name="user_id" id="resetUserSelect" required></select>
+                <input name="password" type="text" placeholder="New password (min 8 chars)" minlength="8" required>
+                <button type="submit" class="mkt-btn mkt-btn-primary">Reset password</button>
+              </form>
+              <div id="resetPwStatus"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/main.js"></script>
+  <script>
+  (function () {
+    var me = null;
+    var people = [];
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function fmtDate(iso) {
+      if (!iso) return '';
+      try {
+        return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+      } catch (e) { return String(iso); }
+    }
+
+    async function api(path, opts) {
+      var res = await fetch('/api/marketing' + path, Object.assign({ credentials: 'include', headers: { 'Content-Type': 'application/json' } }, opts || {}));
+      var data = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    function showTab(name) {
+      document.querySelectorAll('.mkt-tab').forEach(function (b) {
+        b.classList.toggle('active', b.getAttribute('data-tab') === name);
+      });
+      document.querySelectorAll('.mkt-panel').forEach(function (p) {
+        p.classList.toggle('active', p.id === 'panel-' + name);
+      });
+      if (name === 'progress') loadProgress();
+      if (name === 'siteinfo') loadSiteInfo();
+      if (name === 'shared') loadNotes('shared');
+      if (name === 'private') { loadNotes('private'); loadCalendar(); }
+      if (name === 'messages') loadMessagePeople();
+      if (name === 'contacts') loadContacts();
+    }
+
+    function renderOverview(eng) {
+      var el = document.getElementById('engSummary');
+      var rules = document.getElementById('engRules');
+      if (!eng) {
+        el.textContent = 'No engagement record yet.';
+        return;
+      }
+      el.innerHTML =
+        '<p><strong>' + esc(eng.company_name) + '</strong></p>' +
+        '<p>Package: ' + esc(eng.package_name) + ' · ' + esc(eng.term_months) + ' months</p>' +
+        '<p>Investment: ' + esc(eng.investment_total) + ' — ' + esc(eng.investment_note) + '</p>' +
+        (eng.start_date ? '<p>Start: ' + esc(eng.start_date) + (eng.end_date ? ' · End: ' + esc(eng.end_date) : '') + '</p>' : '');
+      var lines = String(eng.workflow_summary || '').split(/\n+/).filter(Boolean);
+      rules.innerHTML = lines.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') || '<li class="mkt-muted">No rules listed.</li>';
+    }
+
+    async function loadOverview() {
+      var data = await api('/engagement');
+      renderOverview(data.engagement);
+    }
+
+    async function loadProgress() {
+      var data = await api('/progress');
+      var list = document.getElementById('progressList');
+      if (!data.items.length) {
+        list.innerHTML = '<li class="mkt-muted">No progress items yet.</li>';
+        return;
+      }
+      list.innerHTML = data.items.map(function (item) {
+        return '<li>' +
+          '<div class="mkt-actions" style="justify-content:space-between">' +
+          '<div><span class="mkt-status ' + esc(item.status) + '">' + esc(item.status.replace('_', ' ')) + '</span> ' +
+          '<strong>' + esc(item.title) + '</strong>' +
+          (item.month_label ? ' <span class="mkt-meta">(' + esc(item.month_label) + ')</span>' : '') +
+          '</div>' +
+          '<div class="mkt-actions">' +
+          '<button type="button" class="mkt-btn" data-prog-status="' + item.id + ':in_progress">In progress</button>' +
+          '<button type="button" class="mkt-btn" data-prog-status="' + item.id + ':done">Done</button>' +
+          '<button type="button" class="mkt-btn mkt-btn-danger" data-prog-del="' + item.id + '">Delete</button>' +
+          '</div></div>' +
+          (item.details ? '<p class="mkt-muted" style="margin-top:8px;white-space:pre-wrap">' + esc(item.details) + '</p>' : '') +
+          '<div class="mkt-meta">Updated ' + esc(fmtDate(item.updated_at)) + (item.updated_by_name ? ' by ' + esc(item.updated_by_name) : '') + '</div>' +
+          '</li>';
+      }).join('');
+    }
+
+    async function loadSiteInfo() {
+      var data = await api('/site-info');
+      var list = document.getElementById('siteInfoList');
+      if (!data.items.length) {
+        list.innerHTML = '<li class="mkt-muted">No site info saved yet.</li>';
+        return;
+      }
+      list.innerHTML = data.items.map(function (item) {
+        return '<li><strong>' + esc(item.title) + '</strong>' +
+          '<p class="mkt-muted" style="white-space:pre-wrap;margin-top:6px">' + esc(item.body) + '</p>' +
+          '<div class="mkt-actions"><button type="button" class="mkt-btn mkt-btn-danger" data-info-del="' + item.id + '">Delete</button></div>' +
+          '<div class="mkt-meta">' + esc(fmtDate(item.updated_at)) + (item.created_by_name ? ' · ' + esc(item.created_by_name) : '') + '</div></li>';
+      }).join('');
+    }
+
+    async function loadNotes(scope) {
+      var data = await api('/notes?scope=' + encodeURIComponent(scope));
+      var list = document.getElementById(scope === 'shared' ? 'sharedNoteList' : 'privateNoteList');
+      if (!data.notes.length) {
+        list.innerHTML = '<li class="mkt-muted">No notes yet.</li>';
+        return;
+      }
+      list.innerHTML = data.notes.map(function (n) {
+        return '<li>' +
+          (n.title ? '<strong>' + esc(n.title) + '</strong>' : '') +
+          '<p class="mkt-muted" style="white-space:pre-wrap;margin-top:6px">' + esc(n.body) + '</p>' +
+          '<div class="mkt-actions"><button type="button" class="mkt-btn mkt-btn-danger" data-note-del="' + n.id + '" data-scope="' + scope + '">Delete</button></div>' +
+          '<div class="mkt-meta">' + esc(n.author_name || '') + ' · ' + esc(fmtDate(n.updated_at)) + '</div></li>';
+      }).join('');
+    }
+
+    function fillPeopleSelects() {
+      var others = people.filter(function (p) { return p.id !== me.id; });
+      var opts = others.map(function (p) {
+        return '<option value="' + p.id + '">' + esc(p.username) + ' (' + esc(p.role) + ')</option>';
+      }).join('');
+      document.getElementById('messageTo').innerHTML = opts || '<option value="">No other users</option>';
+      document.getElementById('threadWith').innerHTML = '<option value="">Select…</option>' + opts;
+      var marketers = people.filter(function (p) { return p.role === 'marketer'; });
+      document.getElementById('resetUserSelect').innerHTML = marketers.map(function (p) {
+        return '<option value="' + p.id + '">' + esc(p.username) + ' — ' + esc(p.email) + '</option>';
+      }).join('') || '<option value="">No marketer accounts</option>';
+    }
+
+    async function loadMessagePeople() {
+      fillPeopleSelects();
+    }
+
+    async function loadThread(withId) {
+      var box = document.getElementById('messageThread');
+      if (!withId) {
+        box.innerHTML = '<p class="mkt-muted">Select a person to view messages.</p>';
+        return;
+      }
+      var data = await api('/messages?with=' + encodeURIComponent(withId));
+      if (!data.messages.length) {
+        box.innerHTML = '<p class="mkt-muted">No messages yet. Send the first one.</p>';
+        return;
+      }
+      box.innerHTML = data.messages.map(function (m) {
+        var mine = m.from_user_id === me.id;
+        return '<div class="mkt-msg' + (mine ? ' mine' : '') + '">' +
+          '<div class="who">' + esc(m.from_username) + ' · ' + esc(fmtDate(m.created_at)) + '</div>' +
+          '<div class="body">' + esc(m.body) + '</div></div>';
+      }).join('');
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function loadCalendar() {
+      var data = await api('/calendar');
+      var list = document.getElementById('calendarList');
+      if (!data.events.length) {
+        list.innerHTML = '<li class="mkt-muted">No calendar events yet.</li>';
+        return;
+      }
+      list.innerHTML = data.events.map(function (e) {
+        return '<li><strong>' + esc(e.event_date) + '</strong> — ' + esc(e.title) +
+          (e.details ? '<p class="mkt-muted" style="white-space:pre-wrap;margin-top:6px">' + esc(e.details) + '</p>' : '') +
+          '<div class="mkt-actions"><button type="button" class="mkt-btn mkt-btn-danger" data-cal-del="' + e.id + '">Delete</button></div></li>';
+      }).join('');
+    }
+
+    async function loadContacts() {
+      var data = await api('/contacts');
+      var list = document.getElementById('contactsList');
+      list.innerHTML = data.contacts.map(function (c) {
+        return '<li><strong>' + esc(c.name) + '</strong>' +
+          (c.title ? ' — ' + esc(c.title) : '') +
+          (c.email ? '<p class="mkt-muted">Email: ' + esc(c.email) + '</p>' : '') +
+          (c.phone ? '<p class="mkt-muted">Phone: ' + esc(c.phone) + '</p>' : '') +
+          (c.whatsapp ? '<p class="mkt-muted">WhatsApp: ' + esc(c.whatsapp) + '</p>' : '') +
+          (c.notes ? '<p class="mkt-muted">' + esc(c.notes) + '</p>' : '') +
+          '</li>';
+      }).join('') || '<li class="mkt-muted">No contacts saved.</li>';
+      if (me.role === 'admin') {
+        document.getElementById('adminPasswordReset').classList.remove('hidden');
+        fillPeopleSelects();
+      }
+    }
+
+    document.getElementById('mktTabs').addEventListener('click', function (e) {
+      var btn = e.target.closest('.mkt-tab');
+      if (!btn) return;
+      showTab(btn.getAttribute('data-tab'));
+    });
+
+    document.getElementById('progressForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var fd = new FormData(e.target);
+      await api('/progress', { method: 'POST', body: JSON.stringify({
+        title: fd.get('title'), details: fd.get('details'), status: fd.get('status'), month_label: fd.get('month_label')
+      })});
+      e.target.reset();
+      loadProgress();
+    });
+
+    document.getElementById('progressList').addEventListener('click', async function (e) {
+      var del = e.target.getAttribute('data-prog-del');
+      var st = e.target.getAttribute('data-prog-status');
+      if (del) {
+        if (!confirm('Delete this progress item?')) return;
+        await api('/progress/' + del, { method: 'DELETE' });
+        loadProgress();
+      }
+      if (st) {
+        var parts = st.split(':');
+        await api('/progress/' + parts[0], { method: 'PUT', body: JSON.stringify({ status: parts[1] }) });
+        loadProgress();
+      }
+    });
+
+    document.getElementById('siteInfoForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var fd = new FormData(e.target);
+      await api('/site-info', { method: 'POST', body: JSON.stringify({ title: fd.get('title'), body: fd.get('body') }) });
+      e.target.reset();
+      loadSiteInfo();
+    });
+
+    document.getElementById('siteInfoList').addEventListener('click', async function (e) {
+      var id = e.target.getAttribute('data-info-del');
+      if (!id) return;
+      if (!confirm('Delete this site info item?')) return;
+      await api('/site-info/' + id, { method: 'DELETE' });
+      loadSiteInfo();
+    });
+
+    function bindNoteForm(formId, scope, reload) {
+      document.getElementById(formId).addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var fd = new FormData(e.target);
+        await api('/notes', { method: 'POST', body: JSON.stringify({ scope: scope, title: fd.get('title'), body: fd.get('body') }) });
+        e.target.reset();
+        reload();
+      });
+    }
+    bindNoteForm('sharedNoteForm', 'shared', function () { loadNotes('shared'); });
+    bindNoteForm('privateNoteForm', 'private', function () { loadNotes('private'); });
+
+    document.getElementById('sharedNoteList').addEventListener('click', onNoteDelete);
+    document.getElementById('privateNoteList').addEventListener('click', onNoteDelete);
+    async function onNoteDelete(e) {
+      var id = e.target.getAttribute('data-note-del');
+      var scope = e.target.getAttribute('data-scope');
+      if (!id) return;
+      if (!confirm('Delete this note?')) return;
+      await api('/notes/' + id, { method: 'DELETE' });
+      loadNotes(scope);
+    }
+
+    document.getElementById('messageForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var fd = new FormData(e.target);
+      var status = document.getElementById('messageStatus');
+      try {
+        await api('/messages', { method: 'POST', body: JSON.stringify({ to_user_id: fd.get('to_user_id'), body: fd.get('body') }) });
+        status.innerHTML = '<p class="mkt-success">Message sent.</p>';
+        e.target.querySelector('textarea').value = '';
+        document.getElementById('threadWith').value = fd.get('to_user_id');
+        loadThread(fd.get('to_user_id'));
+      } catch (err) {
+        status.innerHTML = '<p class="mkt-error">' + esc(err.message) + '</p>';
+      }
+    });
+
+    document.getElementById('threadWith').addEventListener('change', function () {
+      loadThread(this.value);
+    });
+
+    document.getElementById('calendarForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var fd = new FormData(e.target);
+      await api('/calendar', { method: 'POST', body: JSON.stringify({
+        title: fd.get('title'), event_date: fd.get('event_date'), details: fd.get('details')
+      })});
+      e.target.reset();
+      loadCalendar();
+    });
+
+    document.getElementById('calendarList').addEventListener('click', async function (e) {
+      var id = e.target.getAttribute('data-cal-del');
+      if (!id) return;
+      if (!confirm('Delete this event?')) return;
+      await api('/calendar/' + id, { method: 'DELETE' });
+      loadCalendar();
+    });
+
+    document.getElementById('resetPwForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var fd = new FormData(e.target);
+      var status = document.getElementById('resetPwStatus');
+      try {
+        await api('/reset-password', { method: 'POST', body: JSON.stringify({ user_id: fd.get('user_id'), password: fd.get('password') }) });
+        status.innerHTML = '<p class="mkt-success">Password updated. Share it securely with the partner.</p>';
+        e.target.password.value = '';
+      } catch (err) {
+        status.innerHTML = '<p class="mkt-error">' + esc(err.message) + '</p>';
+      }
+    });
+
+    async function boot() {
+      try {
+        var auth = await fetch('/api/auth/me', { credentials: 'include' }).then(function (r) { return r.json(); });
+        if (!auth.user || (auth.user.role !== 'admin' && auth.user.role !== 'marketer')) {
+          document.getElementById('mktDenied').classList.remove('hidden');
+          return;
+        }
+        me = auth.user;
+        document.getElementById('mktWelcome').textContent =
+          'Signed in as ' + me.username + ' (' + me.role + '). Track progress, share notes, and message here. Live website edits still go through email approval.';
+        document.getElementById('mktApp').classList.remove('hidden');
+        if (me.role === 'admin') document.getElementById('navAdminLink').classList.remove('hidden');
+        var portal = await api('/me');
+        people = portal.people || [];
+        fillPeopleSelects();
+        await loadOverview();
+        var navAuth = document.getElementById('navAuth');
+        if (navAuth) {
+          navAuth.innerHTML = '<a href="#" id="mktSignOut">Sign Out</a>';
+          document.getElementById('mktSignOut').addEventListener('click', async function (ev) {
+            ev.preventDefault();
+            await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+            window.location.href = '/login';
+          });
+        }
+      } catch (err) {
+        document.getElementById('mktDenied').classList.remove('hidden');
+        document.getElementById('mktDenied').querySelector('p').textContent = err.message || 'Unable to open portal.';
+      }
+    }
+
+    boot();
+  })();
+  </script>
+</body>
+</html>

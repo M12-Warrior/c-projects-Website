@@ -6,6 +6,7 @@ mobile-app/node_modules/
 .env
 .env.local
 .env.*.local
+.marketing-credentials.local
 
 # Local SQLite DB (Railway will create its own on the volume)
 db/drivershield.db

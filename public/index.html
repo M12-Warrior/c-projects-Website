@@ -3,8 +3,74 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mile 12 Warrior — Master the Miles, Own Your Journey</title>
-  <link rel="stylesheet" href="/css/main.css?v=concrete-20260227-nocache">
+  <title>Mile 12 Warrior — Truck Driver Fatigue, HOS Rest &amp; Safety Resources</title>
+  <meta name="description" content="Fatigue management, HOS-aligned rest, sleep strategies, mental wellness, and defensive driving resources for professional truck drivers — built by a driver with 25+ years on the road.">
+  <link rel="canonical" href="https://mile12warrior.com/">
+  <meta property="og:site_name" content="Mile 12 Warrior">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://mile12warrior.com/">
+  <meta property="og:title" content="Mile 12 Warrior — Truck Driver Fatigue, HOS Rest &amp; Safety Resources">
+  <meta property="og:description" content="Fatigue management, HOS-aligned rest, sleep strategies, mental wellness, and defensive driving resources for professional truck drivers.">
+  <meta property="og:image" content="https://mile12warrior.com/images/logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mile 12 Warrior — Truck Driver Fatigue, HOS Rest &amp; Safety Resources">
+  <meta name="twitter:description" content="Fatigue management, HOS-aligned rest, wellness, and defensive driving resources for professional truck drivers.">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"Organization","name":"Mile 12 Warrior","url":"https://mile12warrior.com","logo":"https://mile12warrior.com/images/logo.png","description":"Fatigue management, HOS-aligned rest, wellness, and defensive driving resources for professional truck drivers.","email":"joyce@mile12warrior.com"}
+  </script>
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"WebSite","name":"Mile 12 Warrior","url":"https://mile12warrior.com","potentialAction":{"@type":"SearchAction","target":"https://mile12warrior.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}
+  </script>
+  <link rel="stylesheet" href="/css/main.css?v=nav-gold-20260713b">
+  <style id="nav-critical">
+    /* Critical laptop nav — gold hamburger always visible even if CSS is stale */
+    .navbar {
+      position: fixed !important;
+      top: 12px !important;
+      left: 12px !important;
+      right: 12px !important;
+      z-index: 10050 !important;
+      background: #1a1a1c !important;
+      border: 2px solid #E6B800 !important;
+      border-radius: 10px !important;
+      box-shadow: 0 10px 32px rgba(0,0,0,0.55) !important;
+    }
+    .nav-container {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      min-height: 64px !important;
+      padding: 10px 16px !important;
+    }
+    .nav-toggle {
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      gap: 6px !important;
+      background: #E6B800 !important;
+      border: 2px solid #F5C542 !important;
+      border-radius: 6px !important;
+      padding: 14px 12px !important;
+      min-width: 52px !important;
+      min-height: 48px !important;
+      margin-left: auto !important;
+      cursor: pointer !important;
+    }
+    .nav-toggle span {
+      display: block !important;
+      width: 24px !important;
+      height: 3px !important;
+      background: #1a1a1c !important;
+      border-radius: 2px !important;
+    }
+    .nav-links:not(.open) {
+      position: fixed !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      transform: translateY(-120%) !important;
+    }
+  </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -24,8 +90,10 @@
           <span>Mile 12 Warrior</span>
         </span>
       </a>
-      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
-        <span></span><span></span><span></span>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks" style="display:flex;flex-direction:column;justify-content:center;gap:6px;background:#E6B800;border:2px solid #F5C542;border-radius:6px;padding:14px 12px;min-width:52px;min-height:48px;margin-left:auto;cursor:pointer;">
+        <span style="display:block;width:24px;height:3px;background:#1a1a1c;border-radius:2px;"></span>
+        <span style="display:block;width:24px;height:3px;background:#1a1a1c;border-radius:2px;"></span>
+        <span style="display:block;width:24px;height:3px;background:#1a1a1c;border-radius:2px;"></span>
       </button>
       <ul class="nav-links" id="navLinks">
         <li><a href="/">Home</a></li>
@@ -63,7 +131,7 @@
         <span class="title-line">Master the Miles,</span>
         <span class="title-line title-gradient">Own Your Journey</span>
       </h1>
-      <p class="hero-sub">Born from 25+ years behind the wheel. Mile 12 Warrior empowers professional truck drivers to conquer fatigue, master mindset, and thrive on the open road — with practical tools, real-world wisdom, and an uplifting community.</p>
+      <p class="hero-sub">Born from 25+ years behind the wheel. Mile 12 Warrior helps professional truck drivers manage fatigue, protect HOS-aligned rest, build wellness habits, and drive safer — with practical tools, real-world wisdom, and community support.</p>
       <div class="hero-cta">
         <a href="#roadmap" class="btn btn-primary">
           <span>Explore the Roadmap</span>
@@ -102,8 +170,8 @@
     <div class="container">
       <div class="section-header">
         <span class="section-tag"><svg class="icon-cb-wave" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2 12c0 0 2-4 10-4s10 4 10 4"/><path d="M4 12c0 0 1.5-3 8-3s8 3 8 3"/><path d="M6 12c0 0 1-2 6-2s6 2 6 2"/></svg> Copy That — The Full Picture</span>
-        <h2>Driver Safety Roadmap</h2>
-        <p>Seven critical areas every professional driver needs to master. Pick a phase to explore.</p>
+        <h2>Driver Safety Roadmap: Fatigue, Sleep, Wellness &amp; Defensive Driving</h2>
+        <p>Seven critical areas every professional truck driver needs — from sleep and fatigue management to HOS-aware habits, mental wellness, and defensive driving. Pick a phase to explore.</p>
       </div>
 
       <!-- Tab bar -->
@@ -1057,7 +1125,7 @@
       }
     })();
   </script>
-  <script src="/js/main.js"></script>
+  <script src="/js/main.js?v=nav-gold-20260713b"></script>
 </body>
 </html>
 

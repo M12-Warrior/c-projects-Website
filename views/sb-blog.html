@@ -17,7 +17,7 @@
   <nav class="navbar scrolled" id="navbar">
     <div class="nav-container">
       <a href="/" class="nav-logo">
-        <img src="/images/logo.png" alt="Mile 12 Warrior logo" class="nav-logo-img">
+        <img src="/images/logo.png" alt="Mile 12 Warrior logo: gold highway shield with M and 12" class="nav-logo-img">
       </a>
       <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
       <ul class="nav-links" id="navLinks">
@@ -34,6 +34,8 @@
 
   <main id="main-content" class="page-shell">
     <div class="page-container">
+      
+      <a href="/social-butterflies" class="sb-brand-mark"><img src="/images/social-butterflies-logo.png" alt="Social Butterflies logo"></a>
       <a href="/social-butterflies" class="sb-back-link">&larr; Back to Social Butterflies</a>
 
       <header class="sb-community-hero">
@@ -93,7 +95,7 @@
               '<a href="' + url + '" class="sb-blog-card-link">' +
                 '<div class="sb-blog-card-media">' + img + '</div>' +
                 '<div class="sb-blog-card-body">' +
-                  '<p class="sb-blog-card-meta">' + formatDate(post.created_at) + (post.author_username ? ' &middot; ' + esc(post.author_username) : '') + '</p>' +
+                  '<p class="sb-blog-card-meta">' + formatDate(post.created_at) + ((post.author_name || post.author_display || post.author_username) ? ' &middot; ' + esc(post.author_name || post.author_display || post.author_username) : '') + '</p>' +
                   '<h2 class="sb-blog-card-title">' + esc(post.title) + '</h2>' +
                   '<p class="sb-blog-card-excerpt">' + esc((post.excerpt || '').slice(0, 160)) + ((post.excerpt || '').length > 160 ? '…' : '') + '</p>' +
                 '</div>' +

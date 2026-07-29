@@ -1,7 +1,7 @@
 /* Page entry: subtle fade + slide (inner pages) */
 .page-shell {
   min-height: 100vh;
-  padding-top: 80px;
+  padding-top: calc(var(--nav-inset, 12px) + var(--nav-height, 72px) + 24px);
   background: var(--bg);
   opacity: 0;
   transform: translateY(10px);
@@ -313,7 +313,7 @@ textarea.form-input {
   padding: 8px 10px;
 }
 /* In-page (new post) form scrolls with the window, so clear the fixed navbar. */
-.quill-wrap-page .ql-toolbar.ql-snow { top: 64px; }
+.quill-wrap-page .ql-toolbar.ql-snow { top: calc(var(--nav-inset, 12px) + var(--nav-height, 72px) + 8px); }
 /* The edit modal is its own scroll container. */
 .quill-wrap-modal .ql-toolbar.ql-snow { top: 0; }
 

@@ -5,6 +5,7 @@ const { getStorageHealth } = require('../lib/storageHealth');
 const { getShareLinks } = require('../lib/qrShare');
 const subscriptionRouter = require('./subscription');
 const { mapPartnerRow, parseServices, clampImagePosition } = require('../lib/wellnessPartners');
+const { classifyTraffic, countryDisplayName } = require('../lib/trafficGeo');
 
 const router = express.Router();
 
@@ -36,19 +37,8 @@ function getPeriodBounds(period) {
   return { start, end: now };
 }
 
-function normalizeTrafficSource(referrer, utmSource) {
-  const explicit = (utmSource || '').trim().toLowerCase();
-  if (explicit) return explicit;
-  if (!referrer) return 'direct';
-  const r = String(referrer).toLowerCase();
-  if (r.includes('google.')) return 'google';
-  if (r.includes('facebook.com') || r.includes('fb.com')) return 'facebook';
-  if (r.includes('linkedin.com')) return 'linkedin';
-  if (r.includes('x.com') || r.includes('twitter.com')) return 'x';
-  if (r.includes('instagram.com')) return 'instagram';
-  if (r.includes('bing.com')) return 'bing';
-  if (r.includes('yahoo.com')) return 'yahoo';
-  return 'other';
+function normalizeTrafficSource(referrer, utmSource, utmMedium) {
+  return classifyTraffic(referrer, utmSource, utmMedium).source;
 }
 
 function getCurrentFiscalYear(at = new Date()) {
@@ -258,6 +248,40 @@ router.get('/stats', (req, res) => {
     ORDER BY o.created_at DESC LIMIT 5
   `).all();
 
+  // Traffic snapshot (last 7 days) for the main dashboard
+  let trafficWeek = {
+    visitors: 0,
+    pageViews: 0,
+    fromX: 0,
+    direct: 0,
+    countries: 0,
+  };
+  try {
+    const weekStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const weekEnd = new Date().toISOString();
+    const weekRows = db.prepare(`
+      SELECT referrer, utm_source, utm_medium, country_code, visitor_key
+      FROM traffic_visits
+      WHERE visited_at >= ? AND visited_at <= ?
+    `).all(weekStart, weekEnd);
+    trafficWeek.pageViews = weekRows.length;
+    const visitorSet = new Set();
+    const xSet = new Set();
+    const directSet = new Set();
+    const countrySet = new Set();
+    for (const row of weekRows) {
+      visitorSet.add(row.visitor_key);
+      const classified = classifyTraffic(row.referrer, row.utm_source, row.utm_medium);
+      if (classified.source === 'x') xSet.add(row.visitor_key);
+      if (classified.channel === 'direct') directSet.add(row.visitor_key);
+      if (row.country_code) countrySet.add(String(row.country_code).toUpperCase());
+    }
+    trafficWeek.visitors = visitorSet.size;
+    trafficWeek.fromX = xSet.size;
+    trafficWeek.direct = directSet.size;
+    trafficWeek.countries = countrySet.size;
+  } catch (_) {}
+
   res.json({
     stats: {
       total_users: totalUsers,
@@ -273,6 +297,11 @@ router.get('/stats', (req, res) => {
       recent_thank_you: recentThankYou,
       recent_users: recentUsers,
       recent_orders: recentOrders,
+      traffic_week_visitors: trafficWeek.visitors,
+      traffic_week_views: trafficWeek.pageViews,
+      traffic_week_from_x: trafficWeek.fromX,
+      traffic_week_direct: trafficWeek.direct,
+      traffic_week_countries: trafficWeek.countries,
     },
   });
 });
@@ -322,8 +351,8 @@ router.put('/users/:id', (req, res) => {
   const isSelf = id === req.session.user.id;
 
   if (!isSelf) {
-    if (role !== 'admin' && role !== 'user') {
-      return res.status(400).json({ error: 'Role must be admin or user' });
+    if (role !== 'admin' && role !== 'user' && role !== 'marketer') {
+      return res.status(400).json({ error: 'Role must be admin, user, or marketer' });
     }
   }
 
@@ -963,26 +992,107 @@ router.get('/traffic', (req, res) => {
   const pageViews = pageViewsRow ? pageViewsRow.c : 0;
 
   const sourceRows = db.prepare(`
-    SELECT referrer, utm_source, visitor_key
+    SELECT referrer, utm_source, utm_medium, country_code, visitor_key, path
     FROM traffic_visits
     WHERE visited_at >= ? AND visited_at <= ?
   `).all(startStr, endStr);
   const sourceMap = new Map();
   const sourceVisitorMap = new Map();
+  const channelMap = new Map();
+  const channelVisitorMap = new Map();
+  const countryMap = new Map();
+  const countryVisitorMap = new Map();
+  const pathMap = new Map();
+  const pathVisitorMap = new Map();
+  let xVisitors = new Set();
+  let xViews = 0;
+  let knownCountryVisitors = new Set();
+  let unknownCountryVisitors = new Set();
+
   for (const row of sourceRows) {
-    const source = normalizeTrafficSource(row.referrer, row.utm_source);
+    const classified = classifyTraffic(row.referrer, row.utm_source, row.utm_medium);
+    const source = classified.source;
+    const channel = classified.channel;
     if (!sourceMap.has(source)) sourceMap.set(source, 0);
     sourceMap.set(source, sourceMap.get(source) + 1);
     if (!sourceVisitorMap.has(source)) sourceVisitorMap.set(source, new Set());
     sourceVisitorMap.get(source).add(row.visitor_key);
+
+    if (!channelMap.has(channel)) channelMap.set(channel, 0);
+    channelMap.set(channel, channelMap.get(channel) + 1);
+    if (!channelVisitorMap.has(channel)) channelVisitorMap.set(channel, new Set());
+    channelVisitorMap.get(channel).add(row.visitor_key);
+
+    if (source === 'x') {
+      xViews += 1;
+      xVisitors.add(row.visitor_key);
+    }
+
+    const country = (row.country_code && String(row.country_code).trim()) || 'unknown';
+    if (!countryMap.has(country)) countryMap.set(country, 0);
+    countryMap.set(country, countryMap.get(country) + 1);
+    if (!countryVisitorMap.has(country)) countryVisitorMap.set(country, new Set());
+    countryVisitorMap.get(country).add(row.visitor_key);
+    if (country === 'unknown') unknownCountryVisitors.add(row.visitor_key);
+    else knownCountryVisitors.add(row.visitor_key);
+
+    const p = row.path || '/';
+    if (!pathMap.has(p)) pathMap.set(p, 0);
+    pathMap.set(p, pathMap.get(p) + 1);
+    if (!pathVisitorMap.has(p)) pathVisitorMap.set(p, new Set());
+    pathVisitorMap.get(p).add(row.visitor_key);
   }
+
+  // Always surface key sources in admin (even at zero) so X / Direct are easy to find
+  const ALWAYS_SOURCES = ['x', 'direct', 'google', 'facebook', 'instagram', 'linkedin', 'youtube', 'referral'];
+  for (const src of ALWAYS_SOURCES) {
+    if (!sourceMap.has(src)) {
+      sourceMap.set(src, 0);
+      sourceVisitorMap.set(src, new Set());
+    }
+  }
+
   const sources = Array.from(sourceMap.entries())
     .map(([source, views]) => {
       const uniqueVisitors = sourceVisitorMap.get(source) ? sourceVisitorMap.get(source).size : 0;
       const percent = visitors > 0 ? Math.round((uniqueVisitors / visitors) * 1000) / 10 : 0;
       return { source, views, visitors: uniqueVisitors, percent };
     })
+    .sort((a, b) => {
+      if (a.source === 'x' && b.source !== 'x') return -1;
+      if (b.source === 'x' && a.source !== 'x') return 1;
+      return b.visitors - a.visitors;
+    });
+
+  const channels = Array.from(channelMap.entries())
+    .map(([channel, views]) => {
+      const uniqueVisitors = channelVisitorMap.get(channel) ? channelVisitorMap.get(channel).size : 0;
+      const percent = visitors > 0 ? Math.round((uniqueVisitors / visitors) * 1000) / 10 : 0;
+      return { channel, views, visitors: uniqueVisitors, percent };
+    })
     .sort((a, b) => b.visitors - a.visitors);
+
+  const countries = Array.from(countryMap.entries())
+    .map(([code, views]) => {
+      const uniqueVisitors = countryVisitorMap.get(code) ? countryVisitorMap.get(code).size : 0;
+      const percent = visitors > 0 ? Math.round((uniqueVisitors / visitors) * 1000) / 10 : 0;
+      return {
+        country: code,
+        countryName: code === 'unknown' ? 'Unknown / not reported' : countryDisplayName(code),
+        views,
+        visitors: uniqueVisitors,
+        percent,
+      };
+    })
+    .sort((a, b) => b.visitors - a.visitors);
+
+  const topPaths = Array.from(pathMap.entries())
+    .map(([path, views]) => {
+      const uniqueVisitors = pathVisitorMap.get(path) ? pathVisitorMap.get(path).size : 0;
+      return { path, views, visitors: uniqueVisitors };
+    })
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 15);
 
   const loggedInVisitorsRow = db.prepare(`
     SELECT COUNT(DISTINCT user_id) AS c FROM traffic_visits
@@ -1029,6 +1139,9 @@ router.get('/traffic', (req, res) => {
     }
   }
 
+  const xVisitorCount = xVisitors.size;
+  const countriesWithData = countries.filter((c) => c.country !== 'unknown').length;
+
   res.json({
     period,
     start: startStr,
@@ -1039,6 +1152,20 @@ router.get('/traffic', (req, res) => {
     pageViews,
     likelyBusiness,
     sources,
+    channels,
+    countries,
+    topPaths,
+    fromX: {
+      visitors: xVisitorCount,
+      views: xViews,
+      percent: visitors > 0 ? Math.round((xVisitorCount / visitors) * 1000) / 10 : 0,
+    },
+    worldwide: {
+      countriesReported: countriesWithData,
+      visitorsWithCountry: knownCountryVisitors.size,
+      visitorsUnknownCountry: unknownCountryVisitors.size,
+      note: 'Country is captured from CDN edge headers when present (for example Cloudflare CF-IPCountry). On Railway alone we resolve country from the visitor IP via a privacy-friendly lookup and store only the country code — never the IP address. Local/dev traffic often shows as Unknown.',
+    },
     yoyGrowth,
     previousVisitors: previousVisitors ?? undefined,
   });

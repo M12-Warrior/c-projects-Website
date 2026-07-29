@@ -232,6 +232,29 @@ document.addEventListener('DOMContentLoaded', () => {
   document.documentElement.classList.remove('no-js');
   document.documentElement.classList.add('js');
 
+  // Force a visible laptop nav (gold hamburger). Survives stale CSS caches.
+  (function ensureVisibleNav() {
+    if (document.getElementById('nav-critical-js')) return;
+    var style = document.createElement('style');
+    style.id = 'nav-critical-js';
+    style.textContent = [
+      '.navbar{position:fixed!important;top:12px!important;left:12px!important;right:12px!important;z-index:10050!important;background:#1a1a1c!important;border:2px solid #E6B800!important;border-radius:10px!important;box-shadow:0 10px 32px rgba(0,0,0,.55)!important;}',
+      '.nav-container{display:flex!important;align-items:center!important;justify-content:space-between!important;min-height:64px!important;padding:10px 16px!important;}',
+      '.nav-toggle{display:flex!important;flex-direction:column!important;justify-content:center!important;gap:6px!important;background:#E6B800!important;border:2px solid #F5C542!important;border-radius:6px!important;padding:14px 12px!important;min-width:52px!important;min-height:48px!important;margin-left:auto!important;cursor:pointer!important;box-shadow:0 2px 12px rgba(230,184,0,.45)!important;}',
+      '.nav-toggle span{display:block!important;width:24px!important;height:3px!important;background:#1a1a1c!important;border-radius:2px!important;}',
+      '.nav-links{position:fixed!important;top:92px!important;left:12px!important;right:12px!important;z-index:10049!important;background:#121214!important;border:2px solid #E6B800!important;border-radius:10px!important;flex-direction:column!important;padding:12px 16px 20px!important;max-height:calc(100vh - 120px)!important;overflow-y:auto!important;}',
+      '.nav-links:not(.open){opacity:0!important;visibility:hidden!important;pointer-events:none!important;transform:translateY(-120%)!important;}',
+      '.nav-links.open{opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:none!important;}',
+      '.nav-links a{display:block!important;padding:14px 16px!important;font-size:1rem!important;font-weight:600!important;color:#f0f0f0!important;}'
+    ].join('');
+    document.head.appendChild(style);
+    var toggle = document.getElementById('navToggle');
+    if (toggle) {
+      toggle.style.display = 'flex';
+      toggle.setAttribute('aria-label', toggle.getAttribute('aria-label') || 'Toggle menu');
+    }
+  })();
+
   (function initSkipLinkAndMain() {
     var main =
       document.getElementById('main-content') ||

@@ -82,7 +82,7 @@
   <main id="main-content" class="page-shell">
     <div class="page-container">
       <h1 class="page-title">Admin Dashboard</h1>
-      <p class="page-subtitle">Manage your site</p>
+      <p class="page-subtitle">Manage your site · <a href="/marketing" style="color:var(--gold-light)">Marketing Partner Portal</a></p>
 
       <div class="admin-tabs" id="adminTabs">
         <button type="button" class="admin-tab active" data-tab="dashboard">Dashboard</button>
@@ -199,6 +199,11 @@
               <div class="form-group"><label class="form-label">Excerpt</label><input type="text" name="excerpt" id="blogNewExcerpt" class="form-input">
                 <button type="button" class="btn btn-glass mt-8" id="blogNewExcerptHelperBtn" style="font-size:0.8rem;">Suggest from content</button>
                 <p style="font-size:0.78rem;color:var(--text-3);margin-top:4px;">Short summary shown on the blog list. Leave blank to auto-use the start of your post.</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="blogNewAuthor">Author signature (public)</label>
+                <input type="text" name="author_display" id="blogNewAuthor" class="form-input" maxlength="120" placeholder="e.g. Joyce · Mile 12 Warrior" autocomplete="name">
+                <p style="font-size:0.78rem;color:var(--text-3);margin-top:4px;">Shown on the public blog instead of the account username (e.g. &quot;admin&quot;). Leave blank to use your username.</p>
               </div>
               <div class="form-group">
                 <label class="form-label" for="blogNewAudience">Audience</label>
@@ -388,7 +393,7 @@
       <div id="tabTraffic" class="admin-tab-content hidden">
         <div class="admin-section">
           <h3>Traffic &amp; visitors</h3>
-          <p style="color:var(--text-2);margin-bottom:16px;font-size:0.9rem">Unique visitors and return traffic by period. Data is collected from page views (not API calls). Return users are logged-in users who visited on more than one day in the period. &quot;Likely business&quot; = registered users who have purchased a fleet product and visited in the period.</p>
+          <p style="color:var(--text-2);margin-bottom:16px;font-size:0.9rem">Unique visitors and return traffic by period. Data is collected from page views (not API calls). Return users are logged-in users who visited on more than one day in the period. &quot;Likely business&quot; = registered users who have purchased a fleet product and visited in the period. X/Twitter traffic is detected from referrers (<code>x.com</code>, <code>twitter.com</code>, <code>t.co</code>) and from <code>utm_source=x</code> (or <code>twitter</code>) on your shared links.</p>
           <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:20px;">
             <label style="color:var(--text-2);font-size:0.9rem;">Period:</label>
             <select id="trafficPeriod" class="form-input" style="width:auto;padding:8px 12px;">
@@ -402,13 +407,42 @@
             <button type="button" class="btn btn-primary" id="trafficRefreshBtn">Refresh</button>
           </div>
           <div id="trafficStats" class="admin-grid"></div>
+
+          <div class="admin-section" style="margin-top:20px;">
+            <h4>Channel breakdown (direct vs search vs social vs referral)</h4>
+            <table class="admin-table">
+              <thead><tr><th>Channel</th><th>Visitors</th><th>Page views</th><th>% of visitors</th></tr></thead>
+              <tbody id="trafficChannelsTable"></tbody>
+            </table>
+          </div>
+
           <div class="admin-section" style="margin-top:20px;">
             <h4>Traffic by source</h4>
+            <p style="font-size:0.82rem;color:var(--text-3);margin:0 0 8px 0">X/Twitter, Direct, search, and social referrers. X is listed first and stays visible even when the count is zero. Use <code>utm_source=x</code> on shared links when browsers strip the referrer.</p>
+            <div id="trafficSourceHighlights" class="admin-grid" style="margin-bottom:12px;"></div>
             <table class="admin-table">
               <thead><tr><th>Source</th><th>Visitors</th><th>Page views</th><th>% of visitors</th></tr></thead>
               <tbody id="trafficSourcesTable"></tbody>
             </table>
           </div>
+
+          <div class="admin-section" style="margin-top:20px;">
+            <h4>Worldwide reach (by country)</h4>
+            <p id="trafficWorldwideNote" style="font-size:0.82rem;color:var(--text-3);margin:0 0 8px 0"></p>
+            <table class="admin-table">
+              <thead><tr><th>Country</th><th>Code</th><th>Visitors</th><th>Page views</th><th>% of visitors</th></tr></thead>
+              <tbody id="trafficCountriesTable"></tbody>
+            </table>
+          </div>
+
+          <div class="admin-section" style="margin-top:20px;">
+            <h4>Top pages</h4>
+            <table class="admin-table">
+              <thead><tr><th>Path</th><th>Visitors</th><th>Page views</th></tr></thead>
+              <tbody id="trafficPathsTable"></tbody>
+            </table>
+          </div>
+
           <p id="trafficNote" style="font-size:0.8rem;color:var(--text-3);margin-top:16px;"></p>
         </div>
       </div>
@@ -640,6 +674,11 @@
                 </div>
               </div>
               <div class="form-group"><label class="form-label">Excerpt</label><input type="text" id="blogEditExcerpt" name="excerpt" class="form-input"></div>
+              <div class="form-group">
+                <label class="form-label" for="blogEditAuthor">Author signature (public)</label>
+                <input type="text" id="blogEditAuthor" name="author_display" class="form-input" maxlength="120" placeholder="e.g. Joyce · Mile 12 Warrior" autocomplete="name">
+                <p style="font-size:0.78rem;color:var(--text-3);margin-top:4px;">Public byline on the post. Leave blank to fall back to the account username.</p>
+              </div>
               <div class="form-group">
                 <label class="form-label" for="blogEditAudience">Audience</label>
                 <select id="blogEditAudience" class="form-input" style="max-width:320px">
@@ -1090,6 +1129,10 @@
         bindStat('dashboardStatRevenue', 'revenue');
         bindStat('dashboardStatOrders', 'shop');
         bindStat('dashboardStatUsers', 'users');
+        bindStat('dashboardStatTraffic', 'traffic');
+        bindStat('dashboardStatFromX', 'traffic');
+        bindStat('dashboardStatDirect', 'traffic');
+        bindStat('dashboardStatCountries', 'traffic');
       }
 
       function renderAdminStorageBanner(data) {
@@ -1157,7 +1200,11 @@
             '<div class="admin-stat"><span class="admin-stat-num">' + (s.unread_contact_messages ?? 0) + '</span><span class="admin-stat-label">Unread messages</span></div>' +
             '<div class="admin-stat admin-stat-clickable" id="dashboardStatOrders" role="button" tabindex="0" title="Open Shop orders"><span class="admin-stat-num">' + (s.paid_orders ?? s.total_orders ?? s.totalOrders ?? 0) + '</span><span class="admin-stat-label">Paid orders</span></div>' +
             '<div class="admin-stat admin-stat-clickable" id="dashboardStatRevenue" role="button" tabindex="0" title="Open Revenue &amp; Tax summary"><span class="admin-stat-num">' + formatPrice(s.total_revenue ?? s.totalRevenue ?? 0) + '</span><span class="admin-stat-label">Total revenue (paid)</span></div>' +
-            '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_products ?? s.totalProducts ?? 0) + '</span><span class="admin-stat-label">Products</span></div>';
+            '<div class="admin-stat"><span class="admin-stat-num">' + (s.total_products ?? s.totalProducts ?? 0) + '</span><span class="admin-stat-label">Products</span></div>' +
+            '<div class="admin-stat admin-stat-clickable" id="dashboardStatTraffic" role="button" tabindex="0" title="Open Traffic tab"><span class="admin-stat-num">' + (s.traffic_week_visitors ?? 0) + '</span><span class="admin-stat-label">Visitors (7 days)</span></div>' +
+            '<div class="admin-stat admin-stat-clickable" id="dashboardStatFromX" role="button" tabindex="0" title="Open Traffic tab — X / Twitter"><span class="admin-stat-num">' + (s.traffic_week_from_x ?? 0) + '</span><span class="admin-stat-label">From X (7 days)</span></div>' +
+            '<div class="admin-stat admin-stat-clickable" id="dashboardStatDirect" role="button" tabindex="0" title="Open Traffic tab — Direct"><span class="admin-stat-num">' + (s.traffic_week_direct ?? 0) + '</span><span class="admin-stat-label">Direct (7 days)</span></div>' +
+            '<div class="admin-stat admin-stat-clickable" id="dashboardStatCountries" role="button" tabindex="0" title="Open Traffic tab — Worldwide"><span class="admin-stat-num">' + (s.traffic_week_countries ?? 0) + '</span><span class="admin-stat-label">Countries (7 days)</span></div>';
           bindDashboardStatClicks();
           if (thankYouEl) {
             const rows = s.recent_thank_you || [];
@@ -1216,6 +1263,7 @@
           grid.innerHTML = links.map(function (link) {
             var qrSrc = link.qrPath + '&size=200';
             var safeUrl = escapeHtml(link.url || '');
+            var safeXUrl = escapeHtml(link.xUrl || link.url || '');
             var safeLabel = escapeHtml(link.label || 'Share link');
             var safeDesc = escapeHtml(link.description || '');
             var safeId = escapeHtml(link.id || 'share');
@@ -1226,7 +1274,8 @@
               '<p>' + safeDesc + '</p>' +
               '<p class="admin-share-url"><a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">' + safeUrl + '</a></p>' +
               '<div class="admin-share-actions">' +
-              '<button type="button" class="btn btn-glass admin-share-copy" data-url="' + safeUrl + '">Copy link</button>' +
+              '<button type="button" class="btn btn-glass admin-share-copy" data-url="' + safeUrl + '">Copy QR link</button>' +
+              '<button type="button" class="btn btn-glass admin-share-copy" data-url="' + safeXUrl + '">Copy for X</button>' +
               '<button type="button" class="btn btn-glass admin-share-download" data-id="' + safeId + '" data-qr="' + escapeHtml(qrSrc + '&format=png') + '">Download PNG</button>' +
               '</div></div></div>';
           }).join('');
@@ -1290,7 +1339,7 @@
               '<td>' + escapeHtml(u.username || u.email) + '</td>' +
               '<td>' + adminMicBadgeHtml(u) + '</td>' +
               '<td>' + escapeHtml(u.email || '—') + '</td>' +
-              '<td><select class="form-input role-select" style="max-width:120px; padding:6px;"><option value="user"' + (role === 'user' ? ' selected' : '') + '>user</option><option value="admin"' + (role === 'admin' ? ' selected' : '') + '>admin</option></select></td>' +
+              '<td><select class="form-input role-select" style="max-width:140px; padding:6px;"><option value="user"' + (role === 'user' ? ' selected' : '') + '>user</option><option value="marketer"' + (role === 'marketer' ? ' selected' : '') + '>marketer</option><option value="admin"' + (role === 'admin' ? ' selected' : '') + '>admin</option></select></td>' +
               '<td><select class="form-input category-select" style="max-width:120px; padding:6px;">' + catOpts + '</select></td>' +
               '<td style="font-size:0.82rem">' + statusBits.join('<br>') + '</td>' +
               '<td>' + formatDate(u.created_at || u.joined_at) + '</td>' +
@@ -1490,7 +1539,7 @@
             '<td>' + (p.image ? '<img class="blog-thumb" src="' + escapeHtml(p.image) + '" alt="">' : '') + '</td>' +
             '<td>' + escapeHtml(p.title) + '</td>' +
             '<td>' + escapeHtml(blogAudienceLabel(p.audience || 'driver')) + '</td>' +
-            '<td>' + escapeHtml(p.author_username || p.author || '—') + '</td>' +
+            '<td>' + escapeHtml(p.author_name || p.author_display || p.author_username || p.author || '—') + '</td>' +
             '<td><span class="badge-status ' + (status === 'published' ? 'status-delivered' : 'status-pending') + '">' + escapeHtml(statusLabel) + '</span></td>' +
             '<td>' + formatDate(p.created_at || p.date) + '</td>' +
             '<td><a href="' + viewUrl + '" target="_blank" rel="noopener" class="admin-btn admin-btn-primary blog-view" style="margin-right:8px;text-decoration:none;">View</a><button type="button" class="admin-btn admin-btn-primary blog-edit" style="margin-right:8px;">Edit</button><button type="button" class="admin-btn admin-btn-primary blog-publish" style="margin-right:8px;">Publish</button><button type="button" class="admin-btn admin-btn-danger blog-delete">Delete</button></td>' +
@@ -1602,6 +1651,8 @@
           editTitleEl.value = p.title || '';
           editTitleEl.dispatchEvent(new Event('input'));
           document.getElementById('blogEditExcerpt').value = p.excerpt || '';
+          var authorEdit = document.getElementById('blogEditAuthor');
+          if (authorEdit) authorEdit.value = p.author_display || '';
           var audEdit = document.getElementById('blogEditAudience');
           if (audEdit) audEdit.value = (p.audience === 'family') ? 'family' : 'driver';
           var editImgEl = document.getElementById('blogEditImageUrl');
@@ -1634,6 +1685,8 @@
           if (idEl) idEl.value = '';
           if (titleEl) { titleEl.value = ''; titleEl.dispatchEvent(new Event('input')); }
           if (excerptEl) excerptEl.value = '';
+          var authorEl = document.getElementById('blogEditAuthor');
+          if (authorEl) authorEl.value = '';
           if (imageEl) imageEl.value = '';
           if (window.blogQuill && window.blogQuill.setEditHtml) window.blogQuill.setEditHtml('');
           if (schedEl) schedEl.value = '';
@@ -1661,13 +1714,15 @@
       });
       function getEditPayload() {
         var audEl = document.getElementById('blogEditAudience');
+        var authorEl = document.getElementById('blogEditAuthor');
         return {
           title: document.getElementById('blogEditTitle').value,
           excerpt: document.getElementById('blogEditExcerpt').value,
           image: (document.getElementById('blogEditImageUrl').value || '').trim() || null,
           content: (window.blogQuill ? window.blogQuill.getEditHtml() : ''),
           scheduled_at: (document.getElementById('blogEditScheduledAt').value || '').trim() || null,
-          audience: audEl ? audEl.value : 'driver'
+          audience: audEl ? audEl.value : 'driver',
+          author_display: authorEl ? (authorEl.value || '').trim() : ''
         };
       }
       async function submitEdit(publish) {
@@ -1764,7 +1819,8 @@
           content: contentHtml,
           published: !!publish,
           scheduled_at: (schedEl && schedEl.value) ? schedEl.value.trim() : null,
-          audience: (document.getElementById('blogNewAudience') && document.getElementById('blogNewAudience').value) || 'driver'
+          audience: (document.getElementById('blogNewAudience') && document.getElementById('blogNewAudience').value) || 'driver',
+          author_display: (document.getElementById('blogNewAuthor') && document.getElementById('blogNewAuthor').value) ? document.getElementById('blogNewAuthor').value.trim() : ''
         };
         try {
           const r = await fetch('/api/blog/posts', {
@@ -2814,6 +2870,10 @@
         const statsEl = document.getElementById('trafficStats');
         const noteEl = document.getElementById('trafficNote');
         const sourcesEl = document.getElementById('trafficSourcesTable');
+        const channelsEl = document.getElementById('trafficChannelsTable');
+        const countriesEl = document.getElementById('trafficCountriesTable');
+        const pathsEl = document.getElementById('trafficPathsTable');
+        const worldwideNoteEl = document.getElementById('trafficWorldwideNote');
         if (!statsEl) return;
         const period = (document.getElementById('trafficPeriod') && document.getElementById('trafficPeriod').value) || 'week';
         const yoy = document.getElementById('trafficYoy') && document.getElementById('trafficYoy').checked;
@@ -2823,27 +2883,94 @@
           const res = await fetch(url, { credentials: 'include' });
           if (!res.ok) throw new Error('Failed');
           const d = await res.json();
-          const periodLabel = period === 'day' ? 'Today' : period === 'week' ? 'Last 7 days' : period === 'month' ? 'Last 30 days' : 'Last 12 months';
+          const periodLabel = period === 'day' ? 'Today' : period === 'week' ? 'Last 7 days' : period === 'month' ? 'Last 30 days' : period === 'ytd' ? 'Year to date' : 'Last 12 months';
+          const fromX = d.fromX || {};
+          const worldwide = d.worldwide || {};
           statsEl.innerHTML =
             '<div class="admin-stat"><span class="admin-stat-num">' + (d.visitors ?? 0) + '</span><span class="admin-stat-label">Unique visitors</span></div>' +
             '<div class="admin-stat"><span class="admin-stat-num">' + (d.returnUsers ?? 0) + '</span><span class="admin-stat-label">Return users (logged in, 2+ days)</span></div>' +
             '<div class="admin-stat"><span class="admin-stat-num">' + (d.loggedInVisitors ?? 0) + '</span><span class="admin-stat-label">Logged-in visitors</span></div>' +
             '<div class="admin-stat"><span class="admin-stat-num">' + (d.pageViews ?? 0) + '</span><span class="admin-stat-label">Page views</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + (fromX.visitors ?? 0) + '</span><span class="admin-stat-label">From X / Twitter (' + (fromX.percent ?? 0) + '%)</span></div>' +
+            '<div class="admin-stat"><span class="admin-stat-num">' + (worldwide.countriesReported ?? 0) + '</span><span class="admin-stat-label">Countries reported</span></div>' +
             '<div class="admin-stat"><span class="admin-stat-num">' + (d.likelyBusiness ?? 0) + '</span><span class="admin-stat-label">Likely business (fleet buyers)</span></div>' +
             (d.yoyGrowth != null ? '<div class="admin-stat"><span class="admin-stat-num" style="color:' + (d.yoyGrowth >= 0 ? 'var(--green)' : 'var(--red)') + '">' + (d.yoyGrowth >= 0 ? '+' : '') + d.yoyGrowth + '%</span><span class="admin-stat-label">Year over year</span></div>' : '');
           if (noteEl) {
-            noteEl.textContent = 'Period: ' + periodLabel + (d.yoyGrowth != null && d.previousVisitors != null ? '. Previous period (same length, one year ago): ' + d.previousVisitors + ' visitors.' : '') + ' Individual vs business: we infer "likely business" from fleet product purchases; other traffic is a mix of individuals and unknown.';
+            noteEl.textContent = 'Period: ' + periodLabel + (d.yoyGrowth != null && d.previousVisitors != null ? '. Previous period (same length, one year ago): ' + d.previousVisitors + ' visitors.' : '') + ' Tip: add ?utm_source=x&utm_medium=social to links you post on X so traffic is attributed even when the browser strips the referrer.';
+          }
+          if (channelsEl) {
+            const channelLabels = { direct: 'Direct', search: 'Search', social: 'Social', referral: 'Referral', campaign: 'Campaign / email' };
+            const rows = Array.isArray(d.channels) ? d.channels : [];
+            channelsEl.innerHTML = rows.map(function(s) {
+              return '<tr><td>' + escapeHtml(channelLabels[s.channel] || String(s.channel || '')) + '</td><td>' + (s.visitors || 0) + '</td><td>' + (s.views || 0) + '</td><td>' + (s.percent || 0) + '%</td></tr>';
+            }).join('') || '<tr><td colspan="4">No channel data yet.</td></tr>';
+          }
+          const sourceHighlightsEl = document.getElementById('trafficSourceHighlights');
+          const sourceLabels = {
+            x: 'X / Twitter',
+            direct: 'Direct',
+            google: 'Google',
+            bing: 'Bing',
+            yahoo: 'Yahoo',
+            duckduckgo: 'DuckDuckGo',
+            facebook: 'Facebook',
+            instagram: 'Instagram',
+            linkedin: 'LinkedIn',
+            youtube: 'YouTube',
+            tiktok: 'TikTok',
+            reddit: 'Reddit',
+            threads: 'Threads',
+            referral: 'Other referral',
+            search: 'Search',
+          };
+          function sourceLabel(key) {
+            const k = String(key || 'direct');
+            return sourceLabels[k] || k;
+          }
+          if (sourceHighlightsEl) {
+            const directRow = (Array.isArray(d.channels) ? d.channels : []).find(function(c) { return c.channel === 'direct'; });
+            sourceHighlightsEl.innerHTML =
+              '<div class="admin-stat"><span class="admin-stat-num">' + (fromX.visitors ?? 0) + '</span><span class="admin-stat-label">From X / Twitter</span></div>' +
+              '<div class="admin-stat"><span class="admin-stat-num">' + (directRow ? (directRow.visitors || 0) : 0) + '</span><span class="admin-stat-label">Direct</span></div>' +
+              '<div class="admin-stat"><span class="admin-stat-num">' + (fromX.percent ?? 0) + '%</span><span class="admin-stat-label">Share from X</span></div>' +
+              '<div class="admin-stat"><span class="admin-stat-num">' + (directRow ? (directRow.percent || 0) : 0) + '%</span><span class="admin-stat-label">Share direct</span></div>';
           }
           if (sourcesEl) {
             const rows = Array.isArray(d.sources) ? d.sources : [];
             sourcesEl.innerHTML = rows.map(function(s) {
-              return '<tr><td>' + escapeHtml(String(s.source || 'direct')) + '</td><td>' + (s.visitors || 0) + '</td><td>' + (s.views || 0) + '</td><td>' + (s.percent || 0) + '%</td></tr>';
+              const key = String(s.source || 'direct');
+              const highlight = key === 'x' ? ' style="font-weight:600;color:var(--gold-light)"' : (key === 'direct' ? ' style="font-weight:600"' : '');
+              return '<tr' + highlight + '><td>' + escapeHtml(sourceLabel(key)) + '</td><td>' + (s.visitors || 0) + '</td><td>' + (s.views || 0) + '</td><td>' + (s.percent || 0) + '%</td></tr>';
             }).join('') || '<tr><td colspan="4">No source data yet.</td></tr>';
+          }
+          if (worldwideNoteEl) {
+            worldwideNoteEl.textContent = (worldwide.note || '') +
+              (worldwide.visitorsWithCountry != null
+                ? ' Visitors with country: ' + worldwide.visitorsWithCountry + '; unknown: ' + (worldwide.visitorsUnknownCountry || 0) + '.'
+                : '');
+          }
+          if (countriesEl) {
+            const rows = Array.isArray(d.countries) ? d.countries : [];
+            countriesEl.innerHTML = rows.map(function(s) {
+              return '<tr><td>' + escapeHtml(String(s.countryName || s.country || 'Unknown')) + '</td><td>' + escapeHtml(String(s.country || '')) + '</td><td>' + (s.visitors || 0) + '</td><td>' + (s.views || 0) + '</td><td>' + (s.percent || 0) + '%</td></tr>';
+            }).join('') || '<tr><td colspan="5">No country data yet. New visits after deploy will populate this table (CDN header or IP→country lookup).</td></tr>';
+          }
+          if (pathsEl) {
+            const rows = Array.isArray(d.topPaths) ? d.topPaths : [];
+            pathsEl.innerHTML = rows.map(function(s) {
+              return '<tr><td>' + escapeHtml(String(s.path || '/')) + '</td><td>' + (s.visitors || 0) + '</td><td>' + (s.views || 0) + '</td></tr>';
+            }).join('') || '<tr><td colspan="3">No page data yet.</td></tr>';
           }
         } catch (e) {
           statsEl.innerHTML = '<p class="text-muted">Could not load traffic. Data appears after visitors load pages (not API calls).</p>';
           if (noteEl) noteEl.textContent = '';
           if (sourcesEl) sourcesEl.innerHTML = '<tr><td colspan="4">Could not load sources.</td></tr>';
+          const sourceHighlightsEl = document.getElementById('trafficSourceHighlights');
+          if (sourceHighlightsEl) sourceHighlightsEl.innerHTML = '';
+          if (channelsEl) channelsEl.innerHTML = '<tr><td colspan="4">Could not load channels.</td></tr>';
+          if (countriesEl) countriesEl.innerHTML = '<tr><td colspan="5">Could not load countries.</td></tr>';
+          if (pathsEl) pathsEl.innerHTML = '<tr><td colspan="3">Could not load pages.</td></tr>';
+          if (worldwideNoteEl) worldwideNoteEl.textContent = '';
         }
       }
 

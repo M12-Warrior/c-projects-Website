@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Blog Post — Mile 12 Warrior</title>
+  <!-- SEO_META -->
   <link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="/css/pages.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -113,7 +114,7 @@
             window.location.replace('/social-butterflies/blog/' + encodeURIComponent(post.slug));
             return;
           }
-          const authorName = post.author?.username || 'Unknown';
+          const authorName = post.author_name || post.author_display || post.author?.username || 'Unknown';
           const metaStr = formatDate(post.created_at) + ' · ' + escapeHtml(authorName);
 
           let meUser = null;
@@ -150,7 +151,7 @@
               <button type="button" class="blog-share-btn blog-share-copy" data-url="${escapeHtml(window.location.href)}" aria-label="Copy link" title="Copy link to clipboard">Copy link</button>
             </div>
           `;
-          document.title = escapeHtml(post.title) + ' — Blog — Driver Shield';
+          document.title = (post.title || 'Blog') + ' — Mile 12 Warrior';
 
           var postBody = postContent.querySelector('.post-content');
           if (postBody) {

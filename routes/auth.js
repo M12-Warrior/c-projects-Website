@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const db = require('../db/database');
 const totp = require('../lib/totp');
+const { isMarketer, establishMarketerSession } = require('../lib/marketerSession');
 
 const router = express.Router();
 const isProduction = process.env.NODE_ENV === 'production';
@@ -186,8 +187,13 @@ router.post('/login', loginLimiter, (req, res) => {
   }
 
   const sessionUser = toSessionUser(user);
+  if (isMarketer(sessionUser)) {
+    return establishMarketerSession(req, sessionUser, function (err) {
+      if (err) return res.status(500).json({ error: 'Failed to start secure session. Please try again.' });
+      res.json({ success: true, user: sessionUser, sessionPolicy: 'daily' });
+    });
+  }
   req.session.user = sessionUser;
-
   res.json({
     success: true,
     user: sessionUser
@@ -237,6 +243,12 @@ router.post('/login/2fa', twoFactorLimiter, (req, res) => {
 
   delete req.session.pending2fa;
   const sessionUser = toSessionUser(user);
+  if (isMarketer(sessionUser)) {
+    return establishMarketerSession(req, sessionUser, function (err) {
+      if (err) return res.status(500).json({ error: 'Failed to start secure session. Please try again.' });
+      res.json({ success: true, user: sessionUser, sessionPolicy: 'daily' });
+    });
+  }
   req.session.user = sessionUser;
   res.json({ success: true, user: sessionUser });
 });

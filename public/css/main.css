@@ -49,11 +49,13 @@
   --font: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --mono: 'JetBrains Mono', monospace;
+  --nav-height: 72px;
+  --nav-inset: 12px;
 }
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 80px;
+  scroll-padding-top: calc(var(--nav-height) + var(--nav-inset) + 24px);
 }
 
 body {
@@ -167,28 +169,35 @@ summary:focus:not(:focus-visible) {
 /* ---------- NAVBAR ---------- */
 .navbar {
   position: fixed;
-  top: 0; left: 0; right: 0;
+  top: var(--nav-inset);
+  left: var(--nav-inset);
+  right: var(--nav-inset);
+  width: auto;
   z-index: 10050;
-  background: rgba(44, 44, 46, 0.85);
-  backdrop-filter: blur(24px) saturate(1.2);
-  -webkit-backdrop-filter: blur(24px) saturate(1.2);
-  border-bottom: 1px solid transparent;
-  transition: border-color 0.4s, background 0.4s;
+  /* Solid high-contrast bar so it stays readable over hero photos on laptop */
+  background: #1a1a1c;
+  border: 2px solid var(--gold);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.4s, background 0.4s, box-shadow 0.4s;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
 }
 
 .navbar.scrolled {
-  background: rgba(44, 44, 46, 0.95);
-  border-bottom-color: var(--border);
+  background: #141416;
+  border-color: var(--gold-light);
 }
 
 .nav-container {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 0 28px;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
+  gap: 12px;
+  min-height: var(--nav-height);
+  height: auto;
+  flex-wrap: nowrap;
 }
 
 .nav-logo {
@@ -200,12 +209,13 @@ summary:focus:not(:focus-visible) {
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.02em;
+  flex-shrink: 0;
 }
 
 .nav-logo:hover { color: var(--text); }
 
 .nav-logo-img {
-  height: 40px;
+  height: 44px;
   width: auto;
   max-width: 180px;
   object-fit: contain;
@@ -221,18 +231,47 @@ summary:focus:not(:focus-visible) {
 .logo-svg { color: var(--gold); flex-shrink: 0; }
 .nav-logo-fallback .logo-shield { width: 36px; height: 36px; }
 
+/* Always dropdown (phone + laptop). No cramped top link row. */
 .nav-links {
   list-style: none;
   display: flex;
+  position: fixed;
+  top: calc(var(--nav-inset) + var(--nav-height) + 8px);
+  left: var(--nav-inset);
+  right: var(--nav-inset);
+  z-index: 10049;
+  background: #121214;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 12px 16px 20px;
   gap: 2px;
+  border: 2px solid var(--gold);
+  border-radius: var(--radius-sm);
+  transform: translateY(-120%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: all 0.35s var(--ease);
+  max-height: calc(100vh - var(--nav-inset) - var(--nav-height) - 32px);
+  overflow-y: auto;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+}
+
+.nav-links.open {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .nav-links a {
   display: block;
-  padding: 6px 14px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--text-3);
+  padding: 14px 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f0f0f0;
   border-radius: var(--radius-xs);
   transition: color 0.2s, background 0.2s;
   letter-spacing: 0.01em;
@@ -240,36 +279,51 @@ summary:focus:not(:focus-visible) {
 
 .nav-links a:hover,
 .nav-links a.active {
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.05);
+  color: #1a1a1a;
+  background: var(--gold);
 }
 
 .nav-toggle {
-  display: none;
+  display: flex;
   flex-direction: column;
-  gap: 5px;
-  background: none;
-  border: none;
+  justify-content: center;
+  gap: 6px;
+  background: var(--gold);
+  border: 2px solid var(--gold-light);
+  border-radius: var(--radius-xs);
   cursor: pointer;
-  padding: 8px;
+  padding: 14px 12px;
   position: relative;
   z-index: 2;
+  margin-left: auto;
+  flex-shrink: 0;
+  min-width: 52px;
+  min-height: 48px;
+  box-shadow: 0 2px 12px rgba(230, 184, 0, 0.45);
 }
 
 .nav-toggle span {
   display: block;
-  width: 22px;
-  height: 1.5px;
-  background: var(--text);
+  width: 24px;
+  height: 3px;
+  background: #1a1a1a;
   border-radius: 2px;
   transition: 0.3s var(--ease);
   transform-origin: center;
 }
 
+.nav-toggle:hover {
+  background: var(--gold-light);
+}
+
 .nav-toggle:focus-visible {
-  outline: 2px solid var(--gold-light);
+  outline: 3px solid var(--chrome-bright);
   outline-offset: 3px;
 }
+
+.nav-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+.nav-toggle.active span:nth-child(2) { opacity: 0; }
+.nav-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
 
 .phase-tab:focus-visible {
   outline: 2px solid var(--gold-light);
@@ -2055,37 +2109,6 @@ summary:focus:not(:focus-visible) {
 }
 
 @media (max-width: 768px) {
-  .nav-links {
-    position: fixed;
-    top: 64px; left: 0; right: 0;
-    z-index: 10049;
-    background: rgba(5, 6, 8, 0.97);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    flex-direction: column;
-    padding: 12px 20px 20px;
-    gap: 2px;
-    border-bottom: 1px solid var(--border);
-    transform: translateY(-110%);
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: all 0.35s var(--ease);
-  }
-
-  .nav-links.open {
-    transform: translateY(0);
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-  }
-
-  .nav-toggle { display: flex; }
-
-  .nav-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(4px, 4px); }
-  .nav-toggle.active span:nth-child(2) { opacity: 0; }
-  .nav-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(4px, -4px); }
-
   .section { padding: 72px 0; }
 
   .roadmap-grid,
@@ -2127,12 +2150,12 @@ summary:focus:not(:focus-visible) {
     height: 1px;
   }
 
-  .nav-container { height: 56px; }
-  html { scroll-padding-top: 60px; }
-
-  .nav-links {
-    top: 56px;
+  :root {
+    --nav-height: 64px;
+    --nav-inset: 8px;
   }
+
+  html { scroll-padding-top: calc(var(--nav-height) + var(--nav-inset) + 20px); }
 
   .container { padding: 0 18px; }
 }
@@ -2140,9 +2163,9 @@ summary:focus:not(:focus-visible) {
 /* ---------- SITE-WIDE CHECKOUT NOTICE ---------- */
 .checkout-banner {
   position: fixed;
-  top: 64px;
-  left: 0;
-  right: 0;
+  top: calc(var(--nav-inset) + var(--nav-height) + 8px);
+  left: var(--nav-inset);
+  right: var(--nav-inset);
   z-index: 10040;
   display: flex;
   align-items: center;
@@ -2150,7 +2173,8 @@ summary:focus:not(:focus-visible) {
   gap: 12px;
   padding: 10px 44px 10px 20px;
   background: rgba(62, 62, 66, 0.97);
-  border-bottom: 1px solid rgba(230, 184, 0, 0.35);
+  border: 1px solid rgba(230, 184, 0, 0.35);
+  border-radius: var(--radius-sm);
   font-size: 0.84rem;
   color: var(--text-2);
   line-height: 1.4;
@@ -2184,16 +2208,15 @@ summary:focus:not(:focus-visible) {
   background: rgba(255, 255, 255, 0.06);
 }
 body.has-checkout-banner .page-shell {
-  padding-top: 120px;
+  padding-top: calc(var(--nav-inset) + var(--nav-height) + 72px);
 }
 @media (max-width: 480px) {
   .checkout-banner {
-    top: 56px;
     font-size: 0.78rem;
     padding: 8px 40px 8px 14px;
   }
   body.has-checkout-banner .page-shell {
-    padding-top: 112px;
+    padding-top: calc(var(--nav-inset) + var(--nav-height) + 68px);
   }
 }
 

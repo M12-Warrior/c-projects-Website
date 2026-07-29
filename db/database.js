@@ -1,6 +1,7 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const BLOG_POSTS_SEED = require('./blog-posts-seed.js');
 const { DB_PATH } = require('../lib/paths');
@@ -236,6 +237,9 @@ try {
 } catch (_) {}
 try {
   db.exec("UPDATE blog_posts SET audience = 'driver' WHERE audience IS NULL OR audience = ''");
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE blog_posts ADD COLUMN author_display TEXT');
 } catch (_) {}
 try {
   db.exec("ALTER TABLE blog_comments ADD COLUMN status TEXT DEFAULT 'approved'");
@@ -499,6 +503,12 @@ try {
 try {
   db.exec('ALTER TABLE traffic_visits ADD COLUMN utm_campaign TEXT');
 } catch (_) {}
+try {
+  db.exec('ALTER TABLE traffic_visits ADD COLUMN country_code TEXT');
+} catch (_) {}
+try {
+  db.exec('CREATE INDEX IF NOT EXISTS idx_traffic_visits_country ON traffic_visits(country_code)');
+} catch (_) {}
 
 // Paid orders: align fulfillment status (was left "pending" while payment_status became "paid")
 try {
@@ -722,6 +732,97 @@ try {
   `);
 } catch (_) {}
 
+// Marketing partner portal (Relevant Search Media) — limited role, not full admin
+try {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS marketing_engagement (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      company_name TEXT NOT NULL DEFAULT 'Relevant Search Media',
+      package_name TEXT NOT NULL DEFAULT 'Standard',
+      term_months INTEGER NOT NULL DEFAULT 12,
+      investment_total TEXT DEFAULT '$2,099',
+      investment_note TEXT DEFAULT 'Full 12-month term (not monthly)',
+      start_date TEXT,
+      end_date TEXT,
+      workflow_summary TEXT DEFAULT '',
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS marketing_contacts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      title TEXT DEFAULT '',
+      email TEXT DEFAULT '',
+      phone TEXT DEFAULT '',
+      whatsapp TEXT DEFAULT '',
+      notes TEXT DEFAULT '',
+      sort_order INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS marketing_site_info (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      body TEXT NOT NULL DEFAULT '',
+      created_by INTEGER REFERENCES users(id),
+      updated_by INTEGER REFERENCES users(id),
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS marketing_notes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      scope TEXT NOT NULL DEFAULT 'shared',
+      author_id INTEGER NOT NULL REFERENCES users(id),
+      title TEXT NOT NULL DEFAULT '',
+      body TEXT NOT NULL DEFAULT '',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_marketing_notes_scope ON marketing_notes(scope);
+    CREATE INDEX IF NOT EXISTS idx_marketing_notes_author ON marketing_notes(author_id);
+
+    CREATE TABLE IF NOT EXISTS marketing_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      from_user_id INTEGER NOT NULL REFERENCES users(id),
+      to_user_id INTEGER NOT NULL REFERENCES users(id),
+      body TEXT NOT NULL,
+      read_at DATETIME DEFAULT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_marketing_messages_to ON marketing_messages(to_user_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_marketing_messages_from ON marketing_messages(from_user_id, created_at DESC);
+
+    CREATE TABLE IF NOT EXISTS marketing_progress (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      details TEXT DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'planned',
+      month_label TEXT DEFAULT '',
+      sort_order INTEGER DEFAULT 0,
+      created_by INTEGER REFERENCES users(id),
+      updated_by INTEGER REFERENCES users(id),
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS marketing_calendar_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      title TEXT NOT NULL,
+      details TEXT DEFAULT '',
+      event_date TEXT NOT NULL,
+      end_date TEXT,
+      all_day INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_marketing_cal_user_date ON marketing_calendar_events(user_id, event_date);
+  `);
+} catch (err) {
+  console.error('[database] marketing tables setup failed:', err && err.message ? err.message : err);
+}
+
 const isProduction = process.env.NODE_ENV === 'production';
 
 function resolveInitialAdminPassword() {
@@ -920,6 +1021,199 @@ try {
   }
 } catch (err) {
   console.error('[security] DISABLE_2FA escape hatch failed (continuing):', err && err.message ? err.message : err);
+}
+
+// Seed Relevant Search Media marketer accounts + engagement (idempotent)
+try {
+  function makeTempPassword() {
+    return crypto.randomBytes(9).toString('base64url');
+  }
+
+  const workflowSummary = [
+    'Term: 29 July 2026 – 28 July 2027 (Standard, $2,099 for full 12 months).',
+    'No website rebuild. Optimize existing URLs first; new pages only if owner approves case by case.',
+    'No direct live site edits. Website change requests by email; owner/developer implements approved items.',
+    'Google Analytics, Search Console, GBP, Calendar, Drive/Docs shares: Thomas@relevantsearchmedia.com only (outside the site).',
+    'Portal logins: Thomas (CEO) and Adam (VP) for progress, notes, messages, and calendars. Daily sign-in + idle timeout.',
+    'Blogs: draft share → owner approval → owner/developer publish.',
+    'Genuine off-page only. Monthly reporting as agreed.'
+  ].join('\n');
+
+  const eng = db.prepare('SELECT id FROM marketing_engagement WHERE id = 1').get();
+  if (!eng) {
+    db.prepare(`
+      INSERT INTO marketing_engagement (
+        id, company_name, package_name, term_months, investment_total, investment_note,
+        start_date, end_date, workflow_summary
+      ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      'Relevant Search Media',
+      'Standard',
+      12,
+      '$2,099',
+      'Full 12-month term (not monthly)',
+      '2026-07-29',
+      '2027-07-28',
+      workflowSummary
+    );
+  } else {
+    db.prepare(`
+      UPDATE marketing_engagement SET
+        company_name = 'Relevant Search Media',
+        package_name = 'Standard',
+        term_months = 12,
+        investment_total = '$2,099',
+        investment_note = 'Full 12-month term (not monthly)',
+        start_date = '2026-07-29',
+        end_date = '2027-07-28',
+        workflow_summary = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = 1
+    `).run(workflowSummary);
+  }
+
+  // Contacts: Thomas = Google + portal; Adam = portal only (no Google property access)
+  try {
+    db.prepare(`
+      UPDATE marketing_contacts
+      SET title = 'CEO',
+          email = 'Thomas@relevantsearchmedia.com',
+          phone = '+1 202 609 6641',
+          whatsapp = '+1 202 609 6641',
+          notes = 'CEO. Portal login + sole Google access email (Analytics, Search Console, GBP, Calendar, Drive). USA: +1 202 609 6641. Australia: +61 489 905 970. Also info@relevantsearchmedia.com. Website: https://www.relevantsearchmedia.com'
+      WHERE name = 'Thomas Dsouza'
+    `).run();
+    db.prepare(`
+      UPDATE marketing_contacts
+      SET title = 'Vice President',
+          email = 'adam@relevantsearchmedia.com',
+          phone = '+1 (904) 539 5781',
+          whatsapp = '+1 (202) 609 6643',
+          notes = 'VP. Portal-only login (messages, notes, progress, calendar). No Google Analytics/Search Console/GBP/Drive owner shares — those stay on Thomas@relevantsearchmedia.com. Company: https://www.relevantsearchmedia.com'
+      WHERE name = 'Adam Walker'
+    `).run();
+  } catch (_) {}
+
+  const contactCount = db.prepare('SELECT COUNT(*) AS c FROM marketing_contacts').get().c;
+  if (contactCount === 0) {
+    const insContact = db.prepare(`
+      INSERT INTO marketing_contacts (name, title, email, phone, whatsapp, notes, sort_order)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+    insContact.run(
+      'Thomas Dsouza',
+      'CEO',
+      'Thomas@relevantsearchmedia.com',
+      '+1 202 609 6641',
+      '+1 202 609 6641',
+      'CEO. Portal login + sole Google access email (Analytics, Search Console, GBP, Calendar, Drive). USA: +1 202 609 6641. Australia: +61 489 905 970. Also info@relevantsearchmedia.com. Website: https://www.relevantsearchmedia.com',
+      1
+    );
+    insContact.run(
+      'Adam Walker',
+      'Vice President',
+      'adam@relevantsearchmedia.com',
+      '+1 (904) 539 5781',
+      '+1 (202) 609 6643',
+      'VP. Portal-only login (messages, notes, progress, calendar). No Google property shares — those stay on Thomas@relevantsearchmedia.com. Company: https://www.relevantsearchmedia.com',
+      2
+    );
+  }
+
+  const marketers = [
+    {
+      username: 'rsm-thomas',
+      email: 'Thomas@relevantsearchmedia.com',
+      envKey: 'MARKETING_THOMAS_PASSWORD',
+      label: 'Thomas Dsouza (CEO)',
+      bio: 'Relevant Search Media — CEO; portal + Google access contact'
+    },
+    {
+      username: 'rsm-adam',
+      email: 'adam@relevantsearchmedia.com',
+      envKey: 'MARKETING_ADAM_PASSWORD',
+      label: 'Adam Walker (VP)',
+      bio: 'Relevant Search Media — VP; portal-only (no Google property access)'
+    }
+  ];
+
+  const createdCreds = [];
+  for (const m of marketers) {
+    const existing = db.prepare(
+      'SELECT id FROM users WHERE username = ? OR lower(email) = lower(?)'
+    ).get(m.username, m.email);
+    if (existing) {
+      db.prepare(`
+        UPDATE users
+        SET username = ?, email = ?, role = 'marketer', account_disabled = 0, bio = ?
+        WHERE id = ?
+      `).run(m.username, m.email, m.bio, existing.id);
+      continue;
+    }
+    const fromEnv = process.env[m.envKey] && String(process.env[m.envKey]).trim();
+    const password = fromEnv || makeTempPassword();
+    db.prepare(`
+      INSERT INTO users (username, email, password, role, bio)
+      VALUES (?, ?, ?, 'marketer', ?)
+    `).run(m.username, m.email, bcrypt.hashSync(password, 10), m.bio);
+    if (!fromEnv) {
+      createdCreds.push({ label: m.label, username: m.username, email: m.email, password: password });
+    }
+  }
+
+  // If Adam was previously disabled, ensure a fresh temp password is issued once for portal access.
+  try {
+    const adam = db.prepare("SELECT id FROM users WHERE username = 'rsm-adam'").get();
+    const credPath = path.join(__dirname, '..', '.marketing-credentials.local');
+    const needAdamCred = adam && (!fs.existsSync(credPath) || !fs.readFileSync(credPath, 'utf8').includes('rsm-adam'));
+    if (adam && needAdamCred && !process.env.MARKETING_ADAM_PASSWORD) {
+      const password = makeTempPassword();
+      db.prepare('UPDATE users SET password = ?, role = ?, account_disabled = 0 WHERE id = ?')
+        .run(bcrypt.hashSync(password, 10), 'marketer', adam.id);
+      createdCreds.push({
+        label: 'Adam Walker (VP)',
+        username: 'rsm-adam',
+        email: 'adam@relevantsearchmedia.com',
+        password: password
+      });
+    }
+  } catch (_) {}
+
+  if (createdCreds.length) {
+    let existingLines = '';
+    const credPath = path.join(__dirname, '..', '.marketing-credentials.local');
+    try {
+      if (fs.existsSync(credPath)) existingLines = fs.readFileSync(credPath, 'utf8');
+    } catch (_) {}
+    const lines = [
+      'Mile 12 Warrior — marketing partner portal logins',
+      'Portal: /marketing  (sign in at /login)',
+      'Sessions: fresh sign-in required at least every 24 hours; idle timeout 2 hours.',
+      'Google shares (Analytics, GSC, GBP, Calendar, Drive): Thomas@relevantsearchmedia.com ONLY.',
+      'Adam is portal-only.',
+      '',
+      existingLines.trim(),
+      ''
+    ];
+    for (const c of createdCreds) {
+      if (existingLines.includes(c.username)) continue;
+      lines.push(c.label);
+      lines.push('  Username: ' + c.username);
+      lines.push('  Email:    ' + c.email);
+      lines.push('  Password: ' + c.password);
+      lines.push('');
+      console.warn('[marketing] Portal login ready for ' + c.username + ' — see .marketing-credentials.local');
+    }
+    try {
+      fs.writeFileSync(credPath, lines.filter(Boolean).join('\n') + '\n', { encoding: 'utf8', mode: 0o600 });
+    } catch (writeErr) {
+      for (const c of createdCreds) {
+        console.warn('[marketing] ' + c.username + ' / ' + c.password);
+      }
+    }
+  }
+} catch (err) {
+  console.error('[database] marketing partner seed failed:', err && err.message ? err.message : err);
 }
 
 module.exports = db;
