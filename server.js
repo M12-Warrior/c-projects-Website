@@ -227,7 +227,12 @@ const requireAdmin = (req, res, next) => {
 
 const requireMarketingPortal = (req, res, next) => {
   const role = req.session.user && req.session.user.role;
-  if (!req.session.user) return res.redirect('/login?redirect=/marketing');
+  if (!req.session.user) {
+    const dest = req.originalUrl && req.originalUrl.startsWith('/marketing')
+      ? req.originalUrl
+      : '/marketing';
+    return res.redirect('/login?redirect=' + encodeURIComponent(dest));
+  }
   if (role !== 'admin' && role !== 'marketer') return res.redirect('/');
   next();
 };
@@ -545,6 +550,11 @@ app.get('/admin', requireAdmin, (req, res) => {
 app.get('/marketing', requireMarketingPortal, (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.sendFile(path.join(__dirname, 'views', 'marketing.html'));
+});
+
+app.get('/marketing/next-90-days', requireMarketingPortal, (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.sendFile(path.join(__dirname, 'views', 'marketing-next-90-days.html'));
 });
 
 app.get('/course', (req, res) => {
