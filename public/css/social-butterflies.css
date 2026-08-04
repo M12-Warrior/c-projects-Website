@@ -54,10 +54,10 @@ body.social-butterflies-page .sb-brand-mark {
 }
 body.social-butterflies-page .sb-brand-mark img {
   display: block;
-  /* Portrait transparent mark (text + butterflies): size by height so script stays readable */
-  height: clamp(140px, 28vw, 220px);
+  /* Near-square transparent mark (text + butterflies) */
+  height: clamp(120px, 22vw, 200px);
   width: auto;
-  max-width: min(220px, 70vw);
+  max-width: min(280px, 75vw);
   object-fit: contain;
   border-radius: 14px;
   box-shadow: 0 10px 28px rgba(61, 44, 41, 0.18);
