@@ -51,6 +51,7 @@
           <button type="button" class="mkt-tab" data-tab="progress">Progress</button>
           <button type="button" class="mkt-tab" data-tab="siteinfo">Site info</button>
           <button type="button" class="mkt-tab" data-tab="shared">Shared notes</button>
+          <button type="button" class="mkt-tab" data-tab="files">Files</button>
           <button type="button" class="mkt-tab" data-tab="messages">Messages</button>
           <button type="button" class="mkt-tab" data-tab="private">My notes &amp; calendar</button>
           <button type="button" class="mkt-tab" data-tab="contacts">Contacts</button>
@@ -70,6 +71,11 @@
               <h3>Owner position — next 90 days</h3>
               <p class="mkt-muted">Proposed UX + SEO hybrid for review before our strategy meeting. Please read and reply with feedback.</p>
               <p style="margin:14px 0 0"><a href="/marketing/next-90-days" class="mkt-btn mkt-btn-primary">Open next-90-days brief</a></p>
+            </article>
+            <article class="mkt-card">
+              <h3>Shared files</h3>
+              <p class="mkt-muted">SEO workbook CSVs and other attachments for reference. Upload more anytime from the Files tab.</p>
+              <p style="margin:14px 0 0"><button type="button" class="mkt-btn mkt-btn-primary" id="gotoFilesTab">Open Files tab</button></p>
             </article>
           </div>
         </section>
@@ -119,6 +125,23 @@
               <button type="submit" class="mkt-btn mkt-btn-primary">Add shared note</button>
             </form>
             <ul class="mkt-list" id="sharedNoteList"></ul>
+          </div>
+        </section>
+
+        <section class="mkt-panel" id="panel-files">
+          <div class="mkt-card">
+            <h3>Shared files</h3>
+            <p class="mkt-muted">Reference library for SEO workbooks, PDFs, and other attachments. Visible to portal users only (not public). Max 25MB per file. PDF, CSV, Office docs, images, TXT, MD, ZIP.</p>
+            <form class="mkt-form" id="fileUploadForm">
+              <input name="title" placeholder="Title (optional — defaults to filename)" maxlength="200">
+              <textarea name="notes" placeholder="Optional note (e.g. Received Aug 2026 from RSM)" maxlength="2000"></textarea>
+              <input type="file" name="file" id="fileUploadInput" required>
+              <div class="mkt-actions">
+                <button type="submit" class="mkt-btn mkt-btn-primary">Upload file</button>
+              </div>
+              <div id="fileUploadStatus"></div>
+            </form>
+            <ul class="mkt-list" id="fileList"></ul>
           </div>
         </section>
 
@@ -227,6 +250,7 @@
       if (name === 'progress') loadProgress();
       if (name === 'siteinfo') loadSiteInfo();
       if (name === 'shared') loadNotes('shared');
+      if (name === 'files') loadFiles();
       if (name === 'private') { loadNotes('private'); loadCalendar(); }
       if (name === 'messages') loadMessagePeople();
       if (name === 'contacts') loadContacts();
@@ -383,6 +407,9 @@
       if (!btn) return;
       showTab(btn.getAttribute('data-tab'));
     });
+    document.getElementById('gotoFilesTab').addEventListener('click', function () {
+      showTab('files');
+    });
 
     document.getElementById('progressForm').addEventListener('submit', async function (e) {
       e.preventDefault();
@@ -447,6 +474,63 @@
       await api('/notes/' + id, { method: 'DELETE' });
       loadNotes(scope);
     }
+
+    async function loadFiles() {
+      var data = await api('/files');
+      var list = document.getElementById('fileList');
+      if (!data.files.length) {
+        list.innerHTML = '<li class="mkt-muted">No files yet. Upload the RSM workbook or other reference docs here.</li>';
+        return;
+      }
+      list.innerHTML = data.files.map(function (f) {
+        return '<li>' +
+          '<div class="mkt-actions" style="justify-content:space-between;align-items:flex-start">' +
+          '<div><strong>' + esc(f.title || f.original_name) + '</strong>' +
+          '<div class="mkt-meta">' + esc(f.original_name) + ' · ' + esc(f.size_label || '') +
+          (f.uploaded_by_name ? ' · ' + esc(f.uploaded_by_name) : ' · system') +
+          ' · ' + esc(fmtDate(f.created_at)) + '</div>' +
+          (f.notes ? '<p class="mkt-muted" style="margin-top:6px;white-space:pre-wrap">' + esc(f.notes) + '</p>' : '') +
+          '</div>' +
+          '<div class="mkt-actions">' +
+          '<a class="mkt-btn mkt-btn-primary" href="/api/marketing/files/' + f.id + '/download">Download</a>' +
+          '<button type="button" class="mkt-btn mkt-btn-danger" data-file-del="' + f.id + '">Delete</button>' +
+          '</div></div></li>';
+      }).join('');
+    }
+
+    document.getElementById('fileUploadForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var status = document.getElementById('fileUploadStatus');
+      var input = document.getElementById('fileUploadInput');
+      if (!input.files || !input.files[0]) {
+        status.innerHTML = '<p class="mkt-error">Choose a file first.</p>';
+        return;
+      }
+      var fd = new FormData(e.target);
+      status.innerHTML = '<p class="mkt-muted">Uploading…</p>';
+      try {
+        var res = await fetch('/api/marketing/files', { method: 'POST', credentials: 'include', body: fd });
+        var data = await res.json().catch(function () { return {}; });
+        if (!res.ok) throw new Error(data.error || 'Upload failed');
+        status.innerHTML = '<p class="mkt-success">Uploaded.</p>';
+        e.target.reset();
+        loadFiles();
+      } catch (err) {
+        status.innerHTML = '<p class="mkt-error">' + esc(err.message) + '</p>';
+      }
+    });
+
+    document.getElementById('fileList').addEventListener('click', async function (e) {
+      var id = e.target.getAttribute('data-file-del');
+      if (!id) return;
+      if (!confirm('Delete this file from the portal library?')) return;
+      try {
+        await api('/files/' + id, { method: 'DELETE' });
+        loadFiles();
+      } catch (err) {
+        alert(err.message || 'Delete failed');
+      }
+    });
 
     document.getElementById('messageForm').addEventListener('submit', async function (e) {
       e.preventDefault();

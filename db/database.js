@@ -818,6 +818,19 @@ try {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
     CREATE INDEX IF NOT EXISTS idx_marketing_cal_user_date ON marketing_calendar_events(user_id, event_date);
+
+    CREATE TABLE IF NOT EXISTS marketing_files (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL DEFAULT '',
+      original_name TEXT NOT NULL,
+      stored_name TEXT NOT NULL UNIQUE,
+      mime_type TEXT DEFAULT '',
+      size_bytes INTEGER DEFAULT 0,
+      notes TEXT DEFAULT '',
+      uploaded_by INTEGER REFERENCES users(id),
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_marketing_files_created ON marketing_files(created_at DESC);
   `);
 } catch (err) {
   console.error('[database] marketing tables setup failed:', err && err.message ? err.message : err);

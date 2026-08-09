@@ -1,8 +1,86 @@
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
+const crypto = require('crypto');
+const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const db = require('../db/database');
+const { MARKETING_FILES_DIR } = require('../lib/paths');
 
 const router = express.Router();
+
+const marketingFilesDir = MARKETING_FILES_DIR;
+if (!fs.existsSync(marketingFilesDir)) {
+  fs.mkdirSync(marketingFilesDir, { recursive: true });
+}
+
+const ALLOWED_DOC_EXT = new Set([
+  '.pdf', '.csv', '.txt', '.md', '.doc', '.docx', '.xls', '.xlsx',
+  '.ppt', '.pptx', '.zip', '.png', '.jpg', '.jpeg', '.webp', '.gif'
+]);
+const MAX_MARKETING_FILE_MB = 25;
+
+const marketingUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, marketingFilesDir),
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname || '').toLowerCase() || '.bin';
+      cb(null, crypto.randomBytes(16).toString('hex') + ext);
+    }
+  }),
+  limits: { fileSize: MAX_MARKETING_FILE_MB * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    if (!ALLOWED_DOC_EXT.has(ext)) {
+      return cb(new Error('File type not allowed. Use PDF, CSV, Office docs, images, TXT, MD, or ZIP.'));
+    }
+    cb(null, true);
+  }
+});
+
+const RSM_SHEET_SEED = [
+  { file: '568583896.csv', title: 'RSM — Business & Search Opportunity Overview' },
+  { file: '487701238.csv', title: 'RSM — The 70 Primary Keywords' },
+  { file: '1589834282.csv', title: 'RSM — All 490 Keywords' },
+  { file: '52500509.csv', title: 'RSM — AEO / GEO Question Keywords' },
+  { file: '438560908.csv', title: 'RSM — Content Gap & White Space Analysis' },
+  { file: '1779095545.csv', title: 'RSM — Competitor Landscape' },
+  { file: '372685248.csv', title: 'RSM — Execution Roadmap' },
+  { file: '164706283.csv', title: 'RSM — Workbook sheet' }
+];
+
+function seedRsmSheetFiles() {
+  try {
+    const count = db.prepare('SELECT COUNT(*) AS c FROM marketing_files').get().c;
+    if (count > 0) return;
+    const sheetDir = path.join(__dirname, '..', 'scripts', '_rsm-sheet');
+    if (!fs.existsSync(sheetDir)) return;
+    const insert = db.prepare(`
+      INSERT INTO marketing_files (title, original_name, stored_name, mime_type, size_bytes, notes, uploaded_by)
+      VALUES (?, ?, ?, ?, ?, ?, NULL)
+    `);
+    for (const item of RSM_SHEET_SEED) {
+      const src = path.join(sheetDir, item.file);
+      if (!fs.existsSync(src)) continue;
+      const stored = crypto.randomBytes(16).toString('hex') + '.csv';
+      const dest = path.join(marketingFilesDir, stored);
+      fs.copyFileSync(src, dest);
+      const size = fs.statSync(dest).size;
+      insert.run(
+        item.title,
+        item.file,
+        stored,
+        'text/csv',
+        size,
+        'Seeded from Relevant Search Media keyword workbook (CSV export).'
+      );
+    }
+  } catch (err) {
+    console.error('[marketing] RSM sheet seed failed:', err && err.message ? err.message : err);
+  }
+}
+
+seedRsmSheetFiles();
 
 function portalUser(req) {
   return req.session && req.session.user ? req.session.user : null;
@@ -540,6 +618,95 @@ router.delete('/calendar/:id', (req, res) => {
     return res.status(403).json({ error: 'You can only delete your own calendar events' });
   }
   db.prepare('DELETE FROM marketing_calendar_events WHERE id = ?').run(id);
+  res.json({ success: true });
+});
+
+function fileRow(id) {
+  return db.prepare(`
+    SELECT f.*, u.username AS uploaded_by_name
+    FROM marketing_files f
+    LEFT JOIN users u ON u.id = f.uploaded_by
+    WHERE f.id = ?
+  `).get(id);
+}
+
+function formatBytes(n) {
+  const num = Number(n) || 0;
+  if (num < 1024) return num + ' B';
+  if (num < 1024 * 1024) return (num / 1024).toFixed(1) + ' KB';
+  return (num / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+// GET /api/marketing/files
+router.get('/files', (req, res) => {
+  seedRsmSheetFiles();
+  const files = db.prepare(`
+    SELECT f.id, f.title, f.original_name, f.mime_type, f.size_bytes, f.notes,
+           f.uploaded_by, f.created_at, u.username AS uploaded_by_name
+    FROM marketing_files f
+    LEFT JOIN users u ON u.id = f.uploaded_by
+    ORDER BY f.created_at DESC, f.id DESC
+  `).all().map((f) => Object.assign({}, f, { size_label: formatBytes(f.size_bytes) }));
+  res.json({ files });
+});
+
+// POST /api/marketing/files — multipart upload (field: file)
+router.post('/files', (req, res) => {
+  marketingUpload.single('file')(req, res, (err) => {
+    if (err) {
+      if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ error: `File too large. Max ${MAX_MARKETING_FILE_MB}MB.` });
+      }
+      return res.status(400).json({ error: err.message || 'Upload failed' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded. Use field name "file".' });
+    }
+    const user = portalUser(req);
+    const title = String((req.body && req.body.title) || req.file.originalname || 'Attachment').trim().slice(0, 200);
+    const notes = String((req.body && req.body.notes) || '').trim().slice(0, 2000);
+    const result = db.prepare(`
+      INSERT INTO marketing_files (title, original_name, stored_name, mime_type, size_bytes, notes, uploaded_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      title || req.file.originalname,
+      req.file.originalname || req.file.filename,
+      req.file.filename,
+      req.file.mimetype || '',
+      req.file.size || 0,
+      notes,
+      user.id
+    );
+    res.json({ success: true, file: fileRow(result.lastInsertRowid) });
+  });
+});
+
+// GET /api/marketing/files/:id/download
+router.get('/files/:id/download', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) return res.status(400).json({ error: 'Invalid id' });
+  const row = db.prepare('SELECT * FROM marketing_files WHERE id = ?').get(id);
+  if (!row) return res.status(404).json({ error: 'File not found' });
+  const full = path.join(marketingFilesDir, row.stored_name);
+  if (!fs.existsSync(full)) return res.status(404).json({ error: 'File missing on server' });
+  res.download(full, row.original_name || row.stored_name);
+});
+
+// DELETE /api/marketing/files/:id — uploader or admin
+router.delete('/files/:id', (req, res) => {
+  const user = portalUser(req);
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) return res.status(400).json({ error: 'Invalid id' });
+  const row = db.prepare('SELECT * FROM marketing_files WHERE id = ?').get(id);
+  if (!row) return res.status(404).json({ error: 'File not found' });
+  if (user.role !== 'admin' && row.uploaded_by !== user.id) {
+    return res.status(403).json({ error: 'Only the uploader or an admin can delete this file' });
+  }
+  const full = path.join(marketingFilesDir, row.stored_name);
+  try {
+    if (fs.existsSync(full)) fs.unlinkSync(full);
+  } catch (_) {}
+  db.prepare('DELETE FROM marketing_files WHERE id = ?').run(id);
   res.json({ success: true });
 });
 

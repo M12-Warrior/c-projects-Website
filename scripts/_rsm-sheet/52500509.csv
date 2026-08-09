@@ -1,0 +1,46 @@
+MILE 12 WARRIOR  |  AEO / GEO Question Keywords — AI Citation Layer,,,,,,
+"Targets for ChatGPT, Perplexity, Gemini and Google AI Overviews. Answer-first blocks of 40-60 words immediately under each H2, then the depth.",,,,,,
+,,,,,,
+#,Question Keyword,Cluster,Target Page,Answer Block Angle,Schema,Winnability
+1,How many hours can a truck driver drive in a day?,HOS,/hours-of-service,Lead with the number: 11 driving hours inside a 14-hour on-duty window after 10 consecutive off-duty. Then the exceptions. This is the single most-asked trucking question in AI chat.,FAQPage + HowTo,Tier 3
+2,What is the 14-hour rule for truck drivers?,HOS,/hours-of-service,"Define the clock, state that it does not pause for breaks, give one worked example with times.",FAQPage,Tier 3
+3,What is the 30-minute break rule?,HOS,/hos-violations,"Required after 8 cumulative driving hours; can be off-duty, sleeper, or on-duty not driving. Name the common mistake.",FAQPage,Tier 2
+4,How does the split sleeper berth rule work?,HOS,/split-sleeper,"Give the 8/2 and 7/3 splits in one sentence each, then a table of legal combinations.",FAQPage + Table,Tier 2
+5,What are the warning signs of driver fatigue?,Fatigue,/fatigue-management,"Six-item list: lane drift, missed exits, heavy eyelids, repeated yawning, memory gaps, delayed reaction. Lists get lifted whole into AI answers.",FAQPage + ItemList,Tier 1
+6,How do truck drivers stay awake on long hauls?,Fatigue,/fatigue-management,Rank the tactics honestly and say which ones do not work. Contrarian accuracy earns citations.,FAQPage,Tier 1
+7,How long should a power nap be while driving?,Fatigue,/power-naps,"20 minutes, why 30+ backfires, where to park safely.",FAQPage + HowTo,Tier 1
+8,What is a coffee nap?,Fatigue,/power-naps,Caffeine then immediate 20-minute nap; explain the 20-30 minute onset window.,FAQPage,Tier 1
+9,How much sleep does a truck driver need?,Fatigue,/sleep-guide,7-8 uninterrupted hours; address sleep debt accumulation across a week.,FAQPage,Tier 1
+10,How do you sleep better in a semi truck sleeper?,Fatigue,/sleep-guide,"Temperature, light blocking, noise, parking choice, wind-down sequence. Six concrete steps.",HowTo,Tier 1
+11,Can you drive a truck with sleep apnea?,Health,/sleep-apnea,Yes with treated and documented compliance; explain the examiner referral path.,FAQPage,Tier 2
+12,What percentage of truck drivers have sleep apnea?,Health,/sleep-apnea,Cite the prevalence range and the source. Statistic pages get cited constantly by AI engines.,FAQPage,Tier 2
+13,How do truck drivers avoid back pain?,Health,/back-pain,"Seat setup, 2-hour stop rule, three named stretches, cushion criteria.",HowTo,Tier 1
+14,What exercises can you do in a truck cab?,Health,/cab-workouts,"Six exercises with sets and reps, no equipment beyond a band.",HowTo + ItemList,Tier 1
+15,How much water should a truck driver drink?,Health,/nutrition,"64 oz baseline, the urine-colour check, why drivers under-drink.",FAQPage,Tier 1
+16,What can truck drivers eat that is healthy at truck stops?,Health,/nutrition,Name real chains and real items. Specificity is what beats generic wellness blogs.,FAQPage,Tier 1
+17,What blood pressure disqualifies a CDL driver?,Health,/dot-physical,"Give the tiered certification lengths by reading. Highly searched, poorly answered.",FAQPage + Table,Tier 2
+18,How do I pass my DOT physical?,Health,/dot-physical,"Prep checklist for the 72 hours before, plus what is actually measured.",HowTo,Tier 2
+19,Why are truck drivers more likely to be depressed?,Mental,/mental-health,"Isolation, irregular sleep, financial pressure, stigma. Cite the rate differential.",FAQPage,Tier 2
+20,How do truck drivers deal with loneliness?,Mental,/loneliness,"Scheduled contact, community, pets, routine. Give the daily 10-minute rule.",HowTo,Tier 1
+21,Where can a truck driver get mental health help?,Mental,/mental-health,"988, Crisis Text Line, SAMHSA, St. Christopher Fund. Named resources with numbers.",FAQPage + ItemList,Tier 1
+22,How do you manage stress as a truck driver?,Mental,/stress-burnout,"4-7-8 breathing at every fuel stop, plus four other in-cab techniques.",HowTo,Tier 1
+23,What is a safe following distance for a semi truck?,Driving,/defensive-driving,"7 seconds at highway speed, doubled in weather. Give the counting method.",FAQPage,Tier 2
+24,How often should a truck driver check mirrors?,Driving,/defensive-driving,Every 5-8 seconds in a named scan order.,FAQPage,Tier 1
+25,What should you do if a steer tire blows out?,Driving,/tire-blowout,"Do not brake, accelerate slightly, hold the wheel, ease off. Three-step sequence.",HowTo,Tier 1
+26,Should you use high beams in fog?,Driving,/fog-and-wind,"No, and explain the reflection physics in one sentence.",FAQPage,Tier 1
+27,How do you drive safely on black ice?,Driving,/winter-driving,"Speed reduction ratios, following distance, steer into the skid, where ice forms first.",HowTo,Tier 2
+28,What are R1 R2 and R3 chain controls in California?,Driving,/california-regulations,Define all three levels plainly. Very few sites answer this cleanly.,FAQPage + Table,Tier 1
+29,What should be in a truck breakdown kit?,Emergency,/breakdown-kit,Nine-item list mapped to 49 CFR 393.95 requirements.,ItemList + HowTo,Tier 1
+30,How far behind the truck do warning triangles go?,Emergency,/breakdown-kit,"10 ft, 100 ft, 200 ft. Add the divided-highway variation.",FAQPage,Tier 1
+31,What do you do first after a truck accident?,Emergency,/roadside-safety,"Numbered eight-step sequence, safety before paperwork.",HowTo,Tier 2
+32,What should a new truck driver expect in the first 90 days?,New Driver,/new-driver,Week-by-week arc with the three points where drivers quit.,HowTo,Tier 1
+33,What are the most common rookie truck driver mistakes?,New Driver,/new-driver,Ten mistakes with the fix for each. Highly linkable.,ItemList,Tier 1
+34,What should I pack for my first OTR run?,New Driver,/what-to-pack,"Categorised list: sleep, food, hygiene, tools, documents, comfort.",ItemList,Tier 1
+35,How do I talk to my dispatcher as a new driver?,New Driver,/orientation,Give actual scripts. Scripts are the highest-value AI-citable format.,HowTo,Tier 1
+36,What should be in a driver orientation packet?,Fleet,/fleet-safety-packets,Section-by-section table of contents plus the DQ-file sign-off requirement.,FAQPage + ItemList,Tier 1
+37,How often is driver refresher training required?,Fleet,/fleet-refresher,Federal baseline vs insurer expectation vs best practice. Honest three-part answer.,FAQPage,Tier 2
+38,How can a fleet reduce driver turnover?,Fleet,/driver-wellness-program,"Wellness, home time, communication, respect. Tie to retention data.",FAQPage,Tier 2
+39,How do you support a spouse who drives a truck?,Family,/social-butterflies,Practical and emotional. Almost nobody owns this answer today.,HowTo,Tier 1
+40,How do truck drivers stay connected with their kids?,Family,/family-connection,"Voice messages, shared albums, ritual calls, a shared journal.",HowTo,Tier 1
+,,,,,,
+"Book a strategy call with Thomas D'Souza (Senior Partner, RSM): https://calendly.com/thomas-relevant-search-media/30min  |  thomas@relevantsearchmedia.com  |  +1 202 609 6641",,,,,,
