@@ -969,6 +969,17 @@ try {
   }
 } catch (_) {}
 
+// Keep catalog prices aligned with docs/PRODUCT-PRICING-DECISION.md
+try {
+  const syncPrice = db.prepare('UPDATE products SET price = ?, category = ?, active = 1 WHERE slug = ?');
+  syncPrice.run(149.00, 'digital', 'course-90day');
+  syncPrice.run(29.00, 'digital', 'seasoned-packet');
+  syncPrice.run(79.00, 'digital', 'fleet-new-hire-packet');
+  syncPrice.run(79.00, 'digital', 'fleet-refresher-packet');
+  syncPrice.run(129.00, 'digital', 'fleet-bundle');
+  syncPrice.run(249.00, 'digital', 'complete-bundle');
+} catch (_) {}
+
 // Ensure at least one admin exists (e.g. if DB had users before seed ran) — never use admin123 in production
 try {
   const adminCount = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'admin'").get();
@@ -983,35 +994,33 @@ try {
   }
 } catch (_) {}
 
-// Ensure Trucker Wellness Journal monthly subscription product exists
+// Wellness Journal product — always free ($0); not a paid subscription
 try {
   const hasMonthly = db.prepare('SELECT id FROM products WHERE slug = ?').get('trucker-wellness-journal-monthly');
+  const journalDesc = 'FREE Trucker Wellness Journal — download or print anytime with no account. Optional free account unlocks My Journal online (save notes across devices), Coffee Shop community on the Forum, CB mic recognition, and progress tracking. Welcoming for solitary drivers on the road.';
   if (!hasMonthly) {
     db.prepare(`
       INSERT INTO products (name, slug, description, price, category, stock, active, is_subscription, subscription_plan)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
-      'Trucker Wellness Journal — Monthly',
+      'Trucker Wellness Journal',
       'trucker-wellness-journal-monthly',
-      'FREE Trucker Wellness Journal — download or print anytime with no account. Optional free account unlocks My Journal online (save notes across devices), Coffee Shop community on the Forum, CB mic recognition, and progress tracking. Welcoming for solitary drivers on the road.',
-      6.99,
-      'subscription',
+      journalDesc,
+      0.00,
+      'digital',
       9999,
       1,
-      1,
-      'wellness_journal'
+      0,
+      null
     );
+  } else {
+    db.prepare(`
+      UPDATE products
+      SET name = ?, description = ?, price = 0, category = 'digital', active = 1,
+          is_subscription = 0, subscription_plan = NULL
+      WHERE slug = 'trucker-wellness-journal-monthly'
+    `).run('Trucker Wellness Journal', journalDesc);
   }
-} catch (_) {}
-
-// Keep subscription product description in sync (e-product + platform perks)
-try {
-  db.prepare(`
-    UPDATE products SET description = ?
-    WHERE slug = 'trucker-wellness-journal-monthly'
-  `).run(
-    'FREE Trucker Wellness Journal — download or print anytime with no account. Optional free account unlocks My Journal online (save notes across devices), Coffee Shop community on the Forum, CB mic recognition, and progress tracking. Welcoming for solitary drivers on the road.'
-  );
 } catch (_) {}
 
 // Physical wellness journal superseded by monthly digital — hide from shop listing

@@ -192,13 +192,15 @@ async function initCheckoutBanner() {
   if (!navbar || document.getElementById('checkoutBanner')) return;
 
   let paymentsEnabled = false;
+  let freeAccess = true;
   try {
     const res = await fetch('/api/shop/payment-config', { credentials: 'include' });
     const data = await res.json();
     paymentsEnabled = !!(data && data.enabled);
+    freeAccess = !!(data && (data.freeAccess || data.freeDigitalAccess));
   } catch (_) {}
 
-  if (paymentsEnabled) return;
+  if (paymentsEnabled && !freeAccess) return;
 
   const banner = document.createElement('div');
   banner.id = 'checkoutBanner';
@@ -206,7 +208,9 @@ async function initCheckoutBanner() {
   banner.setAttribute('role', 'status');
   banner.innerHTML =
     '<p class="checkout-banner-text">' +
-    '<strong>All training is free</strong> — packets &amp; course on Services. Drivers gear checkout coming soon.' +
+    (freeAccess
+      ? '<strong>All digital training is free right now</strong> — New Driver Packet &amp; Wellness Journal stay free forever. Course &amp; advanced packets on <a href="/services">Services</a>.'
+      : '<strong>New Driver Packet &amp; Wellness Journal stay free</strong> — course &amp; advanced packets available on <a href="/services">Services</a> and <a href="/shop">Shop</a>.') +
     '</p>' +
     '<button type="button" class="checkout-banner-dismiss" aria-label="Dismiss checkout notice">&times;</button>';
 

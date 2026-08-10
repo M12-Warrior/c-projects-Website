@@ -857,10 +857,10 @@
   <section class="section" id="packets">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag">Manifest — Free Downloads</span>
+        <span class="section-tag">Manifest — Training Packets</span>
         <h2>Driver Safety Packets</h2>
         <p>Professional training and print-ready packets for drivers and fleet safety departments — built from the same roadmap above.</p>
-        <p style="font-size:0.88rem;color:var(--green);max-width:720px;margin:12px auto 0;text-align:center;line-height:1.55;font-weight:600"><strong>Every safety packet and the 90-Day Course are free</strong> — view online, print, or download anytime. No checkout required.</p>
+        <p id="homePacketsNotice" style="font-size:0.88rem;color:var(--green);max-width:720px;margin:12px auto 0;text-align:center;line-height:1.55;font-weight:600"><strong>New Driver Packet is always free.</strong> Right now all digital training is free while checkout finishes setup. Wellness Journal stays free forever.</p>
       </div>
 
       <div class="packet-grid">
@@ -902,7 +902,7 @@
 
           </div>
           <div class="packet-card" style="--packet-accent: #34d399;">
-            <div class="packet-tier packet-tier-free">Tier 2 — FREE</div>
+            <div class="packet-tier packet-tier-free" id="homeTierSeasoned">Tier 2 — FREE now · $29</div>
             <h4>Seasoned Driver Packet</h4>
             <p>For drivers with 2+ years — advanced fatigue science, long-term health strategies, regulatory self-audit tools, career sustainability planning, and mentorship guidance. 11 sections for the experienced professional.</p>
             <ul class="packet-includes">
@@ -937,7 +937,7 @@
           <div id="fleetYardHostHome" style="margin-bottom:20px;max-width:720px"></div>
 
           <div class="packet-card" style="--packet-accent: #fbbf24;">
-            <div class="packet-tier packet-tier-free">Fleet — FREE</div>
+            <div class="packet-tier packet-tier-free" id="homeTierFleetNew">Fleet — FREE now · $79</div>
             <h4>New Hire Orientation Packet</h4>
             <p>Complete onboarding package with federal/state compliance overview, detailed inspection checklists, accident procedures, fatigue management program, and wellness resources. Built to protect the driver, the company, and your insurance.</p>
             <ul class="packet-includes">
@@ -962,7 +962,7 @@
           </div>
 
           <div class="packet-card" style="--packet-accent: #f472b6;">
-            <div class="packet-tier packet-tier-free">Fleet — FREE</div>
+            <div class="packet-tier packet-tier-free" id="homeTierFleetRef">Fleet — FREE now · $79</div>
             <h4>Seasoned Driver Refresher Packet</h4>
             <p>Annual or semi-annual refresher for experienced drivers. Covers HOS updates, advanced fatigue management with self-assessment, health check-in, seasonal hazard calendar, regulatory self-audit, and mentorship opportunities. Documented refresher training improves CSA scores and insurance premiums.</p>
             <ul class="packet-includes">
@@ -1126,6 +1126,31 @@
     })();
   </script>
   <script src="/js/main.js?v=nav-gold-20260713b"></script>
+  <script>
+    (function () {
+      fetch('/api/shop/payment-config', { credentials: 'include' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var free = !!(data && (data.freeAccess || data.freeDigitalAccess));
+          var notice = document.getElementById('homePacketsNotice');
+          var seasoned = document.getElementById('homeTierSeasoned');
+          var fleetNew = document.getElementById('homeTierFleetNew');
+          var fleetRef = document.getElementById('homeTierFleetRef');
+          if (free) {
+            if (notice) notice.innerHTML = '<strong>New Driver Packet is always free.</strong> Right now all digital training is free while checkout finishes setup. Wellness Journal stays free forever.';
+            if (seasoned) seasoned.textContent = 'Tier 2 — FREE now · $29';
+            if (fleetNew) fleetNew.textContent = 'Fleet — FREE now · $79';
+            if (fleetRef) fleetRef.textContent = 'Fleet — FREE now · $79';
+            return;
+          }
+          if (notice) notice.innerHTML = '<strong>New Driver Packet &amp; Wellness Journal stay free forever.</strong> Seasoned ($29), Fleet ($79), Course ($149), and bundles are available in the <a href="/shop" style="color:var(--gold)">Shop</a>.';
+          if (seasoned) seasoned.textContent = 'Tier 2 — $29';
+          if (fleetNew) fleetNew.textContent = 'Fleet — $79';
+          if (fleetRef) fleetRef.textContent = 'Fleet — $79';
+        })
+        .catch(function () {});
+    })();
+  </script>
 </body>
 </html>
 

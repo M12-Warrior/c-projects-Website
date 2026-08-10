@@ -1,27 +1,32 @@
 # Stripe payments setup (Mile 12 Warrior)
 
 This is the site's payment system. The **code is finished**, but checkout is **paused**
-(June 2026) while Mile 12 Warrior offers **all training free** and prepares a proper
-drivers gear shop. Stripe keys may stay on Railway — checkout stays off until you opt in.
+until Joyce sets `CHECKOUT_PAUSED=false`. While paused, all digital training stays free.
+**Always free forever:** New Driver Packet, roadmap checklists, Wellness Journal.
+**Paid when unpaused:** Course ($149), Seasoned ($29), Fleet ($79), bundles. Merch waits on the gear shop.
 
 > Note: An older `docs/PAYMENTS-AUTHORIZE-NET-SETUP.md` exists from a previous plan.
 > It is **not used** — the site uses **Stripe**. You can ignore the Authorize.net doc.
 
 ---
 
-## Current status (paused)
+## Current status (paused → ready to unpause when Joyce chooses)
 
 | What | Status |
 |------|--------|
 | Stripe keys on Railway | May remain set — **not removed** |
+| Stripe payout bank | Updated Aug 2026 — confirm default payout account |
 | Checkout (`enabled`) | **`false`** until `CHECKOUT_PAUSED=false` |
-| Packets & 90-Day Course | **Free** on `/services` and `/course` — no checkout |
-| Drivers gear / merch | Browse-only / coming soon — no cart checkout |
+| Free forever | New Driver Packet, roadmap/focus checklists, Wellness Journal |
+| Paid when unpaused | Course ($149), Seasoned ($29), Fleet packets ($79), bundles |
+| Drivers gear / merch | Browse-only until shop ready |
 | Historical orders & admin Revenue | Unchanged — past paid orders still visible |
 
-To **turn checkout back on** when the gear shop is ready: set Railway variable
-`CHECKOUT_PAUSED=false` (and ensure live Stripe keys + webhook are configured).
-Redeploy; Buy/Checkout buttons reappear automatically.
+**Pricing decision doc:** [`PRODUCT-PRICING-DECISION.md`](PRODUCT-PRICING-DECISION.md)
+
+To **turn checkout back on**: set Railway variable `CHECKOUT_PAUSED=false`
+(and ensure live Stripe keys + webhook are configured). Redeploy; update public
+“all training is free” banners the same day so messaging matches.
 
 ---
 
@@ -33,8 +38,8 @@ Redeploy; Buy/Checkout buttons reappear automatically.
 4. After paying, Stripe sends them back to their **order receipt** page, and the site:
    - marks the order **paid**,
    - unlocks any **digital downloads / course / packets** they bought,
-   - starts the **wellness journal subscription** if they bought it,
    - records shipping for any **physical** items.
+   - (Wellness Journal is free forever — no paid subscription required.)
 
 The site confirms payment in **two ways** so an order is never "lost":
 - a **webhook** from Stripe (the reliable background path), and

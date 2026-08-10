@@ -205,8 +205,8 @@
       <p class="course-subtitle">10 modules. 40+ lessons. Everything they didn't teach you in CDL school.</p>
       <div class="course-price-row">
         <div class="course-price-badge">
-          <span class="course-price" style="color:var(--green)">FREE</span>
-          <span class="course-price-label">full course<br>access now</span>
+          <span class="course-price" id="courseHeroPrice" style="color:var(--green)">FREE</span>
+          <span class="course-price-label" id="courseHeroPriceLabel">full course<br>access now</span>
         </div>
       </div>
       <div class="course-stats">
@@ -1113,9 +1113,9 @@ function submitQuiz(modId) {
 function getModule1PurchaseCtaHtml() {
   var html = '<div class="module1-cta">';
   html += '<h3>Continue your next leg of the journey</h3>';
-  html += '<p>You&rsquo;ve finished the free portion. Paid enrollment for the full course and add-on packets will be available here soon.</p>';
+  html += '<p>You&rsquo;ve finished the free Module 1 preview. Unlock all 10 modules for <strong>$149</strong> (includes the free New Driver Packet).</p>';
   html += '<div class="module1-cta-links">';
-  html += '<a href="/contact" class="cta-primary">Contact us about the course</a>';
+  html += '<a href="/shop/product/course-90day" class="cta-primary">Get the full course — $149</a>';
   html += '<a href="/shop">Browse the Shop</a>';
   html += '<a href="/services">Services &amp; pricing</a>';
   html += '</div>';
@@ -1140,8 +1140,8 @@ function renderModule1Locked(main) {
 function renderPurchaseOverlay(main) {
   var html = '<div class="purchase-overlay">';
   html += '<div class="purchase-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>';
-  html += '<h2>Full course — enrollment opening soon</h2>';
-  html += '<p>Paid access to all 10 modules, quizzes, your New Driver Packet, and your Certificate of Completion will be available for purchase here soon.</p>';
+  html += '<h2>Full course — $149</h2>';
+  html += '<p>Unlock all 10 modules, quizzes, certificate of completion, and the included New Driver Packet. Module 1 preview stays available to approved accounts.</p>';
   html += '<p style="margin-top:16px"><a href="/contact" class="btn btn-primary">Contact us</a> <a href="/shop" class="btn btn-glass" style="margin-left:8px">Shop</a></p>';
   html += '<button class="purchase-restore" onclick="restoreAccess()">Already enrolled? Restore access</button>';
   html += '</div>';
@@ -1512,6 +1512,23 @@ function applyAccessFlags(data) {
   var previewBtn = document.getElementById('previewModule1Btn');
   if (previewBtn) {
     previewBtn.style.display = (accessFlags.hasModule1Preview && !accessFlags.hasCourseAccess) ? '' : 'none';
+  }
+  var priceEl = document.getElementById('courseHeroPrice');
+  var labelEl = document.getElementById('courseHeroPriceLabel');
+  if (priceEl && labelEl) {
+    if (data && data.freeAccess) {
+      priceEl.textContent = 'FREE';
+      priceEl.style.color = 'var(--green)';
+      labelEl.innerHTML = 'full course<br>access now';
+    } else if (accessFlags.hasCourseAccess) {
+      priceEl.textContent = 'UNLOCKED';
+      priceEl.style.color = 'var(--green)';
+      labelEl.innerHTML = 'your enrollment<br>is active';
+    } else {
+      priceEl.textContent = '$149';
+      priceEl.style.color = 'var(--gold)';
+      labelEl.innerHTML = 'one-time · Module 1<br>preview free';
+    }
   }
   updateHeroProgress();
   renderSidebar();

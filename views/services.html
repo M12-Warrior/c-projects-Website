@@ -149,7 +149,7 @@
       <div class="services-hero">
         <h1 class="page-title">Services for Professional Truck Drivers</h1>
         <p class="page-subtitle">Fatigue and sleep resources, HOS-aware training, safety packets, and consulting — built by a driver with 25+ years behind the wheel. Designed for individual drivers and fleet safety departments.</p>
-        <p style="font-size:0.9rem;color:var(--green);max-width:720px;margin:0 auto 8px;text-align:center;line-height:1.55;font-weight:600">All packets, the 90-Day Course, and the <strong>Wellness Journal</strong> are <strong>free</strong> right now — view, print, or download anytime. No checkout required.</p>
+        <p id="servicesPricingNotice" style="font-size:0.9rem;color:var(--green);max-width:720px;margin:0 auto 8px;text-align:center;line-height:1.55;font-weight:600"><strong>New Driver Packet</strong>, roadmap checklists, and the <strong>Wellness Journal</strong> are always free. Right now all digital training is free while checkout finishes setup.</p>
       </div>
 
       <!-- ===== COURSE ===== -->
@@ -186,11 +186,11 @@
           <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px">
             <div>
               <div class="course-price-area" style="justify-content:center">
-                <span class="course-price" data-cms="coursePriceLine" style="color:var(--green)">FREE</span>
-                <span class="course-price-note" data-cms="coursePriceNote">full course access</span>
+                <span class="course-price" data-cms="coursePriceLine" id="svcCoursePrice" style="color:var(--green)">FREE</span>
+                <span class="course-price-note" data-cms="coursePriceNote" id="svcCoursePriceNote">full course access</span>
               </div>
-              <p style="font-size:0.78rem;color:var(--text-3);margin-bottom:4px" data-cms="coursePreviewNote">All 10 modules — start anytime, no payment</p>
-              <p style="font-size:0.72rem;color:var(--text-3)">Market comparison: ELDT courses $50–$500 · Fleet programs $100–$250/driver</p>
+              <p style="font-size:0.78rem;color:var(--text-3);margin-bottom:4px" data-cms="coursePreviewNote" id="svcCoursePreviewNote">All 10 modules — start anytime, no payment</p>
+              <p style="font-size:0.72rem;color:var(--text-3)">Catalog price $149 when checkout is live · includes New Driver Packet</p>
             </div>
             <div class="course-cta" style="justify-content:center">
               <a href="/course" class="btn btn-primary"><span>Start the Course</span></a>
@@ -279,11 +279,11 @@
       <div class="pricing-section">
         <h2 class="pricing-section-title" data-cms="safetySectionTitle">Safety &amp; Wellness Packets</h2>
         <p class="pricing-section-desc" data-cms="safetySectionDesc">Professional, print-ready safety packets for individual drivers and fleet safety departments. Complete with checklists, regulatory references, fillable forms, and sign-off sheets.</p>
-        <p style="font-size:0.88rem;color:var(--text-2);max-width:720px;margin:-8px auto 20px;text-align:center;line-height:1.55"><strong>Every safety packet is free</strong> — view online, print, or download below. No account or checkout needed. Paid checkout will return later when our drivers gear shop opens.</p>
+        <p id="servicesPacketsNotice" style="font-size:0.88rem;color:var(--text-2);max-width:720px;margin:-8px auto 20px;text-align:center;line-height:1.55"><strong>Tier 1 New Driver Packet is always free.</strong> Seasoned and fleet packets show catalog prices when checkout opens — until then they stay free to view, print, or download.</p>
 
           <div class="pricing-grid">
           <div class="price-card">
-            <span class="pc-tier t-free">Tier 1 — Free</span>
+            <span class="pc-tier t-free">Tier 1 — Always free</span>
             <h3 class="pc-name">New Driver Packet</h3>
             <p class="pc-desc">Essential fundamentals for new CDL drivers — HOS basics, inspection checklists, emergency contacts, and daily routines. 13 complete sections.</p>
             <div class="pc-price" style="color:var(--green)">FREE</div>
@@ -318,8 +318,8 @@
             <span class="pc-tier t-ind">Tier 2 — Individual</span>
             <h3 class="pc-name">Seasoned Driver Packet</h3>
             <p class="pc-desc">Advanced strategies for 2+ year drivers — fatigue science, CSA self-audit, exercise programs, career sustainability, and mentorship plans. 11 sections.</p>
-            <div class="pc-price" style="color:var(--green)">FREE</div>
-            <div class="pc-price-note">Download or print anytime</div>
+            <div class="pc-price" id="svcPriceSeasoned" style="color:var(--green)">FREE</div>
+            <div class="pc-price-note" id="svcNoteSeasoned">Catalog $29 · free while checkout pauses</div>
             <ul class="pc-features">
               <li>Top 5 HOS violations &amp; avoidance</li>
               <li>Advanced fatigue management</li>
@@ -347,8 +347,8 @@
             <span class="pc-tier t-fleet">Fleet — New Hire</span>
             <h3 class="pc-name">Fleet Orientation Packet</h3>
             <p class="pc-desc">Complete new-hire onboarding for safety departments. FMCSA compliance, accident procedures, company policy templates, and formal driver sign-off sheet. 11 sections + acknowledgments.</p>
-            <div class="pc-price" style="color:var(--green)">FREE</div>
-            <div class="pc-price-note">For safety departments &amp; fleets</div>
+            <div class="pc-price" id="svcPriceFleetNew" style="color:var(--green)">FREE</div>
+            <div class="pc-price-note" id="svcNoteFleetNew">Catalog $79 · free while checkout pauses</div>
             <ul class="pc-features">
               <li>Cover letter to safety director</li>
               <li>Full FMCSA compliance reference</li>
@@ -374,8 +374,8 @@
             <span class="pc-tier t-fleet">Fleet — Refresher</span>
             <h3 class="pc-name">Fleet Refresher Packet</h3>
             <p class="pc-desc">Annual/semi-annual refresher for experienced drivers. Fatigue self-assessment, seasonal hazard calendar, regulatory self-audit, and mentorship. 10 sections + acknowledgments.</p>
-            <div class="pc-price" style="color:var(--green)">FREE</div>
-            <div class="pc-price-note">For safety departments &amp; fleets</div>
+            <div class="pc-price" id="svcPriceFleetRef" style="color:var(--green)">FREE</div>
+            <div class="pc-price-note" id="svcNoteFleetRef">Catalog $79 · free while checkout pauses</div>
             <ul class="pc-features">
               <li>Cover letter to safety director</li>
               <li>10-question fatigue self-assessment</li>
@@ -402,19 +402,19 @@
           <div class="bundle-card">
             <div class="bundle-info">
               <h4>Fleet Bundle</h4>
-              <p>Both fleet packets (New Hire + Refresher). Download each free above — unlimited printing for your safety program.</p>
+              <p>Both fleet packets (New Hire + Refresher). Unlimited printing for your safety program when licensed.</p>
             </div>
             <div class="bundle-price">
-              <div class="pc-price" style="color:var(--green)">FREE</div>
+              <div class="pc-price" id="svcPriceFleetBundle" style="color:var(--green)">FREE</div>
             </div>
           </div>
           <div class="bundle-card">
             <div class="bundle-info">
               <h4>Complete Bundle</h4>
-              <p>90-Day Course plus all four safety packets. Everything is free on this page and the <a href="/course" style="color:var(--gold)">Course</a> page.</p>
+              <p>90-Day Course plus all four safety packets. See the <a href="/course" style="color:var(--gold)">Course</a> page and <a href="/shop" style="color:var(--gold)">Shop</a>.</p>
             </div>
             <div class="bundle-price">
-              <div class="pc-price" style="color:var(--green)">FREE</div>
+              <div class="pc-price" id="svcPriceCompleteBundle" style="color:var(--green)">FREE</div>
             </div>
           </div>
         </div>
@@ -512,7 +512,7 @@
       <!-- ===== DRIVERS GEAR (COMING SOON) ===== -->
       <div class="pricing-section">
         <h2 class="pricing-section-title">Drivers Gear Shop — Coming Soon</h2>
-        <p class="pricing-section-desc">We are building a dedicated drivers gear and merchandise page — shirts, safety vests, wellness kits, and more. Browse what's planned on the <a href="/shop" style="color:var(--gold)">Shop</a> page. Online checkout is paused until that shop is ready; all training content stays free in the meantime.</p>
+        <p class="pricing-section-desc">We are building a dedicated drivers gear and merchandise page — shirts, safety vests, wellness kits, and more. Browse what's planned on the <a href="/shop" style="color:var(--gold)">Shop</a> page. Merch checkout follows the gear shop; digital training can check out separately when Stripe go-live is ready.</p>
       </div>
 
       <div class="ready-banner">
@@ -738,6 +738,53 @@
       onScroll();
       updateCartBadge();
       updateAuthLink();
+
+      function setPrice(elId, free, paidLabel, paidColor) {
+        var el = document.getElementById(elId);
+        if (!el) return;
+        if (free) {
+          el.textContent = 'FREE';
+          el.style.color = 'var(--green)';
+        } else {
+          el.textContent = paidLabel;
+          el.style.color = paidColor || 'var(--gold)';
+        }
+      }
+      function setText(elId, text) {
+        var el = document.getElementById(elId);
+        if (el) el.textContent = text;
+      }
+      fetch('/api/shop/payment-config', { credentials: 'include' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var free = !!(data && (data.freeAccess || data.freeDigitalAccess));
+          var notice = document.getElementById('servicesPricingNotice');
+          var packetsNotice = document.getElementById('servicesPacketsNotice');
+          if (free) {
+            if (notice) notice.innerHTML = '<strong>New Driver Packet</strong>, roadmap checklists, and the <strong>Wellness Journal</strong> are always free. Right now all digital training is free while checkout finishes setup.';
+            if (packetsNotice) packetsNotice.innerHTML = '<strong>Tier 1 New Driver Packet is always free.</strong> Seasoned and fleet packets show catalog prices when checkout opens — until then they stay free to view, print, or download.';
+            setText('svcCoursePriceNote', 'full course access');
+            setText('svcCoursePreviewNote', 'All 10 modules — start anytime, no payment');
+            setText('svcNoteSeasoned', 'Catalog $29 · free while checkout pauses');
+            setText('svcNoteFleetNew', 'Catalog $79 · free while checkout pauses');
+            setText('svcNoteFleetRef', 'Catalog $79 · free while checkout pauses');
+            return;
+          }
+          if (notice) notice.innerHTML = '<strong>New Driver Packet</strong>, roadmap checklists, and the <strong>Wellness Journal</strong> stay free forever. Course, Seasoned, and Fleet tools are available through <a href="/shop" style="color:var(--gold)">Shop</a> checkout.';
+          if (packetsNotice) packetsNotice.innerHTML = '<strong>Tier 1 is always free.</strong> Seasoned and fleet packets unlock after purchase (or with a valid fleet yard license).';
+          setPrice('svcCoursePrice', false, '$149');
+          setText('svcCoursePriceNote', 'one-time · includes New Driver Packet');
+          setText('svcCoursePreviewNote', 'Module 1 preview free — full course after checkout');
+          setPrice('svcPriceSeasoned', false, '$29');
+          setText('svcNoteSeasoned', 'One-time download license');
+          setPrice('svcPriceFleetNew', false, '$79');
+          setText('svcNoteFleetNew', 'Per-yard fleet license');
+          setPrice('svcPriceFleetRef', false, '$79');
+          setText('svcNoteFleetRef', 'Per-yard fleet license');
+          setPrice('svcPriceFleetBundle', false, '$129');
+          setPrice('svcPriceCompleteBundle', false, '$249');
+        })
+        .catch(function() {});
     })();
   </script>
   <script>

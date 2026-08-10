@@ -549,6 +549,16 @@ router.get('/packet-access', (req, res) => {
       expiresAt: null
     });
   }
+  // Tier 1 New Driver Packet stays free forever (no login / no purchase).
+  if (tier1Free) {
+    return res.json({
+      allowed: true,
+      tier1Free: true,
+      freeAccess: false,
+      downloadsRemaining: null,
+      expiresAt: null
+    });
+  }
   if (!req.session || !req.session.user) {
     return res.json({
       allowed: false,
@@ -623,7 +633,7 @@ router.post('/packet-download-log', (req, res) => {
   if (!productSlug) {
     return res.status(400).json({ error: 'Invalid type' });
   }
-  if (paymentConfig.isFreeAccessMode()) {
+  if (paymentConfig.isFreeAccessMode() || type === 'new-driver') {
     try {
       const visitorKey = (req.session && req.sessionID) ? String(req.sessionID) : null;
       const uid = req.session && req.session.user ? req.session.user.id : null;
