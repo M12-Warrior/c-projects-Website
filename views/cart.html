@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Cart — Mile 12 Warrior</title>
+  <title>Cart — Mile 12 Warrior</title>
   <link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="/css/pages.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,8 +36,8 @@
         <li><a href="/#roadmap">Roadmap</a></li>
         <li><a href="/blog">Blog</a></li>
         <li><a href="/forum">Forum</a></li>
-        <li><a href="/shop" class="active">Shop</a></li>
-        <li><a href="/shop/cart" class="nav-cart-link">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/shop/cart" class="nav-cart-link active">Cart <span class="cart-badge" id="cartBadge"></span></a></li>
         <li><a href="/refresh">Refresh</a></li>
         <li><a href="/contact">Contact</a></li>
         <li id="navAuth"><a href="/register" class="nav-auth-link">Sign up</a> · <a href="/login" class="nav-auth-link">Sign In</a></li>
@@ -48,12 +48,12 @@
   <main id="main-content" class="page-shell">
     <div class="page-container cart-page">
       <h1 class="page-title">Your Cart</h1>
-      <p id="cartNotice" style="font-size:0.85rem;color:var(--text-2);margin-top:-8px;margin-bottom:20px">Checkout is paused while we build the drivers gear shop. All packets and the course are <strong>free</strong> on <a href="/services" style="color:var(--gold)">Services</a>. Questions? <a href="mailto:joyce@mile12warrior.com?subject=Mile%2012%20Warrior%20%E2%80%94%20General%20Contact" style="color:var(--gold)">Email Joyce</a>.</p>
+      <p id="cartNotice" style="font-size:0.85rem;color:var(--text-2);margin-top:-8px;margin-bottom:20px">Loading cart…</p>
       <div id="cartContent">
         <div id="cartItems"></div>
         <div id="cartActions" class="hidden" style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap;">
           <a href="/shop" class="btn btn-glass">Continue Shopping</a>
-          <a id="cartCheckoutBtn" href="/services" class="btn btn-primary">Free downloads on Services</a>
+          <a id="cartCheckoutBtn" href="/shop" class="btn btn-primary">Continue</a>
         </div>
       </div>
       <div id="cartEmpty" class="empty-state hidden">
@@ -66,6 +66,7 @@
   <script>
     (function() {
       const CART_KEY = 'driver_shield_cart';
+      var paymentsEnabled = false;
 
       function escapeHtml(str) {
         if (!str) return '';
@@ -98,6 +99,18 @@
         if (badge) badge.textContent = total;
       }
 
+      function updateCartNotice() {
+        var notice = document.getElementById('cartNotice');
+        var btn = document.getElementById('cartCheckoutBtn');
+        if (paymentsEnabled) {
+          if (notice) notice.innerHTML = 'Review your items, then check out securely. You&rsquo;ll be asked to <strong>sign in</strong> so purchases unlock on your account. Questions? <a href="/contact" style="color:var(--gold)">Contact us</a>.';
+          if (btn) { btn.textContent = 'Proceed to checkout'; btn.href = '/shop/checkout'; }
+        } else {
+          if (notice) notice.innerHTML = 'Online checkout is not available right now. <strong>New Driver Packet</strong> and the <strong>Wellness Journal</strong> stay free on <a href="/services" style="color:var(--gold)">Services</a>. Questions? <a href="mailto:joyce@mile12warrior.com?subject=Mile%2012%20Warrior%20%E2%80%94%20General%20Contact" style="color:var(--gold)">Email Joyce</a>.';
+          if (btn) { btn.textContent = 'Free downloads on Services'; btn.href = '/services'; }
+        }
+      }
+
       function renderCart() {
         var cart = getCart();
         var cartItems = document.getElementById('cartItems');
@@ -120,10 +133,16 @@
         var total = 0;
         cartItems.innerHTML = cart.map(function(item, idx) {
           var qty = item.quantity || 1;
+          var price = Number(item.price) || 0;
+          var line = qty * price;
+          total += line;
+          var priceHtml = paymentsEnabled
+            ? '<div class="cart-item-price">' + formatPrice(price) + (qty > 1 ? ' × ' + qty + ' = ' + formatPrice(line) : '') + '</div>'
+            : '<div class="cart-item-price" style="color:var(--text-3);font-size:0.85rem">Checkout unavailable — see Services for free training</div>';
           return '<div class="cart-item" data-idx="' + idx + '">' +
             '<div class="cart-item-info">' +
               '<div class="cart-item-name">' + escapeHtml(item.name) + '</div>' +
-              '<div class="cart-item-price" style="color:var(--text-3);font-size:0.85rem">Saved while checkout is paused</div>' +
+              priceHtml +
             '</div>' +
             '<div class="cart-item-qty">' +
               '<button type="button" class="qty-btn" data-action="minus" aria-label="Decrease">−</button>' +
@@ -133,7 +152,9 @@
             '<button type="button" class="qty-btn" data-action="remove" aria-label="Remove" style="color: var(--red);">Remove</button>' +
           '</div>';
         }).join('') +
-        '<div class="cart-total" style="color:var(--text-2);font-size:0.95rem">Checkout paused — training content is free on <a href="/services" style="color:var(--gold)">Services</a>.</div>';
+        (paymentsEnabled
+          ? '<div class="cart-total">Total: ' + formatPrice(total) + '</div>'
+          : '<div class="cart-total" style="color:var(--text-2);font-size:0.95rem">Browse free training on <a href="/services" style="color:var(--gold)">Services</a>.</div>');
 
         cartItems.querySelectorAll('.qty-btn').forEach(function(btn) {
           btn.addEventListener('click', function() {
@@ -192,18 +213,16 @@
         try {
           var res = await fetch('/api/shop/payment-config', { credentials: 'include' });
           var data = await res.json();
-          if (data && data.enabled) {
-            var notice = document.getElementById('cartNotice');
-            if (notice) notice.innerHTML = 'Review your items, then check out securely. Questions? <a href="/contact" style="color:var(--gold)">Contact us</a>.';
-            var btn = document.getElementById('cartCheckoutBtn');
-            if (btn) { btn.textContent = 'Proceed to checkout'; btn.href = '/shop/checkout'; }
-          }
-        } catch (_) {}
+          paymentsEnabled = !!(data && data.enabled);
+        } catch (_) {
+          paymentsEnabled = false;
+        }
+        updateCartNotice();
+        renderCart();
       }
 
       updateCartBadge();
       updateAuthLink();
-      renderCart();
       loadPaymentConfig();
     })();
   </script>
@@ -222,7 +241,6 @@
         </nav>
         <p style="font-size:0.8rem;color:var(--text-3);">Hosted on <a href="https://railway.app" target="_blank" rel="noopener noreferrer">Railway</a>.</p>
         <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
-        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws that may differ significantly. It is the driver's responsibility to comply with the laws of every state they travel through. California (Caltrans/CALDOT) references reflect our home state and should not be assumed to apply elsewhere.</p>
       </div>
     </div>
   </footer>
