@@ -59,13 +59,19 @@ module.exports = [
 <p><em>This information is for educational purposes only. For specific compliance questions, consult FMCSA regulations at fmcsa.dot.gov and qualified professionals.</em></p>`
   },
   {
-    title: 'Mental Health on the Road: Building Resilience as a Trucker',
+    title: 'Truck Driver Mental Health: Resilience, Loneliness, and Road Resources',
     slug: 'mental-health-on-the-road',
-    excerpt: 'Strategies for maintaining mental wellness during long hauls.',
+    excerpt: 'Practical truck driver mental health strategies for loneliness on the road, stress, and when to get confidential help — educational, not medical advice.',
     image: '/images/products/course-90day.svg',
-    content: `<p>You've probably had that moment: miles of highway, the same playlist for the hundredth time, and a wave of loneliness or stress that hits out of nowhere. Long hours behind the wheel, time away from family, and the pressure of deadlines don't just wear on your body—they wear on your mind. The good news? Mental wellness is something you can build, and it's as critical to safety as your pre-trip.</p>
+    content: `<p><strong>Truck driver mental health</strong> matters for safety and career longevity. Long hours, deadlines, and time away from home can bring stress, anxiety, or loneliness on the road — and those feelings are common in trucking, not a character flaw. Building resilience means habits, connection, and knowing when to get help so you stay fit for duty.</p>
 
-<p>Stress, isolation, and fatigue are common in trucking. They're not signs of weakness. They're the predictable result of a job that asks a lot of you. The drivers who thrive aren't the ones who never feel low—they're the ones who have habits and support so that when tough days come, they have something to lean on.</p>
+<p>You've probably had that moment: miles of highway, the same playlist for the hundredth time, and a wave of loneliness or stress that hits out of nowhere. Long hours behind the wheel, time away from family, and the pressure of deadlines don't just wear on your body—they wear on your mind. The good news? Mental wellness is something you can build, and it's as critical to safety as your pre-trip.</p>
+
+<p>Stress, isolation, and fatigue are common in trucking. They're not signs of weakness. They're the predictable result of a job that asks a lot of you. The drivers who thrive aren't the ones who never feel low—they're the ones who have habits and support so that when tough days come, they have something to lean on. Families can help too — see <a href="/social-butterflies">Social Butterflies</a> for spouse and family support tips.</p>
+
+<h2>Loneliness on the road in trucking</h2>
+
+<p>Loneliness on the road trucking often sneaks up: fewer calls home, skipped truck-stop conversations, and hours alone with your thoughts. Small, consistent connection — a scheduled video call, a voice note, or a real conversation in the <a href="/forum/category/general">Coffee Shop</a> — fights isolation better than waiting until you “feel like it.” If low mood, anxiety, or sleep problems stick around for weeks, reach out to a professional or your EAP; in a crisis in the U.S., call or text <strong>988</strong>.</p>
 
 <p>We don't talk about mental health enough in trucking—but that's changing. More drivers and more companies are recognizing that the person behind the wheel is the most important piece of equipment. You can't maintain a truck without oil changes and inspections; you can't maintain a driver without rest, connection, and sometimes professional support. The road can feel like a bubble. You're alone with your thoughts for hours. There's no water cooler, no lunch with coworkers, no quick chat with a friend in the hallway. That isolation can creep up slowly. Maybe you stop calling home as much because you're tired or you don't want to worry anyone. Maybe you skip the truck stop conversation because you're behind schedule. Over time, that can turn into real loneliness—and loneliness doesn't just feel bad; it affects how you drive, how you sleep, and how you handle stress. The good news is that small, consistent habits can make a big difference. You don't have to become a different person; you just need a few reliable ways to stay connected and grounded.</p>
 
@@ -105,9 +111,9 @@ module.exports = [
 
 <p>If you take one thing from this article, let it be this: your mind is part of your safety system. When you're stressed, isolated, or unwell, your reaction time and judgment suffer. Taking care of your mental health isn't selfish or soft—it's part of being fit for duty. Build your habits, stay connected, and when you need help, reach out. The road is long. You deserve to be well for the whole ride. Start with one habit this week. Add another next week. You don't have to do it all at once—you just have to start.</p>
 
-<p>You're not in this alone. If you want more support, explore our <a href="/services">Services</a> for plans and resources that fit your life. Check out our <a href="/#roadmap">focus areas</a> for wellness and safety topics, and grab our <a href="/services">free New Driver Packet</a>—it has practical nuggets for your trucking lifestyle and career. And if you haven't already, <a href="/forum">join the forum</a> and connect with drivers who've been there.</p>
+<p>You're not in this alone. Explore our <a href="/services">Services</a>, the free <a href="/packets/new-driver">New Driver Packet</a>, <a href="/social-butterflies">Social Butterflies</a> for families, and the <a href="/forum">Truckers Lounge forum</a>. Mental health resources for truck drivers also include EAPs, qualified clinicians, and 988 for crisis support in the U.S.</p>
 
-<p><em>This information is for educational purposes only. For medical or mental health concerns, consult qualified healthcare providers.</em></p>`
+<p><em>This information is for educational purposes only — not medical or mental health advice. For concerns about your health or fitness for duty, consult qualified healthcare providers and verify FMCSA medical standards at fmcsa.dot.gov.</em></p>`
   },
   {
     title: 'Mile 12: Where Our Journey Gets Real',
@@ -161,13 +167,19 @@ module.exports = [
 <p><em>This information is for educational purposes only. For specific compliance questions regarding rest and HOS, consult FMCSA regulations at fmcsa.dot.gov.</em></p>`
   },
   {
-    title: 'Truck Driver Fatigue: 5 Quick Resets to Stay Alert on Long Hauls',
+    title: 'Truck Driver Fatigue Management: 5 Quick Resets to Stay Alert',
     slug: '5-quick-resets-stay-alert',
-    excerpt: 'Five proven techniques to fight fatigue between rest stops.',
+    excerpt: 'Practical truck driver fatigue management: five quick resets to stay awake on long hauls, plus drowsy-driving warning signs — within FMCSA HOS limits.',
     image: '/images/products/reflective-safety-vest.svg',
-    content: `<p>You know the drill: one minute you're fine, the next you're blinking too long or your mind is wandering off the road. Fatigue doesn't announce itself with a warning bell. It creeps in—heavy eyelids, wandering thoughts, microsleeps that last just long enough to drift across a lane line. When it hits, you need more than willpower; you need a toolkit of quick resets that actually work. Here are five that drivers and researchers swear by.</p>
+    content: `<p><strong>Truck driver fatigue management</strong> starts with noticing the early signs of drowsy driving — then acting before your focus drifts. If you need to know how to stay awake driving long distance until you can take a legal rest, use these five quick resets as a bridge, not a substitute for sleep.</p>
 
-<p>Remember: these are bridges to your next proper rest, not replacements for sleep. Under <a href="https://www.fmcsa.dot.gov/regulations/hours-of-service" target="_blank" rel="noopener noreferrer">FMCSA Hours of Service</a> rules (49 CFR Part 395), you must take required breaks and your full 10-hour off-duty. Use these when you need to stay sharp until you can safely stop and rest.</p>
+<p>You know the drill: one minute you're fine, the next you're blinking too long or your mind is wandering off the road. Fatigue doesn't announce itself with a warning bell. It creeps in—heavy eyelids, wandering thoughts, microsleeps that last just long enough to drift across a lane line. When it hits, you need more than willpower; you need a toolkit of quick resets that actually work. Here are five that drivers and researchers swear by.</p>
+
+<p>Remember: these are bridges to your next proper rest, not replacements for sleep. Under <a href="https://www.fmcsa.dot.gov/regulations/hours-of-service" target="_blank" rel="noopener noreferrer">FMCSA Hours of Service</a> rules (49 CFR Part 395), you must take required breaks and your full 10-hour off-duty. Use these when you need to stay sharp until you can safely stop and rest. For deeper rest habits in the sleeper, see our guide on <a href="/blog/sleep-management-commercial-drivers">sleep management for commercial drivers</a>.</p>
+
+<h2>Driver fatigue warning signs</h2>
+
+<p>Common driver fatigue warning signs include frequent yawning, heavy eyelids, wandering thoughts, missing exits or mile markers, drifting in the lane, and irritability. If you notice any of these, treat it as a safety stop — pull over when it is safe and legal, then use a reset below. Pushing through drowsy driving truck drivers experience every week is how close calls become crashes.</p>
 
 <p>Fatigue hits everyone differently. Some drivers feel it first in their eyes; others in their focus or their mood. The key is to notice it early and respond before you're in the danger zone. Keep these five resets in your mental toolkit and use them as soon as you feel the first signs—don't wait until you're already nodding off. The earlier you act, the quicker you bounce back and the less risk you take.</p>
 
@@ -209,9 +221,9 @@ module.exports = [
 
 <p>Remember: these five resets are your bridge to your next full rest. They're not a substitute for the 10-hour break or the 30-minute break. They're what you do when you need to stay alert until you can get that rest. Use them. Share them with other drivers. The more we all practice them, the safer the road gets for everyone. You've got the tools. Now use them every time you need them. Your body will thank you. So will everyone on the road. Keep this list handy—in your phone, in your cab, or bookmarked—so the next time fatigue hits, you're not guessing. You're already prepared. Five resets. One goal: stay sharp and stay safe until you can get the rest you need. That's it.</p>
 
-<p>For more structure and support, check out our <a href="/services">Services</a> for personalized plans and our <a href="/services">free New Driver Packet</a> with more tips and checklists. Join our <a href="/forum">forum</a> to swap resets with other drivers, and explore our <a href="/#roadmap">focus areas</a> for safety and wellness topics.</p>
+<p>For more structure and support, check out our <a href="/services">Services</a>, the free <a href="/packets/new-driver">New Driver Packet</a>, and the printable <a href="/journal/print">Wellness Journal</a>. Join our <a href="/forum">forum</a> to swap resets with other drivers, and explore our <a href="/#roadmap">focus areas</a> for safety and wellness topics.</p>
 
-<p><em>This information is for educational purposes only. Always comply with FMCSA HOS regulations.</em></p>`
+<p><em>This information is for educational purposes only. Always comply with FMCSA HOS regulations. Verify current rules at fmcsa.dot.gov.</em></p>`
   },
   {
     title: 'Embracing Change with Confidence: A Trucker\'s Guide',

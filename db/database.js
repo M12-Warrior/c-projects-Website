@@ -931,9 +931,9 @@ try {
 
 // Refresh blog post content so existing DBs get updated copy (tone, length, structure, CTA)
 try {
-  const updatePost = db.prepare('UPDATE blog_posts SET content = ?, excerpt = ?, image = ? WHERE slug = ?');
+  const updatePost = db.prepare('UPDATE blog_posts SET title = ?, content = ?, excerpt = ?, image = ? WHERE slug = ?');
   for (const post of BLOG_POSTS_SEED) {
-    updatePost.run(post.content, post.excerpt, post.image || null, post.slug);
+    updatePost.run(post.title, post.content, post.excerpt, post.image || null, post.slug);
   }
 } catch (_) {}
 
