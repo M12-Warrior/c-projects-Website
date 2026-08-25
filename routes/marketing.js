@@ -650,36 +650,54 @@ router.get('/files', (req, res) => {
   res.json({ files });
 });
 
-// POST /api/marketing/files — multipart upload (field: file)
+// POST /api/marketing/files — multipart upload (fields: files[] and/or file)
 router.post('/files', (req, res) => {
-  marketingUpload.single('file')(req, res, (err) => {
+  marketingUpload.fields([
+    { name: 'files', maxCount: 20 },
+    { name: 'file', maxCount: 1 }
+  ])(req, res, (err) => {
     if (err) {
       if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ error: `File too large. Max ${MAX_MARKETING_FILE_MB}MB.` });
+        return res.status(400).json({ error: `File too large. Max ${MAX_MARKETING_FILE_MB}MB each.` });
       }
       return res.status(400).json({ error: err.message || 'Upload failed' });
     }
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded. Use field name "file".' });
-    }
-    const user = portalUser(req);
-    const title = String((req.body && req.body.title) || req.file.originalname || 'Attachment').trim().slice(0, 200);
-    const notes = String((req.body && req.body.notes) || '').trim().slice(0, 2000);
-    const result = db.prepare(`
-      INSERT INTO marketing_files (title, original_name, stored_name, mime_type, size_bytes, notes, uploaded_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      title || req.file.originalname,
-      req.file.originalname || req.file.filename,
-      req.file.filename,
-      req.file.mimetype || '',
-      req.file.size || 0,
-      notes,
-      user.id
-    );
-    res.json({ success: true, file: fileRow(result.lastInsertRowid) });
+    const fromMulti = (req.files && req.files.files) ? req.files.files : [];
+    const fromSingle = (req.files && req.files.file) ? req.files.file : [];
+    const list = [].concat(fromMulti, fromSingle);
+    return saveUploadedFiles(req, res, list);
   });
 });
+
+function saveUploadedFiles(req, res, fileList) {
+  if (!fileList.length) {
+    return res.status(400).json({ error: 'No file uploaded. Choose one or more files.' });
+  }
+  const user = portalUser(req);
+  const sharedNotes = String((req.body && req.body.notes) || '').trim().slice(0, 2000);
+  const sharedTitle = String((req.body && req.body.title) || '').trim().slice(0, 200);
+  const insert = db.prepare(`
+    INSERT INTO marketing_files (title, original_name, stored_name, mime_type, size_bytes, notes, uploaded_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+  const saved = [];
+  for (const f of fileList) {
+    const title = (fileList.length === 1 && sharedTitle)
+      ? sharedTitle
+      : (sharedTitle ? (sharedTitle + ' — ' + (f.originalname || 'file')) : (f.originalname || 'Attachment'));
+    const result = insert.run(
+      String(title).slice(0, 200),
+      f.originalname || f.filename,
+      f.filename,
+      f.mimetype || '',
+      f.size || 0,
+      sharedNotes,
+      user.id
+    );
+    saved.push(fileRow(result.lastInsertRowid));
+  }
+  res.json({ success: true, count: saved.length, files: saved, file: saved[0] });
+}
 
 // GET /api/marketing/files/:id/download
 router.get('/files/:id/download', (req, res) => {

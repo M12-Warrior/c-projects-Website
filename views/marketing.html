@@ -118,7 +118,7 @@
         <section class="mkt-panel" id="panel-shared">
           <div class="mkt-card">
             <h3>Shared notes</h3>
-            <p class="mkt-muted">Visible to Thomas, Adam, and Mile 12 Warrior. Delete when a note is no longer needed.</p>
+            <p class="mkt-muted">Visible to Thomas, Adam, and Mile 12 Warrior. Text only here — put attachments in <strong>Shared files</strong> (multi-upload supported), then mention them in the note. Delete when a note is no longer needed.</p>
             <form class="mkt-form" id="sharedNoteForm">
               <input name="title" placeholder="Optional title" maxlength="200">
               <textarea name="body" placeholder="Note" required maxlength="10000"></textarea>
@@ -131,13 +131,14 @@
         <section class="mkt-panel" id="panel-files">
           <div class="mkt-card">
             <h3>Shared files</h3>
-            <p class="mkt-muted">Reference library for SEO workbooks, PDFs, and other attachments. Visible to portal users only (not public). Max 25MB per file. PDF, CSV, Office docs, images, TXT, MD, ZIP.</p>
+            <p class="mkt-muted">Reference library for SEO workbooks, PDFs, and other attachments. Visible to portal users only (not public). You can select <strong>multiple files</strong> in one upload. Max 25MB per file. PDF, CSV, Office docs, images, TXT, MD, ZIP.</p>
             <form class="mkt-form" id="fileUploadForm">
-              <input name="title" placeholder="Title (optional — defaults to filename)" maxlength="200">
-              <textarea name="notes" placeholder="Optional note (e.g. Received Aug 2026 from RSM)" maxlength="2000"></textarea>
-              <input type="file" name="file" id="fileUploadInput" required>
+              <input name="title" placeholder="Optional group title (applied to all selected files)" maxlength="200">
+              <textarea name="notes" placeholder="Optional note for all selected files (e.g. Aug 2026 RSM alignment packet)" maxlength="2000"></textarea>
+              <input type="file" name="files" id="fileUploadInput" multiple required>
+              <p class="mkt-muted" id="filePickHint" style="margin:6px 0 0;font-size:0.82rem">No files selected yet. Hold Ctrl (Windows) or Cmd (Mac) to select more than one.</p>
               <div class="mkt-actions">
-                <button type="submit" class="mkt-btn mkt-btn-primary">Upload file</button>
+                <button type="submit" class="mkt-btn mkt-btn-primary">Upload file(s)</button>
               </div>
               <div id="fileUploadStatus"></div>
             </form>
@@ -498,22 +499,45 @@
       }).join('');
     }
 
+    document.getElementById('fileUploadInput').addEventListener('change', function () {
+      var hint = document.getElementById('filePickHint');
+      if (!hint) return;
+      var n = (this.files && this.files.length) || 0;
+      if (!n) {
+        hint.textContent = 'No files selected yet. Hold Ctrl (Windows) or Cmd (Mac) to select more than one.';
+        return;
+      }
+      var names = [];
+      for (var i = 0; i < this.files.length; i++) names.push(this.files[i].name);
+      hint.textContent = n + ' file' + (n === 1 ? '' : 's') + ' selected: ' + names.join(', ');
+    });
+
     document.getElementById('fileUploadForm').addEventListener('submit', async function (e) {
       e.preventDefault();
       var status = document.getElementById('fileUploadStatus');
       var input = document.getElementById('fileUploadInput');
-      if (!input.files || !input.files[0]) {
-        status.innerHTML = '<p class="mkt-error">Choose a file first.</p>';
+      if (!input.files || !input.files.length) {
+        status.innerHTML = '<p class="mkt-error">Choose one or more files first.</p>';
         return;
       }
-      var fd = new FormData(e.target);
-      status.innerHTML = '<p class="mkt-muted">Uploading…</p>';
+      var fd = new FormData();
+      var titleInput = e.target.querySelector('[name="title"]');
+      var notesInput = e.target.querySelector('[name="notes"]');
+      if (titleInput && titleInput.value) fd.append('title', titleInput.value);
+      if (notesInput && notesInput.value) fd.append('notes', notesInput.value);
+      for (var i = 0; i < input.files.length; i++) {
+        fd.append('files', input.files[i]);
+      }
+      status.innerHTML = '<p class="mkt-muted">Uploading ' + input.files.length + ' file' + (input.files.length === 1 ? '' : 's') + '…</p>';
       try {
         var res = await fetch('/api/marketing/files', { method: 'POST', credentials: 'include', body: fd });
         var data = await res.json().catch(function () { return {}; });
         if (!res.ok) throw new Error(data.error || 'Upload failed');
-        status.innerHTML = '<p class="mkt-success">Uploaded.</p>';
+        var count = data.count || (data.files && data.files.length) || 1;
+        status.innerHTML = '<p class="mkt-success">Uploaded ' + count + ' file' + (count === 1 ? '' : 's') + '.</p>';
         e.target.reset();
+        var hint = document.getElementById('filePickHint');
+        if (hint) hint.textContent = 'No files selected yet. Hold Ctrl (Windows) or Cmd (Mac) to select more than one.';
         loadFiles();
       } catch (err) {
         status.innerHTML = '<p class="mkt-error">' + esc(err.message) + '</p>';
