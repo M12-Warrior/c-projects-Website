@@ -6,13 +6,19 @@
 
 module.exports = [
   {
-    title: 'Sleep Management for Commercial Drivers: Staying Alert Within HOS Limits',
+    title: 'How to Sleep in a Semi Truck: Sleep Management Within HOS Limits',
     slug: 'sleep-management-commercial-drivers',
-    excerpt: 'Practical tips for quality rest within FMCSA Hours of Service requirements.',
+    excerpt: 'How to sleep in a semi truck and build a better sleep schedule for OTR drivers within FMCSA Hours of Service — educational tips, not medical advice.',
     image: '/images/products/trucker-wellness-journal.svg',
-    content: `<p>Ever hit that point in your shift where your eyes feel like sandpaper and the white line starts to blur? You're not alone. For commercial drivers, how you sleep isn't just a comfort issue—it's the difference between a safe run and a close call. The good news? With a few habits and a clear picture of the rules, you can turn your off-duty time into real recovery.</p>
+    content: `<p><strong>How to sleep in a semi truck</strong> is one of the most practical skills in trucking. Quality rest inside your legal off-duty window is what keeps you alert for the next run — not just “being off duty.” Under FMCSA Hours of Service (49 CFR Part 395), you need at least 10 consecutive hours off duty before driving again; use that window for real recovery, not only screen time.</p>
+
+<p>Ever hit that point in your shift where your eyes feel like sandpaper and the white line starts to blur? You're not alone. For commercial drivers, how you sleep isn't just a comfort issue—it's the difference between a safe run and a close call. The good news? With a few habits and a clear picture of the rules, you can turn your off-duty time into real recovery.</p>
 
 <p>Under FMCSA Hours of Service rules (49 CFR Part 395), you must take at least 10 consecutive hours off duty before driving again. You can confirm current rules and guidance at <a href="https://www.fmcsa.dot.gov/regulations/hours-of-service" target="_blank" rel="noopener noreferrer">FMCSA Hours of Service</a>. That 10-hour window is your legal minimum, but what you do with it determines whether you're actually rested or just legally compliant. The drivers who treat sleep as part of the job—not an afterthought—are the ones who stay sharp, avoid violations, and build careers that last.</p>
+
+<h2>Best sleep schedule habits for OTR drivers</h2>
+
+<p>A perfect clock is rare on the road, but a <strong>best sleep schedule for OTR drivers</strong> still means: protect a dark/quiet/cool sleeper, wind down before you lay down, cut caffeine early enough to sleep, and use short legal naps as a bridge — not a replacement — for your full off-duty rest. Pair this guide with our <a href="/blog/5-quick-resets-stay-alert">fatigue resets</a> when you need to stay alert until you can stop safely.</p>
 
 <h2>Why Sleep Feels Harder on the Road</h2>
 
@@ -54,9 +60,9 @@ module.exports = [
 
 <p>Some drivers find that a light snack (not a full meal) before bed helps—something with a little protein or complex carb, like a small handful of nuts or a piece of fruit. Others sleep better on an empty stomach. Your sleep log will tell you which camp you're in. The same goes for exercise: moving during the day generally improves sleep, but a heavy workout right before bed can rev you up. If you have time for a walk or stretch in the hour before you lay down, that's often the sweet spot. Trial and error, with a little tracking, will get you to a routine that works for your body and your schedule.</p>
 
-<p>If you want a structured approach that fits your schedule and runs, our <a href="/services">Services</a> page has personalized plans and resources—including our <a href="/services">free New Driver Packet</a> with sleep and HOS nuggets you can keep in the cab. You can also <a href="/forum">join our forum</a> to swap tips with other drivers who've cracked the sleep code on the road. For a bigger-picture view of safety and wellness, check out our <a href="/#roadmap">focus areas</a> on the homepage.</p>
+<p>If you want a structured approach that fits your schedule and runs, start with our free <a href="/packets/new-driver">New Driver Packet</a>, the printable <a href="/journal/print">Wellness Journal</a>, and <a href="/services">Services</a>. You can also <a href="/forum">join our forum</a> to swap tips with other drivers who've cracked the sleep code on the road. For a bigger-picture view of safety and wellness, check out our <a href="/#roadmap">focus areas</a> on the homepage.</p>
 
-<p><em>This information is for educational purposes only. For specific compliance questions, consult FMCSA regulations at fmcsa.dot.gov and qualified professionals.</em></p>`
+<p><em>This information is for educational purposes only — not medical advice. For specific compliance questions, consult FMCSA regulations at fmcsa.dot.gov and qualified professionals. Sleep disorders (including sleep apnea) belong with your clinician and CDL medical process.</em></p>`
   },
   {
     title: 'Truck Driver Mental Health: Resilience, Loneliness, and Road Resources',

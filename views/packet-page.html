@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Packet | Mile 12 Warrior</title>
+  <meta name="description" id="packetMetaDesc" content="Print-ready safety and wellness packets for CDL drivers and fleet safety departments from Mile 12 Warrior.">
+  <link rel="canonical" id="packetCanonical" href="https://mile12warrior.com/packets">
   <link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="/css/pages.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,6 +17,10 @@
     .packet-page-actions .btn { width: 100%; justify-content: center; }
     .packet-page-note { font-size: 0.88rem; color: var(--text-2); line-height: 1.55; max-width: 640px; margin-top: 16px; }
     .packet-page-panel { padding: 28px; }
+    .packet-seo-block { margin: 16px 0 8px; max-width: 720px; text-align: left; padding: 18px 20px; }
+    .packet-seo-block h2 { font-family: var(--font); font-size: 1.05rem; margin: 0 0 8px; }
+    .packet-seo-block p, .packet-seo-block li { font-size: 0.9rem; color: var(--text-2); line-height: 1.65; }
+    .packet-seo-block ul { margin: 0; padding-left: 1.2rem; }
     .fleet-yard-panel summary::-webkit-details-marker,
     .fleet-prefill-panel summary::-webkit-details-marker,
     .fleet-prefill-section summary::-webkit-details-marker { display: none; }
@@ -23,33 +29,39 @@
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="grain-overlay"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
   <nav class="navbar scrolled" id="navbar">
     <div class="nav-container">
       <a href="/" class="nav-logo"><img src="/images/logo.png" alt="Mile 12 Warrior" class="nav-logo-img"></a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
       <ul class="nav-links" id="navLinks">
         <li><a href="/">Home</a></li>
         <li><a href="/#packets">Packets</a></li>
         <li><a href="/services">Services</a></li>
         <li><a href="/social-butterflies">Social Butterflies</a></li>
         <li><a href="/wellness">Wellness Partners</a></li>
+        <li><a href="/blog">Blog</a></li>
         <li><a href="/shop">Shop</a></li>
         <li><a href="/contact">Contact</a></li>
+        <li id="navAuth"><a href="/register" class="nav-auth-link">Sign up</a> · <a href="/login" class="nav-auth-link">Sign In</a></li>
       </ul>
     </div>
   </nav>
   <main id="main-content" class="page-shell">
     <div class="page-container">
-      <div class="packet-page-intro" id="packetIntro">
-        <div class="packet-tier packet-tier-free" id="packetTier">FREE</div>
+      <div class="packet-page-intro page-section" id="packetIntro">
+        <div class="packet-tier packet-tier-free" id="packetTier">Packet</div>
         <h1 class="page-title" id="packetTitle">Safety Packet</h1>
-        <p class="page-subtitle" id="packetSubtitle">View, print, or download this packet &mdash; free access, no checkout.</p>
-        <p style="margin-top:12px"><a href="/#packets" class="btn btn-secondary" style="text-decoration:none">Back to packets</a></p>
+        <p class="page-subtitle" id="packetSubtitle">View, print, or download this packet.</p>
+        <div class="glass-card packet-seo-block" id="packetSeoBlock" style="display:none"></div>
+        <p style="margin-top:12px"><a href="/#packets" class="btn btn-secondary" style="text-decoration:none">Back to packets</a> <a href="/services" class="btn btn-secondary" style="text-decoration:none;margin-left:8px">All services</a></p>
       </div>
       <div class="glass-card packet-page-panel">
         <div id="fleetYardHostPacket" style="display:none;max-width:720px;margin-bottom:18px"></div>
         <div class="packet-page-actions" id="packetActions"></div>
         <p class="packet-page-note" id="packetNote"></p>
       </div>
+      <p style="font-size:0.8rem;color:var(--text-3);max-width:720px;margin:24px auto 0;line-height:1.55;text-align:center">Educational information only — not legal or medical advice. Confirm HOS, inspection, and DQ-file requirements with FMCSA and your carrier. California fleets should also verify current Caltrans / CVC guidance where applicable.</p>
     </div>
   </main>
   <script src="/js/packets.js"></script>
@@ -58,28 +70,37 @@
     (function () {
       var PAGES = {
         'seasoned-driver': {
-          title: 'Seasoned Driver Packet',
-          tier: 'Tier 2 &mdash; FREE',
-          subtitle: 'Advanced safety and wellness for experienced drivers (2+ years). 11 print-ready sections.',
+          title: 'Seasoned Driver Packet — Fatigue, CSA &amp; Career Wellness',
+          docTitle: 'Seasoned Driver Packet for Experienced CDL Drivers | Mile 12 Warrior',
+          description: 'Seasoned driver packet for 2+ year CDL drivers: advanced fatigue management, HOS refresher, CSA self-audit ideas, cab-friendly exercise, and career wellness — print-ready educational tools.',
+          tier: 'Tier 2',
+          subtitle: 'Advanced safety and wellness for experienced drivers (2+ years). 11 print-ready sections for drivers who already know the basics.',
           type: 'seasoned-driver',
           fleet: false,
-          note: 'Print opens a new tab &mdash; use your browser Print to save as PDF. Download saves an HTML file you can open offline.'
+          seoHtml: '<h2>What experienced drivers use this packet for</h2><p>After a few years on the road, the risk shifts from “I don’t know the rules” to familiarity and fatigue. This packet focuses on advanced fatigue awareness, common HOS pitfalls, long-term health habits, and mentorship-minded career sustainability — educational support you can print for the cab.</p><ul><li>Top HOS violation themes and avoidance habits</li><li>Advanced fatigue / sleep-debt awareness</li><li>Cab-friendly movement ideas</li><li>CSA / PSP self-audit thinking prompts</li></ul><p style="margin:10px 0 0;font-size:0.85rem">Related: <a href="/blog/5-quick-resets-stay-alert" style="color:var(--gold)">fatigue resets</a> · <a href="/packets/new-driver" style="color:var(--gold)">New Driver Packet</a> · <a href="/shop" style="color:var(--gold)">Shop</a></p>',
+          note: 'Access may require purchase when checkout is live. Print opens a new tab — use browser Print to save as PDF.'
         },
         'fleet-new-hire': {
-          title: 'Fleet New Hire Orientation Packet',
-          tier: 'Fleet &mdash; FREE',
-          subtitle: 'Complete onboarding package for safety departments with sign-off sheets per 49 CFR 391.51.',
+          title: 'Fleet New Hire Orientation Packet (DQ-File Ready)',
+          docTitle: 'Fleet New Hire Orientation Packet for Trucking Safety Depts | Mile 12 Warrior',
+          description: 'New hire orientation packet for trucking fleets: FMCSA-aware onboarding, inspection habits, fatigue awareness, and driver sign-off sheets for DQ files (49 CFR 391.51) — educational, print-ready.',
+          tier: 'Fleet — New Hire',
+          subtitle: 'Fleet driver safety training tools for safety departments — onboarding packet with acknowledgment/sign-off sheets for driver qualification files.',
           type: 'fleet-new-hire',
           fleet: true,
-          note: 'Optional panel above lets you pre-fill company name, Safety Chain of Command, and key contacts before print. Saved on this device only.'
+          seoHtml: '<h2>New hire orientation packet for trucking fleets</h2><p>Built for safety directors who need a clear, print-ready orientation packet — not a recruiting brochure. Use it to support consistent new-hire safety messaging and documented acknowledgments for your files. Educational content only; your company policies and current FMCSA rules still govern.</p><ul><li>Compliance-aware orientation sections</li><li>Inspection and fatigue awareness themes</li><li>Company policy template space (fillable)</li><li>Driver sign-off / section acknowledgments (49 CFR 391.51 context)</li></ul><p style="margin:10px 0 0;font-size:0.85rem">Related: <a href="/packets/fleet-refresher" style="color:var(--gold)">Fleet refresher</a> · <a href="/services" style="color:var(--gold)">Services</a> · <a href="/shop" style="color:var(--gold)">Fleet shop options</a></p>',
+          note: 'Fleet packets use per-yard licensing when checkout is live. Optional panel above can pre-fill company fields before print (saved on this device only).'
         },
         'fleet-refresher': {
-          title: 'Fleet Seasoned Driver Refresher Packet',
-          tier: 'Fleet &mdash; FREE',
-          subtitle: 'Annual or semi-annual refresher with fatigue self-assessment, seasonal hazard calendar, and sign-off sheets.',
+          title: 'Fleet Refresher Packet — Annual Driver Safety Training',
+          docTitle: 'Fleet Refresher Packet &amp; Annual Driver Training Tools | Mile 12 Warrior',
+          description: 'Annual driver refresher training packet for fleets: fatigue self-assessment, seasonal hazards, regulatory self-audit prompts, and sign-off sheets — educational print-ready tools for safety departments.',
+          tier: 'Fleet — Refresher',
+          subtitle: 'Annual or semi-annual refresher for experienced drivers — fatigue self-assessment, seasonal hazard calendar, and sign-off sheets for your safety program.',
           type: 'fleet-refresher',
           fleet: true,
-          note: 'Optional panel above lets you pre-fill company name, emergency contacts, and yard label before print. Saved on this device only.'
+          seoHtml: '<h2>Annual driver refresher training for fleets</h2><p>Use this refresher packet for recurring safety meetings and documented acknowledgments. It supports fatigue awareness, seasonal hazard thinking, and self-audit habits — educational material for your program, not a substitute for your carrier policies or current regulations.</p><ul><li>Fatigue self-assessment prompts</li><li>Seasonal hazard calendar themes</li><li>Regulatory self-audit checklist ideas</li><li>Driver sign-off / acknowledgments</li></ul><p style="margin:10px 0 0;font-size:0.85rem">Related: <a href="/packets/fleet-new-hire" style="color:var(--gold)">Fleet new hire</a> · <a href="/services" style="color:var(--gold)">Services</a></p>',
+          note: 'Fleet packets use per-yard licensing when checkout is live. Optional panel above can pre-fill company fields before print (saved on this device only).'
         }
       };
 
@@ -92,11 +113,22 @@
         return;
       }
 
-      document.title = meta.title + ' | Mile 12 Warrior';
-      document.getElementById('packetTier').textContent = meta.tier;
-      document.getElementById('packetTitle').textContent = meta.title;
+      document.title = meta.docTitle || (meta.title + ' | Mile 12 Warrior');
+      var descEl = document.getElementById('packetMetaDesc');
+      if (descEl && meta.description) descEl.setAttribute('content', meta.description);
+      var canEl = document.getElementById('packetCanonical');
+      if (canEl) canEl.setAttribute('href', 'https://mile12warrior.com/packets/' + pathKey);
+
+      document.getElementById('packetTier').innerHTML = meta.tier;
+      document.getElementById('packetTitle').textContent = meta.title.replace(/&amp;/g, '&');
       document.getElementById('packetSubtitle').textContent = meta.subtitle;
       document.getElementById('packetNote').textContent = meta.note;
+
+      var seo = document.getElementById('packetSeoBlock');
+      if (seo && meta.seoHtml) {
+        seo.style.display = 'block';
+        seo.innerHTML = meta.seoHtml;
+      }
 
       if (meta.fleet) {
         var yardHost = document.getElementById('fleetYardHostPacket');
