@@ -48,16 +48,17 @@ if (isProduction) {
   }
 }
 
-// Redirect HTTP→HTTPS and www→apex in production
+// Redirect HTTP→HTTPS in production.
+// Temporarily do NOT force www→apex: apex DNS is not live yet, so that
+// redirect made https://www.mile12warrior.com look like "server not found".
+// Restore apex canonical redirect once mile12warrior.com resolves (ALIAS/Cloudflare).
 if (isProduction) {
   app.use((req, res, next) => {
     const proto = req.get('x-forwarded-proto');
-    const host = (req.get('host') || 'mile12warrior.com').toLowerCase();
+    const host = (req.get('host') || 'www.mile12warrior.com').toLowerCase();
     const needsHttps = proto === 'http';
-    const needsApex = host === 'www.mile12warrior.com';
-    if (needsHttps || needsApex) {
-      const targetHost = 'mile12warrior.com';
-      return res.redirect(301, 'https://' + targetHost + req.originalUrl);
+    if (needsHttps) {
+      return res.redirect(301, 'https://' + host + req.originalUrl);
     }
     next();
   });
