@@ -132,13 +132,19 @@
         updateCartBadge();
       }
 
-      function showToast(msg, success) {
+      function showToast(msg, success, opts) {
         var el = document.getElementById('toast');
         if (!el) return;
-        el.textContent = msg;
-        el.className = 'toast toast-' + (success ? 'success' : 'error');
+        opts = opts || {};
+        if (opts.html) {
+          el.innerHTML = '<span class="toast-text">' + opts.html + '</span>';
+        } else {
+          el.textContent = msg;
+        }
+        el.className = 'toast toast-' + (success ? 'success' : 'error') + (opts.long ? ' toast-long' : '');
         el.classList.add('show');
-        setTimeout(function() { el.classList.remove('show'); }, 2500);
+        clearTimeout(el._hideTimer);
+        el._hideTimer = setTimeout(function() { el.classList.remove('show'); }, opts.long ? 6000 : 2500);
       }
 
       function addToCart(product) {
@@ -158,7 +164,10 @@
           });
         }
         saveCart(cart);
-        showToast('Added to cart!', true);
+        showToast('Added to cart!', true, {
+          long: true,
+          html: 'Added to cart. <a href="/shop/cart">View cart</a> &middot; or keep shopping'
+        });
       }
 
       function bindProductCardNavigation(container) {

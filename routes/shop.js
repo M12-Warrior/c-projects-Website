@@ -249,19 +249,40 @@ function receiptLinksForProduct(slug, category, isSubscription) {
   }
   if (c !== 'digital') return links;
   if (ss === 'course-90day' || ss === 'complete-bundle') {
-    links.push({ label: '90-Day Onboarding Course', href: '/course' });
+    links.push({ label: 'Open your 90-Day Onboarding Course', href: '/course' });
   }
-  const packetSlugs = [
-    'new-driver-packet',
-    'seasoned-packet',
-    'fleet-new-hire-packet',
-    'fleet-refresher-packet',
-    'fleet-bundle',
-    'complete-bundle',
-    'course-90day'
-  ];
-  if (packetSlugs.indexOf(ss) !== -1) {
-    links.push({ label: 'Packets & printable tools (Services)', href: '/services' });
+  const packetPages = {
+    'new-driver-packet': {
+      label: 'Open your New Driver Packet',
+      href: '/packets/new-driver'
+    },
+    'seasoned-packet': {
+      label: 'Open your Seasoned Driver Packet',
+      href: '/packets/seasoned-driver'
+    },
+    'fleet-new-hire-packet': {
+      label: 'Open your Fleet New Hire Packet',
+      href: '/packets/fleet-new-hire'
+    },
+    'fleet-refresher-packet': {
+      label: 'Open your Fleet Refresher Packet',
+      href: '/packets/fleet-refresher'
+    }
+  };
+  if (packetPages[ss]) {
+    links.push(packetPages[ss]);
+    return links;
+  }
+  if (ss === 'fleet-bundle') {
+    links.push(packetPages['fleet-new-hire-packet']);
+    links.push(packetPages['fleet-refresher-packet']);
+    return links;
+  }
+  if (ss === 'complete-bundle') {
+    links.push(packetPages['new-driver-packet']);
+    links.push(packetPages['seasoned-packet']);
+    links.push(packetPages['fleet-new-hire-packet']);
+    links.push(packetPages['fleet-refresher-packet']);
   }
   return links;
 }

@@ -1991,6 +1991,15 @@ body.forum-coffee-shop .forum-category-header .page-title {
 .toast.toast-error {
   border-color: rgba(248, 113, 113, 0.3);
 }
+.toast a {
+  color: var(--gold-light);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.toast a:hover {
+  color: var(--gold);
+}
 
 @media (max-width: 1024px) {
   .admin-grid {

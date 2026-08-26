@@ -11,9 +11,78 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     @media print {
+      /* Override checklist print rule (hides everything except body>.print-target) */
+      body > main#main-content {
+        display: block !important;
+        position: static !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: #fff !important;
+        color: #111 !important;
+      }
+      body > .grain-overlay,
+      body > .scroll-progress,
+      body > nav,
+      body > footer,
+      body > .skip-link,
+      body > script {
+        display: none !important;
+      }
       .no-print { display: none !important; }
-      body { background: #fff !important; }
-      .receipt-card { box-shadow: none !important; border: 1px solid #ccc; }
+      .page-shell,
+      .page-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: none !important;
+        background: #fff !important;
+        color: #111 !important;
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+      }
+      .page-title {
+        color: #111 !important;
+        font-size: 18pt !important;
+        margin: 0 0 12pt 0 !important;
+      }
+      .receipt-card,
+      .glass-card {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+        background: #fff !important;
+        color: #111 !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        padding: 18pt !important;
+      }
+      .receipt-meta,
+      .text-muted,
+      .receipt-ship dt,
+      .receipt-card p,
+      .receipt-card dd,
+      .receipt-card span,
+      .receipt-card h2 {
+        color: #222 !important;
+      }
+      #receiptFulfillment {
+        background: #f5f5f5 !important;
+        border-color: #ccc !important;
+        color: #222 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .receipt-row,
+      .receipt-item-block,
+      .receipt-ship,
+      .receipt-card > div {
+        border-color: #ccc !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      a { color: #111 !important; text-decoration: none !important; }
+      @page {
+        margin: 0.6in;
+      }
     }
     .receipt-meta { font-size: 0.9rem; color: var(--text-2); margin-bottom: 20px; }
     .receipt-row { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--border); }
@@ -147,11 +216,26 @@
     return;
   }
 
-  document.getElementById('receiptPrintBtn').addEventListener('click', function() { window.print(); });
+  document.getElementById('receiptPrintBtn').addEventListener('click', function() {
+    document.title = 'Purchase receipt — Mile 12 Warrior';
+    try {
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    } catch (_) {}
+    window.print();
+  });
 
   var _params = new URLSearchParams(window.location.search);
   var _sessionId = _params.get('session_id');
 
+  function cleanReceiptUrl() {
+    try {
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    } catch (_) {}
+  }
   function loadOrder() {
   fetch('/api/shop/orders/' + orderId, { credentials: 'include' })
     .then(function(res) {
@@ -172,10 +256,12 @@
       const o = result.data.order;
       const items = o.items || [];
       appEl.classList.remove('hidden');
-      document.title = 'Order #' + o.id + ' — Mile 12 Warrior';
+      document.title = 'Purchase receipt — Mile 12 Warrior';
+      cleanReceiptUrl();
 
       document.getElementById('receiptOrderLine').innerHTML =
-        'Order <strong>#' + escapeHtml(String(o.id)) + '</strong> · Placed ' + escapeHtml(formatDate(o.created_at)) +
+        '<span class="no-print">Order <strong>#' + escapeHtml(String(o.id)) + '</strong> · </span>' +
+        'Placed ' + escapeHtml(formatDate(o.created_at)) +
         (o.paid_at ? ' · Paid ' + escapeHtml(formatDate(o.paid_at)) : '');
 
       var fulfill = o.fulfillment || {};
@@ -208,8 +294,11 @@
         var line = formatPrice((i.price || 0) * qty);
         var links = i.receipt_links || [];
         var linkHtml = links.map(function(l) {
-          return '<a class="btn btn-glass no-print" style="margin-top:10px;margin-right:8px;display:inline-block;font-size:0.85rem;padding:8px 14px" href="' + escapeHtml(l.href) + '">' + escapeHtml(l.label) + '</a>';
+          return '<a class="btn btn-primary no-print" style="margin-top:10px;margin-right:8px;display:inline-block;font-size:0.85rem;padding:8px 14px" href="' + escapeHtml(l.href) + '">' + escapeHtml(l.label) + '</a>';
         }).join('');
+        if (links.length) {
+          linkHtml += '<p class="text-muted no-print" style="font-size:0.8rem;margin:8px 0 0 0;line-height:1.45;">Opens the packet you bought — use Download or Print / Save as PDF on that page.</p>';
+        }
         var cat = String(i.product_category || '').toLowerCase();
         var isSub = !!i.is_subscription;
         var physicalNote = '';

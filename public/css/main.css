@@ -1968,7 +1968,11 @@ summary:focus:not(:focus-visible) {
 }
 
 @media print {
-  body > *:not(.print-target) { display: none !important; }
+  /* Only when a dedicated print sheet is attached to body (legacy checklist flow).
+     Without :has(), this rule blanked every normal page print (receipts, journal, etc.). */
+  body:has(> .print-target) > *:not(.print-target) {
+    display: none !important;
+  }
   .print-target {
     display: block !important;
     position: static !important;
