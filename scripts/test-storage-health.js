@@ -42,17 +42,23 @@ const fakeDb = {
 };
 
 const health = getStorageHealth(fakeDb);
-if (health.severity !== 'info') {
-  fail('missing legacy uploads should surface info severity, got ' + health.severity);
+if (health.severity !== 'ok') {
+  fail('legacy missing uploads should not set banner severity, got ' + health.severity);
 } else {
-  ok('legacy missing uploads reported as info');
+  ok('legacy missing uploads do not set banner severity');
+}
+
+if (health.legacyMissingCount < 2) {
+  fail('legacyMissingCount should still count featured and inline blog images');
+} else {
+  ok('legacyMissingCount still counts broken upload refs for diagnostics');
 }
 
 const legacyIssue = (health.issues || []).find(function (issue) { return issue.code === 'legacy_missing_uploads'; });
-if (!legacyIssue || legacyIssue.count < 2) {
-  fail('legacy missing upload count should include featured and inline blog images');
+if (legacyIssue) {
+  fail('legacy_missing_uploads should no longer appear in admin banner issues');
 } else {
-  ok('legacy missing upload count includes blog references');
+  ok('legacy missing upload banner issue removed');
 }
 
 try { fs.unlinkSync(probe); fs.rmdirSync(tmpDir); } catch (_) {}

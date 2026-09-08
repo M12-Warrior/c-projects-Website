@@ -27,6 +27,7 @@
 | How to sleep in a semi / OTR sleep habits | `/blog/sleep-management-commercial-drivers` | Support |
 | Truck driver mental health / loneliness | `/blog/mental-health-on-the-road` | Support |
 | Mile 12 fatigue moment / pull-over mindset | `/blog/mile-12-where-our-journey-gets-real` | Support |
+| Hours of Service / 11–14–10 / break overview | `/blog/hours-of-service-rest-for-truck-drivers` | Support (DIY Sep 2026) |
 
 ## Themes that may still need a *new* hub (only if RSM insists)
 

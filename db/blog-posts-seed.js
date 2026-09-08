@@ -340,5 +340,57 @@ module.exports = [
 <p>For more support, explore our <a href="/services">Services</a> for personalized plans and our <a href="/#roadmap">focus areas</a> for safety and wellness. Our <a href="/services">free New Driver Packet</a> has practical nuggets for your trucking lifestyle and career. And remember: you're not alone. <a href="/forum">Join our forum</a> and find others who are learning to draw the line—and mean it.</p>
 
 <p><em>This information is for educational purposes only. For questions about your rights and regulations, consult FMCSA at fmcsa.dot.gov and qualified legal professionals.</em></p>`
+  },
+  {
+    title: 'Hours of Service Rest for Truck Drivers: Legal Floor vs Real Recovery',
+    slug: 'hours-of-service-rest-for-truck-drivers',
+    excerpt: 'Educational overview of FMCSA Hours of Service limits (11-hour drive, 14-hour window, 10-hour off duty, 30-minute break) — and how to use legal rest for real recovery, not just compliance.',
+    image: '/images/products/new-driver-packet.svg',
+    content: `<p><strong>Hours of Service (HOS)</strong> rules set the legal floor for when you may drive — they do not automatically mean you are rested. This guide explains the main FMCSA limits in plain language and how professional drivers can use off-duty time for real recovery. It is educational only, not legal advice. Always verify current rules at <a href="https://www.fmcsa.dot.gov/regulations/hours-of-service" target="_blank" rel="noopener noreferrer">FMCSA Hours of Service</a> (49 CFR Part 395).</p>
+
+<p>If you have ever finished a legal 10-hour break and still felt foggy, you already know the gap: <em>compliant</em> and <em>recovered</em> are not the same thing. Dispatch, ELD clocks, and load pressure can push you to treat the minimum as the plan. Safer careers treat the minimum as the floor — then build habits that protect alertness for the next run.</p>
+
+<h2>Core HOS limits drivers ask about (educational summary)</h2>
+
+<p>Federal rules for property-carrying drivers generally include limits such as:</p>
+<ul>
+<li><strong>11-hour driving limit</strong> — after 10 consecutive hours off duty, you may drive a maximum of 11 hours.</li>
+<li><strong>14-hour on-duty window</strong> — driving must be completed within 14 consecutive hours after coming on duty.</li>
+<li><strong>10-hour off-duty minimum</strong> — you need at least 10 consecutive hours off duty before driving again.</li>
+<li><strong>30-minute break</strong> — driving is not permitted if more than 8 hours of driving time have passed without an off-duty or sleeper-berth break of at least 30 minutes (confirm current break language on FMCSA’s site).</li>
+<li><strong>60/70-hour weekly limits</strong> — weekly on-duty caps apply depending on your carrier’s cycle.</li>
+</ul>
+
+<p>These numbers can change, and exceptions (including sleeper-berth provisions) have detailed conditions. Do not rely on this page alone for ELD decisions. When unsure, check the regulation text and your carrier’s compliance team.</p>
+
+<h2>Legal floor vs best practice</h2>
+
+<p>HOS is the <strong>legal floor</strong>, not a performance target. You can be fully legal and still be a fatigue risk if sleep quality was poor, weather burned extra mental load, or you stacked short nights. Pair this overview with practical recovery habits in our guides on <a href="/blog/sleep-management-commercial-drivers">sleeping in a semi within HOS</a> and <a href="/blog/5-quick-resets-stay-alert">quick resets to stay alert</a>.</p>
+
+<p>California drivers should also remember state-specific rules can add requirements (for example truck speed limits on many highways under CVC 22406). Multi-state work means knowing the rules where you operate — federal HOS is only one layer.</p>
+
+<h2>Using your 10-hour break for recovery</h2>
+
+<ol>
+<li><strong>Protect sleep first.</strong> Dark, quiet, cool sleeper; wind down before you try to sleep.</li>
+<li><strong>Watch caffeine timing.</strong> Late caffeine can steal the rest the break was meant to provide.</li>
+<li><strong>Use short naps as a bridge.</strong> A legal break or short nap can help until you can take full rest — it is not a replacement for your off-duty minimum.</li>
+<li><strong>Plan the next window.</strong> Know when your 14-hour clock and weekly limits will constrain the next day so you are not forced into last-minute hero runs.</li>
+</ol>
+
+<h2>Common pressure points (and safer responses)</h2>
+
+<p>Pressure to “just run it” after a short night, skip a break, or stretch interpretation of the clock shows up in real fleets. Document unsafe pressure when you can, use carrier safety channels, and remember FMCSA has resources for drivers who refuse unsafe operation — see <a href="https://www.fmcsa.dot.gov/safety/whistleblower-protection" target="_blank" rel="noopener noreferrer">whistleblower protection</a>. Saying no to an illegal or unsafe request is professional, not weak.</p>
+
+<h2>Where to go next on Mile 12 Warrior</h2>
+
+<ul>
+<li><a href="/packets/new-driver">New Driver Packet</a> (free) — checklists and first-90-days tools</li>
+<li><a href="/course">90-Day Onboarding Course</a> — deeper HOS, fatigue, and inspection modules</li>
+<li><a href="/services">Services</a> — packets, course, and wellness entry points</li>
+<li><a href="/blog/mental-health-on-the-road">Mental health on the road</a> — when stress and fatigue stack together</li>
+</ul>
+
+<p><em>Educational information only — not legal or medical advice. Hours of Service rules are set by FMCSA (49 CFR Part 395). Confirm current requirements at fmcsa.dot.gov and, for California operations, applicable state guidance at dot.ca.gov. Consult your carrier and qualified professionals for compliance questions.</em></p>`
   }
 ];

@@ -58,155 +58,230 @@
         </div>
 
         <section class="mkt-panel active" id="panel-overview">
-          <div class="mkt-grid">
-            <article class="mkt-card">
-              <h3>Engagement</h3>
-              <div id="engSummary" class="mkt-muted">Loading…</div>
-            </article>
-            <article class="mkt-card">
-              <h3>Working rules (agreed)</h3>
-              <ul class="mkt-list" id="engRules"></ul>
-            </article>
-            <article class="mkt-card">
-              <h3>Owner position — next 90 days</h3>
-              <p class="mkt-muted">Proposed UX + SEO hybrid for review before our strategy meeting. Please read and reply with feedback.</p>
-              <p style="margin:14px 0 0"><a href="/marketing/next-90-days" class="mkt-btn mkt-btn-primary">Open next-90-days brief</a></p>
-            </article>
-            <article class="mkt-card">
-              <h3>Shared files</h3>
-              <p class="mkt-muted">SEO workbook CSVs and other attachments for reference. Upload more anytime from the Files tab.</p>
-              <p style="margin:14px 0 0"><button type="button" class="mkt-btn mkt-btn-primary" id="gotoFilesTab">Open Files tab</button></p>
-            </article>
+          <div class="mkt-fold-stack">
+            <details class="mkt-card mkt-fold">
+              <summary class="mkt-fold-summary">
+                <span class="mkt-fold-title">Engagement</span>
+                <span class="mkt-fold-hint">Partner engagement summary</span>
+              </summary>
+              <div class="mkt-fold-body">
+                <div id="engSummary" class="mkt-muted">Loading…</div>
+              </div>
+            </details>
+            <details class="mkt-card mkt-fold">
+              <summary class="mkt-fold-summary">
+                <span class="mkt-fold-title">Working rules (agreed)</span>
+                <span class="mkt-fold-hint">How we collaborate in this portal</span>
+              </summary>
+              <div class="mkt-fold-body">
+                <ul class="mkt-list" id="engRules"></ul>
+              </div>
+            </details>
+            <details class="mkt-card mkt-fold">
+              <summary class="mkt-fold-summary">
+                <span class="mkt-fold-title">Owner position — next 90 days</span>
+                <span class="mkt-fold-hint">UX + SEO hybrid brief for review</span>
+              </summary>
+              <div class="mkt-fold-body">
+                <p class="mkt-muted">Proposed UX + SEO hybrid for review before our strategy meeting. Please read and reply with feedback.</p>
+                <p style="margin:14px 0 0"><a href="/marketing/next-90-days" class="mkt-btn mkt-btn-primary">Open next-90-days brief</a></p>
+              </div>
+            </details>
+            <details class="mkt-card mkt-fold">
+              <summary class="mkt-fold-summary">
+                <span class="mkt-fold-title">Shared files</span>
+                <span class="mkt-fold-hint">SEO workbooks and attachments — open the Files tab to upload</span>
+              </summary>
+              <div class="mkt-fold-body">
+                <p class="mkt-muted">SEO workbook CSVs and other attachments for reference. Upload more anytime from the Files tab.</p>
+                <p style="margin:14px 0 0"><button type="button" class="mkt-btn mkt-btn-primary" id="gotoFilesTab">Open Files tab</button></p>
+              </div>
+            </details>
           </div>
         </section>
 
         <section class="mkt-panel" id="panel-progress">
-          <div class="mkt-card">
-            <h3>Progress tracker</h3>
-            <p class="mkt-muted">Visible to you and Mile 12 Warrior. Use this for monthly work, audits, and deliverables.</p>
-            <form class="mkt-form" id="progressForm">
-              <input name="title" placeholder="Item title" required maxlength="200">
-              <textarea name="details" placeholder="Details / notes" maxlength="8000"></textarea>
-              <div class="mkt-actions">
-                <select name="status">
-                  <option value="planned">Planned</option>
-                  <option value="in_progress">In progress</option>
-                  <option value="done">Done</option>
-                  <option value="blocked">Blocked</option>
-                </select>
-                <input name="month_label" placeholder="Month label (e.g. Aug 2026)" maxlength="80">
-                <button type="submit" class="mkt-btn mkt-btn-primary">Add item</button>
+          <div class="mkt-fold-stack">
+            <details class="mkt-card mkt-fold" open>
+              <summary class="mkt-fold-summary">
+                <span class="mkt-fold-title">Progress tracker</span>
+                <span class="mkt-fold-hint">Monthly work, audits, and deliverables</span>
+              </summary>
+              <div class="mkt-fold-body">
+                <p class="mkt-muted">Visible to you and Mile 12 Warrior. Use this for monthly work, audits, and deliverables.</p>
+                <form class="mkt-form" id="progressForm">
+                  <input name="title" placeholder="Item title" required maxlength="200">
+                  <textarea name="details" placeholder="Details / notes" maxlength="8000"></textarea>
+                  <div class="mkt-actions">
+                    <select name="status">
+                      <option value="planned">Planned</option>
+                      <option value="in_progress">In progress</option>
+                      <option value="done">Done</option>
+                      <option value="blocked">Blocked</option>
+                    </select>
+                    <input name="month_label" placeholder="Month label (e.g. Aug 2026)" maxlength="80">
+                    <button type="submit" class="mkt-btn mkt-btn-primary">Add item</button>
+                  </div>
+                </form>
+                <ul class="mkt-list" id="progressList"></ul>
               </div>
-            </form>
-            <ul class="mkt-list" id="progressList"></ul>
+            </details>
           </div>
         </section>
 
         <section class="mkt-panel" id="panel-siteinfo">
-          <div class="mkt-card">
-            <h3>Important website information</h3>
-            <p class="mkt-muted">Shared facts both sides need (brand notes, keywords focus, access status, URLs). Temporary items can be deleted.</p>
-            <form class="mkt-form" id="siteInfoForm">
-              <input name="title" placeholder="Title" required maxlength="200">
-              <textarea name="body" placeholder="Details" maxlength="10000"></textarea>
-              <button type="submit" class="mkt-btn mkt-btn-primary">Save info</button>
-            </form>
-            <ul class="mkt-list" id="siteInfoList"></ul>
+          <div class="mkt-fold-stack">
+            <details class="mkt-card mkt-fold" open>
+              <summary class="mkt-fold-summary">
+                <span class="mkt-fold-title">Important website information</span>
+                <span class="mkt-fold-hint">Brand notes, keywords, access, URLs</span>
+              </summary>
+              <div class="mkt-fold-body">
+                <p class="mkt-muted">Shared facts both sides need (brand notes, keywords focus, access status, URLs). Temporary items can be deleted.</p>
+                <form class="mkt-form" id="siteInfoForm">
+                  <input name="title" placeholder="Title" required maxlength="200">
+                  <textarea name="body" placeholder="Details" maxlength="10000"></textarea>
+                  <button type="submit" class="mkt-btn mkt-btn-primary">Save info</button>
+                </form>
+                <ul class="mkt-list" id="siteInfoList"></ul>
+              </div>
+            </details>
           </div>
         </section>
 
         <section class="mkt-panel" id="panel-shared">
-          <div class="mkt-card">
-            <h3>Shared notes</h3>
-            <p class="mkt-muted">Visible to Thomas, Adam, and Mile 12 Warrior. Text only here — put attachments in <strong>Shared files</strong> (multi-upload supported), then mention them in the note. Delete when a note is no longer needed.</p>
-            <form class="mkt-form" id="sharedNoteForm">
-              <input name="title" placeholder="Optional title" maxlength="200">
-              <textarea name="body" placeholder="Note" required maxlength="10000"></textarea>
-              <button type="submit" class="mkt-btn mkt-btn-primary">Add shared note</button>
-            </form>
-            <ul class="mkt-list" id="sharedNoteList"></ul>
+          <div class="mkt-fold-stack">
+            <details class="mkt-card mkt-fold" open>
+              <summary class="mkt-fold-summary">
+                <span class="mkt-fold-title">Shared notes</span>
+                <span class="mkt-fold-hint">Text notes for Thomas, Adam, and Mile 12 Warrior</span>
+              </summary>
+              <div class="mkt-fold-body">
+                <p class="mkt-muted">Visible to Thomas, Adam, and Mile 12 Warrior. Text only here — put attachments in <strong>Shared files</strong> (multi-upload supported), then mention them in the note. Delete when a note is no longer needed.</p>
+                <form class="mkt-form" id="sharedNoteForm">
+                  <input name="title" placeholder="Optional title" maxlength="200">
+                  <textarea name="body" placeholder="Note" required maxlength="10000"></textarea>
+                  <button type="submit" class="mkt-btn mkt-btn-primary">Add shared note</button>
+                </form>
+                <ul class="mkt-list" id="sharedNoteList"></ul>
+              </div>
+            </details>
           </div>
         </section>
 
         <section class="mkt-panel" id="panel-files">
-          <div class="mkt-card">
-            <h3>Shared files</h3>
-            <p class="mkt-muted">Reference library for SEO workbooks, PDFs, and other attachments. Visible to portal users only (not public). You can select <strong>multiple files</strong> in one upload. Max 25MB per file. PDF, CSV, Office docs, images, TXT, MD, ZIP.</p>
-            <form class="mkt-form" id="fileUploadForm">
-              <input name="title" placeholder="Optional group title (applied to all selected files)" maxlength="200">
-              <textarea name="notes" placeholder="Optional note for all selected files (e.g. Aug 2026 RSM alignment packet)" maxlength="2000"></textarea>
-              <input type="file" name="files" id="fileUploadInput" multiple required>
-              <p class="mkt-muted" id="filePickHint" style="margin:6px 0 0;font-size:0.82rem">No files selected yet. Hold Ctrl (Windows) or Cmd (Mac) to select more than one.</p>
-              <div class="mkt-actions">
-                <button type="submit" class="mkt-btn mkt-btn-primary">Upload file(s)</button>
+          <div class="mkt-fold-stack">
+            <details class="mkt-card mkt-fold" open>
+              <summary class="mkt-fold-summary">
+                <span class="mkt-fold-title">Shared files</span>
+                <span class="mkt-fold-hint">Upload and download SEO workbooks, PDFs, and attachments</span>
+              </summary>
+              <div class="mkt-fold-body">
+                <p class="mkt-muted">Reference library for SEO workbooks, PDFs, and other attachments. Visible to portal users only (not public). You can select <strong>multiple files</strong> in one upload. Max 25MB per file. PDF, CSV, Office docs, images, TXT, MD, ZIP.</p>
+                <form class="mkt-form" id="fileUploadForm">
+                  <input name="title" placeholder="Optional group title (applied to all selected files)" maxlength="200">
+                  <textarea name="notes" placeholder="Optional note for all selected files (e.g. Aug 2026 RSM alignment packet)" maxlength="2000"></textarea>
+                  <input type="file" name="files" id="fileUploadInput" multiple required>
+                  <p class="mkt-muted" id="filePickHint" style="margin:6px 0 0;font-size:0.82rem">No files selected yet. Hold Ctrl (Windows) or Cmd (Mac) to select more than one.</p>
+                  <div class="mkt-actions">
+                    <button type="submit" class="mkt-btn mkt-btn-primary">Upload file(s)</button>
+                  </div>
+                  <div id="fileUploadStatus"></div>
+                </form>
+                <ul class="mkt-list" id="fileList"></ul>
               </div>
-              <div id="fileUploadStatus"></div>
-            </form>
-            <ul class="mkt-list" id="fileList"></ul>
+            </details>
           </div>
         </section>
 
         <section class="mkt-panel" id="panel-messages">
-          <div class="mkt-grid">
-            <article class="mkt-card">
-              <h3>Direct messages</h3>
-              <p class="mkt-muted">Private messages between portal users. Website change requests should still go by email for implementation.</p>
-              <form class="mkt-form" id="messageForm">
-                <select name="to_user_id" id="messageTo" required></select>
-                <textarea name="body" placeholder="Write a message" required maxlength="8000"></textarea>
-                <button type="submit" class="mkt-btn mkt-btn-primary">Send</button>
-              </form>
-              <div id="messageStatus"></div>
-            </article>
-            <article class="mkt-card">
-              <h3>Conversation</h3>
-              <label class="mkt-muted" for="threadWith">View thread with</label>
-              <select id="threadWith" style="width:100%;margin:8px 0 12px;padding:10px;border-radius:8px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.12);color:var(--text)"></select>
-              <div class="mkt-thread" id="messageThread"><p class="mkt-muted">Select a person to view messages.</p></div>
-            </article>
+          <div class="mkt-fold-stack">
+            <details class="mkt-card mkt-fold" open>
+              <summary class="mkt-fold-summary">
+                <span class="mkt-fold-title">Direct messages</span>
+                <span class="mkt-fold-hint">Send a private message to a portal user</span>
+              </summary>
+              <div class="mkt-fold-body">
+                <p class="mkt-muted">Private messages between portal users. Website change requests should still go by email for implementation.</p>
+                <form class="mkt-form" id="messageForm">
+                  <select name="to_user_id" id="messageTo" required></select>
+                  <textarea name="body" placeholder="Write a message" required maxlength="8000"></textarea>
+                  <button type="submit" class="mkt-btn mkt-btn-primary">Send</button>
+                </form>
+                <div id="messageStatus"></div>
+              </div>
+            </details>
+            <details class="mkt-card mkt-fold">
+              <summary class="mkt-fold-summary">
+                <span class="mkt-fold-title">Conversation</span>
+                <span class="mkt-fold-hint">View a message thread with someone</span>
+              </summary>
+              <div class="mkt-fold-body">
+                <label class="mkt-muted" for="threadWith">View thread with</label>
+                <select id="threadWith" style="width:100%;margin:8px 0 12px;padding:10px;border-radius:8px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.12);color:var(--text)"></select>
+                <div class="mkt-thread" id="messageThread"><p class="mkt-muted">Select a person to view messages.</p></div>
+              </div>
+            </details>
           </div>
         </section>
 
         <section class="mkt-panel" id="panel-private">
-          <div class="mkt-grid">
-            <article class="mkt-card">
-              <h3>My private notes</h3>
-              <p class="mkt-muted">Only you see these (admin can view for oversight). Delete anytime.</p>
-              <form class="mkt-form" id="privateNoteForm">
-                <input name="title" placeholder="Optional title" maxlength="200">
-                <textarea name="body" placeholder="Private note" required maxlength="10000"></textarea>
-                <button type="submit" class="mkt-btn mkt-btn-primary">Save private note</button>
-              </form>
-              <ul class="mkt-list" id="privateNoteList"></ul>
-            </article>
-            <article class="mkt-card">
-              <h3>My calendar</h3>
-              <p class="mkt-muted">Personal schedule for audits, content due dates, calls.</p>
-              <form class="mkt-form" id="calendarForm">
-                <input name="title" placeholder="Event title" required maxlength="200">
-                <input name="event_date" type="date" required>
-                <textarea name="details" placeholder="Details (optional)" maxlength="4000"></textarea>
-                <button type="submit" class="mkt-btn mkt-btn-primary">Add event</button>
-              </form>
-              <ul class="mkt-list mkt-cal-list" id="calendarList"></ul>
-            </article>
+          <div class="mkt-fold-stack">
+            <details class="mkt-card mkt-fold" open>
+              <summary class="mkt-fold-summary">
+                <span class="mkt-fold-title">My private notes</span>
+                <span class="mkt-fold-hint">Only you see these (admin oversight possible)</span>
+              </summary>
+              <div class="mkt-fold-body">
+                <p class="mkt-muted">Only you see these (admin can view for oversight). Delete anytime.</p>
+                <form class="mkt-form" id="privateNoteForm">
+                  <input name="title" placeholder="Optional title" maxlength="200">
+                  <textarea name="body" placeholder="Private note" required maxlength="10000"></textarea>
+                  <button type="submit" class="mkt-btn mkt-btn-primary">Save private note</button>
+                </form>
+                <ul class="mkt-list" id="privateNoteList"></ul>
+              </div>
+            </details>
+            <details class="mkt-card mkt-fold">
+              <summary class="mkt-fold-summary">
+                <span class="mkt-fold-title">My calendar</span>
+                <span class="mkt-fold-hint">Audits, content due dates, calls</span>
+              </summary>
+              <div class="mkt-fold-body">
+                <p class="mkt-muted">Personal schedule for audits, content due dates, calls.</p>
+                <form class="mkt-form" id="calendarForm">
+                  <input name="title" placeholder="Event title" required maxlength="200">
+                  <input name="event_date" type="date" required>
+                  <textarea name="details" placeholder="Details (optional)" maxlength="4000"></textarea>
+                  <button type="submit" class="mkt-btn mkt-btn-primary">Add event</button>
+                </form>
+                <ul class="mkt-list mkt-cal-list" id="calendarList"></ul>
+              </div>
+            </details>
           </div>
         </section>
 
         <section class="mkt-panel" id="panel-contacts">
-          <div class="mkt-card">
-            <h3>Partner contacts</h3>
-            <ul class="mkt-list" id="contactsList"></ul>
-            <div id="adminPasswordReset" class="hidden" style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08)">
-              <h3>Reset marketer password</h3>
-              <p class="mkt-muted">Admin only. Share the new password securely.</p>
-              <form class="mkt-form" id="resetPwForm">
-                <select name="user_id" id="resetUserSelect" required></select>
-                <input name="password" type="text" placeholder="New password (min 8 chars)" minlength="8" required>
-                <button type="submit" class="mkt-btn mkt-btn-primary">Reset password</button>
-              </form>
-              <div id="resetPwStatus"></div>
-            </div>
+          <div class="mkt-fold-stack">
+            <details class="mkt-card mkt-fold" open>
+              <summary class="mkt-fold-summary">
+                <span class="mkt-fold-title">Partner contacts</span>
+                <span class="mkt-fold-hint">Who has portal access</span>
+              </summary>
+              <div class="mkt-fold-body">
+                <ul class="mkt-list" id="contactsList"></ul>
+                <div id="adminPasswordReset" class="hidden" style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08)">
+                  <h3>Reset marketer password</h3>
+                  <p class="mkt-muted">Admin only. Share the new password securely.</p>
+                  <form class="mkt-form" id="resetPwForm">
+                    <select name="user_id" id="resetUserSelect" required></select>
+                    <input name="password" type="text" placeholder="New password (min 8 chars)" minlength="8" required>
+                    <button type="submit" class="mkt-btn mkt-btn-primary">Reset password</button>
+                  </form>
+                  <div id="resetPwStatus"></div>
+                </div>
+              </div>
+            </details>
           </div>
         </section>
       </div>
