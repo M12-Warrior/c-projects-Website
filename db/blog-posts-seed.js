@@ -361,7 +361,7 @@ module.exports = [
 <li><strong>60/70-hour weekly limits</strong> — weekly on-duty caps apply depending on your carrier’s cycle.</li>
 </ul>
 
-<p>These numbers can change, and exceptions (including sleeper-berth provisions) have detailed conditions. Do not rely on this page alone for ELD decisions. When unsure, check the regulation text and your carrier’s compliance team.</p>
+<p>These numbers can change, and exceptions (including sleeper-berth provisions) have detailed conditions. For a plain-language overview of splitting rest, see <a href="/blog/split-sleeper-berth-explained-for-truck-drivers">split sleeper berth explained</a>. Do not rely on this page alone for ELD decisions. When unsure, check the regulation text and your carrier’s compliance team.</p>
 
 <h2>Legal floor vs best practice</h2>
 
@@ -392,5 +392,114 @@ module.exports = [
 </ul>
 
 <p><em>Educational information only — not legal or medical advice. Hours of Service rules are set by FMCSA (49 CFR Part 395). Confirm current requirements at fmcsa.dot.gov and, for California operations, applicable state guidance at dot.ca.gov. Consult your carrier and qualified professionals for compliance questions.</em></p>`
+  },
+  {
+    title: 'Split Sleeper Berth Explained for Truck Drivers (FMCSA Educational Overview)',
+    slug: 'split-sleeper-berth-explained-for-truck-drivers',
+    excerpt: 'Plain-language overview of FMCSA split sleeper berth rest (7+2 style pairing): what qualifies, how it relates to the 14-hour window, and why rest quality still matters — educational, not legal advice.',
+    image: '/images/products/new-driver-packet.svg',
+    content: `<p><strong>Split sleeper berth</strong> is one of the most searched Hours of Service topics for OTR drivers — and one of the easiest to misunderstand. This page is an educational overview of the federal idea behind splitting rest. It is <strong>not</strong> legal advice, not ELD training, and not a substitute for 49 CFR Part 395 or your carrier’s compliance team. Always verify current rules at <a href="https://www.fmcsa.dot.gov/regulations/hours-of-service" target="_blank" rel="noopener noreferrer">FMCSA Hours of Service</a> and the regulation text in <a href="https://www.ecfr.gov/current/title-49/subtitle-B/chapter-III/subchapter-B/part-395" target="_blank" rel="noopener noreferrer">49 CFR Part 395</a>.</p>
+
+<p>If you already read our <a href="/blog/hours-of-service-rest-for-truck-drivers">HOS rest overview</a>, think of this as the next layer: how some property-carrying drivers may accumulate the equivalent of at least 10 consecutive hours off duty using <em>two</em> qualifying rest periods instead of one straight 10-hour block.</p>
+
+<h2>What “split sleeper” usually means (educational summary)</h2>
+
+<p>Under the sleeper-berth provisions for property-carrying CMVs, a driver may accumulate the equivalent of at least 10 consecutive hours off duty by taking <strong>not more than two</strong> periods of sleeper-berth time or a combination of off-duty and sleeper-berth time when all of the following are true (confirm in current § 395.1):</p>
+<ul>
+<li>Neither rest period is shorter than <strong>2 consecutive hours</strong></li>
+<li>One rest period is at least <strong>7 consecutive hours in the sleeper berth</strong></li>
+<li>The two periods together total at least <strong>10 hours</strong></li>
+<li>Driving time immediately before and after each rest period, when added together, must still respect the <strong>11-hour</strong> driving limit and the <strong>14-hour</strong> duty-period rules as calculated under the regulation</li>
+</ul>
+
+<p>Drivers often shorthand this as a “7 and 3” or “8 and 2” style pairing. The exact pairing that works for your log depends on timing, duty status codes, and how your ELD applies the rule. Do not invent a split from memory on the shoulder — check the current CFR and your carrier’s guidance.</p>
+
+<h2>How qualifying splits relate to the 14-hour window</h2>
+
+<p>FMCSA guidance explains that off-duty and sleeper-berth rest periods that <strong>qualify</strong> for the split sleeper provision are <strong>excluded</strong> from the 14-hour “driving window” when the periods are properly paired. That is why many drivers use the provision: to protect rest without burning the entire 14-hour clock the same way a short nap or yard time might.</p>
+
+<p>Details matter. Pairing choices, order of periods, and what happens when more than one pairing is possible are covered in FMCSA’s HOS FAQ materials. If two pairings are possible, compliance analysis follows FMCSA’s published guidance — this site will not try to replace that decision tree.</p>
+
+<h2>Legal floor vs real recovery</h2>
+
+<p>A compliant split is still the <strong>legal floor</strong>, not a recovery guarantee. Two short, interrupted sleeps can leave you legal and still foggy. Treat the longer sleeper period as protected sleep: dark, cool, quiet, phone down. Pair this guide with <a href="/blog/sleep-management-commercial-drivers">how to sleep in a semi within HOS</a> and <a href="/blog/5-quick-resets-stay-alert">quick fatigue resets</a> when you need practical habits, not just clock math.</p>
+
+<p>Team drivers and solo drivers face different friction (noise, schedule coordination, lot lighting). The regulation does not grade your sleep quality — your career and safety do.</p>
+
+<h2>Common pressure points</h2>
+
+<ul>
+<li><strong>“Just run it — the split will fix it later.”</strong> Plan rest before you are already over the edge. Splits are a planning tool, not a last-minute patch for poor sleep debt.</li>
+<li><strong>Mis-coding duty status.</strong> If the berth time is not recorded correctly, the pair may not qualify. When unsure, ask your safety department before you invent a status.</li>
+<li><strong>Confusing the 30-minute break with a split period.</strong> The mandatory break rules and sleeper-berth pairing rules are related topics but not the same switch. Confirm both in current FMCSA materials.</li>
+</ul>
+
+<h2>California and multi-state work</h2>
+
+<p>Federal HOS is only one layer. California operations also carry state-specific rules (for example truck speed limits under CVC 22406 on many highways). Know the rules where you operate. For mountain weather and traction control in California, see our companion guide on <a href="/blog/california-chain-laws-for-truckers">California chain control for truckers</a>.</p>
+
+<h2>Where to go next on Mile 12 Warrior</h2>
+
+<ul>
+<li><a href="/packets/new-driver">New Driver Packet</a> (free) — first-90-days checklists and HOS awareness tools</li>
+<li><a href="/course">90-Day Onboarding Course</a> — deeper HOS and fatigue modules</li>
+<li><a href="/blog/hours-of-service-rest-for-truck-drivers">HOS rest overview</a> — 11 / 14 / 10 / break / weekly limits in plain language</li>
+<li><a href="/services">Services</a> — packets, course, and wellness entry points</li>
+</ul>
+
+<p><em>Educational information only — not legal or medical advice. Split sleeper and Hours of Service rules are set by FMCSA (49 CFR Part 395, including § 395.1 sleeper-berth provisions). Confirm current requirements at fmcsa.dot.gov and consult your carrier and qualified professionals for ELD and compliance questions.</em></p>`
+  },
+  {
+    title: 'California Chain Laws for Truckers: R-1, R-2, R-3 Explained',
+    slug: 'california-chain-laws-for-truckers',
+    excerpt: 'Educational overview of California commercial chain control levels (R-1, R-2, R-3), where to check live conditions, and safe mountain habits for truck drivers — not a substitute for Caltrans or CHP guidance.',
+    image: '/images/products/seasoned-packet.svg',
+    content: `<p><strong>California chain laws for truckers</strong> are a seasonal reality for anyone running mountain corridors — I-5 over the Grapevine and Siskiyou, I-80 over Donner, US-50, and other graded routes when storms hit. This guide explains the common <strong>R-1 / R-2 / R-3</strong> chain-control language in plain English and how professional drivers prepare. It is educational only — not legal advice, not a live road report, and not a substitute for Caltrans, CHP, or your carrier’s winter policy.</p>
+
+<p>Always verify <strong>current</strong> chain controls and closures before you commit to a grade. Conditions change by hour. Start with Caltrans tools such as <a href="https://quickmap.dot.ca.gov/" target="_blank" rel="noopener noreferrer">Caltrans QuickMap</a> and official Caltrans / CHP winter driving resources, then follow posted signs and officer directions at the control point.</p>
+
+<h2>Why California chain control matters for CMVs</h2>
+
+<p>Passenger cars and commercial combinations do not always face the same requirements. Chain controls are designed to keep traffic moving and reduce jackknifes, runaways, and multi-vehicle pileups on ice and packed snow. For professional drivers, the stakes are higher: longer stopping distances, heavier combinations, and cargo that does not care that you “almost” made the summit.</p>
+
+<p>Mile 12 Warrior’s home base is Sacramento. We talk California rules because we live them — and because multi-state drivers still need to know the jurisdiction they are in. Federal HOS (see our <a href="/blog/hours-of-service-rest-for-truck-drivers">HOS overview</a>) does not replace Caltrans chain orders.</p>
+
+<h2>R-1, R-2, and R-3 in plain language (verify live)</h2>
+
+<p>California chain controls are commonly described in levels. Exact equipment requirements depend on vehicle type, axle configuration, and the specific control in effect. Use this as a memory aid, then confirm the posted order:</p>
+<ul>
+<li><strong>R-1</strong> — Chains are typically required on the drive axle of commercial vehicles (and often on other vehicles without adequate snow tires). Many CMV drivers treat R-1 as “drive-axle chains on.”</li>
+<li><strong>R-2</strong> — Chains are typically required on all drive wheels. For many combinations this means more chains than R-1 — plan time and a safe chaining area.</li>
+<li><strong>R-3</strong> — Chains are typically required on all wheels except steers (or as specifically posted for that control). R-3 is the most restrictive level drivers encounter in storms.</li>
+</ul>
+
+<p>Do not rely on a blog memory when the sign or officer says something different. Posted controls and CHP / Caltrans directions govern. Tire type (including approved snow tires where allowed) can change what you must install — check current Caltrans guidance for your vehicle class.</p>
+
+<h2>Preparation habits that keep you legal and safer</h2>
+
+<ol>
+<li><strong>Carry the right chains before you need them.</strong> Correct size for your tires, in usable condition, with tensioners if required by your setup. Damaged or wrong-size chains waste the only weather window you have.</li>
+<li><strong>Know your chaining spots.</strong> Safe pullouts and designated chain areas beat improvising on a narrow shoulder with traffic at your bumper.</li>
+<li><strong>Check QuickMap and weather before the grade.</strong> If controls are likely, build time for chaining, inspection, and slower speeds. HOS clocks do not pause for denial — plan rest and appointments with winter delay in mind.</li>
+<li><strong>Follow speed and spacing discipline.</strong> California enforces a <strong>55 mph</strong> truck speed limit on many highways (CVC 22406). Snow and ice demand even more margin. Never treat “posted” or “statutory” limits as a challenge.</li>
+<li><strong>Coordinate with dispatch early.</strong> Say clearly when controls, closures, or chaining will delay arrival. Pressure to “just go” through an active control is a safety and compliance risk.</li>
+</ol>
+
+<h2>Fatigue, weather, and the Mile 12 mindset</h2>
+
+<p>Mountain storms stack mental load: reduced visibility, chaining labor, stop-and-go grades, and the temptation to push because the clock is burning. That is classic Mile 12 territory — the moment when pride and schedule argue with your body’s warning lights. Pull into a safe legal spot when fatigue spikes. Pair weather discipline with <a href="/blog/5-quick-resets-stay-alert">fatigue resets</a> and <a href="/blog/sleep-management-commercial-drivers">sleeper rest habits</a>.</p>
+
+<p>If you use sleeper-berth strategies on long winter runs, keep the educational overview of <a href="/blog/split-sleeper-berth-explained-for-truck-drivers">split sleeper berth</a> handy — and still verify every log decision with current FMCSA rules and your carrier.</p>
+
+<h2>Where to go next on Mile 12 Warrior</h2>
+
+<ul>
+<li><a href="/packets/new-driver">New Driver Packet</a> (free) — first-90-days safety habits</li>
+<li><a href="/packets/seasoned-driver">Seasoned Driver Packet</a> — advanced fatigue and career tools</li>
+<li><a href="/course">90-Day Onboarding Course</a> — structured onboarding for new CDL drivers</li>
+<li><a href="/services">Services</a> — all packets and wellness entry points</li>
+</ul>
+
+<p><em>Educational information only — not legal advice. California chain controls and commercial vehicle rules are set by Caltrans, CHP, and applicable CVC provisions. Confirm live conditions and current requirements via official Caltrans / CHP sources (including QuickMap) and your carrier. Federal HOS remains governed by FMCSA (49 CFR Part 395). Verify at dot.ca.gov and fmcsa.dot.gov.</em></p>`
   }
 ];

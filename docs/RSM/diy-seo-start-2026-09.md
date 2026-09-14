@@ -33,3 +33,16 @@ Boundaries unchanged: brand/UX, FMCSA/CalDOT compliance, free-forever assets sta
 5. **Performance** → after 1–2 weeks, filter by those URLs for impressions/clicks
 
 Ignore cold-email “you have no traffic” pitches; use Search Console as the source of truth.
+
+---
+
+## Phase B (Sep 2026) — content + FAQ schema
+
+Shipped:
+
+1. `/blog/split-sleeper-berth-explained-for-truck-drivers` — educational split sleeper overview → packet + course CTAs  
+2. `/blog/california-chain-laws-for-truckers` — R-1/R-2/R-3 + QuickMap habits → packet/course CTAs  
+3. FAQ + FAQPage schema on `/packets/new-driver` and `/course`  
+4. Fleet packet URLs added to static sitemap  
+
+Next content ideas (2–4/month cadence): 10-hour off-duty recovery deep-dive, pre-trip inspection habits support post, cab-friendly movement / back-care (educational).

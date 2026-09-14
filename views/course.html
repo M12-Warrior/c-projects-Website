@@ -15,6 +15,9 @@
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"Course","name":"New Driver 90-Day Onboarding Course","description":"CDL new-hire onboarding for professional truck drivers: fatigue awareness, HOS basics, defensive driving, and road-ready habits.","provider":{"@type":"Organization","name":"Mile 12 Warrior","url":"https://mile12warrior.com"},"url":"https://mile12warrior.com/course"}
   </script>
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Who is the 90-Day Onboarding Course for?","acceptedAnswer":{"@type":"Answer","text":"New and early-career CDL drivers who want structured onboarding beyond school: fatigue awareness, HOS-aligned rest habits, inspections, defensive driving, and wellness — at their own pace."}},{"@type":"Question","name":"Does the course include the free New Driver Packet?","acceptedAnswer":{"@type":"Answer","text":"Yes. Pair the course with the free Tier 1 New Driver Packet checklist. The packet stays free forever whether or not you use the full course."}},{"@type":"Question","name":"Is course content legal or medical advice?","acceptedAnswer":{"@type":"Answer","text":"No. Mile 12 Warrior provides educational information only. Verify current FMCSA Hours of Service and inspection rules, and consult your carrier and qualified professionals for compliance and medical questions."}},{"@type":"Question","name":"Can I complete the course at my own pace?","acceptedAnswer":{"@type":"Answer","text":"Yes. Modules are self-paced with knowledge checks and a certificate path when you finish."}}]}
+  </script>
   <link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="/css/pages.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -221,6 +224,25 @@
         <div class="course-progress-bar"><div class="course-progress-fill" id="progressFill"></div></div>
       </div>
       <p style="font-size:0.85rem;color:var(--text-3);margin:12px 0 0;max-width:520px">Pair with the <a href="/packets/new-driver" style="color:var(--blue);font-weight:600">printable New Driver checklist</a> — same roadmap; track course modules and checklist items together.</p>
+      <div class="glass-card" style="padding:18px 20px;margin:20px 0 8px;max-width:640px;text-align:left">
+        <h2 style="font-family:var(--font);font-size:1.05rem;margin:0 0 12px;color:var(--text)">Course FAQ</h2>
+        <details style="margin:0 0 10px">
+          <summary style="cursor:pointer;font-weight:600;color:var(--text)">Who is this course for?</summary>
+          <p style="font-size:0.9rem;color:var(--text-2);line-height:1.65;margin:8px 0 0">New and early-career CDL drivers who want structured onboarding: fatigue, HOS-aligned rest, inspections, defensive driving, and wellness — at their own pace.</p>
+        </details>
+        <details style="margin:0 0 10px">
+          <summary style="cursor:pointer;font-weight:600;color:var(--text)">Does it include the free New Driver Packet?</summary>
+          <p style="font-size:0.9rem;color:var(--text-2);line-height:1.65;margin:8px 0 0">Yes — pair the course with the free <a href="/packets/new-driver" style="color:var(--gold-light)">Tier 1 packet</a>. The packet stays free forever.</p>
+        </details>
+        <details style="margin:0 0 10px">
+          <summary style="cursor:pointer;font-weight:600;color:var(--text)">Is this legal or medical advice?</summary>
+          <p style="font-size:0.9rem;color:var(--text-2);line-height:1.65;margin:8px 0 0">No. Educational only. Verify current FMCSA rules and consult your carrier and qualified professionals.</p>
+        </details>
+        <details style="margin:0">
+          <summary style="cursor:pointer;font-weight:600;color:var(--text)">Can I go at my own pace?</summary>
+          <p style="font-size:0.9rem;color:var(--text-2);line-height:1.65;margin:8px 0 0">Yes. Self-paced modules, knowledge checks, and a certificate path when you finish.</p>
+        </details>
+      </div>
       <div class="course-ctas">
         <button type="button" class="btn btn-primary" id="enrollBtn" onclick="selectModule(1)"><span>Start the Course</span></button>
         <button type="button" class="btn btn-glass" id="previewModule1Btn" style="display:none" onclick="selectModule(1)">Preview Module 1</button>

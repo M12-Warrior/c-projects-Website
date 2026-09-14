@@ -28,12 +28,14 @@
 | Truck driver mental health / loneliness | `/blog/mental-health-on-the-road` | Support |
 | Mile 12 fatigue moment / pull-over mindset | `/blog/mile-12-where-our-journey-gets-real` | Support |
 | Hours of Service / 11–14–10 / break overview | `/blog/hours-of-service-rest-for-truck-drivers` | Support (DIY Sep 2026) |
+| Split sleeper berth explained | `/blog/split-sleeper-berth-explained-for-truck-drivers` | Support (Phase B Sep 2026) |
+| California chain laws / R-1 R-2 R-3 | `/blog/california-chain-laws-for-truckers` | Support (Phase B Sep 2026) |
 
 ## Themes that may still need a *new* hub (only if RSM insists)
 
 | Workbook target path | Our stance |
 |----------------------|------------|
-| `/hours-of-service`, `/hos-violations`, `/split-sleeper` | Prefer a **dedicated short hub later** OR deepen course/services + tightly compliant FAQ blocks — owner must approve copy |
+| `/hours-of-service`, `/hos-violations`, `/split-sleeper` | Prefer support blogs first: HOS overview + **split sleeper blog** live; dedicated hub only if Search Console shows need |
 | `/fatigue-management` | Prefer existing fatigue **blog cluster** first; new hub only if Search Console shows need |
 | `/pre-trip-inspection` | Covered heavily inside `/packets/new-driver` + course — expand crawlable body there before new URL |
 | `/back-pain`, `/cab-workouts`, `/nutrition` | No strong existing pages yet — candidates for **later** short hubs or blog posts |
