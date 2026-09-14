@@ -7,7 +7,7 @@
  * Unlock after SEO phases A–D (Joyce approval): set PUBLISH_CADENCE_MONTH1 = true.
  */
 
-const PUBLISH_CADENCE_MONTH1 = false;
+const PUBLISH_CADENCE_MONTH1 = true;
 
 const posts = [
   {
@@ -366,7 +366,7 @@ const posts = [
 <li><strong>60/70-hour weekly limits</strong> — weekly on-duty caps apply depending on your carrier’s cycle.</li>
 </ul>
 
-<p>These numbers can change, and exceptions (including sleeper-berth provisions) have detailed conditions. For a plain-language overview of splitting rest, see <a href="/blog/split-sleeper-berth-explained-for-truck-drivers">split sleeper berth explained</a>. Do not rely on this page alone for ELD decisions. When unsure, check the regulation text and your carrier’s compliance team.</p>
+<p>These numbers can change, and exceptions (including sleeper-berth provisions) have detailed conditions. For a plain-language overview of splitting rest, see <a href="/blog/split-sleeper-berth-explained-for-truck-drivers">split sleeper berth explained</a>. For making the legal 10-hour break actually restorative, see <a href="/blog/10-hour-off-duty-recovery-tips-for-truck-drivers">10-hour off-duty recovery tips</a>. Do not rely on this page alone for ELD decisions. When unsure, check the regulation text and your carrier’s compliance team.</p>
 
 <h2>Legal floor vs best practice</h2>
 

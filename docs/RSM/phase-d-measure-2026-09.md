@@ -17,9 +17,9 @@ Do **not** change strategy from one cold week of data. Use this sheet as the sou
 |-------|--------|-----------|
 | A — technical foundation | **Done** (live) | None |
 | B — long-tail content + hub FAQs | **Done** (live) | None |
-| C — Bing / citations / LinkedIn | **Bing connected** (Sep 13, 2026 dashboard live) | Submit sitemap if not done; LinkedIn article posts + citations still owner steps |
-| D — measure baseline | **Playbook ready** | Fill GSC/Bing baseline once; set 30/60/90 dates |
-| Cadence 2–4/month | **Staged, not live** | Unlock: set `PUBLISH_CADENCE_MONTH1 = true` in `db/blog-posts-seed.js` after Joyce approval |
+| C — Bing / citations / LinkedIn | **Bing connected** + IndexNow live | Ongoing: LinkedIn article posts + citations |
+| D — measure baseline | **Started** (dates + lab baseline) | Fill GSC clicks/impressions when convenient |
+| Cadence 2–4/month | **Month-1 PUBLISHED** | `PUBLISH_CADENCE_MONTH1 = true` — circle-back complete for first month |
 
 **Do not publish Month-1 cadence until C owner essentials + D baseline sheet are started.**
 

@@ -660,7 +660,7 @@ app.get('/search', (req, res) => {
 
 const server = app.listen(PORT, () => {
   console.log('Mile 12 Warrior running on port', PORT, '→ https://mile12warrior.com');
-  if (isProduction) {
+      if (isProduction) {
     setTimeout(function () {
       try {
         const indexNow = require('./lib/indexNow');
@@ -674,6 +674,20 @@ const server = app.listen(PORT, () => {
           'https://mile12warrior.com/shop',
           'https://mile12warrior.com/services',
         ];
+        // When Month-1 cadence is unlocked, notify Bing of the new posts too.
+        try {
+          const seed = require('./db/blog-posts-seed');
+          seed.forEach(function (p) {
+            if (!p || !p.slug) return;
+            if (
+              p.slug === '10-hour-off-duty-recovery-tips-for-truck-drivers' ||
+              p.slug === 'pre-trip-inspection-habits-for-new-cdl-drivers' ||
+              p.slug === 'cab-friendly-stretches-for-truck-drivers'
+            ) {
+              urls.push('https://mile12warrior.com/blog/' + p.slug);
+            }
+          });
+        } catch (_) {}
         indexNow.submitUrls(urls).then(function (r) {
           if (r && r.ok) console.log('[indexnow] submitted priority URLs', r.status);
           else if (r && !r.skipped) console.warn('[indexnow] submit result', r);

@@ -43,9 +43,11 @@ Do **not** mix `www` and apex in citation websites — always `https://mile12war
 
 ### Bing Webmaster Tools — status
 - **Connected:** `mile12warrior.com` visible in Bing Webmaster (Joyce screenshot Sep 13, 2026)
-- [ ] Sitemap submitted: `https://mile12warrior.com/sitemap.xml` (do via left menu **Sitemaps** — banner may still say pending for up to 48h)
+- [x] Sitemap submitted via UI (Joyce: submitted 2026-09-14, status Processing, green success banner)
+- Note: `robots.txt` also declares `Sitemap: https://mile12warrior.com/sitemap.xml`
+- Paste full URL only: `https://mile12warrior.com/sitemap.xml`
 - [ ] Optional: URL submit new-driver, course, Phase B blogs
-- [ ] **IndexNow** (repo): key file `/{key}.txt` + boot submit of priority URLs — after deploy, open Bing left menu **IndexNow** to confirm activity
+- [x] **IndexNow** key live at `/2a8bbb3789f09316f312901df94d010e.txt` + boot submit of priority URLs
 - [ ] LinkedIn posts to article URLs (drafts below)
 - [ ] Citations / GBP with exact NAP (section 2)
 

@@ -30,9 +30,9 @@
 | Hours of Service / 11–14–10 / break overview | `/blog/hours-of-service-rest-for-truck-drivers` | Support (DIY Sep 2026) |
 | Split sleeper berth explained | `/blog/split-sleeper-berth-explained-for-truck-drivers` | Support (Phase B Sep 2026) |
 | California chain laws / R-1 R-2 R-3 | `/blog/california-chain-laws-for-truckers` | Support (Phase B Sep 2026) |
-| 10-hour off-duty recovery tips | `/blog/10-hour-off-duty-recovery-tips-for-truck-drivers` | Support (**staged** — publish after A–D) |
-| Pre-trip inspection habits (new CDL) | `/blog/pre-trip-inspection-habits-for-new-cdl-drivers` | Support (**staged** — publish after A–D) |
-| Cab-friendly stretches / movement | `/blog/cab-friendly-stretches-for-truck-drivers` | Support (**staged** — publish after A–D) |
+| 10-hour off-duty recovery tips | `/blog/10-hour-off-duty-recovery-tips-for-truck-drivers` | Support (Month-1 cadence — live Sep 2026) |
+| Pre-trip inspection habits (new CDL) | `/blog/pre-trip-inspection-habits-for-new-cdl-drivers` | Support (Month-1 cadence — live Sep 2026) |
+| Cab-friendly stretches / movement | `/blog/cab-friendly-stretches-for-truck-drivers` | Support (Month-1 cadence — live Sep 2026) |
 
 ## Themes that may still need a *new* hub (only if RSM insists)
 
