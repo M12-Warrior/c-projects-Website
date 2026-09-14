@@ -46,3 +46,18 @@ Shipped:
 4. Fleet packet URLs added to static sitemap  
 
 Next content ideas (2–4/month cadence): 10-hour off-duty recovery deep-dive, pre-trip inspection habits support post, cab-friendly movement / back-care (educational).
+
+---
+
+## CIRCLE BACK — after all SEO phases (A–D)
+
+Resume **2–4 blog posts per month** (long-tail support → free packet / course CTAs). Do not start that cadence mid-phase; finish Phase C + D first. Goal parked in Cursor; checklist also in `phase-c-get-found-off-google-2026-09.md`.
+
+---
+
+## Phase C (Sep 2026) — get found off Google
+
+Playbook: [`phase-c-get-found-off-google-2026-09.md`](./phase-c-get-found-off-google-2026-09.md)
+
+On-site helpers shipped: richer Organization NAP on homepage + LocalBusiness schema on `/contact`.  
+Joyce still needs: Bing Webmaster verify + sitemap, GBP/citations with exact NAP, LinkedIn posts to article URLs, partner outreach.
