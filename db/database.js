@@ -929,19 +929,23 @@ try {
   console.error('[database] Seeding encountered an error and was skipped (app will continue):', err && err.message ? err.message : err);
 }
 
-// Upsert seed blog posts so existing DBs get updated copy and any new seed slugs are inserted
+// Upsert seed blog posts so existing DBs get updated copy and any new seed slugs are inserted.
+// Never overwrite image on existing posts — admin uploads (/uploads/...) were getting wiped
+// back to seed SVGs on every Railway redeploy.
 try {
   const adminUser = db.prepare("SELECT id FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1").get();
   const authorId = adminUser ? adminUser.id : null;
-  const updatePost = db.prepare('UPDATE blog_posts SET title = ?, content = ?, excerpt = ?, image = ? WHERE slug = ?');
+  const updatePost = db.prepare('UPDATE blog_posts SET title = ?, content = ?, excerpt = ? WHERE slug = ?');
+  const fillMissingImage = db.prepare('UPDATE blog_posts SET image = ? WHERE slug = ? AND (image IS NULL OR TRIM(image) = \'\')');
   const insertPost = db.prepare(`
     INSERT INTO blog_posts (title, slug, content, excerpt, image, author_id, published, audience)
     VALUES (?, ?, ?, ?, ?, ?, 1, 'driver')
   `);
   for (const post of BLOG_POSTS_SEED) {
-    const existing = db.prepare('SELECT id FROM blog_posts WHERE slug = ?').get(post.slug);
+    const existing = db.prepare('SELECT id, image FROM blog_posts WHERE slug = ?').get(post.slug);
     if (existing) {
-      updatePost.run(post.title, post.content, post.excerpt, post.image || null, post.slug);
+      updatePost.run(post.title, post.content, post.excerpt, post.slug);
+      if (post.image) fillMissingImage.run(post.image, post.slug);
     } else {
       insertPost.run(post.title, post.slug, post.content, post.excerpt, post.image || null, authorId);
     }
