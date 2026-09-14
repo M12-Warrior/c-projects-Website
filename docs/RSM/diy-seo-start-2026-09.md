@@ -61,3 +61,10 @@ Playbook: [`phase-c-get-found-off-google-2026-09.md`](./phase-c-get-found-off-go
 
 On-site helpers shipped: richer Organization NAP on homepage + LocalBusiness schema on `/contact`.  
 Joyce still needs: Bing Webmaster verify + sitemap, GBP/citations with exact NAP, LinkedIn posts to article URLs, partner outreach.
+
+---
+
+## Phase D (Sep 2026) — measure before guessing
+
+Playbook: [`phase-d-measure-2026-09.md`](./phase-d-measure-2026-09.md)  
+Baseline in GSC/Bing + CWV; revisit 30/60/90. After that, circle back to **2–4 posts/month**.
