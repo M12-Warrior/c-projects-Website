@@ -17,6 +17,7 @@ const { UPLOADS_DIR } = require('./lib/paths');
 const { resolveCountryCode } = require('./lib/trafficGeo');
 const seo = require('./lib/seo');
 const { siteBaseUrl } = require('./lib/siteUrl');
+const { injectGaIntoHtml, shouldSkipGaPath, GA_MEASUREMENT_ID } = require('./lib/ga');
 
 const uploadsDir = UPLOADS_DIR;
 if (!fs.existsSync(uploadsDir)) {
@@ -137,6 +138,41 @@ if (isProduction) {
 // Make session user available to views
 app.use((req, res, next) => {
   res.locals.user = req.session.user;
+  next();
+});
+
+// Inject GA4 into HTML from sendFile / res.send (views + homepage route).
+// public/index.html also includes the tag for static/CDN edge cases.
+app.use((req, res, next) => {
+  if (shouldSkipGaPath(req.path)) return next();
+
+  const originalSend = res.send.bind(res);
+  res.send = function gaSend(body) {
+    if (typeof body === 'string' && /<html[\s>]/i.test(body)) {
+      arguments[0] = injectGaIntoHtml(body);
+    }
+    return originalSend.apply(res, arguments);
+  };
+
+  const originalSendFile = res.sendFile.bind(res);
+  res.sendFile = function gaSendFile(filePath, options, callback) {
+    const cb = typeof options === 'function' ? options : callback;
+    const opts = typeof options === 'object' && options ? options : undefined;
+    const abs = path.resolve(String(filePath || ''));
+    if (!/\.html?$/i.test(abs)) {
+      return originalSendFile(filePath, options, callback);
+    }
+    fs.readFile(abs, 'utf8', (err, html) => {
+      if (err) {
+        if (typeof cb === 'function') return cb(err);
+        return originalSendFile(filePath, options, callback);
+      }
+      res.type('html');
+      originalSend(injectGaIntoHtml(html));
+      if (typeof cb === 'function') cb();
+    });
+  };
+
   next();
 });
 
@@ -660,6 +696,9 @@ app.get('/search', (req, res) => {
 
 const server = app.listen(PORT, () => {
   console.log('Mile 12 Warrior running on port', PORT, '→ https://mile12warrior.com');
+  if (GA_MEASUREMENT_ID) {
+    console.log('[ga4] Measurement ID', GA_MEASUREMENT_ID);
+  }
       if (isProduction) {
     setTimeout(function () {
       try {
