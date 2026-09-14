@@ -12,7 +12,7 @@ Phase C from the Cursor SEO helper (kept here so we do not need to re-paste):
 ## CIRCLE BACK (after Phases A–D)
 
 **Do not forget:** resume the **2–4 strong blog posts per month** cadence.  
-Parked ideas: 10-hour off-duty recovery deep-dive · pre-trip inspection habits · cab-friendly movement / back-care (educational).  
+Parked ideas + **full drafts:** [`content-cadence-month1-drafts.md`](./content-cadence-month1-drafts.md)  
 Each post should CTA the free New Driver Packet and/or 90-Day Course.
 
 ---

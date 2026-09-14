@@ -5,6 +5,8 @@
 
 When Joyce says go after A–D: implement these three as seed blog posts (same pattern as Phase B), then schedule week 4 optional fourth.
 
+**Full draft HTML (ready to seed):** [`content-cadence-month1-drafts.md`](./content-cadence-month1-drafts.md)
+
 ---
 
 ## Post 1 — 10-hour off-duty recovery deep-dive
