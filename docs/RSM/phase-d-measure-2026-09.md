@@ -17,7 +17,18 @@ When this phase’s first baseline + 30-day revisit are set up, resume the **2�
 
 ---
 
-## Baseline snapshot (fill once — target: this week)
+## Lab / crawl baseline (agent-filled 2026-09-13 — not GSC field data)
+
+| Check | Result |
+|-------|--------|
+| Sitemap URL count | **34** `<loc>` entries at `https://mile12warrior.com/sitemap.xml` |
+| Key Phase A–B URLs HTTP status | All **200**: `/`, `/packets/new-driver`, `/course`, HOS + split sleeper + CA chains blogs |
+| PageSpeed Insights API | Quota exhausted from this environment — Joyce: run [PageSpeed](https://pagespeed.web.dev/) on home + `/packets/new-driver` and paste scores |
+| GSC clicks / queries | Owner-only — fill from Search Console |
+| NAP schema deploy | Local repo has enriched Organization + contact ProfessionalService; confirm live after Railway settles (see Phase C) |
+
+Month-1 publishing pack (outlines only, **not published**): [`content-cadence-month1-ready.md`](./content-cadence-month1-ready.md)
+
 
 | Metric | Where to look | Date: ______ | Value |
 |--------|---------------|--------------|-------|

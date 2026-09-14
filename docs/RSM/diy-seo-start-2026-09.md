@@ -51,7 +51,7 @@ Next content ideas (2–4/month cadence): 10-hour off-duty recovery deep-dive, p
 
 ## CIRCLE BACK — after all SEO phases (A–D)
 
-Resume **2–4 blog posts per month** (long-tail support → free packet / course CTAs). Do not start that cadence mid-phase; finish Phase C + D first. Goal parked in Cursor; checklist also in `phase-c-get-found-off-google-2026-09.md`.
+Resume **2–4 blog posts per month** (long-tail support → free packet / course CTAs). Do not start that cadence mid-phase; finish Phase C + D first. Goal parked in Cursor; outlines ready in [`content-cadence-month1-ready.md`](./content-cadence-month1-ready.md); checklist also in `phase-c-get-found-off-google-2026-09.md`.
 
 ---
 
