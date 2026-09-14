@@ -36,17 +36,18 @@ Do **not** mix `www` and apex in citation websites — always `https://mile12war
 ## 1) Search engines (Joyce — account steps)
 
 ### Google Search Console (already started)
+- **Google account used:** `mile12warrior@gmail.com` (confirmed Sep 2026 — not jcooke72018)
 - [ ] Confirm Domain property for `mile12warrior.com` is verified
 - [ ] Sitemap submitted: `https://mile12warrior.com/sitemap.xml`
 - [ ] After Phase B posts index, check Coverage / Pages for the new URLs
 
-### Bing Webmaster Tools (do this week)
-1. Open [Bing Webmaster Tools](https://www.bing.com/webmasters)
-2. Sign in (Microsoft account)
-3. Add site `https://mile12warrior.com`
-4. Verify (easiest: **Import from Google Search Console**, or DNS TXT in Cloudflare, or HTML meta/file — paste the code here and we will add it to the site)
-5. Submit sitemap: `https://mile12warrior.com/sitemap.xml`
-6. Optional: request indexing for `/packets/new-driver`, `/course`, and the two new Phase B blogs
+### Bing Webmaster Tools — status
+- **Connected:** `mile12warrior.com` visible in Bing Webmaster (Joyce screenshot Sep 13, 2026)
+- [ ] Sitemap submitted: `https://mile12warrior.com/sitemap.xml` (do via left menu **Sitemaps** — banner may still say pending for up to 48h)
+- [ ] Optional: URL submit new-driver, course, Phase B blogs
+- [ ] **IndexNow** (repo): key file `/{key}.txt` + boot submit of priority URLs — after deploy, open Bing left menu **IndexNow** to confirm activity
+- [ ] LinkedIn posts to article URLs (drafts below)
+- [ ] Citations / GBP with exact NAP (section 2)
 
 ---
 
@@ -91,6 +92,12 @@ Post 1–2× per week. Always include a full article or hub URL.
 ### Draft D — HOS rest
 > Compliant and recovered are not the same thing. Educational HOS overview:  
 > https://mile12warrior.com/blog/hours-of-service-rest-for-truck-drivers
+
+### Drafts E–G — ready when Month-1 cadence publishes (after A–D)
+> **10-hour recovery:** https://mile12warrior.com/blog/10-hour-off-duty-recovery-tips-for-truck-drivers  
+> **Pre-trip habits:** https://mile12warrior.com/blog/pre-trip-inspection-habits-for-new-cdl-drivers  
+> **Cab-friendly movement:** https://mile12warrior.com/blog/cab-friendly-stretches-for-truck-drivers  
+> (Posts staged in `db/blog-posts-cadence-month1.js` — not live until Joyce unlocks.)
 
 ---
 

@@ -660,6 +660,27 @@ app.get('/search', (req, res) => {
 
 const server = app.listen(PORT, () => {
   console.log('Mile 12 Warrior running on port', PORT, '→ https://mile12warrior.com');
+  if (isProduction) {
+    setTimeout(function () {
+      try {
+        const indexNow = require('./lib/indexNow');
+        const urls = [
+          'https://mile12warrior.com/',
+          'https://mile12warrior.com/packets/new-driver',
+          'https://mile12warrior.com/course',
+          'https://mile12warrior.com/blog/hours-of-service-rest-for-truck-drivers',
+          'https://mile12warrior.com/blog/split-sleeper-berth-explained-for-truck-drivers',
+          'https://mile12warrior.com/blog/california-chain-laws-for-truckers',
+          'https://mile12warrior.com/shop',
+          'https://mile12warrior.com/services',
+        ];
+        indexNow.submitUrls(urls).then(function (r) {
+          if (r && r.ok) console.log('[indexnow] submitted priority URLs', r.status);
+          else if (r && !r.skipped) console.warn('[indexnow] submit result', r);
+        }).catch(function () {});
+      } catch (_) {}
+    }, 8000);
+  }
 });
 
 server.on('error', (err) => {

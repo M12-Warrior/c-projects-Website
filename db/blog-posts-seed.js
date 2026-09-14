@@ -1,10 +1,15 @@
 /**
- * Seed and refresh content for the 6 default blog posts.
+ * Seed and refresh content for default blog posts.
  * Used by database.js for initial seed and for updating existing posts on app start.
- * Each post: conversational tone, ~1700–2000 words, structure: hook → problem → numbered tips (if applicable) → CTA.
+ * Each post: conversational tone, structure: hook → problem → tips → CTA.
+ *
+ * Month-1 cadence posts live in blog-posts-cadence-month1.js.
+ * Unlock after SEO phases A–D (Joyce approval): set PUBLISH_CADENCE_MONTH1 = true.
  */
 
-module.exports = [
+const PUBLISH_CADENCE_MONTH1 = false;
+
+const posts = [
   {
     title: 'How to Sleep in a Semi Truck: Sleep Management Within HOS Limits',
     slug: 'sleep-management-commercial-drivers',
@@ -503,3 +508,7 @@ module.exports = [
 <p><em>Educational information only — not legal advice. California chain controls and commercial vehicle rules are set by Caltrans, CHP, and applicable CVC provisions. Confirm live conditions and current requirements via official Caltrans / CHP sources (including QuickMap) and your carrier. Federal HOS remains governed by FMCSA (49 CFR Part 395). Verify at dot.ca.gov and fmcsa.dot.gov.</em></p>`
   }
 ];
+
+module.exports = PUBLISH_CADENCE_MONTH1
+  ? posts.concat(require('./blog-posts-cadence-month1'))
+  : posts;

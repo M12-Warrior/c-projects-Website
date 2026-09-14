@@ -11,9 +11,17 @@ Do **not** change strategy from one cold week of data. Use this sheet as the sou
 
 ---
 
-## CIRCLE BACK (after A–D)
+## Unlock gate (must be true before circle-back publishes Month-1 cadence)
 
-When this phase’s first baseline + 30-day revisit are set up, resume the **2–4 posts/month** cadence with Joyce (parked goal + ideas in Phase B/C docs).
+| Phase | Status | Remaining |
+|-------|--------|-----------|
+| A — technical foundation | **Done** (live) | None |
+| B — long-tail content + hub FAQs | **Done** (live) | None |
+| C — Bing / citations / LinkedIn | **Bing connected** (Sep 13, 2026 dashboard live) | Submit sitemap if not done; LinkedIn article posts + citations still owner steps |
+| D — measure baseline | **Playbook ready** | Fill GSC/Bing baseline once; set 30/60/90 dates |
+| Cadence 2–4/month | **Staged, not live** | Unlock: set `PUBLISH_CADENCE_MONTH1 = true` in `db/blog-posts-seed.js` after Joyce approval |
+
+**Do not publish Month-1 cadence until C owner essentials + D baseline sheet are started.**
 
 ---
 
@@ -21,14 +29,15 @@ When this phase’s first baseline + 30-day revisit are set up, resume the **2�
 
 | Check | Result |
 |-------|--------|
-| Sitemap URL count | **34** `<loc>` entries at `https://mile12warrior.com/sitemap.xml` |
-| Key Phase A–B URLs HTTP status | All **200**: `/`, `/packets/new-driver`, `/course`, HOS + split sleeper + CA chains blogs |
-| PageSpeed Insights API | Quota exhausted from this environment — Joyce: run [PageSpeed](https://pagespeed.web.dev/) on home + `/packets/new-driver` and paste scores |
-| GSC clicks / queries | Owner-only — fill from Search Console |
-| NAP schema deploy | Local repo has enriched Organization + contact ProfessionalService; confirm live after Railway settles (see Phase C) |
+| Sitemap URL count | **34** `<loc>` entries at `https://mile12warrior.com/sitemap.xml` (2026-09-13) |
+| Key Phase A–B URLs HTTP status | All **200**: `/`, `/packets/new-driver`, `/course`, HOS + split sleeper + CA chains blogs (rechecked 2026-09-13) |
+| PageSpeed Insights API | Quota exhausted from agent environment — Joyce: run [PageSpeed](https://pagespeed.web.dev/) on home + `/packets/new-driver` and paste scores |
+| GSC clicks / queries | Owner-only (`mile12warrior@gmail.com`) — fill from Search Console |
+| Bing | **Connected** (Webmaster dashboard live Sep 13, 2026) — submit `https://mile12warrior.com/sitemap.xml` if not yet listed; reports may take up to 48h |
+| NAP schema deploy | Live: Organization on home + ProfessionalService on `/contact` |
+| Month-1 cadence | 3 posts staged in `db/blog-posts-cadence-month1.js` — **not** in live sitemap until unlock |
 
-Month-1 publishing pack (outlines only, **not published**): [`content-cadence-month1-ready.md`](./content-cadence-month1-ready.md)
-
+See also: [`content-cadence-month1-ready.md`](./content-cadence-month1-ready.md) · [`content-cadence-month1-drafts.md`](./content-cadence-month1-drafts.md)
 
 | Metric | Where to look | Date: ______ | Value |
 |--------|---------------|--------------|-------|
@@ -67,12 +76,12 @@ For each, note: indexed? impressions? clicks? (even if zero — zeros are a vali
 
 ## Revisit calendar
 
-| Checkpoint | Date (fill in) | What to compare |
-|------------|----------------|-----------------|
-| Baseline | ________ | Table above |
-| +30 days | ________ | Same metrics + which Phase B URLs gained impressions |
-| +60 days | ________ | Queries / pages trending; citation / LinkedIn activity effect |
-| +90 days | ________ | Decide next content cluster (then start 2–4/month cadence if not already running) |
+| Checkpoint | Date | What to compare |
+|------------|------|-----------------|
+| Baseline | **2026-09-13** (started — Bing connected; fill GSC numbers tonight if possible) | Table above |
+| +30 days | **2026-10-13** | Same metrics + which Phase B URLs gained impressions |
+| +60 days | **2026-11-12** | Queries / pages trending; citation / LinkedIn activity effect |
+| +90 days | **2026-12-12** | Decide next content cluster; Month-1 cadence should already be live by then |
 
 ---
 
@@ -87,7 +96,8 @@ For each, note: indexed? impressions? clicks? (even if zero — zeros are a vali
 
 ## Done when
 
-- [ ] Baseline table filled once  
-- [ ] 30/60/90 dates on calendar (phone or planner)  
-- [ ] PageSpeed notes for home + one hub  
-- [ ] Joyce ready to resume **2–4 posts/month** cadence (circle-back goal)
+- [x] Bing Webmaster connected (`mile12warrior.com` dashboard live)
+- [ ] Baseline table filled once (at least GSC clicks/impressions + Bing sitemap submitted)
+- [x] 30/60/90 dates on calendar (2026-10-13 / 11-12 / 12-12)
+- [ ] PageSpeed notes for home + one hub (Joyce paste)
+- [ ] Joyce ready to resume **2–4 posts/month** cadence (circle-back goal) → flip `PUBLISH_CADENCE_MONTH1`

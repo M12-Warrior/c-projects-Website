@@ -1,21 +1,21 @@
-# Month 1 cadence — FULL DRAFTS (do not publish until Joyce unlocks after A–D)
+/**
+ * Month-1 SEO content cadence posts — READY but NOT wired into the live seed yet.
+ *
+ * Unlock after Phases A–D (Joyce says publish):
+ *   In db/blog-posts-seed.js set PUBLISH_CADENCE_MONTH1 = true
+ *   Then deploy and verify the three /blog/... URLs return 200 + appear in sitemap.
+ *
+ * Do not flip that flag until Joyce unlocks publishing.
+ */
+'use strict';
 
-**Status:** Ready for owner review → then seed into `db/blog-posts-seed.js`  
-**When unlocked:** Circle back goal = publish these three + LinkedIn article links + Phase D watch list  
-
-**One-step publish (agent):** wire `db/blog-posts-cadence-month1.js` into `blog-posts-seed.js` (file already contains full seed objects — do **not** require it until Joyce unlocks).
-
----
-
-## Draft 1
-
-**title:** Making Your 10-Hour Break Actually Count: Recovery Tips for Truck Drivers  
-**slug:** `10-hour-off-duty-recovery-tips-for-truck-drivers`  
-**excerpt:** How to use your FMCSA 10-hour off-duty minimum for real recovery — sleep setup, caffeine timing, wind-down habits — educational tips, not legal or medical advice.  
-**image:** `/images/products/trucker-wellness-journal.svg`
-
-```html
-<p>Under FMCSA Hours of Service rules (49 CFR Part 395), property-carrying drivers generally need at least <strong>10 consecutive hours off duty</strong> before driving again. That number is the <strong>legal floor</strong> — not a guarantee you will feel rested. This guide is about using that window for recovery. It is educational only, not legal or medical advice. Confirm current rules at <a href="https://www.fmcsa.dot.gov/regulations/hours-of-service" target="_blank" rel="noopener noreferrer">FMCSA Hours of Service</a>.</p>
+module.exports = [
+  {
+    title: 'Making Your 10-Hour Break Actually Count: Recovery Tips for Truck Drivers',
+    slug: '10-hour-off-duty-recovery-tips-for-truck-drivers',
+    excerpt: 'How to use your FMCSA 10-hour off-duty minimum for real recovery — sleep setup, caffeine timing, wind-down habits — educational tips, not legal or medical advice.',
+    image: '/images/products/trucker-wellness-journal.svg',
+    content: `<p>Under FMCSA Hours of Service rules (49 CFR Part 395), property-carrying drivers generally need at least <strong>10 consecutive hours off duty</strong> before driving again. That number is the <strong>legal floor</strong> — not a guarantee you will feel rested. This guide is about using that window for recovery. It is educational only, not legal or medical advice. Confirm current rules at <a href="https://www.fmcsa.dot.gov/regulations/hours-of-service" target="_blank" rel="noopener noreferrer">FMCSA Hours of Service</a>.</p>
 
 <p>If you have ever “taken your 10” and still felt foggy at the wheel, you already know the gap: <em>compliant</em> and <em>recovered</em> are not the same. Pair this with our <a href="/blog/hours-of-service-rest-for-truck-drivers">HOS rest overview</a> and <a href="/blog/sleep-management-commercial-drivers">how to sleep in a semi</a>.</p>
 
@@ -45,20 +45,14 @@
 <li><a href="/journal/print">Printable Wellness Journal</a> — track sleep and recovery</li>
 </ul>
 
-<p><em>Educational information only — not legal or medical advice. Hours of Service rules are set by FMCSA (49 CFR Part 395). Confirm current requirements at fmcsa.dot.gov. Consult your carrier and qualified professionals for compliance and medical questions.</em></p>
-```
-
----
-
-## Draft 2
-
-**title:** Pre-Trip Inspection Habits for New CDL Drivers (Beyond the Checkbox)  
-**slug:** `pre-trip-inspection-habits-for-new-cdl-drivers`  
-**excerpt:** Practical pre-trip inspection habits for new CDL drivers — walk-around mindset, defect documentation, and when not to roll — educational support for your first 90 days, not a substitute for carrier DVIR forms.  
-**image:** `/images/products/new-driver-packet.svg`
-
-```html
-<p>New CDL drivers often treat the pre-trip as a memorized school script. On the job it becomes something sharper: a <strong>habit that keeps you from rolling with a defect</strong> you could have caught on the lot. This guide supports that mindset for your first 90 days. It is educational only — not legal advice and not a replacement for your carrier’s DVIR process or FMCSA inspection rules (including 49 CFR 396.11–396.13). Confirm current requirements at <a href="https://www.fmcsa.dot.gov" target="_blank" rel="noopener noreferrer">fmcsa.dot.gov</a> and with your safety department.</p>
+<p><em>Educational information only — not legal or medical advice. Hours of Service rules are set by FMCSA (49 CFR Part 395). Confirm current requirements at fmcsa.dot.gov. Consult your carrier and qualified professionals for compliance and medical questions.</em></p>`
+  },
+  {
+    title: 'Pre-Trip Inspection Habits for New CDL Drivers (Beyond the Checkbox)',
+    slug: 'pre-trip-inspection-habits-for-new-cdl-drivers',
+    excerpt: 'Practical pre-trip inspection habits for new CDL drivers — walk-around mindset, defect documentation, and when not to roll — educational support for your first 90 days, not a substitute for carrier DVIR forms.',
+    image: '/images/products/new-driver-packet.svg',
+    content: `<p>New CDL drivers often treat the pre-trip as a memorized school script. On the job it becomes something sharper: a <strong>habit that keeps you from rolling with a defect</strong> you could have caught on the lot. This guide supports that mindset for your first 90 days. It is educational only — not legal advice and not a replacement for your carrier’s DVIR process or FMCSA inspection rules (including 49 CFR 396.11–396.13). Confirm current requirements at <a href="https://www.fmcsa.dot.gov" target="_blank" rel="noopener noreferrer">fmcsa.dot.gov</a> and with your safety department.</p>
 
 <p>Use this alongside the free <a href="/packets/new-driver">New Driver Packet</a> checklist and the <a href="/course">90-Day Onboarding Course</a>.</p>
 
@@ -89,20 +83,14 @@
 <li><a href="/blog/hours-of-service-rest-for-truck-drivers">HOS rest overview</a> — fatigue and inspection pressure often stack</li>
 </ul>
 
-<p><em>Educational information only — not legal advice. Vehicle inspection and DVIR requirements are governed by FMCSA (including 49 CFR Part 396) and your carrier’s policies. Confirm current rules at fmcsa.dot.gov and with your safety department. California drivers should also verify applicable state guidance.</em></p>
-```
-
----
-
-## Draft 3
-
-**title:** Cab-Friendly Stretches and Movement for Truck Drivers (Educational)  
-**slug:** `cab-friendly-stretches-for-truck-drivers`  
-**excerpt:** Simple cab-friendly stretch and movement ideas for truck drivers between stops — educational wellness tips only, not medical advice or a substitute for clinician guidance.  
-**image:** `/images/products/mile-12-warrior-kit.svg`
-
-```html
-<p>Long sits, whole-body vibration, and irregular sleep make stiffness a common part of trucking life. This page shares <strong>simple movement ideas</strong> drivers use at safe stops and in the sleeper. It is <strong>educational only — not medical advice</strong>, not physical therapy, and not a treatment plan. If you have pain, injury, numbness, or a condition that affects driving, talk with a qualified clinician. Fitness-for-duty and CDL medical certification questions belong with your medical examiner process (see FMCSA medical standards under 49 CFR Part 391 Subpart E), not a blog post.</p>
+<p><em>Educational information only — not legal advice. Vehicle inspection and DVIR requirements are governed by FMCSA (including 49 CFR Part 396) and your carrier’s policies. Confirm current rules at fmcsa.dot.gov and with your safety department. California drivers should also verify applicable state guidance.</em></p>`
+  },
+  {
+    title: 'Cab-Friendly Stretches and Movement for Truck Drivers (Educational)',
+    slug: 'cab-friendly-stretches-for-truck-drivers',
+    excerpt: 'Simple cab-friendly stretch and movement ideas for truck drivers between stops — educational wellness tips only, not medical advice or a substitute for clinician guidance.',
+    image: '/images/products/mile-12-warrior-kit.svg',
+    content: `<p>Long sits, whole-body vibration, and irregular sleep make stiffness a common part of trucking life. This page shares <strong>simple movement ideas</strong> drivers use at safe stops and in the sleeper. It is <strong>educational only — not medical advice</strong>, not physical therapy, and not a treatment plan. If you have pain, injury, numbness, or a condition that affects driving, talk with a qualified clinician. Fitness-for-duty and CDL medical certification questions belong with your medical examiner process (see FMCSA medical standards under 49 CFR Part 391 Subpart E), not a blog post.</p>
 
 <p><strong>Stop any movement that increases pain.</strong> Do not stretch in traffic lanes, on blind shoulders, or anywhere unsafe. Use legal parking and stay visible.</p>
 
@@ -138,15 +126,6 @@
 <li><a href="/course">90-Day Onboarding Course</a></li>
 </ul>
 
-<p><em>Educational information only — not medical, legal, or fitness-for-duty advice. Do not use this page to self-treat injuries. Consult qualified professionals for medical questions. Confirm FMCSA medical certification requirements through official channels when relevant.</em></p>
-```
-
----
-
-## Unlock checklist (Joyce + agent)
-
-1. Joyce: “publish month 1 cadence” (after A–D)  
-2. Agent: add three posts to `db/blog-posts-seed.js`, deploy, verify 200 + sitemap  
-3. Joyce: LinkedIn posts with article URLs  
-4. Agent: add internal links from HOS / sleep / new-driver pages  
-5. Both: add URLs to Phase D 30-day watch list  
+<p><em>Educational information only — not medical, legal, or fitness-for-duty advice. Do not use this page to self-treat injuries. Consult qualified professionals for medical questions. Confirm FMCSA medical certification requirements through official channels when relevant.</em></p>`
+  }
+];
