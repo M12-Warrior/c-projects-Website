@@ -948,6 +948,17 @@ try {
   }
 } catch (_) {}
 
+// Fix historical typo slug (owndership → ownership); route also 301-redirects the old URL
+try {
+  const oldSlug = 'from-mile-12-fatigue-to-full-owndership';
+  const newSlug = 'from-mile-12-fatigue-to-full-ownership';
+  const oldRow = db.prepare('SELECT id FROM blog_posts WHERE slug = ?').get(oldSlug);
+  const newRow = db.prepare('SELECT id FROM blog_posts WHERE slug = ?').get(newSlug);
+  if (oldRow && !newRow) {
+    db.prepare('UPDATE blog_posts SET slug = ? WHERE id = ?').run(newSlug, oldRow.id);
+  }
+} catch (_) {}
+
 // Ensure New Driver Packet exists and remains free ($0 — no checkout)
 try {
   const existing = db.prepare('SELECT id FROM products WHERE slug = ?').get('new-driver-packet');

@@ -30,6 +30,7 @@ const stripe = require('../lib/stripe');
 const paymentConfig = require('../lib/paymentConfig');
 const shop = require('./shop');
 const subscription = require('./subscription');
+const { siteBaseUrl } = require('../lib/siteUrl');
 
 const router = express.Router();
 
@@ -83,9 +84,7 @@ function parseFleetInfo(body) {
 }
 
 function baseUrl(req) {
-  const fromEnv = process.env.BASE_URL && String(process.env.BASE_URL).trim();
-  if (fromEnv) return fromEnv.replace(/\/+$/, '');
-  return req.protocol + '://' + req.get('host');
+  return siteBaseUrl(req);
 }
 
 /**

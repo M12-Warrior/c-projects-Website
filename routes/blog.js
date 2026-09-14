@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db/database');
+const { siteBaseUrl } = require('../lib/siteUrl');
 
 const ADMIN_EMAIL = 'admin@mile12warrior.com';
 
@@ -228,7 +229,7 @@ router.post('/posts/:slug/comments', (req, res) => {
     WHERE c.id = ?
   `).get(result.lastInsertRowid);
 
-  const baseUrl = process.env.BASE_URL || (req.protocol + '://' + (req.get('host') || 'localhost:3000'));
+  const baseUrl = siteBaseUrl(req);
   sendCommentNotification(comment.id, post.title, post.slug, req.session.user.username, sanitized, baseUrl);
 
   res.json({

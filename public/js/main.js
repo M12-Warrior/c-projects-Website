@@ -439,19 +439,34 @@ document.addEventListener('DOMContentLoaded', () => {
     observeRevealTargets(Array.from(targets));
   };
 
-  // --- Animated stat counters ---
+  // --- Animated stat counters (HTML already has final values for crawlers / no-JS) ---
   const statNums = document.querySelectorAll('.stat-num[data-target]');
   let statsCounted = false;
+  const preferReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    || document.documentElement.classList.contains('reduce-motion')
+    || document.body.classList.contains('reduce-motion');
+
+  function setStatFinal(el) {
+    const target = parseInt(el.dataset.target, 10);
+    const suffix = el.dataset.suffix || (target === 100 ? '%' : '');
+    el.textContent = target + suffix;
+  }
 
   function animateCounters() {
     if (statsCounted) return;
     statsCounted = true;
+
+    if (preferReducedMotion) {
+      statNums.forEach(setStatFinal);
+      return;
+    }
 
     statNums.forEach(el => {
       const target = parseInt(el.dataset.target, 10);
       const suffix = el.dataset.suffix || (target === 100 ? '%' : '');
       const duration = 1600;
       const start = performance.now();
+      el.textContent = '0';
 
       function step(now) {
         const elapsed = now - start;
@@ -469,20 +484,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const statsObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          animateCounters();
-          statsObserver.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.5 }
-  );
-
   const statsContainer = document.querySelector('.hero-stats');
-  if (statsContainer) statsObserver.observe(statsContainer);
+  if (statsContainer) {
+    if (preferReducedMotion) {
+      animateCounters();
+    } else {
+      const statsObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              animateCounters();
+              statsObserver.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.5 }
+      );
+      statsObserver.observe(statsContainer);
+    }
+  }
 
   // --- Active nav link highlighting ---
   const sections = document.querySelectorAll('section[id]');

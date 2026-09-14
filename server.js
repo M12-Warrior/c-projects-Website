@@ -342,6 +342,10 @@ app.get('/blog', (req, res) => {
   }
 });
 
+app.get('/blog/from-mile-12-fatigue-to-full-owndership', (req, res) => {
+  res.redirect(301, '/blog/from-mile-12-fatigue-to-full-ownership');
+});
+
 app.get('/blog/:slug', (req, res) => {
   try {
     const slug = String(req.params.slug || '').trim();
@@ -438,16 +442,69 @@ app.get('/packets/new-driver', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'packets-new-driver.html'));
 });
 
+const PACKET_PAGE_SEO = {
+  'seasoned-driver': {
+    docTitle: 'Seasoned Driver Packet for Experienced CDL Drivers | Mile 12 Warrior',
+    description: 'Seasoned driver packet for 2+ year CDL drivers: advanced fatigue management, HOS refresher, CSA self-audit ideas, cab-friendly exercise, and career wellness — print-ready educational tools.',
+    tier: 'Tier 2',
+    title: 'Seasoned Driver Packet — Fatigue, CSA & Career Wellness',
+    subtitle: 'Advanced safety and wellness for experienced drivers (2+ years). 11 print-ready sections for drivers who already know the basics.',
+  },
+  'fleet-new-hire': {
+    docTitle: 'Fleet New Hire Orientation Packet for Trucking Safety Depts | Mile 12 Warrior',
+    description: 'New hire orientation packet for trucking fleets: FMCSA-aware onboarding, inspection habits, fatigue awareness, and driver sign-off sheets for DQ files (49 CFR 391.51) — educational, print-ready.',
+    tier: 'Fleet — New Hire',
+    title: 'Fleet New Hire Orientation Packet (DQ-File Ready)',
+    subtitle: 'Fleet driver safety training tools for safety departments — onboarding packet with acknowledgment/sign-off sheets for driver qualification files.',
+  },
+  'fleet-refresher': {
+    docTitle: 'Fleet Refresher Packet & Annual Driver Training Tools | Mile 12 Warrior',
+    description: 'Annual driver refresher training packet for fleets: fatigue self-assessment, seasonal hazards, regulatory self-audit prompts, and sign-off sheets — educational print-ready tools for safety departments.',
+    tier: 'Fleet — Refresher',
+    title: 'Fleet Refresher Packet — Annual Driver Safety Training',
+    subtitle: 'Annual or semi-annual refresher for experienced drivers — fatigue self-assessment, seasonal hazard calendar, and sign-off sheets for your safety program.',
+  },
+};
+
+function sendPacketLandingPage(req, res, key) {
+  const meta = PACKET_PAGE_SEO[key];
+  if (!meta) {
+    return res.status(404).sendFile(path.join(__dirname, 'views', 'packet-page.html'));
+  }
+  try {
+    let html = fs.readFileSync(path.join(__dirname, 'views', 'packet-page.html'), 'utf8');
+    const base = siteBaseUrl(req) || 'https://mile12warrior.com';
+    const url = base + '/packets/' + key;
+    html = html.replace(/<title>[^<]*<\/title>/i, '<title>' + seo.escapeHtml(meta.docTitle) + '</title>');
+    html = html.replace(
+      /id="packetMetaDesc" content="[^"]*"/,
+      'id="packetMetaDesc" content="' + seo.escapeAttr(meta.description) + '"'
+    );
+    html = html.replace(
+      /id="packetCanonical" href="[^"]*"/,
+      'id="packetCanonical" href="' + seo.escapeAttr(url) + '"'
+    );
+    html = html.replace(/id="packetTier">[^<]*</, 'id="packetTier">' + seo.escapeHtml(meta.tier) + '<');
+    html = html.replace(/id="packetTitle">[^<]*</, 'id="packetTitle">' + seo.escapeHtml(meta.title) + '<');
+    html = html.replace(/id="packetSubtitle">[^<]*</, 'id="packetSubtitle">' + seo.escapeHtml(meta.subtitle) + '<');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.send(html);
+  } catch (_) {
+    res.sendFile(path.join(__dirname, 'views', 'packet-page.html'));
+  }
+}
+
 app.get('/packets/seasoned-driver', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'packet-page.html'));
+  sendPacketLandingPage(req, res, 'seasoned-driver');
 });
 
 app.get('/packets/fleet-new-hire', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'packet-page.html'));
+  sendPacketLandingPage(req, res, 'fleet-new-hire');
 });
 
 app.get('/packets/fleet-refresher', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'packet-page.html'));
+  sendPacketLandingPage(req, res, 'fleet-refresher');
 });
 
 app.get('/services', (req, res) => {
