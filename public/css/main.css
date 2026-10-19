@@ -492,7 +492,23 @@ summary:focus:not(:focus-visible) {
   gap: 14px;
   justify-content: center;
   flex-wrap: wrap;
-  margin-bottom: 72px;
+  margin-bottom: 22px;
+}
+
+.hero-note {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+.hero-note a {
+  color: var(--gold-light);
+  transition: color 0.3s var(--ease);
+}
+
+.hero-note a:hover {
+  color: var(--gold);
 }
 
 /* ---------- BUTTONS ---------- */

@@ -1185,6 +1185,10 @@ try {
     }
   ];
 
+  // Partner logins are closed. Flip this to true to restore Relevant Search Media access.
+  const MARKETING_PARTNER_ACCESS_OPEN = false;
+  const partnerDisabled = MARKETING_PARTNER_ACCESS_OPEN ? 0 : 1;
+
   const createdCreds = [];
   for (const m of marketers) {
     const existing = db.prepare(
@@ -1193,9 +1197,16 @@ try {
     if (existing) {
       db.prepare(`
         UPDATE users
-        SET username = ?, email = ?, role = 'marketer', account_disabled = 0, bio = ?
+        SET username = ?, email = ?, role = 'marketer', account_disabled = ?, bio = ?
         WHERE id = ?
-      `).run(m.username, m.email, m.bio, existing.id);
+      `).run(m.username, m.email, partnerDisabled, m.bio, existing.id);
+      continue;
+    }
+    if (!MARKETING_PARTNER_ACCESS_OPEN) {
+      db.prepare(`
+        INSERT INTO users (username, email, password, role, bio, account_disabled)
+        VALUES (?, ?, ?, 'marketer', ?, 1)
+      `).run(m.username, m.email, bcrypt.hashSync(makeTempPassword(), 10), m.bio);
       continue;
     }
     const fromEnv = process.env[m.envKey] && String(process.env[m.envKey]).trim();
@@ -1210,22 +1221,24 @@ try {
   }
 
   // If Adam was previously disabled, ensure a fresh temp password is issued once for portal access.
-  try {
-    const adam = db.prepare("SELECT id FROM users WHERE username = 'rsm-adam'").get();
-    const credPath = path.join(__dirname, '..', '.marketing-credentials.local');
-    const needAdamCred = adam && (!fs.existsSync(credPath) || !fs.readFileSync(credPath, 'utf8').includes('rsm-adam'));
-    if (adam && needAdamCred && !process.env.MARKETING_ADAM_PASSWORD) {
-      const password = makeTempPassword();
-      db.prepare('UPDATE users SET password = ?, role = ?, account_disabled = 0 WHERE id = ?')
-        .run(bcrypt.hashSync(password, 10), 'marketer', adam.id);
-      createdCreds.push({
-        label: 'Adam Walker (VP)',
-        username: 'rsm-adam',
-        email: 'adam@relevantsearchmedia.com',
-        password: password
-      });
-    }
-  } catch (_) {}
+  if (MARKETING_PARTNER_ACCESS_OPEN) {
+    try {
+      const adam = db.prepare("SELECT id FROM users WHERE username = 'rsm-adam'").get();
+      const credPath = path.join(__dirname, '..', '.marketing-credentials.local');
+      const needAdamCred = adam && (!fs.existsSync(credPath) || !fs.readFileSync(credPath, 'utf8').includes('rsm-adam'));
+      if (adam && needAdamCred && !process.env.MARKETING_ADAM_PASSWORD) {
+        const password = makeTempPassword();
+        db.prepare('UPDATE users SET password = ?, role = ?, account_disabled = 0 WHERE id = ?')
+          .run(bcrypt.hashSync(password, 10), 'marketer', adam.id);
+        createdCreds.push({
+          label: 'Adam Walker (VP)',
+          username: 'rsm-adam',
+          email: 'adam@relevantsearchmedia.com',
+          password: password
+        });
+      }
+    } catch (_) {}
+  }
 
   if (createdCreds.length) {
     let existingLines = '';
