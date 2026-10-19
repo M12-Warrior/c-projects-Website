@@ -97,6 +97,14 @@
         return;
       }
 
+      function usableArticlePhoto(src) {
+        const value = String(src || '').trim();
+        if (!value) return '';
+        if (value.indexOf('/images/products/') !== -1) return '';
+        if (/\.svg(?:$|\?)/i.test(value)) return '';
+        return value;
+      }
+
       async function loadPost() {
         try {
           const res = await fetch(`/api/blog/posts/${encodeURIComponent(slug)}`, { credentials: 'include' });
@@ -129,7 +137,10 @@
               </div>
             </div>
           ` : '';
-          const featuredImg = (post.image && post.image.trim()) ? '<div class="post-featured-image"><img src="' + escapeHtml(post.image) + '" alt="' + escapeHtml(post.title || 'Featured image') + '" onerror="this.parentElement.style.display=\'none\'"></div>' : '';
+          const photoSrc = usableArticlePhoto(post.image);
+          const featuredImg = photoSrc
+            ? '<div class="post-featured-image"><img src="' + escapeHtml(photoSrc) + '" alt="' + escapeHtml(post.title || 'Featured image') + '" onerror="this.parentElement.style.display=\'none\'"></div>'
+            : '';
           postContent.innerHTML = `
             <div class="blog-post-header-row">
               <h1>${escapeHtml(post.title)}</h1>

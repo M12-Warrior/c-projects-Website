@@ -538,20 +538,41 @@ textarea.form-input {
   right: 0;
   left: auto;
 }
-.blog-card-image {
-  height: 200px;
-  background: var(--surface-2);
+.blog-card-link {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-3);
-  font-size: 3rem;
-  overflow: hidden;
-}
-.blog-card-image img {
-  width: 100%;
+  flex-direction: column;
   height: 100%;
-  object-fit: cover;
+  color: inherit;
+  text-decoration: none;
+}
+.blog-card-plate {
+  min-height: 168px;
+  padding: 26px 24px 22px;
+  display: flex;
+  align-items: flex-end;
+  background:
+    linear-gradient(135deg, rgba(230, 184, 0, 0.18), transparent 55%),
+    #121214;
+  border-bottom: 3px solid var(--gold);
+}
+.blog-card-plate-title {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  color: #f4f4f5;
+}
+.blog-card:hover .blog-card-plate-title {
+  color: var(--gold-light);
+}
+@media (prefers-reduced-motion: reduce) {
+  .blog-card,
+  .blog-card:hover {
+    transition: none;
+    transform: none;
+  }
 }
 .blog-card-body {
   padding: 24px;
@@ -641,8 +662,6 @@ textarea.form-input {
   width: 100%;
   height: auto;
   display: block;
-  max-height: 420px;
-  object-fit: cover;
 }
 .blog-post-full .post-content {
   font-size: 0.95rem;

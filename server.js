@@ -299,6 +299,14 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+function usableArticlePhoto(src) {
+  const value = String(src || '').trim();
+  if (!value) return '';
+  if (value.indexOf('/images/products/') !== -1) return '';
+  if (/\.svg(?:$|\?)/i.test(value)) return '';
+  return value;
+}
+
 function formatBlogDate(iso) {
   if (!iso) return '';
   try {
@@ -340,14 +348,10 @@ app.get('/blog', (req, res) => {
     const cards = posts.map(function (p) {
       const author = (p.author_display && String(p.author_display).trim()) || p.author_username || '';
       const excerpt = seo.truncate(p.excerpt || seo.stripHtml(p.content), 140);
-      const img = p.image
-        ? '<div class="blog-card-image"><img src="' + seo.escapeAttr(p.image) + '" alt="" loading="lazy"></div>'
-        : '<div class="blog-card-image blog-card-placeholder" aria-hidden="true"></div>';
-      return '<article class="blog-card glass-card">'
+      return '<article class="blog-card">'
         + '<a href="/blog/' + seo.escapeAttr(p.slug) + '" class="blog-card-link">'
-        + img
+        + '<div class="blog-card-plate"><h2 class="blog-card-plate-title">' + seo.escapeHtml(p.title) + '</h2></div>'
         + '<div class="blog-card-body">'
-        + '<h2 class="blog-card-title">' + seo.escapeHtml(p.title) + '</h2>'
         + '<p class="blog-card-meta">' + seo.escapeHtml(formatBlogDate(p.created_at))
         + (author ? ' · ' + seo.escapeHtml(author) : '') + '</p>'
         + (excerpt ? '<p class="blog-card-excerpt">' + seo.escapeHtml(excerpt) + '</p>' : '')
@@ -404,8 +408,9 @@ app.get('/blog/:slug', (req, res) => {
     const description = seo.truncate(post.excerpt || seo.stripHtml(post.content), 160);
     const title = post.title + ' — Mile 12 Warrior';
     const url = base + '/blog/' + post.slug;
-    const image = post.image
-      ? (post.image.indexOf('http') === 0 ? post.image : base + post.image)
+    const photoSrc = usableArticlePhoto(post.image);
+    const image = photoSrc
+      ? (photoSrc.indexOf('http') === 0 ? photoSrc : base + photoSrc)
       : base + '/images/logo.png';
     const meta = seo.renderHeadTags({
       title: title,
@@ -415,8 +420,8 @@ app.get('/blog/:slug', (req, res) => {
       type: 'article',
       jsonLd: seo.blogPostingJsonLd(base, post),
     });
-    const featuredImg = post.image
-      ? '<div class="post-featured-image"><img src="' + seo.escapeAttr(post.image) + '" alt="' + seo.escapeAttr(post.title) + '"></div>'
+    const featuredImg = photoSrc
+      ? '<div class="post-featured-image"><img src="' + seo.escapeAttr(photoSrc) + '" alt="' + seo.escapeAttr(post.title) + '"></div>'
       : '';
     const articleHtml = ''
       + '<div class="blog-post-header-row"><h1>' + seo.escapeHtml(post.title) + '</h1></div>'

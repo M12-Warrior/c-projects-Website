@@ -61,9 +61,6 @@
         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       }
 
-      // Placeholder icon for image
-      const placeholderIcon = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
-
       // Update navbar auth link
       async function updateAuthLink() {
         const authLink = document.querySelector('.nav-auth-link');
@@ -108,9 +105,6 @@
             return;
           }
           grid.innerHTML = posts.map(post => {
-            const imgHtml = post.image
-              ? `<img src="${escapeHtml(post.image)}" alt="${escapeHtml(post.title || 'Blog post')}" onerror="this.style.display='none'">`
-              : `<span>${placeholderIcon}</span>`;
             const editMenu = isAdmin ? `
               <div class="blog-card-actions">
                 <button type="button" class="blog-card-menu-btn" aria-label="Post options" title="Edit post">
@@ -121,17 +115,19 @@
                 </div>
               </div>
             ` : '';
+            const excerpt = post.excerpt || '';
             return `
               <article class="blog-card" data-post-id="${post.id}">
                 ${editMenu}
-                <a href="/blog/${escapeHtml(post.slug)}">
-                  <div class="blog-card-image">${imgHtml}</div>
+                <a class="blog-card-link" href="/blog/${escapeHtml(post.slug)}">
+                  <div class="blog-card-plate">
+                    <h2 class="blog-card-plate-title">${escapeHtml(post.title)}</h2>
+                  </div>
+                  <div class="blog-card-body">
+                    <div class="blog-card-meta">${formatDate(post.created_at)}${(post.author_name || post.author_display || post.author_username) ? ' · ' + escapeHtml(post.author_name || post.author_display || post.author_username) : ''}</div>
+                    <p class="blog-card-excerpt">${escapeHtml(excerpt).slice(0, 160)}${excerpt.length > 160 ? '…' : ''}</p>
+                  </div>
                 </a>
-                <div class="blog-card-body">
-                  <div class="blog-card-meta">${formatDate(post.created_at)}${(post.author_name || post.author_display || post.author_username) ? ' · ' + escapeHtml(post.author_name || post.author_display || post.author_username) : ''}</div>
-                  <a href="/blog/${escapeHtml(post.slug)}" class="blog-card-title">${escapeHtml(post.title)}</a>
-                  <p class="blog-card-excerpt">${escapeHtml(post.excerpt || '').slice(0, 160)}${(post.excerpt || '').length > 160 ? '…' : ''}</p>
-                </div>
               </article>
             `;
           }).join('');
