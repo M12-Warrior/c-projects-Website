@@ -581,6 +581,51 @@ db.exec(`
 `);
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS episodes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    episode_number INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    summary TEXT,
+    video_path TEXT NOT NULL,
+    duration_seconds INTEGER,
+    published INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE INDEX IF NOT EXISTS idx_episodes_published ON episodes(published, episode_number);
+
+  CREATE TABLE IF NOT EXISTS episode_watches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    episode_id INTEGER NOT NULL REFERENCES episodes(id) ON DELETE CASCADE,
+    visitor_key TEXT NOT NULL,
+    user_id INTEGER REFERENCES users(id),
+    session_token TEXT NOT NULL UNIQUE,
+    started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    duration_seconds REAL,
+    max_seconds REAL DEFAULT 0,
+    exit_seconds REAL DEFAULT 0,
+    completed INTEGER DEFAULT 0,
+    last_event_ms INTEGER DEFAULT 0
+  );
+  CREATE INDEX IF NOT EXISTS idx_episode_watches_episode ON episode_watches(episode_id);
+  CREATE INDEX IF NOT EXISTS idx_episode_watches_visitor ON episode_watches(visitor_key);
+`);
+
+try { db.exec('ALTER TABLE episode_watches ADD COLUMN last_event_ms INTEGER DEFAULT 0'); } catch (_) {}
+
+try {
+  const episodeCount = db.prepare('SELECT COUNT(*) AS c FROM episodes').get().c;
+  if (!episodeCount) {
+    db.prepare(`
+      INSERT INTO episodes (episode_number, title, slug, summary, video_path, duration_seconds, published)
+      VALUES (1, 'Mile Marker 71', 'mile-marker-71', ?, '/videos/episode-1.mp4', 94, 1)
+    `).run('Mile Marker 71 is an educational story about fatigue behind the wheel. The subject is tired driving across the trucking industry. No one is named, and this is not a report about any particular person.');
+  }
+} catch (_) {}
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS cms_page_content (
     page_key TEXT PRIMARY KEY,
     content_json TEXT NOT NULL DEFAULT '{}',

@@ -1,5 +1,9 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
 const db = require('../db/database');
+const episodesLib = require('../lib/episodes');
 const micBadge = require('../lib/micBadge');
 const { getStorageHealth } = require('../lib/storageHealth');
 const { getShareLinks } = require('../lib/qrShare');
@@ -1355,6 +1359,73 @@ router.patch('/drivers-wall/:id', (req, res) => {
   }
   db.prepare(`UPDATE drivers_wall SET status = 'removed', removed_at = datetime('now'), removed_by = ? WHERE id = ?`).run(adminId, id);
   res.json({ success: true, status: 'removed' });
+});
+
+const videoDir = path.join(__dirname, '..', 'public', 'videos');
+if (!fs.existsSync(videoDir)) fs.mkdirSync(videoDir, { recursive: true });
+
+const episodeVideoUpload = multer({
+  storage: multer.diskStorage({
+    destination: function (req, file, cb) { cb(null, videoDir); },
+    filename: function (req, file, cb) {
+      const ext = path.extname(file.originalname || '').toLowerCase() === '.webm' ? '.webm' : '.mp4';
+      cb(null, 'episode-' + Date.now() + ext);
+    },
+  }),
+  limits: { fileSize: 80 * 1024 * 1024 },
+  fileFilter: function (req, file, cb) {
+    const name = String(file.originalname || '').toLowerCase();
+    const mime = String(file.mimetype || '').toLowerCase();
+    if (mime === 'video/mp4' || mime === 'video/webm' || /\.(mp4|webm)$/.test(name)) return cb(null, true);
+    return cb(new Error('Use an MP4 video.'));
+  },
+});
+
+router.get('/episodes', (req, res) => {
+  const rows = episodesLib.listEpisodes(true).map(function (ep) {
+    const stats = episodesLib.episodeStats(ep.id);
+    return Object.assign({}, ep, {
+      plays: stats ? stats.plays : 0,
+      viewers: stats ? stats.viewers : 0,
+      median_exit_label: stats ? stats.medianExitLabel : null,
+    });
+  });
+  res.json({ episodes: rows });
+});
+
+router.get('/episodes/:id/stats', (req, res) => {
+  const stats = episodesLib.episodeStats(req.params.id);
+  if (!stats) return res.status(404).json({ error: 'Episode not found.' });
+  res.json(stats);
+});
+
+router.post('/episodes/upload', (req, res) => {
+  episodeVideoUpload.single('video')(req, res, function (err) {
+    if (err) {
+      const tooBig = err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE';
+      return res.status(400).json({ error: tooBig ? 'That video is over 80 MB.' : (err.message || 'Upload failed.') });
+    }
+    if (!req.file) return res.status(400).json({ error: 'Choose a video file first.' });
+    res.json({ success: true, video_path: '/videos/' + req.file.filename });
+  });
+});
+
+router.post('/episodes', (req, res) => {
+  const result = episodesLib.saveEpisode(req.body || {}, null);
+  if (result.error) return res.status(400).json({ error: result.error });
+  res.json({ success: true, episode: result.episode });
+});
+
+router.put('/episodes/:id', (req, res) => {
+  const result = episodesLib.saveEpisode(req.body || {}, req.params.id);
+  if (result.error) return res.status(result.error === 'Episode not found.' ? 404 : 400).json({ error: result.error });
+  res.json({ success: true, episode: result.episode });
+});
+
+router.delete('/episodes/:id', (req, res) => {
+  const ok = episodesLib.deleteEpisode(req.params.id);
+  if (!ok) return res.status(404).json({ error: 'Episode not found.' });
+  res.json({ success: true });
 });
 
 module.exports = router;

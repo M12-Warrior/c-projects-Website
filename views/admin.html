@@ -84,6 +84,7 @@
         <button type="button" class="admin-tab active" data-tab="dashboard">Dashboard</button>
         <button type="button" class="admin-tab" data-tab="users">Users</button>
         <button type="button" class="admin-tab" data-tab="blog">Blog</button>
+        <button type="button" class="admin-tab" data-tab="episodes">Episodes</button>
         <button type="button" class="admin-tab" data-tab="socialButterflies">Social Butterflies</button>
         <button type="button" class="admin-tab" data-tab="forum">Forum</button>
         <button type="button" class="admin-tab" data-tab="shop">Shop</button>
@@ -250,6 +251,43 @@
           <thead><tr><th>Image</th><th>Title</th><th>Audience</th><th>Author</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
           <tbody id="blogTable"></tbody>
         </table>
+      </div>
+
+      <div id="tabEpisodes" class="admin-tab-content hidden">
+        <div class="flex-between mb-16" style="flex-wrap:wrap;gap:12px;">
+          <h3>Episodes</h3>
+          <button type="button" class="btn btn-primary" id="episodeNewBtn">New episode</button>
+        </div>
+        <p style="color:var(--text-2);font-size:0.9rem;margin-top:-8px;margin-bottom:16px;">Add and edit the animated shorts. Traffic shows who opened the page, who pressed play, and the moment they left the video.</p>
+        <div id="episodeFormWrap" class="hidden profile-section" style="margin-bottom:24px;">
+          <form id="episodeForm">
+            <input type="hidden" id="episodeEditId" value="">
+            <div class="form-group"><label class="form-label" for="episodeNumber">Episode number</label><input type="number" id="episodeNumber" class="form-input" min="1" max="999" required style="max-width:120px;"></div>
+            <div class="form-group"><label class="form-label" for="episodeTitle">Title</label><input type="text" id="episodeTitle" class="form-input" maxlength="140" required></div>
+            <div class="form-group"><label class="form-label" for="episodeSummary">Public summary</label><textarea id="episodeSummary" class="form-input" rows="4" maxlength="2000"></textarea>
+              <p style="font-size:0.78rem;color:var(--text-3);margin-top:4px;">Shown under the player. Keep it on fatigue and the industry. Do not name people from a real crash.</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="episodeVideoFile">Video</label>
+              <input type="file" id="episodeVideoFile" accept="video/mp4,video/webm,.mp4,.webm">
+              <p id="episodeVideoPath" style="font-size:0.8rem;color:var(--text-2);margin-top:6px;"></p>
+              <p style="font-size:0.78rem;color:var(--text-3);margin-top:4px;">MP4, up to 80 MB. Leave the file empty when editing if you want to keep the current video.</p>
+            </div>
+            <div class="form-group"><label class="form-label" for="episodeDuration">Length in seconds</label><input type="number" id="episodeDuration" class="form-input" min="1" max="3600" style="max-width:140px;">
+              <p style="font-size:0.78rem;color:var(--text-3);margin-top:4px;">Used to draw the drop-off chart. Mile Marker 71 is 94 seconds.</p>
+            </div>
+            <div class="form-group"><label class="form-label"><input type="checkbox" id="episodePublished" checked style="margin-right:8px;">Published</label></div>
+            <div class="flex-between" style="flex-wrap:wrap;gap:10px;">
+              <button type="button" class="btn btn-glass" id="episodeCancelBtn">Cancel</button>
+              <button type="submit" class="btn btn-primary" id="episodeSaveBtn">Save episode</button>
+            </div>
+          </form>
+        </div>
+        <table class="admin-table">
+          <thead><tr><th>#</th><th>Title</th><th>Status</th><th>Plays</th><th>Left around</th><th>Actions</th></tr></thead>
+          <tbody id="episodeTable"></tbody>
+        </table>
+        <div id="episodeStats" class="admin-section" style="margin-top:24px;"></div>
       </div>
 
       <div id="tabSocialButterflies" class="admin-tab-content hidden">
@@ -3470,6 +3508,192 @@
         }
       }
 
+      var episodeVideoPathValue = '';
+
+      function resetEpisodeForm() {
+        document.getElementById('episodeEditId').value = '';
+        document.getElementById('episodeNumber').value = '';
+        document.getElementById('episodeTitle').value = '';
+        document.getElementById('episodeSummary').value = '';
+        document.getElementById('episodeDuration').value = '';
+        document.getElementById('episodePublished').checked = true;
+        document.getElementById('episodeVideoFile').value = '';
+        episodeVideoPathValue = '';
+        document.getElementById('episodeVideoPath').textContent = '';
+        document.getElementById('episodeSaveBtn').textContent = 'Save episode';
+      }
+
+      function showEpisodeForm(ep) {
+        var wrap = document.getElementById('episodeFormWrap');
+        wrap.classList.remove('hidden');
+        if (!ep) {
+          resetEpisodeForm();
+          document.getElementById('episodeTitle').focus();
+          return;
+        }
+        document.getElementById('episodeEditId').value = ep.id;
+        document.getElementById('episodeNumber').value = ep.episode_number;
+        document.getElementById('episodeTitle').value = ep.title || '';
+        document.getElementById('episodeSummary').value = ep.summary || '';
+        document.getElementById('episodeDuration').value = ep.duration_seconds || '';
+        document.getElementById('episodePublished').checked = !!ep.published;
+        document.getElementById('episodeVideoFile').value = '';
+        episodeVideoPathValue = ep.video_path || '';
+        document.getElementById('episodeVideoPath').textContent = episodeVideoPathValue ? ('Current video: ' + episodeVideoPathValue) : '';
+        document.getElementById('episodeSaveBtn').textContent = 'Save changes';
+        wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      async function uploadEpisodeVideo() {
+        var fileInput = document.getElementById('episodeVideoFile');
+        if (!fileInput.files || !fileInput.files[0]) return episodeVideoPathValue;
+        var data = new FormData();
+        data.append('video', fileInput.files[0]);
+        var res = await fetch('/api/admin/episodes/upload', { method: 'POST', credentials: 'include', body: data });
+        var json = await res.json().catch(function () { return {}; });
+        if (!res.ok) throw new Error(json.error || 'Video upload failed.');
+        episodeVideoPathValue = json.video_path;
+        return json.video_path;
+      }
+
+      function renderEpisodeStats(stats) {
+        var box = document.getElementById('episodeStats');
+        if (!stats) { box.innerHTML = ''; return; }
+        var maxExited = 1;
+        (stats.buckets || []).forEach(function (b) { if (b.exited > maxExited) maxExited = b.exited; });
+        var bars = (stats.buckets || []).map(function (b) {
+          var height = Math.round((b.exited / maxExited) * 100);
+          return '<div class="episode-exit-col" title="' + escapeHtml(b.label) + ': ' + b.exited + ' left, ' + b.reached + ' reached this point">'
+            + '<div class="episode-exit-bar" style="height:' + height + '%"></div>'
+            + '<span>' + escapeHtml(b.label) + '</span>'
+            + '</div>';
+        }).join('');
+        var exitLine = stats.biggestExit && stats.biggestExit.exited
+          ? ('Most people who left early did it around ' + escapeHtml(stats.biggestExit.label) + '.')
+          : 'No early exits yet.';
+        var medianLine = stats.medianExitLabel
+          ? ('Typical exit for people who did not finish: ' + escapeHtml(stats.medianExitLabel) + '.')
+          : 'Nobody has left early yet.';
+        var recent = (stats.recent || []).map(function (row) {
+          var how = row.completed ? 'Finished' : ('Left at ' + row.exit_label);
+          return '<tr><td>' + escapeHtml(formatDate(row.started_at)) + '</td><td>' + escapeHtml(row.viewer) + '</td><td>' + escapeHtml(how) + '</td><td>' + escapeHtml(row.max_label) + '</td></tr>';
+        }).join('');
+        box.innerHTML = '<h3 style="margin-bottom:8px;">' + escapeHtml(stats.episode.title) + ' — watching</h3>'
+          + '<p style="color:var(--text-2);font-size:0.9rem;margin-bottom:12px;">Page views count opens. Plays count people who started the video. The bars are where they clicked out or left the page. Reach is how far they got before that.</p>'
+          + '<div class="admin-grid" style="margin-bottom:16px;">'
+          + '<div class="admin-stat"><span class="admin-stat-num">' + (stats.episodeViews + stats.seriesViews) + '</span><span class="admin-stat-label">Page views</span></div>'
+          + '<div class="admin-stat"><span class="admin-stat-num">' + stats.episodeViews + '</span><span class="admin-stat-label">This episode URL</span></div>'
+          + '<div class="admin-stat"><span class="admin-stat-num">' + stats.seriesViews + '</span><span class="admin-stat-label">Series page</span></div>'
+          + '<div class="admin-stat"><span class="admin-stat-num">' + stats.plays + '</span><span class="admin-stat-label">Plays</span></div>'
+          + '<div class="admin-stat"><span class="admin-stat-num">' + stats.viewers + '</span><span class="admin-stat-label">Viewers</span></div>'
+          + '<div class="admin-stat"><span class="admin-stat-num">' + stats.finished + '</span><span class="admin-stat-label">Finished</span></div>'
+          + '</div>'
+          + '<p style="color:var(--text-2);font-size:0.9rem;">' + exitLine + ' ' + medianLine + '</p>'
+          + '<div class="episode-exit-chart" aria-label="Where viewers left the video">' + bars + '</div>'
+          + '<table class="admin-table" style="margin-top:16px;"><thead><tr><th>When</th><th>Viewer</th><th>Left</th><th>Furthest point</th></tr></thead><tbody>'
+          + (recent || '<tr><td colspan="4">No plays yet.</td></tr>')
+          + '</tbody></table>';
+      }
+
+      async function loadEpisodeStats(id) {
+        var res = await fetch('/api/admin/episodes/' + id + '/stats', { credentials: 'include' });
+        var json = await res.json().catch(function () { return {}; });
+        if (!res.ok) { showToast(json.error || 'Could not load episode traffic.', false); return; }
+        renderEpisodeStats(json);
+      }
+
+      async function loadEpisodes() {
+        var res = await fetch('/api/admin/episodes', { credentials: 'include' });
+        var json = await res.json().catch(function () { return {}; });
+        var tbody = document.getElementById('episodeTable');
+        if (!res.ok) {
+          tbody.innerHTML = '<tr><td colspan="6">Could not load episodes.</td></tr>';
+          return;
+        }
+        var rows = json.episodes || [];
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="6">No episodes yet.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = rows.map(function (ep) {
+          return '<tr><td>' + escapeHtml(ep.episode_number) + '</td><td>' + escapeHtml(ep.title) + '</td><td>'
+            + (ep.published ? 'Published' : 'Draft') + '</td><td>' + (ep.plays || 0) + '</td><td>'
+            + escapeHtml(ep.median_exit_label || '—') + '</td><td>'
+            + '<button type="button" class="btn btn-glass episode-edit" data-id="' + ep.id + '">Edit</button> '
+            + '<button type="button" class="btn btn-glass episode-stats" data-id="' + ep.id + '">Traffic</button> '
+            + '<a class="btn btn-glass" href="/episodes/' + encodeURIComponent(ep.slug) + '" target="_blank" rel="noopener">View</a> '
+            + '<button type="button" class="btn btn-glass episode-delete" data-id="' + ep.id + '">Delete</button>'
+            + '</td></tr>';
+        }).join('');
+        tbody.querySelectorAll('.episode-edit').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var id = btn.getAttribute('data-id');
+            var ep = rows.filter(function (row) { return String(row.id) === String(id); })[0];
+            if (ep) showEpisodeForm(ep);
+          });
+        });
+        tbody.querySelectorAll('.episode-stats').forEach(function (btn) {
+          btn.addEventListener('click', function () { loadEpisodeStats(btn.getAttribute('data-id')); });
+        });
+        tbody.querySelectorAll('.episode-delete').forEach(function (btn) {
+          btn.addEventListener('click', async function () {
+            if (!confirmAction('Delete this episode and its watch history?')) return;
+            var del = await fetch('/api/admin/episodes/' + btn.getAttribute('data-id'), { method: 'DELETE', credentials: 'include' });
+            var body = await del.json().catch(function () { return {}; });
+            if (!del.ok) { showToast(body.error || 'Could not delete.', false); return; }
+            showToast('Episode deleted.', true);
+            document.getElementById('episodeStats').innerHTML = '';
+            loadEpisodes();
+          });
+        });
+      }
+
+      function bindEpisodeAdmin() {
+        if (window._episodeAdminBound) return;
+        window._episodeAdminBound = true;
+        document.getElementById('episodeNewBtn').addEventListener('click', function () { showEpisodeForm(null); });
+        document.getElementById('episodeCancelBtn').addEventListener('click', function () {
+          document.getElementById('episodeFormWrap').classList.add('hidden');
+          resetEpisodeForm();
+        });
+        document.getElementById('episodeForm').addEventListener('submit', async function (e) {
+          e.preventDefault();
+          var saveBtn = document.getElementById('episodeSaveBtn');
+          saveBtn.disabled = true;
+          try {
+            var videoPath = await uploadEpisodeVideo();
+            if (!videoPath) throw new Error('Add an MP4 before saving.');
+            var id = document.getElementById('episodeEditId').value;
+            var payload = {
+              episode_number: document.getElementById('episodeNumber').value,
+              title: document.getElementById('episodeTitle').value,
+              summary: document.getElementById('episodeSummary').value,
+              duration_seconds: document.getElementById('episodeDuration').value,
+              published: document.getElementById('episodePublished').checked ? 1 : 0,
+              video_path: videoPath
+            };
+            var res = await fetch(id ? ('/api/admin/episodes/' + id) : '/api/admin/episodes', {
+              method: id ? 'PUT' : 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            var json = await res.json().catch(function () { return {}; });
+            if (!res.ok) throw new Error(json.error || 'Could not save the episode.');
+            showToast('Episode saved.', true);
+            document.getElementById('episodeFormWrap').classList.add('hidden');
+            resetEpisodeForm();
+            loadEpisodes();
+          } catch (err) {
+            showToast(err.message || 'Could not save the episode.', false);
+          } finally {
+            saveBtn.disabled = false;
+          }
+        });
+      }
+      bindEpisodeAdmin();
+
+      window.loadEpisodes = loadEpisodes;
       window.loadDashboard = loadDashboard;
       window.loadUsers = loadUsers;
       window.loadBlog = loadBlog;

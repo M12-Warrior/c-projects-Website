@@ -180,7 +180,7 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   if (req.method !== 'GET') return next();
   if (req.path.startsWith('/api')) return next();
-  if (/\.(css|js|ico|svg|png|jpg|jpeg|gif|webp|woff2?|ttf|map)(\?|$)/i.test(req.path)) return next();
+  if (/\.(css|js|ico|svg|png|jpg|jpeg|gif|webp|woff2?|ttf|map|mp4|webm)(\?|$)/i.test(req.path)) return next();
   const pathSeg = (req.path || '/').split('?')[0];
   const visitorKey = (req.session && req.sessionID) ? String(req.sessionID) : crypto.createHash('sha256').update((req.get('x-forwarded-for') || req.ip || '') + (req.get('user-agent') || '')).digest('hex').slice(0, 32);
   const userId = (req.session && req.session.user && req.session.user.id) ? req.session.user.id : null;
@@ -233,6 +233,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/auth/2fa', require('./routes/twofa'));
 app.use('/api/account', require('./routes/account'));
 app.use('/api/blog', require('./routes/blog'));
+app.use('/api/episodes', require('./routes/episodes'));
 app.use('/api/forum', require('./routes/forum'));
 app.use('/api/shop', require('./routes/shop'));
 app.use('/api/stripe', require('./routes/stripe').router);
@@ -285,7 +286,18 @@ app.get('/sitemap.xml', (req, res) => {
         ORDER BY created_at DESC
       `).all();
     } catch (_) {}
-    const xml = seo.buildSitemapXml(base, posts);
+    let xml = seo.buildSitemapXml(base, posts);
+    try {
+      const episodeRows = db.prepare("SELECT slug, updated_at FROM episodes WHERE published = 1 ORDER BY episode_number ASC").all();
+      const extra = episodeRows.map(function (ep) {
+        const loc = base + '/episodes/' + encodeURIComponent(ep.slug);
+        const lastmod = ep.updated_at ? String(ep.updated_at).slice(0, 10) : '';
+        return '  <url>\n    <loc>' + seo.escapeHtml(loc) + '</loc>\n'
+          + (lastmod ? '    <lastmod>' + seo.escapeHtml(lastmod) + '</lastmod>\n' : '')
+          + '    <changefreq>monthly</changefreq>\n    <priority>0.6</priority>\n  </url>';
+      }).join('\n');
+      if (extra) xml = xml.replace('</urlset>', extra + '\n</urlset>');
+    } catch (_) {}
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=3600');
     res.send(xml);
@@ -443,8 +455,31 @@ app.get('/about', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'about.html'));
 });
 
+function sendEpisodesPage(req, res, slug) {
+  const episodesLib = require('./lib/episodes');
+  const page = episodesLib.renderPublic(slug);
+  if (slug && !page.found) {
+    res.status(404);
+  }
+  let html = fs.readFileSync(path.join(__dirname, 'views', 'episodes.html'), 'utf8');
+  const json = page.jsonLd
+    ? '<script type="application/ld+json">\n  ' + JSON.stringify(page.jsonLd) + '\n  </script>'
+    : '';
+  html = html.replace('<!-- EPISODE_TITLE -->', seo.escapeHtml(page.title));
+  html = html.replace('<!-- EPISODE_DESC -->', seo.escapeAttr(page.description));
+  html = html.replace('<!-- EPISODE_CANONICAL -->', seo.escapeAttr('https://mile12warrior.com' + page.canonicalPath));
+  html = html.replace('<!-- EPISODE_JSONLD -->', json);
+  html = html.replace('<!-- EPISODE_MOUNT -->', page.mount);
+  res.setHeader('Cache-Control', 'no-store');
+  res.type('html').send(html);
+}
+
 app.get('/episodes', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'episodes.html'));
+  sendEpisodesPage(req, res, '');
+});
+
+app.get('/episodes/:slug', (req, res) => {
+  sendEpisodesPage(req, res, req.params.slug);
 });
 
 app.get('/social-butterflies', (req, res) => {
