@@ -443,6 +443,10 @@ app.get('/about', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'about.html'));
 });
 
+app.get('/episodes', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'episodes.html'));
+});
+
 app.get('/social-butterflies', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'social-butterflies.html'));
 });

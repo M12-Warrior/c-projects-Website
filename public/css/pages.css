@@ -2045,3 +2045,87 @@ body.forum-coffee-shop .forum-category-header .page-title {
     padding: 24px 18px;
   }
 }
+
+/* Episodes — short animated series */
+.episode-layout {
+  display: grid;
+  gap: 24px;
+}
+.episode-card p {
+  font-size: 0.95rem;
+  color: var(--text-2);
+  line-height: 1.75;
+  margin-top: 16px;
+}
+.episode-card .episode-kicker {
+  margin-top: 0;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.episode-stage {
+  margin-top: 16px;
+  background: #141416;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.episode-stage video {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #000;
+}
+.episode-note {
+  font-size: 0.85rem !important;
+  color: var(--text-3) !important;
+  line-height: 1.65;
+}
+.episode-side {
+  display: grid;
+  gap: 24px;
+  align-content: start;
+}
+.episode-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.episode-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+.episode-list li span {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+}
+.episode-links {
+  margin: 12px 0 0;
+  padding-left: 1.1rem;
+  color: var(--text-2);
+  line-height: 1.8;
+}
+.episode-home-card {
+  margin-top: 28px;
+}
+.episode-home-card .btn {
+  margin-top: 14px;
+}
+@media (min-width: 900px) {
+  .episode-layout {
+    grid-template-columns: minmax(0, 1.7fr) minmax(240px, 0.7fr);
+    align-items: start;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .episode-stage video {
+    transition: none;
+  }
+}

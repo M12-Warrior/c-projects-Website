@@ -2829,3 +2829,9 @@ body.nd-prompt-open {
   padding: 6px 14px;
   font-size: 0.82rem;
 }
+.episode-home-card {
+  margin-top: 28px;
+}
+.episode-home-card .btn {
+  margin-top: 14px;
+}
