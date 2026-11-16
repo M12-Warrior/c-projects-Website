@@ -1,0 +1,4 @@
+Nickname,Bank_or_Card,Last4,Purpose,Still_Open,Primary_For,Notes
+Example Ops Checking,Chase,1234,Business only,Yes,"Vendors; hosting",Replace this row with your real account
+Example Biz Card,Chase Ink,5678,Business only,Yes,Subscriptions,
+Stripe,Stripe,—,Business income,Yes,Shop payouts,Payouts land in which bank?

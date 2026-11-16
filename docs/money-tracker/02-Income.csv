@@ -1,0 +1,2 @@
+Date,Source,Description,Amount,Deposited_To_Account,Reference,Notes
+2026-08-01,Stripe,Example shop payout,100.00,Example Ops Checking,po_123,Delete example rows when you start

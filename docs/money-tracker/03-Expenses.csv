@@ -1,0 +1,3 @@
+Date,Vendor,Category,Amount,Paid_From_Account,Receipt_File,Tax_Relevant,Notes
+2026-08-01,Railway,Website hosting,20.00,Example Biz Card,2026-08-01_Railway_20.00.pdf,Yes,Delete example row when you start
+2026-08-05,Office store,Office supplies,47.32,Example Biz Card,2026-08-05_OfficeDepot_47.32.pdf,Yes,One row for whole business total is fine

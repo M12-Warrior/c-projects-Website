@@ -14,6 +14,10 @@ db/drivershield.db
 # Marketing portal attachments (local + volume copies)
 public/marketing-files/
 marketing-files/
+
+# Private business vault / legal scans (never commit EIN, W-9, OS docs, etc.)
+docs/Mile12Warrior-Business/
+docs/Mile12Warrior-Busines/
 # Any local/test SQLite databases (never commit these)
 *.db
 _test_railway.db

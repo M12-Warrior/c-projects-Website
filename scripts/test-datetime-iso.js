@@ -1,0 +1,13 @@
+'use strict';
+const Database = require('better-sqlite3');
+const db = new Database(':memory:');
+db.exec('CREATE TABLE orders (id INTEGER, total REAL, status TEXT, payment_status TEXT, paid_at TEXT, created_at TEXT)');
+db.prepare("INSERT INTO orders VALUES (1,49.99,'completed','pending',NULL,'2026-03-15T10:00:00.000Z')").run();
+db.prepare("INSERT INTO orders VALUES (2,49.99,'completed','pending',NULL,'2026-03-15 10:00:00')").run();
+db.prepare("INSERT INTO orders VALUES (3,49.99,'paid','pending',NULL,'2026-03-15 10:00:00')").run();
+const PAID = "LOWER(COALESCE(status, '')) != 'cancelled' AND (LOWER(COALESCE(payment_status, '')) = 'paid' OR (LOWER(COALESCE(payment_status, '')) IN ('', 'pending') AND LOWER(COALESCE(status, '')) IN ('completed', 'processing', 'shipped', 'delivered') AND COALESCE(total, 0) > 0))";
+const RD = 'datetime(COALESCE(paid_at, created_at))';
+console.log('all paid:', db.prepare('SELECT id, ' + RD + ' AS d FROM orders WHERE ' + PAID).all());
+console.log('cal 2026:', db.prepare('SELECT id FROM orders WHERE ' + PAID + ' AND ' + RD + ' >= datetime(?) AND ' + RD + ' <= datetime(?)').all('2026-01-01 00:00:00', '2026-12-31 23:59:59'));
+console.log('fy2027:', db.prepare('SELECT id FROM orders WHERE ' + PAID + ' AND ' + RD + ' >= datetime(?) AND ' + RD + ' <= datetime(?)').all('2026-05-01 00:00:00', '2027-04-30 23:59:59'));
+db.close();
