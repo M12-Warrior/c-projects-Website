@@ -455,6 +455,14 @@ app.get('/about', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'about.html'));
 });
 
+function sendHtmlWithCanonical(req, res, viewName, pathSuffix) {
+  const base = siteBaseUrl(req) || 'https://mile12warrior.com';
+  let html = fs.readFileSync(path.join(__dirname, 'views', viewName), 'utf8');
+  html = html.replace('<!-- PAGE_CANONICAL -->', seo.escapeAttr(base + pathSuffix));
+  res.setHeader('Cache-Control', 'no-store');
+  res.type('html').send(html);
+}
+
 function sendEpisodesPage(req, res, slug) {
   const episodesLib = require('./lib/episodes');
   const page = episodesLib.renderPublic(slug);
@@ -601,11 +609,13 @@ app.get('/forum', (req, res) => {
 });
 
 app.get('/forum/category/:slug', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'forum-category.html'));
+  const slug = encodeURIComponent(String(req.params.slug || '').trim());
+  sendHtmlWithCanonical(req, res, 'forum-category.html', '/forum/category/' + slug);
 });
 
 app.get('/forum/thread/:slug', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'forum-thread.html'));
+  const slug = encodeURIComponent(String(req.params.slug || '').trim());
+  sendHtmlWithCanonical(req, res, 'forum-thread.html', '/forum/thread/' + slug);
 });
 
 app.get('/forum/rules', (req, res) => {
@@ -625,7 +635,8 @@ app.get('/shop/product/:slug', (req, res) => {
   if (req.params.slug === 'trucker-wellness-journal') {
     return res.redirect(301, '/shop/product/trucker-wellness-journal-monthly');
   }
-  res.sendFile(path.join(__dirname, 'views', 'shop-product.html'));
+  const slug = encodeURIComponent(String(req.params.slug || '').trim());
+  sendHtmlWithCanonical(req, res, 'shop-product.html', '/shop/product/' + slug);
 });
 
 app.get('/shop/cart', (req, res) => {
