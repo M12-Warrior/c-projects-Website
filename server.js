@@ -465,9 +465,10 @@ function sendEpisodesPage(req, res, slug) {
   const json = page.jsonLd
     ? '<script type="application/ld+json">\n  ' + JSON.stringify(page.jsonLd) + '\n  </script>'
     : '';
-  html = html.replace('<!-- EPISODE_TITLE -->', seo.escapeHtml(page.title));
-  html = html.replace('<!-- EPISODE_DESC -->', seo.escapeAttr(page.description));
-  html = html.replace('<!-- EPISODE_CANONICAL -->', seo.escapeAttr('https://mile12warrior.com' + page.canonicalPath));
+  html = html.replaceAll('<!-- EPISODE_TITLE -->', seo.escapeHtml(page.title));
+  html = html.replaceAll('<!-- EPISODE_DESC -->', seo.escapeAttr(page.description));
+  html = html.replaceAll('<!-- EPISODE_CANONICAL -->', seo.escapeAttr('https://mile12warrior.com' + page.canonicalPath));
+  html = html.replace('<!-- EPISODE_IMAGE -->', seo.escapeAttr(page.image || 'https://mile12warrior.com/images/logo.png'));
   html = html.replace('<!-- EPISODE_JSONLD -->', json);
   html = html.replace('<!-- EPISODE_MOUNT -->', page.mount);
   res.setHeader('Cache-Control', 'no-store');
