@@ -636,11 +636,19 @@ app.get('/shop', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'shop.html'));
 });
 
-app.get('/go/road-pick/:id', (req, res) => {
-  const url = require('./lib/roadPicks').destinationForClick(req.params.id);
+function sendRoadPick(req, res, optionId) {
+  const url = require('./lib/roadPicks').destinationForClick(req.params.id, optionId);
   if (!url) return res.status(404).type('html').send('That pick is not on the shop.');
   res.set('Cache-Control', 'no-store');
   res.redirect(302, url);
+}
+
+app.get('/go/road-pick/:id/option/:optionId', (req, res) => {
+  sendRoadPick(req, res, req.params.optionId);
+});
+
+app.get('/go/road-pick/:id', (req, res) => {
+  sendRoadPick(req, res);
 });
 
 app.get('/shop/product/:slug', (req, res) => {

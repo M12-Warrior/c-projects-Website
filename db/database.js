@@ -1330,6 +1330,7 @@ db.exec(`
     aisle TEXT NOT NULL,
     asin TEXT NOT NULL UNIQUE,
     image_url TEXT,
+    choice_label TEXT,
     active INTEGER DEFAULT 1,
     sort_order INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -1338,9 +1339,23 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS road_pick_clicks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     pick_id INTEGER NOT NULL REFERENCES road_picks(id) ON DELETE CASCADE,
+    option_id INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
   CREATE INDEX IF NOT EXISTS idx_road_pick_clicks_pick ON road_pick_clicks(pick_id, created_at);
+
+  CREATE TABLE IF NOT EXISTS road_pick_options (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pick_id INTEGER NOT NULL REFERENCES road_picks(id) ON DELETE CASCADE,
+    label TEXT NOT NULL,
+    asin TEXT NOT NULL UNIQUE,
+    image_url TEXT,
+    sort_order INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
+
+try { db.exec('ALTER TABLE road_picks ADD COLUMN choice_label TEXT'); } catch (_) {}
+try { db.exec('ALTER TABLE road_pick_clicks ADD COLUMN option_id INTEGER'); } catch (_) {}
 
 module.exports = db;

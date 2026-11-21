@@ -447,6 +447,13 @@
           '<div class="product-body">' +
             '<h4 class="product-name">' + escapeHtml(p.name) + '</h4>' +
             '<p class="product-desc">' + escapeHtml(p.blurb || '') + '</p>' +
+            (p.choices && p.choices.length
+              ? '<label class="road-pick-choice">Color<select class="road-pick-choice-select">' +
+                  p.choices.map(function(choice) {
+                    return '<option value="' + escapeHtml(choice.href) + '" data-image="' + escapeHtml(choice.image_url || '') + '">' + escapeHtml(choice.label) + '</option>';
+                  }).join('') +
+                '</select></label>'
+              : '') +
           '</div>' +
           '<div class="product-actions">' +
             '<a class="btn-add-cart road-pick-link" href="' + escapeHtml(p.href) + '" target="_blank" rel="sponsored noopener noreferrer">View on Amazon</a>' +
@@ -476,6 +483,24 @@
             return '<h3 class="road-picks-aisle">' + escapeHtml(group.label) + '</h3>' +
               '<div class="shop-grid">' + group.items.map(roadPickCard).join('') + '</div>';
           }).join('');
+          if (!window._roadPickChoicesBound) {
+            window._roadPickChoicesBound = true;
+            document.addEventListener('change', function(e) {
+              var sel = e.target.closest ? e.target.closest('.road-pick-choice-select') : null;
+              if (!sel) return;
+              var card = sel.closest('.product-card');
+              if (!card) return;
+              var opt = sel.options[sel.selectedIndex];
+              var link = card.querySelector('.road-pick-link');
+              if (link && opt) link.href = opt.value;
+              var img = card.querySelector('.product-image img');
+              var image = opt ? opt.getAttribute('data-image') : '';
+              if (img && image) {
+                img.style.display = '';
+                img.src = image;
+              }
+            });
+          }
           if (window.refreshReveal) window.refreshReveal();
         } catch (_) {
           root.innerHTML = '';

@@ -1090,6 +1090,23 @@ body.forum-coffee-shop .forum-category-header .page-title {
   text-align: center;
   text-decoration: none;
 }
+.road-pick-choice {
+  display: block;
+  margin-top: 12px;
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+.road-pick-choice select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
 .road-pick-paid {
   margin: 0 20px 16px;
   font-size: 0.75rem;

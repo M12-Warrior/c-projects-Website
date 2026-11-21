@@ -342,7 +342,7 @@
       <div id="tabShop" class="admin-tab-content hidden">
         <div class="admin-section">
           <h3>Road picks</h3>
-          <p style="color:var(--text-2);font-size:0.9rem;margin-bottom:16px;max-width:720px;">Amazon items on the public shop. Paste a product link. The site adds the Associates tag and counts each View on Amazon click. Hide a pick to take it off the shop without losing its count. Delete removes it.</p>
+          <p style="color:var(--text-2);font-size:0.9rem;margin-bottom:16px;max-width:720px;">Amazon items on the public shop. Paste a product link. The site adds the Associates tag and counts each View on Amazon click. Hide a pick to take it off the shop without losing its count. Delete removes it. For another color of the same item, edit the pick and add a color. The shop shows one card with a color menu. Each color keeps its own link and click count.</p>
           <div class="profile-section" style="margin-bottom:24px;max-width:720px;">
             <form id="roadPickForm">
               <input type="hidden" id="roadPickId" value="">
@@ -358,6 +358,16 @@
                 </select>
               </div>
               <div class="form-group"><label class="form-label" for="roadPickImage">Image link (optional, https)</label><input type="text" id="roadPickImage" class="form-input" placeholder="https://..."></div>
+              <div id="roadPickColors" class="hidden">
+                <div class="form-group"><label class="form-label" for="roadPickChoice">Name of the first color</label><input type="text" id="roadPickChoice" class="form-input" placeholder="Black"></div>
+                <div id="roadPickColorList"></div>
+                <div class="form-group">
+                  <label class="form-label" for="roadPickColorName">Add another color</label>
+                  <input type="text" id="roadPickColorName" class="form-input" placeholder="Navy" style="margin-bottom:8px;">
+                  <input type="text" id="roadPickColorLink" class="form-input" placeholder="Amazon link for this color">
+                  <button type="button" class="btn btn-glass" id="roadPickColorAdd" style="margin-top:8px;">Add color</button>
+                </div>
+              </div>
               <div class="flex-between mt-16">
                 <button type="button" class="btn btn-glass" id="roadPickCancelBtn">Clear</button>
                 <button type="submit" class="btn btn-primary" id="roadPickSaveBtn">Add to shop</button>
@@ -2477,9 +2487,41 @@
         var idEl = document.getElementById('roadPickId');
         var form = document.getElementById('roadPickForm');
         var saveBtn = document.getElementById('roadPickSaveBtn');
+        var colors = document.getElementById('roadPickColors');
+        var list = document.getElementById('roadPickColorList');
         if (form) form.reset();
         if (idEl) idEl.value = '';
         if (saveBtn) saveBtn.textContent = 'Add to shop';
+        if (colors) colors.classList.add('hidden');
+        if (list) list.innerHTML = '';
+      }
+
+      function renderRoadPickColors(pick) {
+        var box = document.getElementById('roadPickColors');
+        var list = document.getElementById('roadPickColorList');
+        var choice = document.getElementById('roadPickChoice');
+        if (!box || !list) return;
+        if (!pick) {
+          box.classList.add('hidden');
+          list.innerHTML = '';
+          return;
+        }
+        box.classList.remove('hidden');
+        if (choice) choice.value = pick.choice_label || '';
+        var opts = pick.options || [];
+        list.innerHTML = opts.map(function(o) {
+          return '<div class="road-pick-color-row" data-option-id="' + escapeHtml(String(o.id)) + '" style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">' +
+            '<input class="form-input road-pick-color-label" value="' + escapeHtml(o.label) + '" style="max-width:180px;">' +
+            '<span style="color:var(--text-2);font-size:0.85rem;">' + (o.clicks_all || 0) + ' clicks</span>' +
+            '<button type="button" class="admin-btn road-pick-color-save">Save name</button>' +
+            '<button type="button" class="admin-btn road-pick-color-delete">Remove</button>' +
+          '</div>';
+        }).join('') || '<p style="color:var(--text-2);font-size:0.85rem;">No extra colors yet.</p>';
+      }
+
+      function currentRoadPick() {
+        var id = (document.getElementById('roadPickId').value || '').trim();
+        return (window._roadPickRows || []).filter(function(p) { return String(p.id) === id; })[0] || null;
       }
 
       function bindRoadPicks() {
@@ -2497,7 +2539,8 @@
               name: document.getElementById('roadPickName').value.trim(),
               blurb: document.getElementById('roadPickBlurb').value.trim(),
               aisle: document.getElementById('roadPickAisle').value,
-              image_url: document.getElementById('roadPickImage').value.trim()
+              image_url: document.getElementById('roadPickImage').value.trim(),
+              choice_label: (document.getElementById('roadPickChoice').value || '').trim()
             };
             if (!payload.name) { showToast('Name is required.', false); return; }
             if (!id && !payload.link) { showToast('Paste an Amazon link.', false); return; }
@@ -2517,6 +2560,69 @@
             } catch (_) { showToast('Could not save.', false); }
           });
         }
+        var colorBox = document.getElementById('roadPickColors');
+        if (colorBox) {
+          colorBox.addEventListener('click', async function(e) {
+            var id = (document.getElementById('roadPickId').value || '').trim();
+            if (!id) return;
+            var addBtn = e.target.closest('#roadPickColorAdd');
+            var saveBtn = e.target.closest('.road-pick-color-save');
+            var delBtn = e.target.closest('.road-pick-color-delete');
+            if (addBtn) {
+              var label = document.getElementById('roadPickColorName').value.trim();
+              var link = document.getElementById('roadPickColorLink').value.trim();
+              if (!label || !link) { showToast('Add a color name and an Amazon link.', false); return; }
+              try {
+                var ar = await fetch('/api/shop/admin/road-picks/' + id + '/options', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ label: label, link: link })
+                });
+                var adata = {};
+                try { adata = await ar.json(); } catch (_) {}
+                if (!ar.ok) { showToast(adata.error || 'Could not add that color.', false); return; }
+                document.getElementById('roadPickColorName').value = '';
+                document.getElementById('roadPickColorLink').value = '';
+                showToast('Color added.', true);
+                await loadRoadPicksAdmin();
+                renderRoadPickColors(currentRoadPick());
+              } catch (_) { showToast('Could not add that color.', false); }
+              return;
+            }
+            var row = e.target.closest('.road-pick-color-row');
+            if (!row) return;
+            var optionId = row.getAttribute('data-option-id');
+            if (saveBtn) {
+              var name = (row.querySelector('.road-pick-color-label').value || '').trim();
+              try {
+                var sr = await fetch('/api/shop/admin/road-picks/' + id + '/options/' + optionId, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ label: name })
+                });
+                var sdata = {};
+                try { sdata = await sr.json(); } catch (_) {}
+                if (!sr.ok) { showToast(sdata.error || 'Could not save that name.', false); return; }
+                showToast('Color name saved.', true);
+                await loadRoadPicksAdmin();
+                renderRoadPickColors(currentRoadPick());
+              } catch (_) { showToast('Could not save that name.', false); }
+              return;
+            }
+            if (delBtn) {
+              if (!confirmAction('Remove this color? Its click count goes with it.')) return;
+              try {
+                var drc = await fetch('/api/shop/admin/road-picks/' + id + '/options/' + optionId, { method: 'DELETE', credentials: 'include' });
+                if (!drc.ok) { showToast('Could not remove that color.', false); return; }
+                showToast('Color removed.', true);
+                await loadRoadPicksAdmin();
+                renderRoadPickColors(currentRoadPick());
+              } catch (_) { showToast('Could not remove that color.', false); }
+            }
+          });
+        }
         var table = document.getElementById('roadPicksTable');
         if (table) {
           table.addEventListener('click', async function(e) {
@@ -2534,6 +2640,7 @@
               document.getElementById('roadPickAisle').value = row.getAttribute('data-aisle') || 'cab-comfort';
               document.getElementById('roadPickImage').value = row.getAttribute('data-image') || '';
               document.getElementById('roadPickSaveBtn').textContent = 'Save changes';
+              renderRoadPickColors(currentRoadPick());
               document.getElementById('roadPickName').focus();
               return;
             }
@@ -2572,8 +2679,15 @@
           if (!res.ok) throw new Error('bad');
           var data = await res.json();
           var picks = data.picks || [];
+          window._roadPickRows = picks;
           el.innerHTML = picks.map(function(p) {
             var on = p.active ? 'Yes' : 'Hidden';
+            var colors = (p.options || []).map(function(o) {
+              return escapeHtml(o.label) + ' ' + (o.clicks_all || 0);
+            });
+            if (colors.length) {
+              colors.unshift(escapeHtml(p.choice_label || 'First color') + ' ' + (p.clicks_main || 0));
+            }
             return '<tr data-id="' + escapeHtml(String(p.id)) + '"' +
               ' data-active="' + (p.active ? '1' : '0') + '"' +
               ' data-name="' + escapeHtml(p.name || '') + '"' +
@@ -2581,7 +2695,9 @@
               ' data-aisle="' + escapeHtml(p.aisle || '') + '"' +
               ' data-image="' + escapeHtml(p.image_url || '') + '"' +
               ' data-amazon="' + escapeHtml(p.amazon_url || '') + '">' +
-              '<td>' + escapeHtml(p.name) + '</td>' +
+              '<td>' + escapeHtml(p.name) +
+                (colors.length ? '<div style="color:var(--text-2);font-size:0.8rem;margin-top:4px;">' + colors.join(' · ') + '</div>' : '') +
+              '</td>' +
               '<td>' + escapeHtml(p.aisle_label || p.aisle) + '</td>' +
               '<td>' + (p.clicks_7 || 0) + '</td>' +
               '<td>' + (p.clicks_30 || 0) + '</td>' +
