@@ -14,5 +14,6 @@ Disallow: /register
 Disallow: /forgot-password
 Disallow: /reset-password
 Disallow: /api/
+Disallow: /go/
 
 Sitemap: https://mile12warrior.com/sitemap.xml

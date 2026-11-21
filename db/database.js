@@ -1322,4 +1322,25 @@ try {
   console.error('[database] marketing partner seed failed:', err && err.message ? err.message : err);
 }
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS road_picks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    blurb TEXT,
+    aisle TEXT NOT NULL,
+    asin TEXT NOT NULL UNIQUE,
+    image_url TEXT,
+    active INTEGER DEFAULT 1,
+    sort_order INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS road_pick_clicks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pick_id INTEGER NOT NULL REFERENCES road_picks(id) ON DELETE CASCADE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE INDEX IF NOT EXISTS idx_road_pick_clicks_pick ON road_pick_clicks(pick_id, created_at);
+`);
+
 module.exports = db;

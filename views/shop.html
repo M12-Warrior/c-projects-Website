@@ -63,22 +63,7 @@
       <section class="road-picks" aria-labelledby="road-picks-title">
         <h2 id="road-picks-title" style="font-family:var(--font);font-size:1.2rem;font-weight:700;margin-bottom:8px">Road picks</h2>
         <p class="road-picks-note">Sold on Amazon. As an Amazon Associate I earn from qualifying purchases. These are convenience items. They are not safety equipment, and nothing here is claimed to meet a DOT or California rule. The current price is on Amazon.</p>
-        <h3 class="road-picks-aisle">Cab comfort</h3>
-        <div class="shop-grid">
-          <article class="product-card">
-            <div class="product-image">
-              <img src="https://m.media-amazon.com/images/I/31Y59BDm2ML._AC_SL500_.jpg" alt="Soft-sided rolling cooler with wheels, a handle, and two cup holders">
-            </div>
-            <div class="product-body">
-              <h4 class="product-name">Rolling soft cooler</h4>
-              <p class="product-desc">Collapsible cooler on wheels with a handle and two cup holders. It holds about 60 cans.</p>
-            </div>
-            <div class="product-actions">
-              <a class="btn-add-cart road-pick-link" href="https://www.amazon.com/dp/B0GKD6D3D4?tag=m12warrior-20" target="_blank" rel="sponsored noopener noreferrer">View on Amazon</a>
-            </div>
-            <p class="road-pick-paid">Paid link</p>
-          </article>
-        </div>
+        <div id="roadPicksMount"></div>
       </section>
 
       <div>
@@ -452,8 +437,54 @@
         updateShopNotice();
       }
 
+      function roadPickCard(p) {
+        var img = p.image_url
+          ? '<img src="' + escapeHtml(p.image_url) + '" alt="' + escapeHtml(p.name) + '" onerror="this.style.display=\'none\'; var ph=this.nextElementSibling; if(ph) ph.style.display=\'flex\';">'
+          : '';
+        var fallback = '<span class="product-image-fallback" style="' + (p.image_url ? 'display:none;' : 'display:flex;') + 'width:100%;height:100%;align-items:center;justify-content:center;color:var(--text-3)">' + placeholderIcon + '</span>';
+        return '<article class="product-card">' +
+          '<div class="product-image">' + img + fallback + '</div>' +
+          '<div class="product-body">' +
+            '<h4 class="product-name">' + escapeHtml(p.name) + '</h4>' +
+            '<p class="product-desc">' + escapeHtml(p.blurb || '') + '</p>' +
+          '</div>' +
+          '<div class="product-actions">' +
+            '<a class="btn-add-cart road-pick-link" href="' + escapeHtml(p.href) + '" target="_blank" rel="sponsored noopener noreferrer">View on Amazon</a>' +
+          '</div>' +
+          '<p class="road-pick-paid">Paid link</p>' +
+        '</article>';
+      }
+
+      async function loadRoadPicks() {
+        var root = document.getElementById('roadPicksMount');
+        if (!root) return;
+        try {
+          var res = await fetch('/api/shop/road-picks');
+          var data = await res.json();
+          var picks = data.picks || [];
+          if (!picks.length) {
+            root.innerHTML = '';
+            return;
+          }
+          var groups = [];
+          picks.forEach(function(p) {
+            var last = groups[groups.length - 1];
+            if (!last || last.key !== p.aisle) groups.push({ key: p.aisle, label: p.aisle_label || p.aisle, items: [p] });
+            else last.items.push(p);
+          });
+          root.innerHTML = groups.map(function(group) {
+            return '<h3 class="road-picks-aisle">' + escapeHtml(group.label) + '</h3>' +
+              '<div class="shop-grid">' + group.items.map(roadPickCard).join('') + '</div>';
+          }).join('');
+          if (window.refreshReveal) window.refreshReveal();
+        } catch (_) {
+          root.innerHTML = '';
+        }
+      }
+
       updateCartBadge();
       updateAuthLink();
+      loadRoadPicks();
       loadPaymentConfig().then(function() {
         loadProducts();
       });
@@ -477,6 +508,7 @@
         <p>&copy; 2026 Mile 12 Warrior LLC. All rights reserved.</p>
         <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:600px;margin-left:auto;margin-right:auto">All merchandise sales are in USD and subject to our <a href="/terms" style="color:var(--text-2)">Terms of Service</a>. Returns accepted within 30 days. Sales tax collected as required by California law.</p>
         <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto">As an Amazon Associate I earn from qualifying purchases.</p>
+        <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto">This site provides educational information, not legal or medical advice. For compliance questions, verify current regulations at <a href="https://www.fmcsa.dot.gov" rel="noopener noreferrer">fmcsa.dot.gov</a> or <a href="https://dot.ca.gov" rel="noopener noreferrer">dot.ca.gov</a> and consult qualified professionals.</p>
         <p style="font-size:0.75rem;color:var(--text-3);margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto"><strong>Multi-State Notice:</strong> Drivers from all 50 states may access this website. Each state has its own transportation laws that may differ significantly. It is the driver's responsibility to comply with the laws of every state they travel through. California (Caltrans/CALDOT) references reflect our home state and should not be assumed to apply elsewhere.</p>
       </div>
     </div>

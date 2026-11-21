@@ -1080,7 +1080,10 @@ body.forum-coffee-shop .forum-category-header .page-title {
   font-family: var(--font);
   font-size: 1rem;
   font-weight: 600;
-  margin: 0 0 12px;
+  margin: 20px 0 12px;
+}
+.road-picks .shop-grid {
+  margin-bottom: 8px;
 }
 .road-pick-link {
   display: block;

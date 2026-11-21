@@ -12,6 +12,11 @@ const session = require('express-session');
 const SqliteStore = require('better-sqlite3-session-store')(session);
 const cors = require('cors');
 const db = require('./db/database');
+try {
+  require('./lib/roadPicks').ensureSeed();
+} catch (err) {
+  console.error('[road-picks] seed failed (continuing):', err && err.message ? err.message : err);
+}
 const { buildMonthPrintPages } = require('./lib/journalPrintMonth');
 const { UPLOADS_DIR } = require('./lib/paths');
 const { resolveCountryCode } = require('./lib/trafficGeo');
@@ -628,6 +633,13 @@ app.get('/forum/new-thread', requireLogin, (req, res) => {
 
 app.get('/shop', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'shop.html'));
+});
+
+app.get('/go/road-pick/:id', (req, res) => {
+  const url = require('./lib/roadPicks').destinationForClick(req.params.id);
+  if (!url) return res.status(404).type('html').send('That pick is not on the shop.');
+  res.set('Cache-Control', 'no-store');
+  res.redirect(302, url);
 });
 
 app.get('/shop/product/:slug', (req, res) => {

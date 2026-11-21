@@ -341,6 +341,35 @@
 
       <div id="tabShop" class="admin-tab-content hidden">
         <div class="admin-section">
+          <h3>Road picks</h3>
+          <p style="color:var(--text-2);font-size:0.9rem;margin-bottom:16px;max-width:720px;">Amazon items on the public shop. Paste a product link. The site adds the Associates tag and counts each View on Amazon click. Hide a pick to take it off the shop without losing its count. Delete removes it.</p>
+          <div class="profile-section" style="margin-bottom:24px;max-width:720px;">
+            <form id="roadPickForm">
+              <input type="hidden" id="roadPickId" value="">
+              <div class="form-group"><label class="form-label" for="roadPickLink">Amazon link</label><input type="text" id="roadPickLink" class="form-input" placeholder="https://www.amazon.com/dp/... or a short link"></div>
+              <div class="form-group"><label class="form-label" for="roadPickName">Name</label><input type="text" id="roadPickName" class="form-input" required></div>
+              <div class="form-group"><label class="form-label" for="roadPickBlurb">Short description</label><textarea id="roadPickBlurb" class="form-input" rows="2"></textarea></div>
+              <div class="form-group"><label class="form-label" for="roadPickAisle">Aisle</label>
+                <select id="roadPickAisle" class="form-input">
+                  <option value="cab-comfort">Cab comfort</option>
+                  <option value="rest">Rest on the road</option>
+                  <option value="family">Family and home</option>
+                  <option value="new-driver">New driver basics</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="form-label" for="roadPickImage">Image link (optional, https)</label><input type="text" id="roadPickImage" class="form-input" placeholder="https://..."></div>
+              <div class="flex-between mt-16">
+                <button type="button" class="btn btn-glass" id="roadPickCancelBtn">Clear</button>
+                <button type="submit" class="btn btn-primary" id="roadPickSaveBtn">Add to shop</button>
+              </div>
+            </form>
+          </div>
+          <table class="admin-table">
+            <thead><tr><th>Name</th><th>Aisle</th><th>7 days</th><th>30 days</th><th>All clicks</th><th>On shop</th><th>Actions</th></tr></thead>
+            <tbody id="roadPicksTable"><tr><td colspan="7">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="admin-section mt-32">
           <div class="flex-between mb-16">
             <h3>Products</h3>
             <button type="button" class="btn btn-primary" id="productNewBtn">New Product</button>
@@ -2444,8 +2473,134 @@
         }
       }
 
+      function resetRoadPickForm() {
+        var idEl = document.getElementById('roadPickId');
+        var form = document.getElementById('roadPickForm');
+        var saveBtn = document.getElementById('roadPickSaveBtn');
+        if (form) form.reset();
+        if (idEl) idEl.value = '';
+        if (saveBtn) saveBtn.textContent = 'Add to shop';
+      }
+
+      function bindRoadPicks() {
+        if (window._roadPicksBound) return;
+        window._roadPicksBound = true;
+        var form = document.getElementById('roadPickForm');
+        var cancelBtn = document.getElementById('roadPickCancelBtn');
+        if (cancelBtn) cancelBtn.addEventListener('click', resetRoadPickForm);
+        if (form) {
+          form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var id = (document.getElementById('roadPickId').value || '').trim();
+            var payload = {
+              link: document.getElementById('roadPickLink').value.trim(),
+              name: document.getElementById('roadPickName').value.trim(),
+              blurb: document.getElementById('roadPickBlurb').value.trim(),
+              aisle: document.getElementById('roadPickAisle').value,
+              image_url: document.getElementById('roadPickImage').value.trim()
+            };
+            if (!payload.name) { showToast('Name is required.', false); return; }
+            if (!id && !payload.link) { showToast('Paste an Amazon link.', false); return; }
+            try {
+              var r = await fetch(id ? '/api/shop/admin/road-picks/' + id : '/api/shop/admin/road-picks', {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+              });
+              var data = {};
+              try { data = await r.json(); } catch (_) {}
+              if (!r.ok) { showToast(data.error || 'Could not save.', false); return; }
+              showToast(id ? 'Pick updated.' : 'Pick added.', true);
+              resetRoadPickForm();
+              loadRoadPicksAdmin();
+            } catch (_) { showToast('Could not save.', false); }
+          });
+        }
+        var table = document.getElementById('roadPicksTable');
+        if (table) {
+          table.addEventListener('click', async function(e) {
+            var editBtn = e.target.closest('.road-pick-edit');
+            var hideBtn = e.target.closest('.road-pick-hide');
+            var delBtn = e.target.closest('.road-pick-delete');
+            var row = e.target.closest('tr');
+            if (!row) return;
+            var id = row.getAttribute('data-id');
+            if (editBtn) {
+              document.getElementById('roadPickId').value = id;
+              document.getElementById('roadPickLink').value = row.getAttribute('data-amazon') || '';
+              document.getElementById('roadPickName').value = row.getAttribute('data-name') || '';
+              document.getElementById('roadPickBlurb').value = row.getAttribute('data-blurb') || '';
+              document.getElementById('roadPickAisle').value = row.getAttribute('data-aisle') || 'cab-comfort';
+              document.getElementById('roadPickImage').value = row.getAttribute('data-image') || '';
+              document.getElementById('roadPickSaveBtn').textContent = 'Save changes';
+              document.getElementById('roadPickName').focus();
+              return;
+            }
+            if (hideBtn) {
+              var nextActive = row.getAttribute('data-active') === '1' ? 0 : 1;
+              try {
+                var hr = await fetch('/api/shop/admin/road-picks/' + id, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ active: nextActive })
+                });
+                if (hr.ok) loadRoadPicksAdmin();
+                else showToast('Could not update.', false);
+              } catch (_) { showToast('Could not update.', false); }
+              return;
+            }
+            if (delBtn) {
+              if (!confirmAction('Remove this pick from the shop? Its click count goes with it.')) return;
+              try {
+                var dr = await fetch('/api/shop/admin/road-picks/' + id, { method: 'DELETE', credentials: 'include' });
+                if (dr.ok) { showToast('Pick removed.', true); loadRoadPicksAdmin(); }
+                else showToast('Could not remove.', false);
+              } catch (_) { showToast('Could not remove.', false); }
+            }
+          });
+        }
+      }
+
+      async function loadRoadPicksAdmin() {
+        bindRoadPicks();
+        var el = document.getElementById('roadPicksTable');
+        if (!el) return;
+        try {
+          var res = await fetch('/api/shop/admin/road-picks', { credentials: 'include' });
+          if (!res.ok) throw new Error('bad');
+          var data = await res.json();
+          var picks = data.picks || [];
+          el.innerHTML = picks.map(function(p) {
+            var on = p.active ? 'Yes' : 'Hidden';
+            return '<tr data-id="' + escapeHtml(String(p.id)) + '"' +
+              ' data-active="' + (p.active ? '1' : '0') + '"' +
+              ' data-name="' + escapeHtml(p.name || '') + '"' +
+              ' data-blurb="' + escapeHtml(p.blurb || '') + '"' +
+              ' data-aisle="' + escapeHtml(p.aisle || '') + '"' +
+              ' data-image="' + escapeHtml(p.image_url || '') + '"' +
+              ' data-amazon="' + escapeHtml(p.amazon_url || '') + '">' +
+              '<td>' + escapeHtml(p.name) + '</td>' +
+              '<td>' + escapeHtml(p.aisle_label || p.aisle) + '</td>' +
+              '<td>' + (p.clicks_7 || 0) + '</td>' +
+              '<td>' + (p.clicks_30 || 0) + '</td>' +
+              '<td>' + (p.clicks_all || 0) + '</td>' +
+              '<td>' + on + '</td>' +
+              '<td style="white-space:nowrap">' +
+                '<button type="button" class="admin-btn road-pick-edit">Edit</button> ' +
+                '<button type="button" class="admin-btn road-pick-hide">' + (p.active ? 'Hide' : 'Show') + '</button> ' +
+                '<button type="button" class="admin-btn road-pick-delete">Delete</button>' +
+              '</td></tr>';
+          }).join('') || '<tr><td colspan="7">No road picks yet.</td></tr>';
+        } catch (_) {
+          el.innerHTML = '<tr><td colspan="7">Could not load road picks.</td></tr>';
+        }
+      }
+
       async function loadShop() {
         bindShopTabInteractions();
+        loadRoadPicksAdmin();
         const prodEl = document.getElementById('productsTable');
         const ordEl = document.getElementById('shopOrdersTable');
         try {

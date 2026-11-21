@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../db/database');
+const roadPicks = require('../lib/roadPicks');
 const { hasModule1PreviewAccess } = require('../lib/module1PreviewAccess');
 const stripe = require('../lib/stripe');
 const paymentConfig = require('../lib/paymentConfig');
@@ -907,6 +908,91 @@ router.get('/orders/all', requireAdmin, (req, res) => {
   });
 
   res.json({ orders: ordersWithItems });
+});
+
+router.get('/road-picks', (req, res) => {
+  res.json({ picks: roadPicks.listPublic() });
+});
+
+router.get('/admin/road-picks', requireAdmin, (req, res) => {
+  res.json({
+    aisles: roadPicks.AISLES,
+    picks: roadPicks.listAdmin()
+  });
+});
+
+router.post('/admin/road-picks', requireAdmin, async (req, res) => {
+  try {
+    const body = req.body || {};
+    const name = roadPicks.cleanText(body.name, 120);
+    const blurb = roadPicks.cleanText(body.blurb, 400);
+    const aisle = String(body.aisle || '').trim();
+    const image = roadPicks.cleanImage(body.image_url);
+    if (body.image_url && String(body.image_url).trim() && !image) {
+      return res.status(400).json({ error: 'Image must be an https link.' });
+    }
+    if (!name) return res.status(400).json({ error: 'Name is required.' });
+    if (!roadPicks.AISLES[aisle]) return res.status(400).json({ error: 'Pick an aisle.' });
+    const asin = await roadPicks.resolveAsin(body.link || body.asin);
+    if (!asin) {
+      return res.status(400).json({ error: 'Paste the Amazon product link. A short link that does not open a product page will not work.' });
+    }
+    const existing = db.prepare('SELECT id FROM road_picks WHERE asin = ?').get(asin);
+    if (existing) return res.status(400).json({ error: 'That product is already on the shop.' });
+    const sort = db.prepare('SELECT COALESCE(MAX(sort_order), 0) AS n FROM road_picks WHERE aisle = ?').get(aisle);
+    const result = db.prepare(`
+      INSERT INTO road_picks (name, blurb, aisle, asin, image_url, active, sort_order)
+      VALUES (?, ?, ?, ?, ?, 1, ?)
+    `).run(name, blurb || null, aisle, asin, image, (sort && sort.n ? sort.n : 0) + 1);
+    res.json({ success: true, id: result.lastInsertRowid });
+  } catch (err) {
+    res.status(400).json({ error: 'Could not add that pick.' });
+  }
+});
+
+router.put('/admin/road-picks/:id', requireAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const current = db.prepare('SELECT * FROM road_picks WHERE id = ?').get(id);
+    if (!current) return res.status(404).json({ error: 'Pick not found.' });
+    const body = req.body || {};
+    const name = body.name != null ? roadPicks.cleanText(body.name, 120) : current.name;
+    const blurb = body.blurb != null ? roadPicks.cleanText(body.blurb, 400) : (current.blurb || '');
+    const aisle = body.aisle != null ? String(body.aisle).trim() : current.aisle;
+    let image = current.image_url;
+    if (body.image_url != null) {
+      image = roadPicks.cleanImage(body.image_url);
+      if (String(body.image_url).trim() && !image) {
+        return res.status(400).json({ error: 'Image must be an https link.' });
+      }
+    }
+    const active = body.active != null ? (body.active ? 1 : 0) : current.active;
+    if (!name) return res.status(400).json({ error: 'Name is required.' });
+    if (!roadPicks.AISLES[aisle]) return res.status(400).json({ error: 'Pick an aisle.' });
+    let asin = current.asin;
+    if (body.link && String(body.link).trim()) {
+      const next = await roadPicks.resolveAsin(body.link);
+      if (!next) return res.status(400).json({ error: 'That link did not open an Amazon product.' });
+      const clash = db.prepare('SELECT id FROM road_picks WHERE asin = ? AND id != ?').get(next, id);
+      if (clash) return res.status(400).json({ error: 'That product is already on the shop.' });
+      asin = next;
+    }
+    db.prepare(`
+      UPDATE road_picks
+      SET name = ?, blurb = ?, aisle = ?, asin = ?, image_url = ?, active = ?
+      WHERE id = ?
+    `).run(name, blurb || null, aisle, asin, image, active, id);
+    res.json({ success: true });
+  } catch (_) {
+    res.status(400).json({ error: 'Could not save that pick.' });
+  }
+});
+
+router.delete('/admin/road-picks/:id', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const result = db.prepare('DELETE FROM road_picks WHERE id = ?').run(id);
+  if (!result.changes) return res.status(404).json({ error: 'Pick not found.' });
+  res.json({ success: true });
 });
 
 // 9. PUT /api/shop/orders/:id — Admin only, update order status.
