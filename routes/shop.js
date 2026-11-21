@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../db/database');
 const roadPicks = require('../lib/roadPicks');
+const merchHold = require('../lib/merchHold');
 const { hasModule1PreviewAccess } = require('../lib/module1PreviewAccess');
 const stripe = require('../lib/stripe');
 const paymentConfig = require('../lib/paymentConfig');
@@ -369,10 +370,14 @@ function applyDefaultImage(products) {
   return products.map((p) => {
     const slug = p.slug;
     const local = slug ? DEFAULT_PRODUCT_IMAGES[slug] : null;
-    if (local) return { ...p, image: local };
-    const dbImg = p.image && String(p.image).trim();
-    if (dbImg) return { ...p, image: ensureHttpsImage(dbImg) };
-    return { ...p, image: FALLBACK_PRODUCT_IMAGE };
+    let next = p;
+    if (local) next = { ...p, image: local };
+    else {
+      const dbImg = p.image && String(p.image).trim();
+      next = dbImg ? { ...p, image: ensureHttpsImage(dbImg) } : { ...p, image: FALLBACK_PRODUCT_IMAGE };
+    }
+    if (merchHold.isHeld(slug)) return { ...next, stock: 0, held: true };
+    return next;
   });
 }
 

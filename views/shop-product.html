@@ -161,11 +161,14 @@
           const isDigital = String(product.category || '').toLowerCase() === 'digital' || !!DIGITAL_FREE_SLUGS[slug];
           const isFreeTier1 = slug === 'new-driver-packet';
           const isFreeDigital = freeAccess && (isDigital || isFreeTier1 || DIGITAL_FREE_SLUGS[slug] || isSub);
-          const priceDisplay = (isFreeDigital || isFreeTier1)
+          const heldEarly = !!product.held;
+          const priceDisplay = heldEarly
+            ? '<span style="color:var(--gold-light)">Out of stock</span>'
+            : ((isFreeDigital || isFreeTier1)
             ? '<span style="color:var(--green);font-weight:700">FREE</span>'
             : ((!paymentsEnabled && !isSub)
               ? '<span style="color:var(--text-3);font-size:0.95rem">Coming soon</span>'
-              : formatPrice(product.price) + (isSub ? '<span style="font-size:0.9rem;color:var(--text-3);font-weight:400">/month</span>' : ''));
+              : formatPrice(product.price) + (isSub ? '<span style="font-size:0.9rem;color:var(--text-3);font-weight:400">/month</span>' : '')));
           const cbMicSvg = '<svg class="cb-mic-logo" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="vertical-align:middle;margin-right:6px"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>';
           const isJournalMonthly = slug === 'trucker-wellness-journal-monthly';
           const benefitsBlock = isSub && isJournalMonthly
@@ -201,15 +204,24 @@
           if (!product.image && slugForImg) {
             imgOnerr = ' onerror="if(!this.dataset._j){this.dataset._j=1;this.src=\'' + imgBase + slugForImg + '.jpg\';return;}if(!this.dataset._p){this.dataset._p=1;this.src=\'' + imgBase + slugForImg + '.png\';return;}this.style.display=\'none\';"';
           }
+          const held = !!product.held;
+          const holdBand = held
+            ? '<div class="product-hold-banner" aria-hidden="true"><span>Out of stock</span></div>'
+            : '';
           const imgHtml = (product.image || slugForImg)
-            ? '<img src="' + escapeHtml(imgSrc) + '" alt="' + escapeHtml(product.name || 'Product') + '" class="product-detail-image"' + imgOnerr + '>'
-            : '<div class="product-image" style="height: 320px;">' + placeholderIcon + '</div>';
+            ? '<div class="product-detail-image-wrap">' +
+                '<img src="' + escapeHtml(imgSrc) + '" alt="' + escapeHtml(product.name || 'Product') + '" class="product-detail-image"' + imgOnerr + '>' +
+                holdBand +
+              '</div>'
+            : '<div class="product-image" style="height: 320px;">' + placeholderIcon + holdBand + '</div>';
           const subBadge = isSub && !isJournalMonthly ? '<span style="display:inline-block;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue);background:rgba(59,130,246,0.15);padding:4px 10px;border-radius:4px;margin-left:12px;font-weight:600;vertical-align:middle;">Monthly subscription</span>' : (isJournalMonthly ? '<span style="display:inline-block;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--green);background:rgba(34,197,94,0.15);padding:4px 10px;border-radius:4px;margin-left:12px;font-weight:600;vertical-align:middle;">Free journal</span>' : '');
           const buyLabel = isSub ? 'Add subscription to cart' : 'Add to cart';
           var freeLink = DIGITAL_FREE_SLUGS[slug] || (isFreeTier1 ? { href: '/packets/new-driver', label: 'View Packet — Free', kind: 'packet', type: 'new-driver', fleet: false } : null);
           var packetMeta = freeLink && freeLink.kind === 'packet' ? freeLink : null;
           var formHtml;
-          if (isFreeDigital && packetMeta) {
+          if (held) {
+            formHtml = '<p style="font-size:0.95rem;color:var(--text-2);line-height:1.55;margin:0">Out of stock. This item is on hold until it can be printed and shipped. Check back soon.</p>';
+          } else if (isFreeDigital && packetMeta) {
             var isTier1 = packetMeta.type === 'new-driver';
             if (isTier1) {
               formHtml = '<div style="display:flex;flex-direction:column;gap:14px;">' +
@@ -272,7 +284,7 @@
             if (shopHub) NewDriverHub.mount(shopHub);
           }
 
-          if (paymentsEnabled && !isFreeDigital) {
+          if (paymentsEnabled && !isFreeDigital && !held) {
             var addBtn = document.getElementById('addToCartBtn');
             if (addBtn) {
               addBtn.addEventListener('click', function() {

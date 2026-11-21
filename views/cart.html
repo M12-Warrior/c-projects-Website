@@ -63,6 +63,7 @@
     (function() {
       const CART_KEY = 'driver_shield_cart';
       var paymentsEnabled = false;
+      var heldSlugs = {};
 
       function escapeHtml(str) {
         if (!str) return '';
@@ -127,17 +128,22 @@
         }
 
         var total = 0;
+        var blocked = false;
         cartItems.innerHTML = cart.map(function(item, idx) {
           var qty = item.quantity || 1;
           var price = Number(item.price) || 0;
           var line = qty * price;
-          total += line;
-          var priceHtml = paymentsEnabled
+          var held = !!heldSlugs[item.slug];
+          if (held) blocked = true;
+          else total += line;
+          var priceHtml = held
+            ? '<div class="cart-item-price" style="color:var(--gold-light);font-size:0.85rem">Out of stock — check back soon. Remove this to check out anything else.</div>'
+            : (paymentsEnabled
             ? '<div class="cart-item-price">' + formatPrice(price) + (qty > 1 ? ' × ' + qty + ' = ' + formatPrice(line) : '') + '</div>'
-            : '<div class="cart-item-price" style="color:var(--text-3);font-size:0.85rem">Checkout unavailable — see Services for free training</div>';
+            : '<div class="cart-item-price" style="color:var(--text-3);font-size:0.85rem">Checkout unavailable — see Services for free training</div>');
           return '<div class="cart-item" data-idx="' + idx + '">' +
             '<div class="cart-item-info">' +
-              '<div class="cart-item-name">' + escapeHtml(item.name) + '</div>' +
+              '<div class="cart-item-name">' + escapeHtml(item.name) + (held ? ' <span style="color:var(--gold-light);font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase">Out of stock</span>' : '') + '</div>' +
               priceHtml +
             '</div>' +
             '<div class="cart-item-qty">' +
@@ -151,6 +157,19 @@
         (paymentsEnabled
           ? '<div class="cart-total">Total: ' + formatPrice(total) + '</div>'
           : '<div class="cart-total" style="color:var(--text-2);font-size:0.95rem">Browse free training on <a href="/services" style="color:var(--gold)">Services</a>.</div>');
+
+        var checkoutBtn = document.getElementById('cartCheckoutBtn');
+        if (checkoutBtn && paymentsEnabled) {
+          if (blocked) {
+            checkoutBtn.textContent = 'Remove out-of-stock items first';
+            checkoutBtn.href = '#cartItems';
+            checkoutBtn.setAttribute('aria-disabled', 'true');
+          } else {
+            checkoutBtn.textContent = 'Proceed to checkout';
+            checkoutBtn.href = '/shop/checkout';
+            checkoutBtn.removeAttribute('aria-disabled');
+          }
+        }
 
         cartItems.querySelectorAll('.qty-btn').forEach(function(btn) {
           btn.addEventListener('click', function() {
@@ -213,6 +232,14 @@
         } catch (_) {
           paymentsEnabled = false;
         }
+        try {
+          var prodRes = await fetch('/api/shop/products', { credentials: 'include' });
+          var prodData = await prodRes.json();
+          heldSlugs = {};
+          (prodData.products || []).forEach(function(p) {
+            if (p && p.held && p.slug) heldSlugs[p.slug] = true;
+          });
+        } catch (_) {}
         updateCartNotice();
         renderCart();
       }

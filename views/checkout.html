@@ -311,6 +311,20 @@
           errEl.classList.add('hidden');
           try {
             var items = getCart().map(function(i) { return { slug: i.slug, quantity: i.quantity || 1 }; });
+            try {
+              var holdRes = await fetch('/api/shop/products', { credentials: 'include' });
+              var holdData = await holdRes.json();
+              var heldNames = {};
+              (holdData.products || []).forEach(function(p) {
+                if (p && p.held && p.slug) heldNames[p.slug] = p.name || 'This item';
+              });
+              var blocked = items.map(function(i) { return heldNames[i.slug]; }).filter(Boolean);
+              if (blocked.length) {
+                throw new Error(blocked[0] + ' is out of stock. Remove it from your cart and check back soon.');
+              }
+            } catch (holdErr) {
+              if (holdErr && holdErr.message && holdErr.message.indexOf('out of stock') !== -1) throw holdErr;
+            }
             var body = { items: items };
             if (fleetInfo) body.fleetInfo = fleetInfo;
             var res = await fetch('/api/stripe/create-checkout-session', {

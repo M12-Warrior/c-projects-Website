@@ -68,7 +68,7 @@
 
       <div>
         <h2 style="font-family:var(--font);font-size:1.2rem;font-weight:700;margin-bottom:8px">Merchandise &amp; Gear</h2>
-        <p style="font-size:0.88rem;color:var(--text-2);margin-bottom:12px;line-height:1.55">A full drivers gear shop is on the way. Browse what's coming — merch checkout opens with that shop. Need something now? <a href="mailto:joyce@mile12warrior.com?subject=Mile%2012%20Warrior%20%E2%80%94%20General%20Contact" style="color:var(--gold)">Email us</a>.</p>
+        <p style="font-size:0.88rem;color:var(--text-2);margin-bottom:12px;line-height:1.55">The shirt, vest, and kit are out of stock until they can be printed and shipped. Check back soon. Need something now? <a href="mailto:joyce@mile12warrior.com?subject=Mile%2012%20Warrior%20%E2%80%94%20General%20Contact" style="color:var(--gold)">Email us</a>.</p>
         <div id="shopGrid" class="shop-grid"></div>
       </div>
     </div>
@@ -389,22 +389,32 @@
               ? "this.style.display='none'; var ph=this.nextElementSibling; if(ph) ph.style.display='flex';"
               : "if(!this.dataset.triedJpg){ this.dataset.triedJpg='1'; this.src='" + productImageBase + slug + ".jpg'; return; } if(!this.dataset.triedPng){ this.dataset.triedPng='1'; this.src='" + productImageBase + slug + ".png'; return; } this.style.display='none'; var ph=this.nextElementSibling; if(ph) ph.style.display='flex';";
             var imgHtml = '<img src="' + escapeHtml(imgSrc) + '" alt="' + escapeHtml(p.name) + '" onerror="' + onerr + '">' + fallbackSpan;
-            return '<article class="product-card" data-product-href="/shop/product/' + escapeHtml(slug) + '">' +
+            var held = !!p.held;
+            var holdBand = held
+              ? '<div class="product-hold-banner" aria-hidden="true"><span>Out of stock</span></div>'
+              : '';
+            var actionHtml;
+            if (held) {
+              actionHtml = '<span class="btn-add-cart" style="opacity:0.85;cursor:default;text-align:center;display:block" aria-disabled="true">Out of stock — check back soon</span>';
+            } else if (freeAccess || !paymentsEnabled) {
+              actionHtml = '<span class="btn-add-cart" style="opacity:0.65;cursor:default;text-align:center;display:block" aria-disabled="true">Coming soon</span>';
+            } else if (paymentsEnabled) {
+              actionHtml = '<button type="button" class="btn-add-cart" data-slug="' + escapeHtml(slug) + '" data-name="' + escapeHtml(p.name) + '" data-price="' + escapeHtml(String(p.price)) + '">Add to Cart</button>';
+            } else {
+              actionHtml = '<span class="btn-add-cart" style="opacity:0.65;cursor:default;text-align:center;display:block" aria-disabled="true">Purchases opening soon</span>';
+            }
+            return '<article class="product-card' + (held ? ' product-card-held' : '') + '" data-product-href="/shop/product/' + escapeHtml(slug) + '">' +
               '<a href="/shop/product/' + escapeHtml(slug) + '">' +
-                '<div class="product-image">' + imgHtml + '</div>' +
+                '<div class="product-image">' + imgHtml + holdBand + '</div>' +
               '</a>' +
               '<div class="product-body">' +
                 '<a href="/shop/product/' + escapeHtml(slug) + '" class="product-name">' + escapeHtml(p.name) + '</a>' +
-                '<div class="product-price">' + ((freeAccess || !paymentsEnabled) ? '<span style="color:var(--text-3);font-size:0.9rem">Coming soon</span>' : formatPrice(p.price)) + '</div>' +
+                '<div class="product-price">' + (held
+                  ? '<span style="color:var(--gold-light);font-size:0.9rem">Out of stock</span>'
+                  : ((freeAccess || !paymentsEnabled) ? '<span style="color:var(--text-3);font-size:0.9rem">Coming soon</span>' : formatPrice(p.price))) + '</div>' +
                 '<p class="product-desc">' + escapeHtml((p.description || '').slice(0, 100)) + ((p.description || '').length > 100 ? '&hellip;' : '') + '</p>' +
               '</div>' +
-              '<div class="product-actions">' +
-                ((freeAccess || !paymentsEnabled)
-                  ? '<span class="btn-add-cart" style="opacity:0.65;cursor:default;text-align:center;display:block" aria-disabled="true">Coming soon</span>'
-                  : (paymentsEnabled
-                  ? '<button type="button" class="btn-add-cart" data-slug="' + escapeHtml(slug) + '" data-name="' + escapeHtml(p.name) + '" data-price="' + escapeHtml(String(p.price)) + '">Add to Cart</button>'
-                  : '<span class="btn-add-cart" style="opacity:0.65;cursor:default;text-align:center;display:block" aria-disabled="true">Purchases opening soon</span>')) +
-              '</div>' +
+              '<div class="product-actions">' + actionHtml + '</div>' +
             '</article>';
           }).join('');
           bindCartButtons(grid);

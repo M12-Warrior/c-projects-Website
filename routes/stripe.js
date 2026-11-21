@@ -1,5 +1,7 @@
 'use strict';
 
+const merchHold = require('../lib/merchHold');
+
 /**
  * Stripe Hosted Checkout integration for Mile 12 Warrior.
  *
@@ -213,6 +215,9 @@ router.post('/create-checkout-session', requireSession, async (req, res) => {
     `).get(slug);
     if (!p) {
       return res.status(400).json({ error: 'A product in your cart is no longer available. Please review your cart.' });
+    }
+    if (merchHold.isHeld(slug)) {
+      return res.status(400).json({ error: merchHold.checkoutError });
     }
     if (slug === 'new-driver-packet') {
       return res.status(400).json({

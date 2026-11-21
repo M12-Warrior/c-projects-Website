@@ -939,10 +939,10 @@ const seedIfEmpty = () => {
     const insertProduct = db.prepare(`
       INSERT OR IGNORE INTO products (name, slug, description, price, category, stock, active) VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
-    insertProduct.run('Mile 12 Warrior T-Shirt', 'mile-12-warrior-t-shirt', 'Premium cotton tee with the Mile 12 Warrior logo. Comfortable for long hauls and days off.', 24.99, 'apparel', 50, 1);
-    insertProduct.run('Reflective Safety Vest', 'reflective-safety-vest', 'High-visibility ANSI Class 2 vest. Essential for roadside safety and pre-trip inspections.', 34.99, 'apparel', 100, 1);
+    insertProduct.run('Mile 12 Warrior T-Shirt', 'mile-12-warrior-t-shirt', 'Premium cotton tee with the Mile 12 Warrior logo. Comfortable for long hauls and days off.', 24.99, 'apparel', 0, 1);
+    insertProduct.run('Reflective Safety Vest', 'reflective-safety-vest', 'High-visibility vest with a reflective look for time around the truck. A convenience item, not safety equipment, and not claimed to meet any DOT or California rule.', 34.99, 'apparel', 0, 1);
     insertProduct.run('Trucker Wellness Journal', 'trucker-wellness-journal', 'Daily wellness tracker designed for drivers. Log sleep, meals, exercise, mood, and mileage.', 14.99, 'accessories', 75, 1);
-    insertProduct.run('Mile 12 Warrior Kit', 'mile-12-warrior-kit', 'The complete fatigue-fighting toolkit. Includes the wellness journal, a resistance band set, essential oil roller, eye mask for sleeper berth rest, and the Mile 12 quick-reset card deck.', 49.99, 'kits', 30, 1);
+    insertProduct.run('Mile 12 Warrior Kit', 'mile-12-warrior-kit', 'A cab and home kit: wellness journal, resistance band, essential-oil roller, eye mask, and the Mile 12 quick-reset card deck. Comfort items for parked time or at home. Not medical advice.', 49.99, 'kits', 0, 1);
 
     insertProduct.run('90-Day Onboarding Course', 'course-90day', '10 self-paced modules, 47 lessons, knowledge checks, and a certificate of completion. Everything a new CDL driver needs for their first 90 days — HOS mastery, fatigue management, inspections, emergency preparedness, defensive driving, and daily routine systems. Includes the New Driver Packet free.', 149.00, 'digital', 9999, 1);
     insertProduct.run('New Driver Packet', 'new-driver-packet', 'Foundational safety and wellness packet for new CDL drivers. 13 print-ready sections including HOS basics, fatigue management, DVIR checklists, emergency protocol, and daily routines. Free for everyone — view, print, or download at /services with no checkout.', 0.00, 'digital', 9999, 1);
@@ -1127,6 +1127,22 @@ try {
 // Physical wellness journal superseded by monthly digital — hide from shop listing
 try {
   db.prepare(`UPDATE products SET active = 0 WHERE slug = 'trucker-wellness-journal'`).run();
+} catch (_) {}
+
+// Shirt, vest, and kit stay visible but unsellable until a printer is attached.
+try {
+  const holdStock = db.prepare('UPDATE products SET stock = 0 WHERE slug = ?');
+  holdStock.run('mile-12-warrior-t-shirt');
+  holdStock.run('reflective-safety-vest');
+  holdStock.run('mile-12-warrior-kit');
+  db.prepare('UPDATE products SET description = ? WHERE slug = ?').run(
+    'High-visibility vest with a reflective look for time around the truck. A convenience item, not safety equipment, and not claimed to meet any DOT or California rule.',
+    'reflective-safety-vest'
+  );
+  db.prepare('UPDATE products SET description = ? WHERE slug = ?').run(
+    'A cab and home kit: wellness journal, resistance band, essential-oil roller, eye mask, and the Mile 12 quick-reset card deck. Comfort items for parked time or at home. Not medical advice.',
+    'mile-12-warrior-kit'
+  );
 } catch (_) {}
 
 // EMERGENCY 2FA ESCAPE HATCH (no-lockout safety net for the solo admin).
