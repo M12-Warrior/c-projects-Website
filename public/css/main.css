@@ -2074,6 +2074,7 @@ summary:focus:not(:focus-visible) {
 
 /* ---------- REDUCED MOTION (accessibility) ---------- */
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
   .hero-glow-1,
   .hero-glow-2,
   .hero-glow-3 {

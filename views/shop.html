@@ -442,7 +442,7 @@
           ? '<img src="' + escapeHtml(p.image_url) + '" alt="' + escapeHtml(p.name) + '" onerror="this.style.display=\'none\'; var ph=this.nextElementSibling; if(ph) ph.style.display=\'flex\';">'
           : '';
         var fallback = '<span class="product-image-fallback" style="' + (p.image_url ? 'display:none;' : 'display:flex;') + 'width:100%;height:100%;align-items:center;justify-content:center;color:var(--text-3)">' + placeholderIcon + '</span>';
-        return '<article class="product-card">' +
+        return '<article class="product-card road-pick-card" id="road-pick-' + escapeHtml(String(p.id)) + '">' +
           '<div class="product-image">' + img + fallback + '</div>' +
           '<div class="product-body">' +
             '<h4 class="product-name">' + escapeHtml(p.name) + '</h4>' +
@@ -479,10 +479,29 @@
             if (!last || last.key !== p.aisle) groups.push({ key: p.aisle, label: p.aisle_label || p.aisle, items: [p] });
             else last.items.push(p);
           });
-          root.innerHTML = groups.map(function(group) {
-            return '<h3 class="road-picks-aisle">' + escapeHtml(group.label) + '</h3>' +
+          var index = '<nav class="road-picks-index" aria-label="Jump to a road pick">' +
+            '<p class="road-picks-index-label">Jump to a pick</p>' +
+            groups.map(function(group) {
+              return '<div class="road-picks-index-group">' +
+                '<a class="road-picks-index-aisle" href="#aisle-' + escapeHtml(group.key) + '">' + escapeHtml(group.label) + '</a>' +
+                '<ul class="road-picks-index-list">' +
+                  group.items.map(function(p) {
+                    return '<li><a href="#road-pick-' + escapeHtml(String(p.id)) + '">' + escapeHtml(p.name) + '</a></li>';
+                  }).join('') +
+                '</ul></div>';
+            }).join('') +
+          '</nav>';
+          root.innerHTML = index + groups.map(function(group) {
+            return '<h3 class="road-picks-aisle" id="aisle-' + escapeHtml(group.key) + '">' + escapeHtml(group.label) + '</h3>' +
               '<div class="shop-grid">' + group.items.map(roadPickCard).join('') + '</div>';
           }).join('');
+          if (location.hash) {
+            var jumped = document.getElementById(location.hash.slice(1));
+            if (jumped) {
+              var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+              jumped.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+            }
+          }
           if (!window._roadPickChoicesBound) {
             window._roadPickChoicesBound = true;
             document.addEventListener('change', function(e) {

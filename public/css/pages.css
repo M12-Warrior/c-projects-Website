@@ -1092,6 +1092,65 @@ body.forum-coffee-shop .forum-category-header .page-title {
   margin-bottom: 16px;
   max-width: 720px;
 }
+.road-picks-index {
+  margin: 0 0 28px;
+  padding: 16px 16px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.road-picks-index-label {
+  margin: 0 0 12px;
+  font-family: var(--font);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.road-picks-index-group {
+  margin: 0 0 14px;
+}
+.road-picks-index-aisle {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-family: var(--font);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--gold-light);
+  text-decoration: none;
+}
+.road-picks-index-aisle:hover,
+.road-picks-index-aisle:focus-visible {
+  color: var(--gold);
+}
+.road-picks-index-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.road-picks-index-list a {
+  display: inline-block;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: var(--text);
+  text-decoration: none;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.3s var(--ease), color 0.3s var(--ease);
+}
+.road-picks-index-list a:hover,
+.road-picks-index-list a:focus-visible {
+  color: var(--gold-light);
+  border-color: var(--gold);
+}
+.road-picks-aisle,
+.road-pick-card {
+  scroll-margin-top: calc(var(--nav-height) + var(--nav-inset) + 24px);
+}
 .road-picks-aisle {
   font-family: var(--font);
   font-size: 1rem;
