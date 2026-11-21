@@ -14,6 +14,7 @@ const cors = require('cors');
 const db = require('./db/database');
 try {
   require('./lib/roadPicks').ensureSeed();
+  require('./lib/roadPicks').applyCatalogs();
 } catch (err) {
   console.error('[road-picks] seed failed (continuing):', err && err.message ? err.message : err);
 }
