@@ -1066,6 +1066,32 @@ body.forum-coffee-shop .forum-category-header .page-title {
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
+.road-picks {
+  margin-bottom: 32px;
+}
+.road-picks-note {
+  font-size: 0.88rem;
+  color: var(--text-2);
+  line-height: 1.55;
+  margin-bottom: 16px;
+  max-width: 720px;
+}
+.road-picks-aisle {
+  font-family: var(--font);
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+.road-pick-link {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}
+.road-pick-paid {
+  margin: 0 20px 16px;
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
 .product-card {
   background: var(--surface);
   border: 1px solid var(--border);
