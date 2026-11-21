@@ -1561,6 +1561,21 @@ body.forum-coffee-shop .forum-category-header .page-title {
 .admin-table tr:hover td {
   background: rgba(255, 255, 255, 0.02);
 }
+.road-picks-admin {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.road-picks-admin thead th {
+  position: sticky;
+  top: calc(var(--nav-inset) + var(--nav-height) + 8px);
+  z-index: 30;
+  background: #1a1a1c;
+  color: var(--text);
+  box-shadow: inset 0 -2px 0 var(--gold);
+}
+body.has-checkout-banner .road-picks-admin thead th {
+  top: calc(var(--nav-inset) + var(--nav-height) + 76px);
+}
 .blog-thumb {
   width: 72px;
   height: 48px;
