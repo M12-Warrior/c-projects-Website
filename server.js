@@ -15,6 +15,7 @@ const db = require('./db/database');
 try {
   require('./lib/roadPicks').ensureSeed();
   require('./lib/roadPicks').applyCatalogs();
+  require('./lib/roadPicks').fillMissingImages();
 } catch (err) {
   console.error('[road-picks] seed failed (continuing):', err && err.message ? err.message : err);
 }
