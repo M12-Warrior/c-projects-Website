@@ -81,6 +81,14 @@
         } catch (_) {}
       }
 
+      function usableArticlePhoto(src) {
+        const value = String(src || '').trim();
+        if (!value) return '';
+        if (value.indexOf('/images/products/') !== -1) return '';
+        if (/\.svg(?:$|\?)/i.test(value)) return '';
+        return value;
+      }
+
       function escapeHtml(str) {
         if (!str) return '';
         const div = document.createElement('div');
@@ -117,10 +125,15 @@
               </div>
             ` : '';
             const excerpt = post.excerpt || '';
+            const photoSrc = usableArticlePhoto(post.image);
+            const photo = photoSrc
+              ? `<div class="blog-card-photo"><img src="${escapeHtml(photoSrc)}" alt=""></div>`
+              : '';
             return `
               <article class="blog-card" data-post-id="${post.id}">
                 ${editMenu}
                 <a class="blog-card-link" href="/blog/${escapeHtml(post.slug)}">
+                  ${photo}
                   <div class="blog-card-plate">
                     <h2 class="blog-card-plate-title">${escapeHtml(post.title)}</h2>
                   </div>

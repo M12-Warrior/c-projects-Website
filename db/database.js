@@ -997,6 +997,36 @@ try {
   }
 } catch (_) {}
 
+// Swap product-graphic placeholders for committed article covers.
+// Admin uploads under /uploads/ are left as they are.
+try {
+  const blogCovers = {
+    'sleep-management-commercial-drivers': '/images/blog/sleep-management.jpg',
+    'mental-health-on-the-road': '/images/blog/mental-health-road.jpg',
+    'mile-12-where-our-journey-gets-real': '/images/blog/mile-12-journey.jpg',
+    '5-quick-resets-stay-alert': '/images/blog/quick-resets.jpg',
+    'embracing-change-with-confidence': '/images/blog/embracing-change.jpg',
+    'setting-healthy-boundaries': '/images/blog/healthy-boundaries.jpg',
+    'split-sleeper-berth-explained-for-truck-drivers': '/images/blog/split-sleeper.jpg',
+    'california-chain-laws-for-truckers': '/images/blog/california-chains.jpg',
+    'pre-trip-inspection-habits-for-new-cdl-drivers': '/images/blog/pre-trip-inspection.jpg',
+    'cab-friendly-stretches-for-truck-drivers': '/images/blog/cab-stretches.jpg'
+  };
+  const replaceCover = db.prepare(`
+    UPDATE blog_posts SET image = ?
+    WHERE slug = ?
+      AND (
+        image IS NULL
+        OR TRIM(image) = ''
+        OR image LIKE '%/images/products/%'
+        OR LOWER(image) LIKE '%.svg'
+      )
+  `);
+  Object.keys(blogCovers).forEach((slug) => {
+    replaceCover.run(blogCovers[slug], slug);
+  });
+} catch (_) {}
+
 // Fix historical typo slug (owndership → ownership); route also 301-redirects the old URL
 try {
   const oldSlug = 'from-mile-12-fatigue-to-full-owndership';

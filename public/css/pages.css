@@ -545,6 +545,22 @@ textarea.form-input {
   color: inherit;
   text-decoration: none;
 }
+.blog-card-photo {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #121214;
+  border-bottom: 3px solid var(--gold);
+}
+.blog-card-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.blog-card:has(.blog-card-photo) .blog-card-plate {
+  min-height: 0;
+  padding: 18px 24px 16px;
+}
 .blog-card-plate {
   min-height: 168px;
   padding: 26px 24px 22px;

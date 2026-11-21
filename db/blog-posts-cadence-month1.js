@@ -51,7 +51,7 @@ module.exports = [
     title: 'Pre-Trip Inspection Habits for New CDL Drivers (Beyond the Checkbox)',
     slug: 'pre-trip-inspection-habits-for-new-cdl-drivers',
     excerpt: 'Practical pre-trip inspection habits for new CDL drivers — walk-around mindset, defect documentation, and when not to roll — educational support for your first 90 days, not a substitute for carrier DVIR forms.',
-    image: '/images/products/new-driver-packet.svg',
+    image: '/images/blog/pre-trip-inspection.jpg',
     content: `<p>New CDL drivers often treat the pre-trip as a memorized school script. On the job it becomes something sharper: a <strong>habit that keeps you from rolling with a defect</strong> you could have caught on the lot. This guide supports that mindset for your first 90 days. It is educational only — not legal advice and not a replacement for your carrier’s DVIR process or FMCSA inspection rules (including 49 CFR 396.11–396.13). Confirm current requirements at <a href="https://www.fmcsa.dot.gov" target="_blank" rel="noopener noreferrer">fmcsa.dot.gov</a> and with your safety department.</p>
 
 <p>Use this alongside the free <a href="/packets/new-driver">New Driver Packet</a> checklist and the <a href="/course">90-Day Onboarding Course</a>.</p>
@@ -89,7 +89,7 @@ module.exports = [
     title: 'Cab-Friendly Stretches and Movement for Truck Drivers (Educational)',
     slug: 'cab-friendly-stretches-for-truck-drivers',
     excerpt: 'Simple cab-friendly stretch and movement ideas for truck drivers between stops — educational wellness tips only, not medical advice or a substitute for clinician guidance.',
-    image: '/images/products/mile-12-warrior-kit.svg',
+    image: '/images/blog/cab-stretches.jpg',
     content: `<p>Long sits, whole-body vibration, and irregular sleep make stiffness a common part of trucking life. This page shares <strong>simple movement ideas</strong> drivers use at safe stops and in the sleeper. It is <strong>educational only — not medical advice</strong>, not physical therapy, and not a treatment plan. If you have pain, injury, numbness, or a condition that affects driving, talk with a qualified clinician. Fitness-for-duty and CDL medical certification questions belong with your medical examiner process (see FMCSA medical standards under 49 CFR Part 391 Subpart E), not a blog post.</p>
 
 <p><strong>Stop any movement that increases pain.</strong> Do not stretch in traffic lanes, on blind shoulders, or anywhere unsafe. Use legal parking and stay visible.</p>

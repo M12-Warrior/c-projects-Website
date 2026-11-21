@@ -14,7 +14,7 @@ const posts = [
     title: 'How to Sleep in a Semi Truck: Sleep Management Within HOS Limits',
     slug: 'sleep-management-commercial-drivers',
     excerpt: 'How to sleep in a semi truck and build a better sleep schedule for OTR drivers within FMCSA Hours of Service — educational tips, not medical advice.',
-    image: '/images/products/trucker-wellness-journal.svg',
+    image: '/images/blog/sleep-management.jpg',
     content: `<p><strong>How to sleep in a semi truck</strong> is one of the most practical skills in trucking. Quality rest inside your legal off-duty window is what keeps you alert for the next run — not just “being off duty.” Under FMCSA Hours of Service (49 CFR Part 395), you need at least 10 consecutive hours off duty before driving again; use that window for real recovery, not only screen time.</p>
 
 <p>Ever hit that point in your shift where your eyes feel like sandpaper and the white line starts to blur? You're not alone. For commercial drivers, how you sleep isn't just a comfort issue—it's the difference between a safe run and a close call. The good news? With a few habits and a clear picture of the rules, you can turn your off-duty time into real recovery.</p>
@@ -73,7 +73,7 @@ const posts = [
     title: 'Truck Driver Mental Health: Resilience, Loneliness, and Road Resources',
     slug: 'mental-health-on-the-road',
     excerpt: 'Practical truck driver mental health strategies for loneliness on the road, stress, and when to get confidential help — educational, not medical advice.',
-    image: '/images/products/course-90day.svg',
+    image: '/images/blog/mental-health-road.jpg',
     content: `<p><strong>Truck driver mental health</strong> matters for safety and career longevity. Long hours, deadlines, and time away from home can bring stress, anxiety, or loneliness on the road — and those feelings are common in trucking, not a character flaw. Building resilience means habits, connection, and knowing when to get help so you stay fit for duty.</p>
 
 <p>You've probably had that moment: miles of highway, the same playlist for the hundredth time, and a wave of loneliness or stress that hits out of nowhere. Long hours behind the wheel, time away from family, and the pressure of deadlines don't just wear on your body—they wear on your mind. The good news? Mental wellness is something you can build, and it's as critical to safety as your pre-trip.</p>
@@ -130,7 +130,7 @@ const posts = [
     title: 'Mile 12: Where Our Journey Gets Real',
     slug: 'mile-12-where-our-journey-gets-real',
     excerpt: 'The critical turning point every driver faces — and how to make it your strength.',
-    image: '/images/products/complete-bundle.svg',
+    image: '/images/blog/mile-12-journey.jpg',
     content: `<p>There's a moment on every long run when the highway wins. Not literally—you're still rolling—but your body and mind start to wave the white flag. That moment has a name here at Mile 12 Warrior, and we want every driver to know it. Every long-haul driver knows the feeling. You're hours into a run. The highway stretches in front of you, and your body starts sending signals—heavy eyes, wandering focus, that urge to just push a little farther. That moment has a name here: Mile 12. It's not a literal mile marker. It's the point where fatigue gets real and the temptation to push through is strongest. It's also the moment that defines what kind of driver you choose to be.</p>
 
 <p>At Mile 12 Warrior, we believe that moment is actually a gift. It's the turning point where awareness becomes action. Instead of reaching for another energy drink or ignoring the signs, Mile 12 is where you can choose to be a warrior: make the smart call, pull over, reset, and come back stronger.</p>
@@ -181,7 +181,7 @@ const posts = [
     title: 'Truck Driver Fatigue Management: 5 Quick Resets to Stay Alert',
     slug: '5-quick-resets-stay-alert',
     excerpt: 'Practical truck driver fatigue management: five quick resets to stay awake on long hauls, plus drowsy-driving warning signs — within FMCSA HOS limits.',
-    image: '/images/products/reflective-safety-vest.svg',
+    image: '/images/blog/quick-resets.jpg',
     content: `<p><strong>Truck driver fatigue management</strong> starts with noticing the early signs of drowsy driving — then acting before your focus drifts. If you need to know how to stay awake driving long distance until you can take a legal rest, use these five quick resets as a bridge, not a substitute for sleep.</p>
 
 <p>You know the drill: one minute you're fine, the next you're blinking too long or your mind is wandering off the road. Fatigue doesn't announce itself with a warning bell. It creeps in—heavy eyelids, wandering thoughts, microsleeps that last just long enough to drift across a lane line. When it hits, you need more than willpower; you need a toolkit of quick resets that actually work. Here are five that drivers and researchers swear by.</p>
@@ -240,7 +240,7 @@ const posts = [
     title: 'Embracing Change with Confidence: A Trucker\'s Guide',
     slug: 'embracing-change-with-confidence',
     excerpt: 'How professional drivers can build adaptability and thrive through career transitions.',
-    image: '/images/products/seasoned-packet.svg',
+    image: '/images/blog/embracing-change.jpg',
     content: `<p>Whether you've been driving for six months or twenty years, you've already lived through a lot of change. New routes, new regulations, new technology, new bosses—it never really stops. For truck drivers, adaptability isn't just a nice-to-have; it's survival. Change is the only constant on the road. New routes, new regulations, new technology, new bosses. For truck drivers, adaptability isn't just a nice-to-have—it's survival. Whether you're switching from days to nights, going from company driver to owner-operator, or just dealing with a detour that blows your schedule, how you respond to change defines your career.</p>
 
 <p>It's normal to feel uneasy when the rules shift or the route changes. The drivers who last are the ones who learn to treat change as part of the job and even as an opportunity. Here's how to build that mindset and the confidence to back it up.</p>
@@ -293,7 +293,7 @@ const posts = [
     title: 'How to Set Healthy Boundaries Without Feeling Guilty',
     slug: 'setting-healthy-boundaries',
     excerpt: 'The mindset shift every driver needs for a sustainable, guilt-free career.',
-    image: '/images/products/new-driver-packet.svg',
+    image: '/images/blog/healthy-boundaries.jpg',
     content: `<p>Say "no" lately? If you're like a lot of drivers, the word doesn't come easy. We're under constant pressure to say yes. Yes to the extra load. Yes to the tighter delivery window. Yes to skipping the break because dispatch is pushing. After a while, "no" can feel impossible—or selfish. But here's the truth: setting boundaries isn't selfish. It's the foundation of a career that lasts.</p>
 
 <p>Without boundaries, you burn out. You risk your safety, your health, and your relationships. With them, you protect what matters and show up better for everyone—including your company. The trick is knowing what your boundaries are and holding them without drowning in guilt.</p>
@@ -402,7 +402,7 @@ const posts = [
     title: 'Split Sleeper Berth Explained for Truck Drivers (FMCSA Educational Overview)',
     slug: 'split-sleeper-berth-explained-for-truck-drivers',
     excerpt: 'Plain-language overview of FMCSA split sleeper berth rest (7+2 style pairing): what qualifies, how it relates to the 14-hour window, and why rest quality still matters — educational, not legal advice.',
-    image: '/images/products/new-driver-packet.svg',
+    image: '/images/blog/split-sleeper.jpg',
     content: `<p><strong>Split sleeper berth</strong> is one of the most searched Hours of Service topics for OTR drivers — and one of the easiest to misunderstand. This page is an educational overview of the federal idea behind splitting rest. It is <strong>not</strong> legal advice, not ELD training, and not a substitute for 49 CFR Part 395 or your carrier’s compliance team. Always verify current rules at <a href="https://www.fmcsa.dot.gov/regulations/hours-of-service" target="_blank" rel="noopener noreferrer">FMCSA Hours of Service</a> and the regulation text in <a href="https://www.ecfr.gov/current/title-49/subtitle-B/chapter-III/subchapter-B/part-395" target="_blank" rel="noopener noreferrer">49 CFR Part 395</a>.</p>
 
 <p>If you already read our <a href="/blog/hours-of-service-rest-for-truck-drivers">HOS rest overview</a>, think of this as the next layer: how some property-carrying drivers may accumulate the equivalent of at least 10 consecutive hours off duty using <em>two</em> qualifying rest periods instead of one straight 10-hour block.</p>
@@ -458,7 +458,7 @@ const posts = [
     title: 'California Chain Laws for Truckers: R-1, R-2, R-3 Explained',
     slug: 'california-chain-laws-for-truckers',
     excerpt: 'Educational overview of California commercial chain control levels (R-1, R-2, R-3), where to check live conditions, and safe mountain habits for truck drivers — not a substitute for Caltrans or CHP guidance.',
-    image: '/images/products/seasoned-packet.svg',
+    image: '/images/blog/california-chains.jpg',
     content: `<p><strong>California chain laws for truckers</strong> are a seasonal reality for anyone running mountain corridors — I-5 over the Grapevine and Siskiyou, I-80 over Donner, US-50, and other graded routes when storms hit. This guide explains the common <strong>R-1 / R-2 / R-3</strong> chain-control language in plain English and how professional drivers prepare. It is educational only — not legal advice, not a live road report, and not a substitute for Caltrans, CHP, or your carrier’s winter policy.</p>
 
 <p>Always verify <strong>current</strong> chain controls and closures before you commit to a grade. Conditions change by hour. Start with Caltrans tools such as <a href="https://quickmap.dot.ca.gov/" target="_blank" rel="noopener noreferrer">Caltrans QuickMap</a> and official Caltrans / CHP winter driving resources, then follow posted signs and officer directions at the control point.</p>

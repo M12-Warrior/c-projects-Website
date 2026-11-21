@@ -367,8 +367,13 @@ app.get('/blog', (req, res) => {
     const cards = posts.map(function (p) {
       const author = (p.author_display && String(p.author_display).trim()) || p.author_username || '';
       const excerpt = seo.truncate(p.excerpt || seo.stripHtml(p.content), 140);
+      const photoSrc = usableArticlePhoto(p.image);
+      const photo = photoSrc
+        ? '<div class="blog-card-photo"><img src="' + seo.escapeAttr(photoSrc) + '" alt=""></div>'
+        : '';
       return '<article class="blog-card">'
         + '<a href="/blog/' + seo.escapeAttr(p.slug) + '" class="blog-card-link">'
+        + photo
         + '<div class="blog-card-plate"><h2 class="blog-card-plate-title">' + seo.escapeHtml(p.title) + '</h2></div>'
         + '<div class="blog-card-body">'
         + '<p class="blog-card-meta">' + seo.escapeHtml(formatBlogDate(p.created_at))
