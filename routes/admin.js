@@ -6,6 +6,7 @@ const db = require('../db/database');
 const episodesLib = require('../lib/episodes');
 const micBadge = require('../lib/micBadge');
 const { getStorageHealth } = require('../lib/storageHealth');
+const { VIDEOS_DIR } = require('../lib/paths');
 const { getShareLinks } = require('../lib/qrShare');
 const subscriptionRouter = require('./subscription');
 const { mapPartnerRow, parseServices, clampImagePosition } = require('../lib/wellnessPartners');
@@ -1361,7 +1362,7 @@ router.patch('/drivers-wall/:id', (req, res) => {
   res.json({ success: true, status: 'removed' });
 });
 
-const videoDir = path.join(__dirname, '..', 'public', 'videos');
+const videoDir = VIDEOS_DIR;
 if (!fs.existsSync(videoDir)) fs.mkdirSync(videoDir, { recursive: true });
 
 const episodeVideoUpload = multer({

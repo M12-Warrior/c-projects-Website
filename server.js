@@ -20,7 +20,7 @@ try {
   console.error('[road-picks] seed failed (continuing):', err && err.message ? err.message : err);
 }
 const { buildMonthPrintPages } = require('./lib/journalPrintMonth');
-const { UPLOADS_DIR } = require('./lib/paths');
+const { UPLOADS_DIR, VIDEOS_DIR } = require('./lib/paths');
 const { resolveCountryCode } = require('./lib/trafficGeo');
 const seo = require('./lib/seo');
 const { siteBaseUrl } = require('./lib/siteUrl');
@@ -123,6 +123,11 @@ app.use(enforceMarketerSession);
 
 // Serve uploaded images from the configured uploads dir (works when it lives on a
 // persistent volume outside public/). Registered first so it wins for /uploads/*.
+const videosDir = VIDEOS_DIR;
+if (!fs.existsSync(videosDir)) {
+  fs.mkdirSync(videosDir, { recursive: true });
+}
+app.use('/videos', express.static(videosDir));
 app.use('/uploads', express.static(UPLOADS_DIR));
 app.use(express.static(path.join(__dirname, 'public'), {
   etag: false,
