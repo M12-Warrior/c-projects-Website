@@ -1372,7 +1372,7 @@ const episodeVideoUpload = multer({
       cb(null, 'episode-' + Date.now() + ext);
     },
   }),
-  limits: { fileSize: 80 * 1024 * 1024 },
+  limits: { fileSize: 200 * 1024 * 1024 },
   fileFilter: function (req, file, cb) {
     const name = String(file.originalname || '').toLowerCase();
     const mime = String(file.mimetype || '').toLowerCase();
@@ -1403,7 +1403,7 @@ router.post('/episodes/upload', (req, res) => {
   episodeVideoUpload.single('video')(req, res, function (err) {
     if (err) {
       const tooBig = err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE';
-      return res.status(400).json({ error: tooBig ? 'That video is over 80 MB.' : (err.message || 'Upload failed.') });
+      return res.status(400).json({ error: tooBig ? 'That video is over 200 MB.' : (err.message || 'Upload failed.') });
     }
     if (!req.file) return res.status(400).json({ error: 'Choose a video file first.' });
     res.json({ success: true, video_path: '/videos/' + req.file.filename });
