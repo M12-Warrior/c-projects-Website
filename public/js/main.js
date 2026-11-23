@@ -594,6 +594,8 @@ document.addEventListener('DOMContentLoaded', () => {
       navAuth.innerHTML = `
         <a href="/account" style="color:var(--text-2);font-size:0.8rem;">${data.user.username}</a>
         &nbsp;
+        <a href="/refresh" style="color:var(--gold-light);font-size:0.78rem;">Refresh</a>
+        &nbsp;
         <a href="#" id="navLogout" style="color:var(--text-3);font-size:0.78rem;">Sign Out</a>
       `;
       const logoutBtn = document.getElementById('navLogout');
